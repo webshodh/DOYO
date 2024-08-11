@@ -1,0 +1,35 @@
+.filter-sort-search {
+    margin-left: 10px;
+  }
+  
+  .search-form {
+    margin-bottom: 8px;
+  }
+  
+  .search-input {
+    margin-right: 8px;
+  }
+  
+  .search-button {
+    width: 50px;
+  }
+  
+  .sort-dropdown {
+    padding-bottom: 10px;
+    margin-right: 10px;
+  }
+  
+  .category-filter-dropdown {
+    margin-left: 40px;
+  }
+  
+  .home-button {
+    margin-left: 40px;
+    width: 150px;
+  }
+  
+  .home-link {
+    text-decoration: none;
+    color: white;
+  }
+  

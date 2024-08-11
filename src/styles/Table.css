@@ -1,0 +1,80 @@
+/* src/styles/Table.css */
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-title {
+  text-align: center;
+  font-size: 2rem;
+}
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-item {
+  min-width: 50px;
+}
+
+.table-responsive {
+  margin-top: 20px;
+}
+
+.search-input {
+  width: 100%;
+}
+
+.pagination-label {
+  margin-right: 10px;
+}
+
+.pagination-label-input {
+  width: auto;
+}
+
+.alert-container {
+  text-align: center;
+}
+@media (min-width: 992px) {
+  .col-lg-6 {
+    flex: 0 0 auto;
+    width: 48% !important;
+  }}
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .table-title {
+    font-size: 1.5rem;
+  }
+
+  .filter-item {
+    flex: 1 1 100%;
+  }
+
+  .search-input {
+    margin-bottom: 10px;
+  }
+
+  .pagination-label,
+  .pagination-label-input {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table-title {
+    font-size: 1.2rem;
+  }
+
+  .filter-item {
+    flex: 1 1 100%;
+  }
+
+  .pagination-label,
+  .pagination-label-input {
+    font-size: 0.8rem;
+  }
+}

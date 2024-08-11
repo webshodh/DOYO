@@ -1,0 +1,31 @@
+/* AddHotel.css */
+.add-hotel-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+button {
+  width: 100%;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.card{
+  height: auto !important;
+}
+
+.btn-margin{
+  margin-bottom: 10px;
+}
+
+

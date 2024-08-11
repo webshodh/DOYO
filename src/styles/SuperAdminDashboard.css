@@ -1,0 +1,23 @@
+.card-title {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.card {
+  display: flex;
+  padding: 0px !important;
+  border-radius: 16px !important;
+  box-shadow: 8px 8px lightgray;
+  width: 12rem;
+  margin: 25px 5px;
+  height: auto;
+}
+
+.count {
+  font-size: 34px;
+  padding-left: 40px;
+}
+
+.dashboard-container {
+  margin: 10px;
+}

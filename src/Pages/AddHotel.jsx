@@ -1,0 +1,368 @@
+// import React, { useState } from "react";
+// import { db } from "../firebase/firebase";
+// import { v4 as uuidv4 } from "uuid";
+// import { set, ref } from "firebase/database";
+// import { useNavigate } from "react-router-dom";
+// import { ToastContainer, toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+// import { Form } from 'react-bootstrap';
+
+// import {SelectInput, TextInput} from '../Atoms'
+
+// function AddHotel() {
+//   const [hotelName, setHotelName] = useState("");
+//   const [selectedDistrict, setSelectedDistrict] = useState("");
+//   const [selectedState, setSelectedState] = useState("");
+//   const navigate = useNavigate();
+
+//   const districtsInIndia = [
+//     "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam",
+//     "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu",
+//     "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+//     "Kerala", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+//     "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+//     "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+//   ];
+
+//   const statesInIndia = [
+//     "Andhra Pradesh", "Arunachal Pradesh", "Assam",
+//     // ... other states
+//   ];
+
+//   const handleHotelNameChange = (e) => setHotelName(e.target.value);
+
+//   const handleDistrictChange = (district) => setSelectedDistrict(district);
+
+//   const handleStateChange = (state) => setSelectedState(state);
+
+//   const writeToDatabase = () => {
+//     const uuid = uuidv4();
+//     set(ref(db, `${hotelName}`), {
+//       Hotelname: hotelName,
+//       uuid,
+//       district: selectedDistrict,
+//       state: selectedState,
+//     });
+
+//     setHotelName("");
+//     setSelectedDistrict("");
+//     setSelectedState("");
+
+//     toast.success("Hotel Added Successfully!", {
+//       position: toast.POSITION.TOP_RIGHT,
+//     });
+
+//     navigate(`/admin/${hotelName}`);
+//   };
+
+//   return (
+//     <div className="add-hotel-container">
+//       <h1>Add Hotel</h1>
+
+//       <Form>
+//         <TextInput
+//           id="hotelName"
+//           value={hotelName}
+//           onChange={handleHotelNameChange}
+//           placeholder="Enter Hotel Name"
+//         />
+        
+//         <SelectInput
+//           id="selectState"
+//           value={selectedState}
+//           onChange={(e) => handleStateChange(e.target.value)}
+//           options={statesInIndia}
+//           placeholder="Select State"
+//         />
+
+//         <SelectInput
+//           id="selectDistrict"
+//           value={selectedDistrict}
+//           onChange={(e) => handleDistrictChange(e.target.value)}
+//           options={districtsInIndia}
+//           placeholder="Select District"
+//         />
+        
+//         <button onClick={writeToDatabase} className="btn btn-success">
+//           Submit
+//         </button>
+//       </Form>
+//       <ToastContainer />
+//     </div>
+//   );
+// }
+
+// export default AddHotel;
+
+import React, { useState } from "react";
+import { db, storage } from "../firebase/firebase";
+import { v4 as uuidv4 } from "uuid";
+import { set, ref } from "firebase/database";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Form } from "react-bootstrap";
+import styled from 'styled-components';
+import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+
+// Container for the form
+export const FormContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 20px;
+`;
+
+// Wrapper for each input
+export const InputWrapper = styled.div`
+  flex: 1 1 calc(50% - 20px); // Adjusted layout for responsiveness
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+`;
+
+// Label styling
+export const Label = styled.label`
+  margin-bottom: 8px;
+  font-weight: bold;
+`;
+
+// Input field with conditional styling
+export const Input = styled.input`
+  padding: 10px;
+  border: 1px solid ${props => props.error ? '#dc3545' : props.success ? '#28a745' : '#ccc'};
+  border-radius: 4px;
+  outline: none;
+  box-shadow: ${props => props.error ? '0 0 0 1px rgba(220, 53, 69, 0.5)' : 'none'};
+  
+  &:focus {
+    border-color: ${props => props.error ? '#dc3545' : '#80bdff'};
+    box-shadow: ${props => props.error ? '0 0 0 1px rgba(220, 53, 69, 0.5)' : '0 0 0 0.2rem rgba(38, 143, 255, 0.25)'};
+  }
+`;
+
+// Icon for error or success
+export const Icon = styled.div`
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${props => props.error ? '#dc3545' : '#28a745'};
+`;
+
+// Error message styling
+export const ErrorMessage = styled.p`
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin: 5px 0 0;
+`;
+
+// Success message styling
+export const SuccessMessage = styled.p`
+  color: #28a745;
+  font-size: 0.875rem;
+  margin: 5px 0 0;
+`;
+
+// File upload section
+export const FileUpload = styled.div`
+  flex: 1 1 100%;
+`;
+
+// Button styling
+export const Button = styled.button`
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  background-color: ${props => props.primary ? '#28a745' : '#dc3545'};
+  margin-top: 10px;
+  
+  &:hover {
+    background-color: ${props => props.primary ? '#218838' : '#c82333'};
+  }
+`;
+
+// Define additional constants for states and districts
+const statesInIndia = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam",
+  "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu",
+  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+
+const districtsInIndia = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam",
+  "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu",
+  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+
+function AddHotel() {
+  const [hotelName, setHotelName] = useState("");
+  const [stateName, setStateName] = useState("");
+  const [districtName, setDistrictName] = useState("");
+  const [hotelAddress, setHotelAddress] = useState("");
+  const [categories, setCategories] = useState([]); // Add your category options
+  const [pinCode, setPinCode] = useState("Available");
+  const [selectedImage, setSelectedImage] = useState(null); // For file upload
+  const [imageUrl, setImageUrl] = useState(""); // URL for uploaded image
+
+  const handleHotelNameChange = (e) => setHotelName(e.target.value);
+  const handleStateChange = (e) => setStateName(e.target.value);
+  const handleDistrictChange = (e) => setDistrictName(e.target.value);
+  const handleHotelAddressChange = (e) => setHotelAddress(e.target.value);
+  const handlePinCodeChange = (e) => setPinCode(e.target.value);
+
+  const handleFileChange = (e) => {
+    if (e.target.files.length) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
+ 
+
+  const writeToDatabase = async () => {
+    const uuid = uuidv4();
+    await set(ref(db, `hotels/${uuid}`), {
+      Hotelname: hotelName,
+      state: stateName,
+      district: districtName,
+      address: hotelAddress,
+      pinCode,
+      imageUrl,
+    });
+
+    setHotelName("");
+    setStateName("");
+    setDistrictName("");
+    setHotelAddress("");
+    setPinCode("Available");
+    setSelectedImage(null);
+    setImageUrl("");
+
+    toast.success("Hotel Added Successfully!", {
+      position: toast.POSITION.TOP_RIGHT,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    await writeToDatabase();
+  };
+
+  return (
+    <>
+      <div className="background-card">
+        <FormContainer>
+          <InputWrapper>
+            <Label htmlFor="hotelName">Hotel Name</Label>
+            <div style={{ position: 'relative' }}>
+              <Input
+                type="text"
+                value={hotelName}
+                onChange={handleHotelNameChange}
+                id="hotelName"
+                error={!hotelName}
+                success={hotelName}
+                placeholder="Enter Hotel Name"
+              />
+              {hotelName && <Icon success><FaCheckCircle /></Icon>}
+              {!hotelName && <Icon error><FaExclamationCircle /></Icon>}
+            </div>
+            {!hotelName && <ErrorMessage>Hotel Name is required.</ErrorMessage>}
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label htmlFor="stateName">State</Label>
+            <select
+              id="stateName"
+              className="form-select"
+              onChange={handleStateChange}
+              value={stateName}
+            >
+              <option value="" disabled>Select State</option>
+              {statesInIndia.map(state => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label htmlFor="districtName">District</Label>
+            <select
+              id="districtName"
+              className="form-select"
+              onChange={handleDistrictChange}
+              value={districtName}
+            >
+              <option value="" disabled>Select District</option>
+              {districtsInIndia.map(district => (
+                <option key={district} value={district}>{district}</option>
+              ))}
+            </select>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label htmlFor="hotelAddress">Address</Label>
+            <textarea
+              id="hotelAddress"
+              className="form-control"
+              rows="3"
+              value={hotelAddress}
+              onChange={handleHotelAddressChange}
+              placeholder="Enter Hotel Address"
+            ></textarea>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label>Status</Label>
+            <div>
+              <input
+                type="radio"
+                id="availableRadio"
+                name="status"
+                value="Available"
+                checked={pinCode === "Available"}
+                onChange={() => setPinCode("Available")}
+                className="form-check-input"
+              />
+              <label htmlFor="availableRadio" className="form-check-label" style={{width:'100px'}}>
+                Available
+              </label>
+              <input
+                type="radio"
+                id="notAvailableRadio"
+                name="status"
+                value="Not Available"
+                checked={pinCode === "Not Available"}
+                onChange={() => setPinCode("Not Available")}
+                className="form-check-input"
+              />
+              <label htmlFor="notAvailableRadio" className="form-check-label">
+                Not Available
+              </label>
+            </div>
+          </InputWrapper>
+
+          <FileUpload>
+            <Label htmlFor="formFile">Upload Image</Label>
+            <input type="file" id="formFile" onChange={handleFileChange} className="form-control" />
+          </FileUpload>
+
+          <Button primary onClick={handleSubmit}>
+            Submit
+          </Button>
+        </FormContainer>
+      </div>
+      <ToastContainer />
+    </>
+  );
+}
+
+export default AddHotel;
