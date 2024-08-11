@@ -1,6 +1,6 @@
 // AddMenu.js
 import React, { useState, useEffect } from "react";
-import { db, storage } from "../firebase/firebase";
+import { db, storage } from "../data/firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, update } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";

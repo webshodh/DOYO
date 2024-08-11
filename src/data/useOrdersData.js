@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '../firebase/firebase';
+import { db } from './firebase/firebaseConfig';
 import { onValue, ref } from 'firebase/database';
 
 const useOrdersData = (hotelName) => {

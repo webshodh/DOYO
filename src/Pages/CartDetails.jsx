@@ -5,7 +5,7 @@ import CheckoutForm from "../components/Form/CheckoutForm";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { HotelContext } from "../Context/HotelContext";
-import { db, ref, push, set } from "../firebase/firebase"; // Ensure imports are correct
+import { db, ref, push, set } from "../data/firebase/firebaseConfig"; // Ensure imports are correct
 import { DynamicTable } from "../components";
 import { CartDetailscolumns } from "../data/Columns";
 

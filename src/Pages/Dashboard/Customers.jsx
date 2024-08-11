@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../../firebase/firebase";
+import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { PageTitle } from "../../Atoms";
 import { DynamicTable, FilterSortSearch } from "../../components";

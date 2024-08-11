@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebase/firebase";
+import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref, remove } from "firebase/database";
 import "../../styles/SuperAdminDashboard.css";
 import { CountCard, DynamicTable, Tab } from "../../components";

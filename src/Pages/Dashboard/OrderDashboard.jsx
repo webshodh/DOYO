@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Form } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
-import { db, ref, onValue, update } from "../../firebase/firebase";
+import { db, ref, onValue, update } from "../../data/firebase/firebaseConfig";
 import { PageTitle } from "../../Atoms";
 import PendingOrders from "../PendingOrders";
 import AcceptedOrders from "../AcceptedOrders";

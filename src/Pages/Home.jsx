@@ -1,6 +1,6 @@
 // ViewMenu.js
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase/firebase";
+import { db } from "../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";

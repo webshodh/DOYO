@@ -3,7 +3,7 @@ import useData from "../../data/useData";
 import { PageTitle } from "../../Atoms";
 import { DynamicTable } from "../../components";
 import { adminsListColumn } from "../../data/Columns";
-import { db } from "../../firebase/firebase";
+import { db } from "../../data/firebase/firebaseConfig";
 import { ref, update, get } from "firebase/database";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications

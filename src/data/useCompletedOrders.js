@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '../firebase/firebase'; // Adjust the path as necessary
+import { db } from './firebase/firebaseConfig'; // Adjust the path as necessary
 import { onValue, ref } from 'firebase/database';
 
 const useCompletedOrders = (hotelName) => {

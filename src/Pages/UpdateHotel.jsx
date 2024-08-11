@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { db } from "../firebase/firebase";
+import { db } from "../data/firebase/firebaseConfig";
 import { update, ref, onValue } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 
