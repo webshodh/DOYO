@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/firebaseConfig';
 import { onValue, ref } from 'firebase/database';
-
+import { getAuth } from "firebase/auth";
 const useMenuData = (hotelName) => {
   const [menuData, setMenuData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   useEffect(() => {
-    const menuRef = ref(db, `/${hotelName}/menu/`);
+    const menuRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`);
     const unsubscribe = onValue(menuRef, (snapshot) => {
       try {
         const data = snapshot.val();

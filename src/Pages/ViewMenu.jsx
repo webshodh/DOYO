@@ -8,6 +8,7 @@ import PageTitle from "../Atoms/PageTitle";
 import { ViewMenuColumns } from "../data/Columns";
 import styled from "styled-components";
 import { useHotelContext } from "../Context/HotelContext";
+import { getAuth } from "firebase/auth";
 // Background Card
 const BackgroundCard = styled.div`
   background: #fff;
@@ -25,10 +26,13 @@ function ViewMenu() {
   const [hotels, setHotels] = useState([]);
 
   const { hotelName } = useHotelContext();
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
 
   // Fetch Menu data from database
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/menu`), (snapshot) => {
+    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu`), (snapshot) => {
       setMenus([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -41,7 +45,7 @@ function ViewMenu() {
 
   // Fetch Category data from database
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/categories/`), (snapshot) => {
+    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`), (snapshot) => {
       setCategories([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -76,7 +80,7 @@ function ViewMenu() {
     );
     if (confirmDelete) {
       // Delete the menu
-      remove(ref(db, `/${hotelName}/menu/${menuId}`));
+      remove(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${menuId}`));
 
       toast.success("Menu Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,

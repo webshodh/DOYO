@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/firebaseConfig';
 import { onValue, ref } from 'firebase/database';
-
+import { getAuth } from "firebase/auth";
 const useCategoriesData = (hotelName) => {
   const [categoriesData, setCategoriesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   useEffect(() => {
-    const categoriesRef = ref(db, `/${hotelName}/categories/`);
+    const categoriesRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`);
     const unsubscribe = onValue(categoriesRef, (snapshot) => {
       try {
         const data = snapshot.val();

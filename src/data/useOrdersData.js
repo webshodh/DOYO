@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/firebaseConfig';
 import { onValue, ref } from 'firebase/database';
-
+import { getAuth } from "firebase/auth";
 const useOrdersData = (hotelName) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
@@ -16,8 +16,11 @@ const useOrdersData = (hotelName) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   useEffect(() => {
-    const ordersRef = ref(db, `${hotelName}/orders/`);
+    const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
     const unsubscribe = onValue(ordersRef, (snapshot) => {
       try {
         const data = snapshot.val();

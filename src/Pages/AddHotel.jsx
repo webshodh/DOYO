@@ -246,11 +246,12 @@ function AddHotel() {
       address: hotelAddress,
       pinCode,
       imageUrl,
+      uuid, 
     };
   
     try {
       // Reference to the admin's hotels collection
-      const hotelRef = ref(db, `admins/${adminID}/hotels/${uuid}`);
+      const hotelRef = ref(db, `admins/${adminID}/hotels/${hotelName}`);
       
       // Set the hotel data under the admin's collection
       await set(hotelRef, hotelData);

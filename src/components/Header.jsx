@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import Nav from "./Navbar/Nav";
 import { colors } from "../theme/theme";
+import { useHotelContext } from "../Context/HotelContext";
 // Styled components
 const StyledHeader = styled.header`
   transition: all 0.5s;
@@ -28,7 +29,7 @@ const Logo = styled.div`
     font-size: 26px;
     font-weight: 700;
     color: #012970;
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
   }
 `;
 
@@ -36,12 +37,12 @@ const Header = () => {
   const handleToggleSideBar = () => {
     document.body.classList.toggle("toggle-sidebar");
   };
-
+  const { hotelName } = useHotelContext();
   return (
     <StyledHeader className="fixed-top d-flex align-items-center">
       <div className="d-flex align-items-center justify-content-between">
         <Logo>
-          <span>AdminDashboard</span>
+          <span>{hotelName}</span>
         </Logo>
         <i
           className="bi bi-list toggle-sidebar-btn"

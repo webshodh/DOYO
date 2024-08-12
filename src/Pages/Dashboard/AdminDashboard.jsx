@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../../data/firebase/firebaseConfig";
-import { onValue, ref } from "firebase/database";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/AdminDashboard.css";
@@ -21,15 +19,14 @@ import {
 } from "../../data/Columns";
 import useHotelsData from "../../data/useHotelsData";
 import { getAuth } from "firebase/auth";
-import HotelSelector from "./HotelSelector";
 import { useHotelContext } from "../../Context/HotelContext";
-import { useNavigate } from "react-router-dom";
+
 function AdminDashboard() {
   const [showAll, setShowAll] = useState(false);
   const [filterCount, setFilterCount] = useState(5); // Default to showing top 5
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
-  const navigate = useNavigate()
+  
   console.log("currentAdminId", currentAdminId);
   const { hotelsData, addHotel, loading, error } =
     useHotelsData(currentAdminId);
@@ -40,17 +37,10 @@ function AdminDashboard() {
   };
 
   /*--------------------------- Extract hotel name from URL path ---------------------------------------*/
-  // const path = window.location.pathname;
-  // const [hotelName, setHotelName] = useState('');
-  const { hotelName, setHotelName } = useHotelContext();
-
-  const handleHotelSelect = (selectedHotelName) => {
-    // const formattedHotelName = selectedHotelName.replace(/\s+/g, ''); // Remove spaces
-    setHotelName(selectedHotelName); // Update hotelName in context
-    navigate(`/${selectedHotelName}/admin/dashboard`)
-  };
   
-  console.log("hotelName", hotelName);
+  const { hotelName } = useHotelContext();
+
+ 
 
   const {
     menuData,
@@ -150,8 +140,7 @@ function AdminDashboard() {
         <PageTitle pageTitle={"Dashboard"} />
         <Tab tabs={tabs} />
       </div>
-      <HotelSelector adminId={currentAdminId} onHotelSelect={handleHotelSelect}/>
-      {hotelName}
+
       {/* Count Card for Orders & Customers */}
       <div>
         <div>

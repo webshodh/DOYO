@@ -9,7 +9,7 @@ import { ViewCategoryColumns } from "../data/Columns";
 import { DynamicTable } from "../components";
 import styled from "styled-components";
 import { useHotelContext } from "../Context/HotelContext";
-
+import { getAuth } from "firebase/auth";
 // Container for Category Management
 const CategoryManagementContainer = styled.div`
   display: flex;
@@ -75,25 +75,30 @@ function AddCategory() {
   const [tempCategoryId, setTempCategoryId] = useState("");
 
   const { hotelName } = useHotelContext();
-
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   const handleCategoryNameChange = (e) => {
     setCategoryName(e.target.value);
   };
 
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/categories/`), (snapshot) => {
-      setCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        const categoryArray = Object.values(data);
-        setCategories(categoryArray);
+    onValue(
+      ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`),
+      (snapshot) => {
+        setCategories([]);
+        const data = snapshot.val();
+        if (data !== null) {
+          const categoryArray = Object.values(data);
+          setCategories(categoryArray);
+        }
       }
-    });
+    );
   }, [hotelName]);
 
   const addCategoryToDatabase = () => {
     const categoryId = uid();
-    set(ref(db, `/${hotelName}/categories/${categoryId}`), {
+    set(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/${categoryId}`), {
       categoryName,
       categoryId,
     });

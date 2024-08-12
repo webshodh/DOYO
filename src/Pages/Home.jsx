@@ -14,6 +14,7 @@ import CardSlider from "../components/Cards/CardSlider";
 import styled from "styled-components";
 import { colors } from "../theme/theme";
 import { useHotelContext } from "../Context/HotelContext";
+import { getAuth } from "firebase/auth";
 const CardFooter = styled.div`
   display: block;
   text-align: center;
@@ -45,7 +46,9 @@ function Home() {
   const { hotelName } = useHotelContext();
   const navigate = useNavigate();
   const handleClose = () => setShow(false);
-
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   useEffect(() => {
     // Check if 'admin' is present in the URL pathname
     const path = window.location.pathname;
@@ -58,7 +61,7 @@ function Home() {
 
   // Menu
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/menu/`), (snapshot) => {
+    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`), (snapshot) => {
       setMenus([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -69,7 +72,7 @@ function Home() {
 
   //  Category
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/categories/`), (snapshot) => {
+    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`), (snapshot) => {
       setCategories([]);
       const data = snapshot.val();
       if (data !== null) {

@@ -19,7 +19,6 @@ function SideBar() {
               <Link className="nav-link" to={`/viewMenu/${hotelName}`}>
                 <i className="bi bi-house"></i>
                 <span>Home</span>
-                <span>{hotelName}</span>
               </Link>
             </li>
 

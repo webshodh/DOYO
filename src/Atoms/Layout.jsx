@@ -33,9 +33,7 @@ const Layout = ({ children }) => {
         <SidebarContainer>
           <Sidebar />
         </SidebarContainer>
-        <MainContent id="main">
-          {children}
-        </MainContent>
+        <MainContent id="main">{children}</MainContent>
       </LayoutContent>
     </LayoutContainer>
   );

@@ -8,7 +8,7 @@ import { HotelContext, useHotelContext } from "../Context/HotelContext";
 import { db, ref, push, set } from "../data/firebase/firebaseConfig"; // Ensure imports are correct
 import { DynamicTable } from "../components";
 import { CartDetailscolumns } from "../data/Columns";
-
+import { getAuth } from "firebase/auth";
 function CartDetails() {
   const location = useLocation();
   const { cartItems: initialCartItems } = location.state || { cartItems: [] };
@@ -16,7 +16,9 @@ function CartDetails() {
   const [checkoutData, setCheckoutData] = useState(null);
   const { hotelName } = useHotelContext();
   const navigate = useNavigate();
-
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   const handleCheckout = async (data) => {
     const removeCartItems = (data) => {
       const updatedData = { ...data }; // Create a copy of the data object
@@ -30,7 +32,7 @@ function CartDetails() {
     const currentDate = new Date().toISOString(); // Get current date in ISO format
 
     try {
-      const ordersRef = ref(db, `${hotelName}/orders/`);
+      const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
 
       // Loop through each item and push it as a separate order entry
       for (const item of cartItems) {

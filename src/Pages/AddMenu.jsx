@@ -17,7 +17,7 @@ import {
 import styled from 'styled-components';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { useHotelContext } from "../Context/HotelContext";
-
+import { getAuth } from "firebase/auth";
 // Container for the form
 export const FormContainer = styled.div`
   display: flex;
@@ -113,10 +113,13 @@ function AddMenu() {
   const [editMode, setEditMode] = useState(false);
   const [editedMenuId, setEditedMenuId] = useState(null);
 
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
  
   const { hotelName } = useHotelContext();
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/menu/`), (snapshot) => {
+    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`), (snapshot) => {
       setMenues([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -128,7 +131,7 @@ function AddMenu() {
   }, [hotelName]);
 
   useEffect(() => {
-    onValue(ref(db, `/${hotelName}/categories/`), (snapshot) => {
+    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`), (snapshot) => {
       setCategories([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -198,7 +201,7 @@ function AddMenu() {
 
       if (editMode) {
         // Update existing menu with the image URL
-        update(ref(db, `/${hotelName}/menu/${editedMenuId}`), {
+        update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
           menuName,
           menuCookingTime,
           menuPrice,
@@ -216,7 +219,7 @@ function AddMenu() {
       } else {
         // Add new menu with the image URL
         const uuid = uid();
-        set(ref(db, `/${hotelName}/menu/${uuid}`), {
+        set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
           menuName,
           menuCookingTime,
           menuPrice,
@@ -234,7 +237,7 @@ function AddMenu() {
       // If no file is selected, proceed without uploading image
       if (editMode) {
         // Update existing menu without the image URL
-        update(ref(db, `/${hotelName}/menu/${editedMenuId}`), {
+        update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
           menuName,
           menuCookingTime,
           menuPrice,
@@ -251,7 +254,7 @@ function AddMenu() {
       } else {
         // Add new menu without the image URL
         const uuid = uid();
-        set(ref(db, `/${hotelName}/menu/${uuid}`), {
+        set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
           menuName,
           menuCookingTime,
           menuPrice,
