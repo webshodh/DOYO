@@ -13,6 +13,7 @@ import "../styles/Home.css";
 import CardSlider from "../components/Cards/CardSlider";
 import styled from "styled-components";
 import { colors } from "../theme/theme";
+import { useHotelContext } from "../Context/HotelContext";
 const CardFooter = styled.div`
   display: block;
   text-align: center;
@@ -40,8 +41,8 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState("");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
-  const path = window.location.pathname;
-  let hotelName = path.split("/").pop();
+ 
+  const { hotelName } = useHotelContext();
   const navigate = useNavigate();
   const handleClose = () => setShow(false);
 

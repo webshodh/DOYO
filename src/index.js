@@ -14,13 +14,16 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { HotelProvider } from "./Context/HotelContext";
 // Inject colors into CSS
 import { injectColorsIntoCSS } from "./theme/InjectColors";
+import { AuthProvider } from "./Context/AuthContext";
 injectColorsIntoCSS();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
+    <AuthProvider>
     <HotelProvider>
       <App />
     </HotelProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

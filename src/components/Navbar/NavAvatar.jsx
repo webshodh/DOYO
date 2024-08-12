@@ -1,14 +1,17 @@
 import React from 'react';
-import useFirebaseAdminData from '../../data/useData'; // Adjust the path as necessary
+import { useAuthContext } from '../../Context/AuthContext'; // Adjust the import path accordingly
+import useAdminData from '../../data/useAdminData'; // Adjust the path as necessary
 
 function NavAvatar() {
-  const { data, loading, error } = useFirebaseAdminData('/admins/');
-  console.log('datadata', data)
+  const { currentAdminId } = useAuthContext(); // Get the current admin ID from context
+  const { data, loading, error } = useAdminData(`/admins/${currentAdminId}`);
+  
+  console.log('Admin Data:', data); // Check if you're getting the correct admin data
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const allAdminsData = data;
-  const totalAdmins = data.length;
+  const adminData = data;
 
   return (
     <li className="nav-item dropdown pe-3">
@@ -17,16 +20,15 @@ function NavAvatar() {
         href="#"
         data-bs-toggle="dropdown"
       >
-        {/* Replace with user-specific data */}
         <span className="d-none d-md-block dropdown-toggle ps-2">
-          {allAdminsData[0]?.name || 'User'}
+          {adminData?.name || 'User'}
         </span>
       </a>
 
       <ul className="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
         <li className="dropdown-header">
-          <h6>{allAdminsData[0]?.name || 'User'}</h6>
-          <span>{allAdminsData[0]?.role || 'Role'}</span>
+          <h6>{adminData?.name || 'User'}</h6>
+          <span>{adminData?.role || 'Role'}</span>
         </li>
         <li>
           <hr className="dropdown-divider" />

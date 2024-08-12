@@ -6,11 +6,12 @@ import { DynamicTable, FilterSortSearch } from "../../components";
 import { customersColumns } from "../../data/Columns";
 import useCompletedOrders from "../../data/useCompletedOrders";
 import useCustomerData from "../../data/useCustomerData";
+import { useHotelContext } from "../../Context/HotelContext";
 const Customers = () => {
   // const [completedOrders, setCompletedOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
-  const hotelName = "Atithi";
+  const { hotelName } = useHotelContext();
 
   // useEffect(() => {
   //   const ordersRef = ref(db, `Atithi/orders/`);

@@ -7,10 +7,11 @@ import { db } from "../../data/firebase/firebaseConfig";
 import { ref, update, get } from "firebase/database";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications
+import { useHotelContext } from "../../Context/HotelContext";
 
 const AdminsList = () => {
   const { data, loading, error } = useData("/admins/");
-  const hotelName = "Atithi";
+  const { hotelName } = useHotelContext();
 
   // Convert data to an array and add serial numbers
   const adminsDataArray = Object.entries(data).map(([id, admin], index) => ({

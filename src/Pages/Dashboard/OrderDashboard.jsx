@@ -7,6 +7,7 @@ import PendingOrders from "../PendingOrders";
 import AcceptedOrders from "../AcceptedOrders";
 import { Tab } from "../../components";
 import CancelledOrders from "../CancelledOrders";
+import { useHotelContext } from "../../Context/HotelContext";
 
 const OrderDashboard = () => {
   const location = useLocation();
@@ -30,7 +31,7 @@ const OrderDashboard = () => {
   const [waiterName, setWaiterName] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const hotelName = "Atithi";
+  const { hotelName } = useHotelContext();
 
   useEffect(() => {
     const ordersRef = ref(db, `${hotelName}/orders/`);
@@ -78,7 +79,7 @@ const OrderDashboard = () => {
         setCancelledOrderCount(0);
       }
     });
-
+console.log('completedOrderscompletedOrders', completedOrders)
     return () => unsubscribe();
   }, [hotelName]);
 

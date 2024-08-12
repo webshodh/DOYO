@@ -12,7 +12,7 @@ const useCustomerData = (completedOrders) => {
 
     completedOrders.forEach((order) => {
       const { checkoutData } = order;
-      const { name, cartItems  } = checkoutData;
+      const { name, cartItems , mobile } = checkoutData;
 
       const totalOrderPrice = cartItems.reduce(
         (sum, item) => sum + parseFloat(item.menuPrice) * item.quantity,

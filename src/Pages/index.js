@@ -19,6 +19,7 @@ export {default as MenuDashboard} from './Dashboard/MenuDashboard'
 // Cart 
 export {default as CartDetails} from './CartDetails'
 export {default as OrderPage} from './OrderPage'
+export {default as SplitBill} from './SplitBill'
 
 // Home
 export {default as Home} from './Home'

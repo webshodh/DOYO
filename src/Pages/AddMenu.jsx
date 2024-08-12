@@ -16,6 +16,7 @@ import {
 
 import styled from 'styled-components';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { useHotelContext } from "../Context/HotelContext";
 
 // Container for the form
 export const FormContainer = styled.div`
@@ -112,9 +113,8 @@ function AddMenu() {
   const [editMode, setEditMode] = useState(false);
   const [editedMenuId, setEditedMenuId] = useState(null);
 
-  // const path = window.location.pathname;
-  // let hotelName = path.split("/").pop();
-  let hotelName = 'Atithi'
+ 
+  const { hotelName } = useHotelContext();
   useEffect(() => {
     onValue(ref(db, `/${hotelName}/menu/`), (snapshot) => {
       setMenues([]);

@@ -5,9 +5,9 @@ import { set, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Form } from "react-bootstrap";
-import styled from 'styled-components';
-import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
-
+import styled from "styled-components";
+import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { getAuth } from "firebase/auth";
 // Container for the form
 export const FormContainer = styled.div`
   display: flex;
@@ -33,14 +33,19 @@ export const Label = styled.label`
 // Input field with conditional styling
 export const Input = styled.input`
   padding: 10px;
-  border: 1px solid ${props => props.error ? '#dc3545' : props.success ? '#28a745' : '#ccc'};
+  border: 1px solid
+    ${(props) => (props.error ? "#dc3545" : props.success ? "#28a745" : "#ccc")};
   border-radius: 4px;
   outline: none;
-  box-shadow: ${props => props.error ? '0 0 0 1px rgba(220, 53, 69, 0.5)' : 'none'};
-  
+  box-shadow: ${(props) =>
+    props.error ? "0 0 0 1px rgba(220, 53, 69, 0.5)" : "none"};
+
   &:focus {
-    border-color: ${props => props.error ? '#dc3545' : '#80bdff'};
-    box-shadow: ${props => props.error ? '0 0 0 1px rgba(220, 53, 69, 0.5)' : '0 0 0 0.2rem rgba(38, 143, 255, 0.25)'};
+    border-color: ${(props) => (props.error ? "#dc3545" : "#80bdff")};
+    box-shadow: ${(props) =>
+      props.error
+        ? "0 0 0 1px rgba(220, 53, 69, 0.5)"
+        : "0 0 0 0.2rem rgba(38, 143, 255, 0.25)"};
   }
 `;
 
@@ -50,7 +55,7 @@ export const Icon = styled.div`
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: ${props => props.error ? '#dc3545' : '#28a745'};
+  color: ${(props) => (props.error ? "#dc3545" : "#28a745")};
 `;
 
 // Error message styling
@@ -79,31 +84,88 @@ export const Button = styled.button`
   border-radius: 4px;
   cursor: pointer;
   color: white;
-  background-color: ${props => props.primary ? '#28a745' : '#dc3545'};
+  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
   margin-top: 10px;
-  
+
   &:hover {
-    background-color: ${props => props.primary ? '#218838' : '#c82333'};
+    background-color: ${(props) => (props.primary ? "#218838" : "#c82333")};
   }
 `;
 
 // Define additional constants for states and districts
 const statesInIndia = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam",
-  "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu",
-  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
-  "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
-  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli",
+  "Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
 ];
 
 const districtsInIndia = [
-  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam",
-  "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu",
-  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
-  "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
-  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli",
+  "Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
 ];
 
 function AddHotel() {
@@ -122,41 +184,99 @@ function AddHotel() {
   const handleHotelAddressChange = (e) => setHotelAddress(e.target.value);
   const handlePinCodeChange = (e) => setPinCode(e.target.value);
 
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
   const handleFileChange = (e) => {
     if (e.target.files.length) {
       setSelectedImage(e.target.files[0]);
     }
   };
-
  
+
+
+  // const writeToDatabase = async (adminID) => {
+  //   const uuid = uuidv4();
+  //     // Check if adminID is provided
+  // if (!adminID) {
+  //   console.error("Admin ID is undefined");
+  //   return;
+  // }
+  //   await set(ref(db, `hotels/${uuid}`), {
+  //     Hotelname: hotelName,
+  //     state: stateName,
+  //     district: districtName,
+  //     address: hotelAddress,
+  //     pinCode,
+  //     imageUrl,
+  //     adminID, // Store adminID in the hotel data
+  //   });
+
+  //   // Add hotel reference under the particular admin's collection
+  //   await set(ref(db, `admins/${adminID}/hotels/${uuid}`), true);
+
+  //   setHotelName("");
+  //   setStateName("");
+  //   setDistrictName("");
+  //   setHotelAddress("");
+  //   setPinCode("Available");
+  //   setSelectedImage(null);
+  //   setImageUrl("");
+
+  //   toast.success("Hotel Added Successfully!", {
+  //     position: toast.POSITION.TOP_RIGHT,
+  //   });
+  // };
 
   const writeToDatabase = async () => {
     const uuid = uuidv4();
-    await set(ref(db, `hotels/${uuid}`), {
-      Hotelname: hotelName,
+    const adminID = currentAdminId; // Replace this with the actual admin ID
+  
+    if (!adminID) {
+      console.error("Admin ID is undefined");
+      toast.error("Error: Admin ID is undefined", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
+  
+    const hotelData = {
+      hotelName,
       state: stateName,
       district: districtName,
       address: hotelAddress,
       pinCode,
       imageUrl,
-    });
-
-    setHotelName("");
-    setStateName("");
-    setDistrictName("");
-    setHotelAddress("");
-    setPinCode("Available");
-    setSelectedImage(null);
-    setImageUrl("");
-
-    toast.success("Hotel Added Successfully!", {
-      position: toast.POSITION.TOP_RIGHT,
-    });
+    };
+  
+    try {
+      // Reference to the admin's hotels collection
+      const hotelRef = ref(db, `admins/${adminID}/hotels/${uuid}`);
+      
+      // Set the hotel data under the admin's collection
+      await set(hotelRef, hotelData);
+  
+      // Clear form fields after successful submission
+      setHotelName("");
+      setStateName("");
+      setDistrictName("");
+      setHotelAddress("");
+      setPinCode("");
+      setSelectedImage(null);
+      setImageUrl("");
+  
+      toast.success("Hotel Added Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    } catch (error) {
+      console.error("Error adding hotel:", error);
+      toast.error("Error adding hotel. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     await writeToDatabase();
   };
 
@@ -166,7 +286,7 @@ function AddHotel() {
         <FormContainer>
           <InputWrapper>
             <Label htmlFor="hotelName">Hotel Name</Label>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: "relative" }}>
               <Input
                 type="text"
                 value={hotelName}
@@ -176,8 +296,16 @@ function AddHotel() {
                 success={hotelName}
                 placeholder="Enter Hotel Name"
               />
-              {hotelName && <Icon success><FaCheckCircle /></Icon>}
-              {!hotelName && <Icon error><FaExclamationCircle /></Icon>}
+              {hotelName && (
+                <Icon success>
+                  <FaCheckCircle />
+                </Icon>
+              )}
+              {!hotelName && (
+                <Icon error>
+                  <FaExclamationCircle />
+                </Icon>
+              )}
             </div>
             {!hotelName && <ErrorMessage>Hotel Name is required.</ErrorMessage>}
           </InputWrapper>
@@ -190,9 +318,13 @@ function AddHotel() {
               onChange={handleStateChange}
               value={stateName}
             >
-              <option value="" disabled>Select State</option>
-              {statesInIndia.map(state => (
-                <option key={state} value={state}>{state}</option>
+              <option value="" disabled>
+                Select State
+              </option>
+              {statesInIndia.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
               ))}
             </select>
           </InputWrapper>
@@ -205,9 +337,13 @@ function AddHotel() {
               onChange={handleDistrictChange}
               value={districtName}
             >
-              <option value="" disabled>Select District</option>
-              {districtsInIndia.map(district => (
-                <option key={district} value={district}>{district}</option>
+              <option value="" disabled>
+                Select District
+              </option>
+              {districtsInIndia.map((district) => (
+                <option key={district} value={district}>
+                  {district}
+                </option>
               ))}
             </select>
           </InputWrapper>
@@ -236,7 +372,11 @@ function AddHotel() {
                 onChange={() => setPinCode("Available")}
                 className="form-check-input"
               />
-              <label htmlFor="availableRadio" className="form-check-label" style={{width:'100px'}}>
+              <label
+                htmlFor="availableRadio"
+                className="form-check-label"
+                style={{ width: "100px" }}
+              >
                 Available
               </label>
               <input
@@ -256,7 +396,12 @@ function AddHotel() {
 
           <FileUpload>
             <Label htmlFor="formFile">Upload Image</Label>
-            <input type="file" id="formFile" onChange={handleFileChange} className="form-control" />
+            <input
+              type="file"
+              id="formFile"
+              onChange={handleFileChange}
+              className="form-control"
+            />
           </FileUpload>
 
           <Button primary onClick={handleSubmit}>

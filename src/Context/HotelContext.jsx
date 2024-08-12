@@ -1,14 +1,17 @@
-import React, { createContext } from "react";
+import React, { createContext, useState, useContext } from 'react';
 
-export const HotelContext = createContext();
+const HotelContext = createContext();
 
 export const HotelProvider = ({ children }) => {
-  const path = window.location.pathname;
-  const parts = path.split("/");
-  const hotelName = parts[1]; // "Atithi"
-  console.log("HotelContext",hotelName);
+  const [hotelName, setHotelName] = useState('');
 
   return (
-    <HotelContext.Provider value={hotelName}>{children}</HotelContext.Provider>
+    <HotelContext.Provider value={{ hotelName, setHotelName }}>
+      {children}
+    </HotelContext.Provider>
   );
+};
+
+export const useHotelContext = () => {
+  return useContext(HotelContext);
 };

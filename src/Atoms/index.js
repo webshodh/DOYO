@@ -7,3 +7,5 @@ export {default as PageTitle} from './PageTitle'
 
 // Button
 export {default as PrimaryButton} from './Buttons/PrimaryButton'
+
+export {default as Spinner} from './Spinner'

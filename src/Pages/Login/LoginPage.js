@@ -5,7 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css"; // Ensure this import is present
-
+import { useHotelContext } from "../../Context/HotelContext";
 const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ const LoginPage = () => {
 
   const auth = getAuth();
   const navigate = useNavigate();
-  const hotelName = "Atithi"; // Replace with dynamic hotel name if needed
+  const { hotelName } = useHotelContext();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -38,7 +38,8 @@ const LoginPage = () => {
       try {
         await signInWithEmailAndPassword(auth, email, password);
         toast.success("Logged in successfully!");
-        navigate(`/${hotelName}/admin`); // Redirect to the dashboard after successful login
+        
+        navigate(`/admin/dashboard`) // Redirect to the dashboard after successful login
       } catch (error) {
         toast.error("Error logging in: " + error.message);
       }

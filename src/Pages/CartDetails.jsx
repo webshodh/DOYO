@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import CheckoutForm from "../components/Form/CheckoutForm";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { HotelContext } from "../Context/HotelContext";
+import { HotelContext, useHotelContext } from "../Context/HotelContext";
 import { db, ref, push, set } from "../data/firebase/firebaseConfig"; // Ensure imports are correct
 import { DynamicTable } from "../components";
 import { CartDetailscolumns } from "../data/Columns";
@@ -14,7 +14,7 @@ function CartDetails() {
   const { cartItems: initialCartItems } = location.state || { cartItems: [] };
   const [cartItems, setCartItems] = useState(initialCartItems);
   const [checkoutData, setCheckoutData] = useState(null);
-  const hotelName = useContext(HotelContext);
+  const { hotelName } = useHotelContext();
   const navigate = useNavigate();
 
   const handleCheckout = async (data) => {
@@ -58,9 +58,12 @@ function CartDetails() {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
-
-    navigate(`/${hotelName}/order-dashboard`, {
-      state: { checkoutData: updatedData },
+    const totalAmount = cartItems.reduce(
+      (total, item) => total + item.menuPrice * item.quantity,
+      0
+    );
+    navigate(`/${hotelName}/cart-details/split-bill`, {
+      state: { checkoutData: updatedData, totalAmount:totalAmount  },
     });
   };
 

@@ -8,6 +8,7 @@ import { PageTitle } from "../Atoms";
 import { ViewCategoryColumns } from "../data/Columns";
 import { DynamicTable } from "../components";
 import styled from "styled-components";
+import { useHotelContext } from "../Context/HotelContext";
 
 // Container for Category Management
 const CategoryManagementContainer = styled.div`
@@ -73,7 +74,7 @@ function AddCategory() {
   const [isEdit, setIsEdit] = useState(false);
   const [tempCategoryId, setTempCategoryId] = useState("");
 
-  let hotelName = "Atithi";
+  const { hotelName } = useHotelContext();
 
   const handleCategoryNameChange = (e) => {
     setCategoryName(e.target.value);

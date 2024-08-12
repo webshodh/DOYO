@@ -32,11 +32,13 @@ import {
   ResetPasswordPage,
   AdminList,
   MenuDashboard,
+  SplitBill,
 } from "./Pages";
 
 // Importing other components
 import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
+import WelcomeScreen from "./Pages/Dashboard/WelcomeScreen";
 
 function App() {
   return (
@@ -53,6 +55,10 @@ function App() {
           <Route path="/viewMenu/:hotelId" element={<Home />} />
           <Route path="/:hotelName/orders/details" element={<OrderPage />} />
           <Route path="/:hotelName/cart-details" element={<CartDetails />} />
+          <Route
+            path="/:hotelName/cart-details/split-bill"
+            element={<SplitBill />}
+          />
         </Routes>
 
         {/* Routes with Layout */}
@@ -66,7 +72,7 @@ function App() {
               path="/super-admin/dashboard/admin-list"
               element={<AdminList />}
             />
-            <Route path="/hotels/add" element={<AddHotel />} />
+            <Route path="/hotels/admin/add-hotel" element={<AddHotel />} />
             <Route path="/hotels/:hotelId" element={<ViewHotel />} />
             <Route path="/hotels/:hotelId/edit" element={<UpdateHotel />} />
             <Route path="/hotels/:hotelId/info" element={<AddHotelInfo />} />
@@ -74,7 +80,11 @@ function App() {
             <Route path="/:hotelId/menus/add" element={<AddMenu />} />
             <Route path="/menus/view/:hotelId" element={<ViewMenu />} />
             <Route path="/:hotelName/admin/menu" element={<MenuDashboard />} />
-            <Route path="/:hotelName/admin" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route
+              path="/:hotelName/admin/dashboard"
+              element={<AdminDashboard />}
+            />
             <Route path="/:hotelName/admin/customers" element={<Customers />} />
             <Route
               path="/:hotelName/admin/staffDashboard"

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import DynamicTable from '../components/DynamicTable';
+import { cancelledOrderColumn } from '../data/Columns';
 
 const CancelledOrders = ({ orders, count }) => {
   const flattenOrderData = (orders) => {
@@ -14,15 +15,7 @@ const CancelledOrders = ({ orders, count }) => {
     }));
   };
 
-  const columns = [
-    { header: 'Sr.No', accessor: 'index' },
-    { header: 'Item Name', accessor: 'menuName' },
-    { header: 'Quantity', accessor: 'quantity' },
-    { header: 'Table No', accessor: 'tableNo' },
-    { header: 'Name', accessor: 'name' },
-    { header: 'Waiter Name', accessor: 'waiterName' },
-    { header: 'Rejection Reason', accessor: 'rejectionReason' },
-  ];
+  const columns = cancelledOrderColumn
 
   const data = flattenOrderData(orders);
 

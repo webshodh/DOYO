@@ -7,6 +7,7 @@ import { DynamicTable, FilterSortSearch } from "../components";
 import PageTitle from "../Atoms/PageTitle";
 import { ViewMenuColumns } from "../data/Columns";
 import styled from "styled-components";
+import { useHotelContext } from "../Context/HotelContext";
 // Background Card
 const BackgroundCard = styled.div`
   background: #fff;
@@ -22,9 +23,8 @@ function ViewMenu() {
   const [sortOrder, setSortOrder] = useState("default");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [hotels, setHotels] = useState([]);
-  // const path = window.location.pathname;
-  // let hotelName = path.split("/").pop();
-  let hotelName = "Atithi";
+
+  const { hotelName } = useHotelContext();
 
   // Fetch Menu data from database
   useEffect(() => {

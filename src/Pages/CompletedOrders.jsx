@@ -1,6 +1,7 @@
-import React from 'react';
-import { Alert } from 'react-bootstrap';
-import DynamicTable from '../components/DynamicTable';
+import React from "react";
+import { Alert } from "react-bootstrap";
+import DynamicTable from "../components/DynamicTable";
+import { completedOrderColumn } from "../data/Columns";
 
 const CompletedOrders = ({ orders, count }) => {
   const flattenOrderData = (orders) => {
@@ -9,29 +10,21 @@ const CompletedOrders = ({ orders, count }) => {
       index: index + 1,
       tableNo: order.checkoutData.tableNo,
       name: order.checkoutData.name,
+      bill: order.quantity * order.menuPrice
     }));
   };
 
-  const columns = [
-    { header: 'Sr.No', accessor: 'index' },
-    { header: 'Item Name', accessor: 'menuName' },
-    { header: 'Quantity', accessor: 'quantity' },
-    { header: 'Table No', accessor: 'tableNo' },
-    { header: 'Name', accessor: 'name' }
-  ];
+  const columns = completedOrderColumn
 
   const data = flattenOrderData(orders);
-
+  console.log("data", data);
   return (
     <>
       <h4>Completed Orders ({count})</h4>
       {count === 0 ? (
         <Alert variant="info">No completed orders at the moment.</Alert>
       ) : (
-        <DynamicTable
-          columns={columns}
-          data={data}
-        />
+        <DynamicTable columns={columns} data={data} />
       )}
     </>
   );

@@ -12,6 +12,7 @@ import {
   OrdersAndRevenueByMenuColumns,
   RevenueByCategoryColumns,
 } from "../../Atoms/Columns";
+import { useHotelContext } from "../Context/HotelContext";
 
 function MostOrderedMenu() {
   const [menueData, setMenueData] = useState([]);
@@ -26,7 +27,7 @@ function MostOrderedMenu() {
 
   
   const [completedOrders, setCompletedOrders] = useState([]);
- const hotelName = 'Atithi'
+  const { hotelName } = useHotelContext();
  /*--------------------------- Fetch orders data from Firebase and categorize them ---------------------------------------*/
 
  useEffect(() => {

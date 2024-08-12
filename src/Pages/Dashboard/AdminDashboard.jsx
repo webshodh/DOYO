@@ -19,13 +19,37 @@ import {
   OrdersAndRevenueByMenuColumns,
   RevenueByCategoryColumns,
 } from "../../data/Columns";
-
+import useHotelsData from "../../data/useHotelsData";
+import { getAuth } from "firebase/auth";
+import HotelSelector from "./HotelSelector";
+import { useHotelContext } from "../../Context/HotelContext";
+import { useNavigate } from "react-router-dom";
 function AdminDashboard() {
   const [showAll, setShowAll] = useState(false);
+  const [filterCount, setFilterCount] = useState(5); // Default to showing top 5
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const navigate = useNavigate()
+  console.log("currentAdminId", currentAdminId);
+  const { hotelsData, addHotel, loading, error } =
+    useHotelsData(currentAdminId);
+  console.log("hotelsData", hotelsData);
+  // Function to handle filter change
+  const handleFilterChange = (count) => {
+    setFilterCount(count);
+  };
 
   /*--------------------------- Extract hotel name from URL path ---------------------------------------*/
   // const path = window.location.pathname;
-  const hotelName = "Atithi";
+  // const [hotelName, setHotelName] = useState('');
+  const { hotelName, setHotelName } = useHotelContext();
+
+  const handleHotelSelect = (selectedHotelName) => {
+    // const formattedHotelName = selectedHotelName.replace(/\s+/g, ''); // Remove spaces
+    setHotelName(selectedHotelName); // Update hotelName in context
+    navigate(`/${selectedHotelName}/admin/dashboard`)
+  };
+  
   console.log("hotelName", hotelName);
 
   const {
@@ -54,7 +78,7 @@ function AdminDashboard() {
 
   const { categoryDataArray, totalRevenue, ordersByCategoryGraphData } =
     useProcessedCategoryData(completedOrders);
-    
+
   const menuDataArray = useProcessedMenuData(completedOrders);
   const { customerDataArray, customerContData } =
     useCustomerData(completedOrders);
@@ -75,7 +99,10 @@ function AdminDashboard() {
       menuCategoryCount,
     })
   );
-
+  // Sort the array by menuCount to get the top most ordered dishes
+  const sortedMenuDataArray = [...menuDataArray].sort(
+    (a, b) => b.menuCount - a.menuCount
+  );
   // Columns
   const Column1 = OrdersAndRevenueByMenuColumns;
   const columns2 = RevenueByCategoryColumns;
@@ -89,30 +116,30 @@ function AdminDashboard() {
   const filterCompletedOrdersByDate = (completedOrders, filterType) => {
     const today = new Date();
     let startDate;
-  
+
     switch (filterType) {
-      case 'Daily':
+      case "Daily":
         // Set start date to the beginning of the current day
         startDate = new Date(today.setHours(0, 0, 0, 0));
         break;
-      case 'Weekly':
+      case "Weekly":
         // Set start date to 7 days ago
         startDate = new Date(today.setDate(today.getDate() - 6));
         break;
-      case 'Monthly':
+      case "Monthly":
         // Set start date to 30 days ago
         startDate = new Date(today.setMonth(today.getMonth() - 1));
         break;
       default:
         return completedOrders; // If no filter type, return all completed orders
     }
-  
+
     return completedOrders.filter((order) => {
       const orderDate = new Date(order.date); // Convert the order's date string to a Date object
       return orderDate >= startDate && orderDate <= new Date(); // Check if the order date is within the range
     });
   };
-  
+
   return (
     <div>
       {/* Page Title and Filter */}
@@ -123,7 +150,8 @@ function AdminDashboard() {
         <PageTitle pageTitle={"Dashboard"} />
         <Tab tabs={tabs} />
       </div>
-
+      <HotelSelector adminId={currentAdminId} onHotelSelect={handleHotelSelect}/>
+      {hotelName}
       {/* Count Card for Orders & Customers */}
       <div>
         <div>
@@ -350,12 +378,23 @@ function AdminDashboard() {
                 <div className="col-md-3" style={{ marginTop: "-15px" }}>
                   <div className="mb-3 background-card">
                     <div style={{ marginLeft: "30px" }}>
-                      <PageTitle pageTitle={"Top 5 Orders"} />
+                      <PageTitle
+                        pageTitle={`Top ${filterCount} Ordered Dish`}
+                      />
+                      {/* Filter Buttons */}
+                      <div className="filter-buttons">
+                        <button onClick={() => handleFilterChange(5)}>
+                          Top 5
+                        </button>
+                        <button onClick={() => handleFilterChange(10)}>
+                          Top 10
+                        </button>
+                      </div>
                     </div>
 
                     <div className="row">
-                      {menuDataArray
-                        .slice(0, showAll ? menuDataArray.length : 5)
+                      {sortedMenuDataArray
+                        .slice(0, filterCount) // Show top 'filterCount' items
                         .map(({ menuName, menuCount, imageUrl }, index) => (
                           <div className="col-md-12" key={menuName}>
                             <CountCard

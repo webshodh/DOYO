@@ -38,20 +38,15 @@ export const OrdersAndRevenueByMenuColumns = [
   ];
 
   
-  export const pendingOrdercolumns = [
-    { header: "Sr.No", accessor: "Sr.No" },
-    { header: "Menu Name", accessor: "menuName" },
-    { header: "Quantity", accessor: "quantity" },
-    { header: "Table No", accessor: "tableNo" },
-    { header: "Name", accessor: "name" },
-  ];
+ 
  
   export const customersColumns =[
     { header: "Sr.No", accessor: "srNo" },
     { header: "Customer Name", accessor: "name" },
-    { header: "Mobile Number", accessor: "MobileNumber" },
+    { header: "Mobile Number", accessor: "mobile" },
     { header: 'Order Count', accessor: 'totalOrders' },
     { header: "Order Price", accessor: "totalMenuPrice" },
+    { header: "Last Visit", accessor: "" },
   ]; 
 
   export const adminsListColumn =[
@@ -82,3 +77,40 @@ export const OrdersAndRevenueByMenuColumns = [
     { header: 'Total Price', accessor: 'Total Price (INR)' },
   ];
  
+  export const pendingOrdercolumns = [
+    { header: "Sr.No", accessor: "index" },
+    { header: "Menu Name", accessor: "menuName" },
+    { header: "Quantity", accessor: "quantity" },
+    { header: "Table No", accessor: "tableNo" },
+    { header: "Name", accessor: "name" },
+  ];
+
+  export const completedOrderColumn = [
+    { header: "Sr.No", accessor: "index" },
+    { header: "Name", accessor: "name" },
+    { header: "Table No", accessor: "tableNo" },
+    { header: "Item Name", accessor: "menuName" },
+    { header: "Quantity", accessor: "quantity" },
+    { header: "Price", accessor: "menuPrice" },
+    { header: "Total", accessor: "bill" },
+    { header: "Payment", accessor: "bill" },
+  ];
+
+
+  export const cancelledOrderColumn = [
+    { header: 'Sr.No', accessor: 'index' },
+    { header: 'Item Name', accessor: 'menuName' },
+    { header: 'Quantity', accessor: 'quantity' },
+    { header: 'Table No', accessor: 'tableNo' },
+    { header: 'Name', accessor: 'name' },
+    { header: 'Waiter Name', accessor: 'waiterName' },
+    { header: 'Rejection Reason', accessor: 'rejectionReason' },
+  ];
+
+  export const AcceptedOrderColumn = [
+    { header: 'Sr.No', accessor: 'index' },
+    { header: 'Item Name', accessor: 'menuName' },
+    { header: 'Quantity', accessor: 'quantity' },
+    { header: 'Table No', accessor: 'tableNo' },
+    { header: 'Name', accessor: 'name' }
+  ];

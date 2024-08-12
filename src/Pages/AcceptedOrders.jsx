@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import DynamicTable from '../components/DynamicTable';
+import { AcceptedOrderColumn } from '../data/Columns';
 
 const AcceptedOrders = ({ orders, onMarkAsCompleted, count }) => {
   const flattenOrderData = (orders) => {
@@ -12,13 +13,7 @@ const AcceptedOrders = ({ orders, onMarkAsCompleted, count }) => {
     }));
   };
 
-  const columns = [
-    { header: 'Sr.No', accessor: 'index' },
-    { header: 'Item Name', accessor: 'menuName' },
-    { header: 'Quantity', accessor: 'quantity' },
-    { header: 'Table No', accessor: 'tableNo' },
-    { header: 'Name', accessor: 'name' }
-  ];
+  const columns = AcceptedOrderColumn
 
   const actions = [
     { label: 'Mark as Completed', variant: 'primary', handler: onMarkAsCompleted }

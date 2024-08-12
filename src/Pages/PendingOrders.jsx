@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import DynamicTable from '../components/DynamicTable';
+import { pendingOrdercolumns } from '../data/Columns';
 
 const PendingOrders = ({ orders, onAccept, onReject, count }) => {
   const flattenOrderData = (orders) => {
@@ -12,13 +13,7 @@ const PendingOrders = ({ orders, onAccept, onReject, count }) => {
     }));
   };
 
-  const columns = [
-    { header: 'Sr.No', accessor: 'index' },
-    { header: 'Item Name', accessor: 'menuName' },
-    { header: 'Quantity', accessor: 'quantity' },
-    { header: 'Table No', accessor: 'tableNo' },
-    { header: 'Name', accessor: 'name' }
-  ];
+  const columns = pendingOrdercolumns
 
   const actions = [
     { label: 'Accept', variant: 'success', handler: onAccept },
