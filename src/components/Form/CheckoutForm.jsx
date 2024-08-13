@@ -47,7 +47,7 @@ function CheckoutForm({ cartItems, onCheckout }) {
         />
       </Form.Group>
 
-      <Button variant="primary" onClick={handleCheckout}>
+      <Button variant="success" onClick={handleCheckout} style={{width:'100%'}}>
         Place Order
       </Button>
     </Form>

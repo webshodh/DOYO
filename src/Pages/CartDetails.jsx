@@ -1,24 +1,40 @@
-import React, { useState, useContext } from "react";
-import { Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Button, Container, Row, Col, Card } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import CheckoutForm from "../components/Form/CheckoutForm";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { HotelContext, useHotelContext } from "../Context/HotelContext";
 import { db, ref, push, set } from "../data/firebase/firebaseConfig"; // Ensure imports are correct
-import { DynamicTable } from "../components";
-import { CartDetailscolumns } from "../data/Columns";
 import { getAuth } from "firebase/auth";
+import CartCard from "../components/Cards/CartCard";
+import { PageTitle } from "../Atoms";
+import { Navbar } from "../components";
+
 function CartDetails() {
   const location = useLocation();
   const { cartItems: initialCartItems } = location.state || { cartItems: [] };
   const [cartItems, setCartItems] = useState(initialCartItems);
   const [checkoutData, setCheckoutData] = useState(null);
-  const { hotelName } = useHotelContext();
   const navigate = useNavigate();
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
+  const [hotelName, setHotelName] = useState("");
+
+  useEffect(() => {
+    // Get the current pathname
+    const path = window.location.pathname;
+
+    // Split the path into segments
+    const pathSegments = path.split("/");
+
+    // Assuming the hotel name is the last segment in the path
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+
+    // Set the hotel name in state
+    setHotelName(hotelNameFromPath);
+  }, []);
+
   const handleCheckout = async (data) => {
     const removeCartItems = (data) => {
       const updatedData = { ...data }; // Create a copy of the data object
@@ -32,7 +48,10 @@ function CartDetails() {
     const currentDate = new Date().toISOString(); // Get current date in ISO format
 
     try {
-      const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
+      const ordersRef = ref(
+        db,
+        `/admins/${adminID}/hotels/${hotelName}/orders/`
+      );
 
       // Loop through each item and push it as a separate order entry
       for (const item of cartItems) {
@@ -50,7 +69,7 @@ function CartDetails() {
           orderData: itemWithDetails, // Set individual item as orderData
         });
       }
-
+      console.log("hotelName", hotelName);
       toast.success("Order placed successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -65,17 +84,29 @@ function CartDetails() {
       0
     );
     navigate(`/${hotelName}/cart-details/split-bill`, {
-      state: { checkoutData: updatedData, totalAmount:totalAmount  },
+      state: { checkoutData: updatedData, totalAmount: totalAmount },
     });
   };
 
   const handleRemoveQuantity = (menuId) => {
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.uuid === menuId
-          ? { ...item, quantity: item.quantity > 1 ? item.quantity - 1 : 1 }
-          : item
-      )
+      prevItems.reduce((updatedItems, item) => {
+        if (item.uuid === menuId) {
+          // If the item quantity is 1, remove it from the cart
+          if (item.quantity === 1) {
+            return updatedItems; // Skip adding this item, effectively removing it
+          } else {
+            // Otherwise, decrement the quantity
+            return [
+              ...updatedItems,
+              { ...item, quantity: item.quantity - 1 }, // Decrement quantity
+            ];
+          }
+        } else {
+          // Keep other items as they are
+          return [...updatedItems, item];
+        }
+      }, [])
     );
   };
 
@@ -87,12 +118,6 @@ function CartDetails() {
     );
   };
 
-  const handleRemoveFromCart = (menuId) => {
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.uuid !== menuId)
-    );
-  };
-
   const clearCart = () => {
     setCartItems([]);
     toast.success("Cart cleared successfully!", {
@@ -100,75 +125,78 @@ function CartDetails() {
     });
   };
 
-  const columns = CartDetailscolumns;
-
-  const data = cartItems.map((item, index) => ({
-    "Sr.No": index + 1,
-    "Item Name": item.menuName,
-    Quantity: (
-      <>
-        <Button
-          variant="outline-danger"
-          size="sm"
-          onClick={() => handleRemoveQuantity(item.uuid)}
-        >
-          -
-        </Button>{" "}
-        {item.quantity}{" "}
-        <Button
-          variant="outline-success"
-          size="sm"
-          onClick={() => handleAddQuantity(item.uuid)}
-        >
-          +
-        </Button>
-      </>
-    ),
-    "Price (INR)": item.menuPrice,
-    "Total Price (INR)": item.menuPrice * item.quantity,
-    Action: (
-      <Button variant="danger" onClick={() => handleRemoveFromCart(item.uuid)}>
-        Remove
-      </Button>
-    ),
-  }));
-
   return (
-    <div>
-      <h2>Cart Details</h2>
-      <DynamicTable
-        columns={columns}
-        data={data}
-        onEdit={null} // If not needed, just pass null
-        onDelete={null} // If not needed, just pass null
-      />
-      <div>
-        <p>Total Items: {cartItems.length}</p>
-        <p>
-          Total Price:{" "}
-          {cartItems.reduce(
-            (total, item) => total + item.menuPrice * item.quantity,
-            0
-          )}{" "}
-          INR
-        </p>
-        {checkoutData && (
-          <div>
-            <p>Checkout Details:</p>
-            <p>Name: {checkoutData.name}</p>
-            <p>Mobile No: {checkoutData.mobileNo}</p>
-            <p>Table Number: {checkoutData.tableNo}</p>
-            <p>Date: {checkoutData.date}</p>
-          </div>
-        )}
+    <>
+      <Navbar title={`${hotelName}`} />
+      {/* <Container> */}
+        {/* <PageTitle pageTitle={"Cart Details"} /> */}
+        <Row>
+          <Col md={8}>
+            <Card className="p-2" style={{ width: "100%" }}>
+              <Card.Header><b>My Cart</b></Card.Header>
+              <Card.Body>
+                {cartItems.map((item) => (
+                  <CartCard
+                    key={item.uuid}
+                    item={item}
+                    onAddQuantity={handleAddQuantity}
+                    onRemoveQuantity={handleRemoveQuantity}
+                  />
+                ))}
+              </Card.Body>
+              <Card.Footer>
+                <Button variant="danger" onClick={clearCart} className="mt-2" style={{width:'100%'}}>
+                  Clear Cart
+                </Button>
+              </Card.Footer>
+            </Card>
+          </Col>
 
-        <CheckoutForm cartItems={cartItems} onCheckout={handleCheckout} />
-        <Button variant="danger" onClick={clearCart}>
-          Clear Cart
-        </Button>
-      </div>
-      <ToastContainer />
-    </div>
+          <Col md={4}>
+            <Card
+              className="p-2"
+              style={{ width: "100%", marginRight: "10px" }}
+            >
+              <Card.Header><b>Order Summary</b></Card.Header>
+              <Card.Body>
+                <p>Total Items: {cartItems.length}</p>
+                <p>
+                  Total Price:{" "}
+                  {cartItems.reduce(
+                    (total, item) => total + item.menuPrice * item.quantity,
+                    0
+                  )}{" "}
+                  INR
+                </p>
+              </Card.Body>
+             
+            </Card>
+          </Col>
+          <Col md={4}>
+            <Card className="p-2" style={{ width: "100%" }}>
+              <Card.Header><b>Order Details</b></Card.Header>
+              <Card.Body>
+                <CheckoutForm
+                  cartItems={cartItems}
+                  onCheckout={handleCheckout}
+                />
+
+                {/* {checkoutData && (
+                  <div>
+                    <p>Checkout Details:</p>
+                    <p>Name: {checkoutData.name}</p>
+                    <p>Mobile No: {checkoutData.mobileNo}</p>
+                    <p>Table Number: {checkoutData.tableNo}</p>
+                    <p>Date: {checkoutData.date}</p>
+                  </div>
+                )} */}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        <ToastContainer />
+      {/* </Container> */}
+    </>
   );
 }
 

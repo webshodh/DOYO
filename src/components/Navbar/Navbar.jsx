@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 // Styled components
@@ -16,19 +15,10 @@ const Title = styled.h3`
   margin: 0;
 `;
 
-const UserIcon = styled.img`
-  width: 25px;
-  height: 25px;
-  margin-top: 5px;
-`;
-
 const Navbar = ({ title }) => {
   return (
     <NavbarContainer>
       <Title>{title}</Title>
-      <Link to="/dashboard">
-        <UserIcon src="user.png" alt="User Icon" />
-      </Link>
     </NavbarContainer>
   );
 };
