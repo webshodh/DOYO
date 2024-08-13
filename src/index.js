@@ -21,9 +21,9 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <AuthProvider>
-    <HotelProvider>
-      <App />
-    </HotelProvider>
+      <HotelProvider>
+        <App />
+      </HotelProvider>
     </AuthProvider>
   </React.StrictMode>
 );

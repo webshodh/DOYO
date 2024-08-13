@@ -15,11 +15,16 @@ export {default as OrderDashboard} from './Dashboard/OrderDashboard'
 export {default as StaffDashboard} from './Dashboard/StaffDashboard'
 export {default as Customers} from './Dashboard/Customers'
 export {default as MenuDashboard} from './Dashboard/MenuDashboard'
+export {default as TableDashboard} from './Dashboard/TableDashboard'
+
+export {default as AddSections} from './AddSections'
+export {default as AddTable} from './AddTable'
 
 // Cart 
 export {default as CartDetails} from './CartDetails'
 export {default as OrderPage} from './OrderPage'
 export {default as SplitBill} from './SplitBill'
+export {default as Payment} from './Payment'
 
 // Home
 export {default as Home} from './Home'

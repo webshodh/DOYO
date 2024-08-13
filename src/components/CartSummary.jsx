@@ -14,13 +14,16 @@ const CartSummary = ({ cartItems, getTotalPrice, hotelName }) => {
         <div>Order {cartItems.length} for {getTotalPrice()} INR</div>
         <div>
           <span>{cartItems.length}</span>
-          <img
+          {/* <img
             src="/cart.png"
             width="30px"
             height="30px"
             alt="Cart"
             onClick={handleNext}
-          />
+          /> */}
+          <span  onClick={handleNext}>
+          <i class="bi bi-cart-check-fill"></i>
+          </span>
         </div>
       </div>
     </div>

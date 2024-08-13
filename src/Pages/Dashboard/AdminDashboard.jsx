@@ -26,7 +26,7 @@ function AdminDashboard() {
   const [filterCount, setFilterCount] = useState(5); // Default to showing top 5
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
-  
+
   console.log("currentAdminId", currentAdminId);
   const { hotelsData, addHotel, loading, error } =
     useHotelsData(currentAdminId);
@@ -37,10 +37,8 @@ function AdminDashboard() {
   };
 
   /*--------------------------- Extract hotel name from URL path ---------------------------------------*/
-  
-  const { hotelName } = useHotelContext();
 
- 
+  const { hotelName } = useHotelContext();
 
   const {
     menuData,
@@ -102,6 +100,53 @@ function AdminDashboard() {
     { label: "Daily", content: "Daily" },
     { label: "Weekly", content: "Weekly" },
     { label: "Monthly", content: "Monthly" },
+  ];
+
+  const tabs2 = [
+    {
+      label: "Top 5",
+      content: (
+        <div className="row">
+          {sortedMenuDataArray
+            .slice(0, 5) // Show top 'filterCount' items
+            .map(({ menuName, menuCount, imageUrl }, index) => (
+              <div className="col-md-12" key={menuName}>
+                <CountCard
+                  src={imageUrl}
+                  count={menuCount}
+                  label={menuName}
+                  type={`type${index % 4}`} // Cycle through types if there are more items than types
+                  width="80px"
+                  height="80px"
+                  marginTop="-10px"
+                />
+              </div>
+            ))}
+        </div>
+      ),
+    },
+    {
+      label: "Top 10",
+      content: (
+        <div className="row">
+          {sortedMenuDataArray
+            .slice(0, 10) // Show top 'filterCount' items
+            .map(({ menuName, menuCount, imageUrl }, index) => (
+              <div className="col-md-12" key={menuName}>
+                <CountCard
+                  src={imageUrl}
+                  count={menuCount}
+                  label={menuName}
+                  type={`type${index % 4}`} // Cycle through types if there are more items than types
+                  width="80px"
+                  height="80px"
+                  marginTop="-10px"
+                />
+              </div>
+            ))}
+        </div>
+      ),
+    },
   ];
   const filterCompletedOrdersByDate = (completedOrders, filterType) => {
     const today = new Date();
@@ -366,38 +411,10 @@ function AdminDashboard() {
                 {/* Sidebar for Top 5 Menus */}
                 <div className="col-md-3" style={{ marginTop: "-15px" }}>
                   <div className="mb-3 background-card">
-                    <div style={{ marginLeft: "30px" }}>
-                      <PageTitle
-                        pageTitle={`Top ${filterCount} Ordered Dish`}
-                      />
-                      {/* Filter Buttons */}
-                      <div className="filter-buttons">
-                        <button onClick={() => handleFilterChange(5)}>
-                          Top 5
-                        </button>
-                        <button onClick={() => handleFilterChange(10)}>
-                          Top 10
-                        </button>
-                      </div>
+                    <div style={{ marginLeft: "10px" }}>
+                      <PageTitle pageTitle={"Most Orderd Menu"} />
                     </div>
-
-                    <div className="row">
-                      {sortedMenuDataArray
-                        .slice(0, filterCount) // Show top 'filterCount' items
-                        .map(({ menuName, menuCount, imageUrl }, index) => (
-                          <div className="col-md-12" key={menuName}>
-                            <CountCard
-                              src={imageUrl}
-                              count={menuCount}
-                              label={menuName}
-                              type={`type${index % 4}`} // Cycle through types if there are more items than types
-                              width="80px"
-                              height="80px"
-                              marginTop="-10px"
-                            />
-                          </div>
-                        ))}
-                    </div>
+                    <Tab tabs={tabs2} />
                   </div>
                 </div>
               </div>

@@ -1,12 +1,21 @@
 import React from 'react';
 import { useAuthContext } from '../../Context/AuthContext'; // Adjust the import path accordingly
 import useAdminData from '../../data/useAdminData'; // Adjust the path as necessary
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirecting
 
 function NavAvatar() {
-  const { currentAdminId } = useAuthContext(); // Get the current admin ID from context
+  const { currentAdminId, logout } = useAuthContext(); // Get the current admin ID and signOut function from context
   const { data, loading, error } = useAdminData(`/admins/${currentAdminId}`);
-  
-  console.log('Admin Data:', data); // Check if you're getting the correct admin data
+  const navigate = useNavigate(); // Initialize useNavigate for redirecting
+
+  const handleSignOut = async () => {
+    try {
+      await logout(); // Sign out the user (assuming you have signOut implemented in your AuthContext)
+      navigate('/login'); // Redirect to the login page
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -74,10 +83,13 @@ function NavAvatar() {
         </li>
 
         <li>
-          <a className="dropdown-item d-flex align-items-center" href="#">
+          <span
+            className="dropdown-item d-flex align-items-center"
+            onClick={handleSignOut} // Attach the sign-out handler here
+          >
             <i className="bi bi-box-arrow-right"></i>
             <span>Sign Out</span>
-          </a>
+          </span>
         </li>
       </ul>
     </li>

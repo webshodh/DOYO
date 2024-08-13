@@ -28,6 +28,11 @@ export const OrdersAndRevenueByMenuColumns = [
     { header: "Category Name", accessor: "categoryName" },
   ];
 
+  export const ViewSectionColumns = [
+    { header: "Sr.No", accessor: "srNo" },
+    { header: "Section Name", accessor: "sectionName" },
+  ];
+  
   export const ViewMenuColumns = [
     { header: "Sr.No", accessor: "Sr.No" },
     { header: "Menu Category", accessor: "Menu Category" },
@@ -35,6 +40,13 @@ export const OrdersAndRevenueByMenuColumns = [
     { header: "Cooking Time", accessor: "Cooking Time" },
     { header: "Price", accessor: "Price" },
     { header: "Availability", accessor: "Availability" },
+  ];
+
+  export const ViewTableColumns = [
+    { header: "Sr.No", accessor: "Sr.No" },
+    { header: "Section", accessor: "sectionName" },
+    { header: "Table Name", accessor: "Menu Name" },
+    { header: "Capacity", accessor: "Price" },
   ];
 
   

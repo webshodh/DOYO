@@ -47,6 +47,12 @@ function SideBar() {
               </Link>
             </li>
             <li className="nav-item">
+              <Link className="nav-link" to={`/${hotelName}/admin/table`}>
+                <i className="bi bi-speedometer2"></i>
+                <span>Table Management</span>
+              </Link>
+            </li>
+            <li className="nav-item">
               <Link
                 className="nav-link"
                 to={`/${hotelName}/admin/staffDashboard`}

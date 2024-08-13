@@ -8,6 +8,7 @@ import AcceptedOrders from "../AcceptedOrders";
 import { Tab } from "../../components";
 import CancelledOrders from "../CancelledOrders";
 import { useHotelContext } from "../../Context/HotelContext";
+import { getAuth } from "firebase/auth";
 
 const OrderDashboard = () => {
   const location = useLocation();
@@ -32,9 +33,11 @@ const OrderDashboard = () => {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const { hotelName } = useHotelContext();
-
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
   useEffect(() => {
-    const ordersRef = ref(db, `${hotelName}/orders/`);
+    const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
 
     const unsubscribe = onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();

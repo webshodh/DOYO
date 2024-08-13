@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import { Navbar, FilterSortSearch } from "../components";
+import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../components";
 import MenuCard from "../components/Cards/MenuCard";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.css";
@@ -25,7 +25,7 @@ const AddToCart = styled(CardFooter)`
   background: green;
   color: white;
   border-radius: 5px;
-  padding:7px;
+  padding: 7px;
   cursor: pointer;
 `;
 function Home() {
@@ -42,13 +42,29 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState("");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
- 
-  const { hotelName } = useHotelContext();
+
+  // const { hotelName } = useHotelContext();
   const navigate = useNavigate();
   const handleClose = () => setShow(false);
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
+
+  const [hotelName, setHotelName] = useState("");
+
+  useEffect(() => {
+    // Get the current pathname
+    const path = window.location.pathname;
+
+    // Split the path into segments
+    const pathSegments = path.split("/");
+
+    // Assuming the hotel name is the last segment in the path
+    const hotelNameFromPath = pathSegments[pathSegments.length - 1];
+
+    // Set the hotel name in state
+    setHotelName(hotelNameFromPath);
+  }, []);
   useEffect(() => {
     // Check if 'admin' is present in the URL pathname
     const path = window.location.pathname;
@@ -61,26 +77,32 @@ function Home() {
 
   // Menu
   useEffect(() => {
-    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`), (snapshot) => {
-      setMenus([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        setMenus(Object.values(data));
+    onValue(
+      ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`),
+      (snapshot) => {
+        setMenus([]);
+        const data = snapshot.val();
+        if (data !== null) {
+          setMenus(Object.values(data));
+        }
       }
-    });
+    );
   }, [hotelName]);
 
   //  Category
   useEffect(() => {
-    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`), (snapshot) => {
-      setCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        const categoriesData = Object.values(data);
-        setCategories(categoriesData);
-        fetchMenuCounts(categoriesData);
+    onValue(
+      ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`),
+      (snapshot) => {
+        setCategories([]);
+        const data = snapshot.val();
+        if (data !== null) {
+          const categoriesData = Object.values(data);
+          setCategories(categoriesData);
+          fetchMenuCounts(categoriesData);
+        }
       }
-    });
+    );
   }, [hotelName]);
 
   // Menu Count
@@ -201,10 +223,10 @@ function Home() {
   };
 
   const handleNext = () => {
-    console.log("hotelName", hotelName);
     navigate(`/${hotelName}/cart-details`, { state: { cartItems: cartItems } });
   };
-
+  console.log("hotelName", hotelName);
+  console.log("categories", categories);
   return (
     <>
       {!isAdmin ? (
@@ -215,7 +237,7 @@ function Home() {
         ""
       )}
 
-      <div className="container" style={{background:`${colors.White}`}}>
+      <div className="container" style={{ background: `${colors.White}` }}>
         {/* Search and Sort */}
         <FilterSortSearch
           searchTerm={searchTerm}
@@ -234,13 +256,13 @@ function Home() {
               <div
                 className="p-2 mb-2 bg-light border  cursor-pointer d-inline-block categoryTab"
                 onClick={() => handleCategoryFilter("")}
-                style={{marginRight:'5px'}}
+                style={{ marginRight: "5px" }}
               >
                 <div>
                   All{" "}
                   <span
                     className="badge bg-danger badge-number"
-                    style={{ borderRadius: "50%" , padding:'5px'}}
+                    style={{ borderRadius: "50%", padding: "5px" }}
                   >
                     {" "}
                     {Object.values(menuCountsByCategory).reduce(
@@ -274,10 +296,10 @@ function Home() {
         </div>
       </div>
       {/* Menu Items */}
-      <div className="row" style={{background:`${colors.White}`}}>
+      <div className="row" style={{ background: `${colors.LightBlue}` }}>
         {filteredAndSortedItems.map((item) => (
-          <div className="col-6 col-sm-4 col-md-2 mb-4" key={item.id}>
-            <MenuCard
+          <div className="col-12 col-sm-6 col-md-4 mb-8" key={item.id}>
+            <HorizontalMenuCard
               item={item}
               handleImageLoad={handleImageLoad}
               showDetail={showDetail}
@@ -323,22 +345,24 @@ function Home() {
 
       {/* Cart Details */}
       {!isAdmin ? (
-        <div className="fixed-bottom p-3 bg-light border-top">
+        <div className="fixed-bottom p-2 bg-light border-top">
           <div className="d-flex justify-content-between align-items-center">
             <div>
+              DOYO
               {/* Order {cartItems.length}  */}
               {/* for {getTotalPrice()} INR */}
             </div>
-            <div className="d-flex align-items-center">
-              <span className="mr-2">{cartItems.length}</span>
-              <img
-                src="/cart.png"
-                width="30px"
-                height="30px"
-                alt="Cart"
-                onClick={handleNext}
-                className="cursor-pointer"
-              />
+            <div className="align-items-center">
+              <div style={{ margin: "-5px 15px -10px 30px" }}>
+                {cartItems.length}
+              </div>
+
+              <div onClick={handleNext} style={{ marginRight: "20px" }}>
+                <i
+                  class="bi bi-cart-check-fill"
+                  style={{ color: "white", fontSize: "24px" }}
+                ></i>
+              </div>
             </div>
           </div>
         </div>

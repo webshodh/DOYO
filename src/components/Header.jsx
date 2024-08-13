@@ -42,7 +42,7 @@ const Header = () => {
     <StyledHeader className="fixed-top d-flex align-items-center">
       <div className="d-flex align-items-center justify-content-between">
         <Logo>
-          <span>{hotelName}</span>
+          <span>{hotelName} Dashboard</span>
         </Logo>
         <i
           className="bi bi-list toggle-sidebar-btn"

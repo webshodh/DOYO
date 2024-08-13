@@ -33,12 +33,17 @@ import {
   AdminList,
   MenuDashboard,
   SplitBill,
+  Payment,
+  AddSections,
+  TableDashboard,
 } from "./Pages";
 
 // Importing other components
 import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
-import WelcomeScreen from "./Pages/Dashboard/WelcomeScreen";
+import UserSignupPage from "./Pages/Login/UserSignupPage";
+import UserLoginPage from "./Pages/Login/UserLoginPage";
+
 
 function App() {
   return (
@@ -50,6 +55,9 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+          <Route path="/user/signup" element={<UserSignupPage/>}/>
+          <Route path="/user/login" element={<UserLoginPage/>}/>
           <Route path="/" element={<Navigate to="/login" />} />
           {/* <Route path="*" element={<NotFound />} /> */}
           <Route path="/viewMenu/:hotelId" element={<Home />} />
@@ -59,10 +67,13 @@ function App() {
             path="/:hotelName/cart-details/split-bill"
             element={<SplitBill />}
           />
+          <Route path="/payment" element={<Payment/>}/>
+
+
         </Routes>
 
         {/* Routes with Layout */}
-        <Layout>
+        {/* <Layout> */}
           <Routes>
             <Route
               path="/super-admin/dashboard"
@@ -81,6 +92,8 @@ function App() {
             <Route path="/menus/view/:hotelId" element={<ViewMenu />} />
             <Route path="/:hotelName/admin/menu" element={<MenuDashboard />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/:hotelName/admin/table" element={<TableDashboard />} />
+            <Route path="/sections/add/:hotelId" element={<AddSections />} />
             <Route
               path="/:hotelName/admin/dashboard"
               element={<AdminDashboard />}
@@ -95,7 +108,7 @@ function App() {
               element={<OrderDashboard />}
             />
           </Routes>
-        </Layout>
+        {/* </Layout> */}
       </ErrorBoundary>
     </Router>
   );
