@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 // Styled components
 const FilterSortSearchContainer = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   margin-left: 10px;
 `;

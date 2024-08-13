@@ -10,20 +10,20 @@ const CardWrapper = styled.div`
   background: white;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden; /* Prevent overflow of content */
+  overflow: hidden;
   position: relative;
   margin: 10px;
 `;
 
 const ImageSection = styled.div`
-  flex: 0 0150px; /* Fixed width for the image section */
+  flex: 0 0150px;
   overflow: hidden;
 `;
 
 const Image = styled.img`
-  width: 150px;
+  width: 120px;
   height: 120px;
-  border-radius: 10px 0 0 10px; /* Rounded corners for the image */
+  border-radius: 10px 0 0 10px;
 `;
 
 const TextSection = styled.div`
@@ -32,20 +32,20 @@ const TextSection = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 300px; /* Control the max width to allow text wrapping */
+  max-width: 300px;
 `;
 
 const InfoText = styled.div`
   margin: 5px 10px 5px 0px;
-  word-wrap: break-word; /* Allow text to wrap */
+  word-wrap: break-word;
 `;
 
 const ButtonSection = styled.div`
   display: flex;
   flex-direction: column;
   position: absolute;
-  right: 10px; /* Fixed position from the right */
-  top: 15px; /* Fixed position from the top */
+  right: 10px;
+  top: 15px;
 `;
 
 const AddToCart = styled(Button)`
@@ -56,21 +56,23 @@ const AddToCart = styled(Button)`
 `;
 
 const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false); // Set to false initially
   const [modalData, setModalData] = useState(null);
 
   const handleShow = (item) => {
     setModalData(item);
-    setShow(true);
+    setShow(true); // Show the modal when an item is clicked
   };
 
   // Truncate menuContent if it's longer than 25 characters
   const truncatedContent =
-    item.menuContent.length > 15
-      ? item.menuContent.slice(0, 15) + "..."
-      : item.menuContent;
+    item.menuName.length > 25
+      ? item.menuName.slice(0, 25) + "..."
+      : item.menuName;
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => {
+    setShow(false); // Simply set show to false to close the modal
+  };
 
   return (
     <CardWrapper onClick={() => handleShow(item)}>
@@ -82,7 +84,7 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
         />
       </ImageSection>
       <TextSection>
-        <InfoText>{item.menuName}</InfoText>
+        <InfoText>{truncatedContent}</InfoText>
         <div className="d-flex">
           <InfoText>
             <img
@@ -105,7 +107,6 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
             {item.menuPrice}
           </InfoText>
         </div>
-        {/* <InfoText>{truncatedContent}</InfoText> */}
         <div className="d-flex justify-content-between">
           <InfoText
             style={{
@@ -117,7 +118,7 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
           >
             Read More
           </InfoText>
-          <span onClick={() => addToCart(item.uuid)}>
+          <span onClick={(e) => { e.stopPropagation(); addToCart(item.uuid); }}>
             <i
               className="bi bi-cart-plus-fill"
               style={{ color: "red", fontSize: "24px" }}
@@ -129,7 +130,7 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
 
       {/* Modal Data */}
       {modalData && (
-        <Modal show={show} onHide={handleClose}>
+        <Modal show={show} >
           <Modal.Header closeButton>
             <Modal.Title>{modalData.menuName}</Modal.Title>
           </Modal.Header>
@@ -149,14 +150,6 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
             {modalData.menuContent ? modalData.menuContent : modalData.menuName}
           </Modal.Body>
           <Modal.Footer>
-            <AddToCart
-              onClick={() => {
-                addToCart(modalData.uuid);
-                handleClose();
-              }}
-            >
-              Add to Cart
-            </AddToCart>
             <Button variant="danger" onClick={handleClose}>
               Close
             </Button>

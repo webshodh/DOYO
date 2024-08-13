@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { colors } from "../../theme/theme";
+import { CardHeader } from "react-bootstrap";
 const CardCounter = styled.div`
   box-shadow: 2px 2px 10px #dadada;
   margin: 5px;
@@ -31,6 +32,18 @@ const CountNumbers = styled.span`
   display: block;
 `;
 
+const TableNumbers = styled.span`
+  position: absolute;
+  right: 90px;
+  top: 20px;
+  font-style: italic;
+  text-transform: capitalize;
+  opacity: 0.5;
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+`;
+
 const CountName = styled.span`
   position: absolute;
   right: 35px;
@@ -43,11 +56,14 @@ const CountName = styled.span`
   font-weight: bold;
 `;
 
-const Img = styled.img`
-  width: ${(props) => props.width || "100px"};
-  height: ${(props) => props.height || "100px"};
-  margin-top: ${(props) => props.marginTop || "-20px"};
-  margin-left: ${(props) => props.marginLeft || "0px"};
+const TableName = styled.span`
+  position: absolute;
+  font-style: italic;
+  text-transform: capitalize;
+  opacity: 0.5;
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
 `;
 
 const CountCardContainer = styled.div`
@@ -58,42 +74,25 @@ const CountCardContainer = styled.div`
   }
 `;
 
-const CountCard = ({
-  icon,
-  count,
-  label,
-  type,
-  src,
-  iconColor,
-  height,
-  width,
-  marginTop,
-  marginLeft,
-  bgColor,
-}) => {
+const TableCard = ({ count, type, iconColor, bgColor, order, orderCount }) => {
   return (
     <CountCardContainer className="col-lg-2 col-md-4 col-sm-6 mb-4">
       <CardCounter className={type} color={iconColor} bgColor={bgColor}>
-        {src && (
-          <div className={src ? "image-container" : ""}>
-            <Img
-              src={src}
-              alt={label}
-              height={height}
-              width={width}
-              marginTop={marginTop}
-              marginLeft={marginLeft}
-            />
+        <CardHeader>
+          <div className="d-flex">
+            <TableName className="count-name">{"Table No"}: </TableName>
+            <TableNumbers className="count-numbers">{count}</TableNumbers>
           </div>
-        )}
+        </CardHeader>
         <div className="text-container">
-          {icon && <Icon className={`bi ${icon}`} color={iconColor} />}
-          <CountName className="count-name">{label}</CountName>
-          <CountNumbers className="count-numbers">{count}</CountNumbers>
+          <div className="d-flex">
+            <CountName className="count-name">{order}:</CountName>
+            <CountNumbers className="count-numbers">{orderCount}</CountNumbers>
+          </div>
         </div>
       </CardCounter>
     </CountCardContainer>
   );
 };
 
-export default CountCard;
+export default TableCard;

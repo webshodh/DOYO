@@ -207,7 +207,6 @@ function Home() {
       position: toast.POSITION.TOP_RIGHT,
     });
   };
-
   const getTotalPrice = () => {
     return cartItems.reduce(
       (total, item) => total + item.menuPrice * item.quantity,
@@ -311,7 +310,7 @@ function Home() {
       </div>
 
       {/* Modal Data */}
-      <Modal show={show} onHide={handleClose}>
+      {/* <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>{modeldata.menuName}</Modal.Title>
         </Modal.Header>
@@ -331,17 +330,11 @@ function Home() {
           {modeldata.menuContent ? modeldata.menuContent : modeldata.menuName}
         </Modal.Body>
         <Modal.Footer>
-          <AddToCart
-            className="card-footer add-to-cart"
-            onClick={() => addToCart()}
-          >
-            Add to Cart
-          </AddToCart>
           <Button variant="danger" onClick={handleClose}>
             Close
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
 
       {/* Cart Details */}
       {!isAdmin ? (

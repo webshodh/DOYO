@@ -15,7 +15,7 @@ const TableDashboard = () => {
   return (
     <>
       <div style={{ marginTop: "70px" }}>
-        <PageTitle pageTitle={"Menu Dashboard"} />
+        <PageTitle pageTitle={"Table Dashboard"} />
       </div>
       <Tab tabs={tabs} width='70vw'/>
     </>

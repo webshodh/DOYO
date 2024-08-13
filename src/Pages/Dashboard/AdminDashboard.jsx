@@ -11,7 +11,14 @@ import {
   useCustomerData,
 } from "../../data";
 import { PageTitle } from "../../Atoms";
-import { CountCard, Table, DonutChart, Tab } from "../../components";
+import {
+  CountCard,
+  Table,
+  DonutChart,
+  Tab,
+  Header,
+  SideBar,
+} from "../../components";
 import {
   OrdersAndRevenueByCutomerColumns,
   OrdersAndRevenueByMenuColumns,

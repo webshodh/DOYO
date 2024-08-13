@@ -99,7 +99,7 @@ const MenuCard = ({
   addToCart,
   imageLoaded,
 }) => {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
   const [modalData, setModalData] = useState(null);
 
   const handleShow = (item) => {
