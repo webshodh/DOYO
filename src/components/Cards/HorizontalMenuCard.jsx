@@ -16,7 +16,7 @@ const CardWrapper = styled.div`
 `;
 
 const ImageSection = styled.div`
-  flex: 0 0150px;
+  flex: 0 0 120px;
   overflow: hidden;
 `;
 
@@ -28,7 +28,7 @@ const Image = styled.img`
 
 const TextSection = styled.div`
   flex: 1;
-  padding: 5px 15px;
+  padding: 5px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;

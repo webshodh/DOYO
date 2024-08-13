@@ -15,6 +15,7 @@ import styled from "styled-components";
 import { colors } from "../theme/theme";
 import { useHotelContext } from "../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import CategoryTabs from "../components/CategoryTab";
 const CardFooter = styled.div`
   display: block;
   text-align: center;
@@ -88,7 +89,7 @@ function Home() {
       }
     );
   }, [hotelName]);
-
+  console.log("adminID", adminID);
   //  Category
   useEffect(() => {
     onValue(
@@ -226,6 +227,8 @@ function Home() {
   };
   console.log("hotelName", hotelName);
   console.log("categories", categories);
+  console.log("filteredAndSortedItems", filteredAndSortedItems);
+  console.log("isAdmin", isAdmin);
   return (
     <>
       {!isAdmin ? (
@@ -245,54 +248,11 @@ function Home() {
           // categories={categories}
         />
 
-        {/* Category Filter */}
-        <div className="row">
-          <div className="col-12">
-            <div
-              className="d-flex flex-nowrap overflow-auto"
-              style={{ whiteSpace: "nowrap" }}
-            >
-              <div
-                className="p-2 mb-2 bg-light border  cursor-pointer d-inline-block categoryTab"
-                onClick={() => handleCategoryFilter("")}
-                style={{ marginRight: "5px" }}
-              >
-                <div>
-                  All{" "}
-                  <span
-                    className="badge bg-danger badge-number"
-                    style={{ borderRadius: "50%", padding: "5px" }}
-                  >
-                    {" "}
-                    {Object.values(menuCountsByCategory).reduce(
-                      (a, b) => a + b,
-                      0
-                    )}
-                  </span>
-                </div>
-              </div>
-              {categories
-                .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
-                .map((item) => (
-                  <div
-                    className="category p-2 mb-2 bg-light border cursor-pointer d-inline-block categoryTab"
-                    key={item.id}
-                    onClick={() => handleCategoryFilter(item.categoryName)}
-                  >
-                    <div className="category-name">
-                      {item.categoryName}{" "}
-                      <span
-                        className="badge bg-danger badge-number"
-                        style={{ borderRadius: "50%" }}
-                      >
-                        {menuCountsByCategory[item.categoryName]}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
+        <CategoryTabs
+          categories={categories}
+          menuCountsByCategory={menuCountsByCategory}
+          handleCategoryFilter={handleCategoryFilter}
+        />
       </div>
       {/* Menu Items */}
       <div className="row" style={{ background: `${colors.LightBlue}` }}>
