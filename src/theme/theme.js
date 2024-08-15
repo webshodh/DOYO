@@ -3,8 +3,9 @@ export const colors = {
   White: "#FFFFFF",
   LightBlue: "#f6f9ff",
   Black: "#302D3D",
-  Orange: "#FFB236",
-  Green: "#38DEB3",
-  Red: "#FF595E",
+  Orange: "#FE724C",
+  Green: "#4EE476",
+  Red: "#EA3F30",
+  Grey:"#F6F6F6",
 //   Purpul:'#604BE8',
 };

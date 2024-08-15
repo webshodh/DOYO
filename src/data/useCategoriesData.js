@@ -10,7 +10,7 @@ const useCategoriesData = (hotelName) => {
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   useEffect(() => {
-    const categoriesRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`);
+    const categoriesRef = ref(db, `/hotels/${hotelName}/categories/`);
     const unsubscribe = onValue(categoriesRef, (snapshot) => {
       try {
         const data = snapshot.val();

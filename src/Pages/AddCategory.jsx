@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../data/firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, onValue, remove, update } from "firebase/database";
+import { set, ref, onValue, remove, update, get } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "../styles/AddCategory.css";
 import { PageTitle } from "../Atoms";
@@ -10,35 +10,6 @@ import { DynamicTable } from "../components";
 import styled from "styled-components";
 import { useHotelContext } from "../Context/HotelContext";
 import { getAuth } from "firebase/auth";
-// Container for Category Management
-const CategoryManagementContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin: 15px;
-  width: 100%;
-`;
-
-// Main Category Management section
-const CategoryManagement = styled.div`
-  max-width: 100%;
-  width: 100%;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
-`;
-
-// Heading Style
-const Heading = styled.h2`
-  margin-top: 10px;
-  text-align: left;
-`;
 
 // Input field
 const Input = styled.input`
@@ -82,62 +53,190 @@ function AddCategory() {
     setCategoryName(e.target.value);
   };
 
-  useEffect(() => {
-    onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`),
-      (snapshot) => {
-        setCategories([]);
-        const data = snapshot.val();
-        if (data !== null) {
-          const categoryArray = Object.values(data);
-          setCategories(categoryArray);
-        }
-      }
-    );
-  }, [hotelName]);
+  // useEffect(() => {
+  //   onValue(
+  //     ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`),
+  //     (snapshot) => {
+  //       setCategories([]);
+  //       const data = snapshot.val();
+  //       if (data !== null) {
+  //         const categoryArray = Object.values(data);
+  //         setCategories(categoryArray);
+  //       }
+  //     }
+  //   );
+  // }, [hotelName]);
 
-  const addCategoryToDatabase = () => {
-    const categoryId = uid();
-    set(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/${categoryId}`), {
-      categoryName,
-      categoryId,
-    });
+  // const addCategoryToDatabase = () => {
+  //   const categoryId = uid();
+  //   set(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/${categoryId}`), {
+  //     categoryName,
+  //     categoryId,
+  //   });
 
-    setCategoryName("");
-    toast.success("Category Added Successfully !", {
-      position: toast.POSITION.TOP_RIGHT,
-    });
-  };
+  //   setCategoryName("");
+  //   toast.success("Category Added Successfully !", {
+  //     position: toast.POSITION.TOP_RIGHT,
+  //   });
+  // };
 
-  const handleUpdateCategory = (category) => {
-    setIsEdit(true);
-    setTempCategoryId(category.categoryId);
-    setCategoryName(category.categoryName);
-  };
+  // const handleUpdateCategory = (category) => {
+  //   setIsEdit(true);
+  //   setTempCategoryId(category.categoryId);
+  //   setCategoryName(category.categoryName);
+  // };
 
-  const handleSubmitCategoryChange = () => {
-    if (window.confirm("confirm update")) {
-      update(ref(db, `/${hotelName}/categories/${tempCategoryId}`), {
-        categoryName,
-        categoryId: tempCategoryId,
-      });
-      toast.success("Category Updated Successfully !", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    }
-    setCategoryName("");
-    setIsEdit(false);
-  };
+  // const handleSubmitCategoryChange = () => {
+  //   if (window.confirm("confirm update")) {
+  //     update(ref(db, `/${hotelName}/categories/${tempCategoryId}`), {
+  //       categoryName,
+  //       categoryId: tempCategoryId,
+  //     });
+  //     toast.success("Category Updated Successfully !", {
+  //       position: toast.POSITION.TOP_RIGHT,
+  //     });
+  //   }
+  //   setCategoryName("");
+  //   setIsEdit(false);
+  // };
 
-  const handleDeleteCategory = (category) => {
-    if (window.confirm("confirm delete")) {
-      remove(ref(db, `/${hotelName}/categories/${category.categoryId}`));
-      toast.error("Category Deleted Successfully !", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    }
-  };
+  // const handleDeleteCategory = (category) => {
+  //   if (window.confirm("confirm delete")) {
+  //     remove(ref(db, `/${hotelName}/categories/${category.categoryId}`));
+  //     toast.error("Category Deleted Successfully !", {
+  //       position: toast.POSITION.TOP_RIGHT,
+  //     });
+  //   }
+  // };
+
+
   // Convert customerInfo to an array and add serial numbers
+  
+  useEffect(() => {
+    onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
+      setCategories([]);
+      const data = snapshot.val();
+      if (data !== null) {
+        const categoryArray = Object.values(data);
+        setCategories(categoryArray);
+      }
+    });
+  }, [hotelName]);
+  
+  const addCategoryToDatabase = async () => {
+    const categoryId = uid();
+    try {
+      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const adminHotelUuid = uuidSnapshot.val();
+  
+      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+      const generalHotelUuid = generalUuidSnapshot.val();
+  
+      if (adminHotelUuid === generalHotelUuid) {
+        await set(ref(db, `/hotels/${hotelName}/categories/${categoryId}`), {
+          categoryName,
+          categoryId,
+        });
+        setCategoryName("");
+        toast.success("Category Added Successfully!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error("You do not have permission to add categories for this hotel.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast.error("Error adding category. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
+  };
+  
+  const handleUpdateCategory = async (category) => {
+    try {
+      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const adminHotelUuid = uuidSnapshot.val();
+  
+      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+      const generalHotelUuid = generalUuidSnapshot.val();
+  
+      if (adminHotelUuid === generalHotelUuid) {
+        setIsEdit(true);
+        setTempCategoryId(category.categoryId);
+        setCategoryName(category.categoryName);
+      } else {
+        toast.error("You do not have permission to update categories for this hotel.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.error("Error preparing category update:", error);
+    }
+  };
+  
+  const handleSubmitCategoryChange = async () => {
+    try {
+      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const adminHotelUuid = uuidSnapshot.val();
+  
+      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+      const generalHotelUuid = generalUuidSnapshot.val();
+  
+      if (adminHotelUuid === generalHotelUuid) {
+        if (window.confirm("Confirm update")) {
+          await update(ref(db, `/hotels/${hotelName}/categories/${tempCategoryId}`), {
+            categoryName,
+            categoryId: tempCategoryId,
+          });
+          toast.success("Category Updated Successfully!", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
+        setCategoryName("");
+        setIsEdit(false);
+      } else {
+        toast.error("You do not have permission to update categories for this hotel.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+      toast.error("Error updating category. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
+  };
+  
+  const handleDeleteCategory = async (category) => {
+    try {
+      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const adminHotelUuid = uuidSnapshot.val();
+  
+      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+      const generalHotelUuid = generalUuidSnapshot.val();
+  
+      if (adminHotelUuid === generalHotelUuid) {
+        if (window.confirm("Confirm delete")) {
+          await remove(ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`));
+          toast.error("Category Deleted Successfully!", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
+      } else {
+        toast.error("You do not have permission to delete categories for this hotel.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error("Error deleting category. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
+  };
+  
   const categoriesArray = Object.values(categories).map((category, index) => ({
     srNo: index + 1, // Serial number (1-based index)
     ...category,

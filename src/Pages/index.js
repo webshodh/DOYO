@@ -10,12 +10,12 @@ export {default as ViewMenu} from './ViewMenu'
 
 // Dashboard
 export {default as AddMenu} from './AddMenu'
-export {default as AdminDashboard} from './Dashboard/AdminDashboard'
-export {default as OrderDashboard} from './Dashboard/OrderDashboard'
-export {default as StaffDashboard} from './Dashboard/StaffDashboard'
-export {default as Customers} from './Dashboard/Customers'
-export {default as MenuDashboard} from './Dashboard/MenuDashboard'
-export {default as TableDashboard} from './Dashboard/TableDashboard'
+export {default as AdminDashboard} from './Admin Dashboard/AdminDashboard'
+export {default as OrderDashboard} from './Admin Dashboard/OrderDashboard'
+export {default as StaffDashboard} from './Staff Management/StaffDashboard'
+export {default as Customers} from './Admin Dashboard/Customers'
+export {default as MenuDashboard} from './Admin Dashboard/MenuDashboard'
+export {default as TableDashboard} from './Admin Dashboard/TableDashboard'
 
 export {default as AddSections} from './AddSections'
 export {default as AddTable} from './AddTable'

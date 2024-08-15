@@ -3,6 +3,7 @@ import styled from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import { colors } from "../../theme/theme";
 
 // Styled Components
 const CardWrapper = styled.div`
@@ -22,7 +23,7 @@ const ImageSection = styled.div`
 
 const Image = styled.img`
   width: 120px;
-  height: 120px;
+  height: 125px;
   border-radius: 10px 0 0 10px;
 `;
 
@@ -56,12 +57,23 @@ const AddToCart = styled(Button)`
 `;
 
 const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
-  const [show, setShow] = useState(false); // Set to false initially
+  const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
+  const [isAdded, setIsAdded] = useState(false); // State to track if item is added
 
   const handleShow = (item) => {
     setModalData(item);
-    setShow(true); // Show the modal when an item is clicked
+    setShow(true);
+  };
+
+  const handleClose = () => {
+    setShow(false);
+  };
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    addToCart(item.uuid);
+    setIsAdded(true); // Mark the item as added
   };
 
   // Truncate menuContent if it's longer than 25 characters
@@ -70,16 +82,12 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
       ? item.menuName.slice(0, 25) + "..."
       : item.menuName;
 
-  const handleClose = () => {
-    setShow(false); // Simply set show to false to close the modal
-  };
-
   return (
     <CardWrapper onClick={() => handleShow(item)}>
       <ImageSection>
         <Image
-          src={item.imageUrl}
-          alt={item.menuName}
+          src={item.imageUrl || '/dish.png'}
+          // alt={item.menuName}
           onLoad={handleImageLoad}
         />
       </ImageSection>
@@ -87,23 +95,17 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
         <InfoText>{truncatedContent}</InfoText>
         <div className="d-flex">
           <InfoText>
-            <img
-              src="/time.png"
-              alt="Cooking Time"
-              width="18"
-              height="18"
-              style={{ marginRight: "5px", marginBottom: "2px" }}
-            />
+            <i
+              class="bi bi-stopwatch-fill"
+              style={{ color: `${colors.Orange}`, fontSize: "18px" }}
+            ></i>
             {item.menuCookingTime} min
           </InfoText>
           <InfoText>
-            <img
-              src="/rupee.png"
-              alt="Menu Price"
-              width="18"
-              height="18"
-              style={{ marginRight: "5px", marginBottom: "5px" }}
-            />
+            <i
+              class="bi bi-currency-rupee"
+              style={{ color: `${colors.Orange}`, fontSize: "18px" }}
+            ></i>
             {item.menuPrice}
           </InfoText>
         </div>
@@ -118,11 +120,18 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
           >
             Read More
           </InfoText>
-          <span onClick={(e) => { e.stopPropagation(); addToCart(item.uuid); }}>
-            <i
-              className="bi bi-cart-plus-fill"
-              style={{ color: "red", fontSize: "24px" }}
-            ></i>
+          <span onClick={handleAddToCart}>
+            {!isAdded ? (
+              <i
+                className="bi bi-plus-circle-fill"
+                style={{ color: `${colors.Orange}`, fontSize: "30px" }}
+              ></i>
+            ) : (
+              <i
+                className="bi bi-check-circle-fill"
+                style={{ color: `${colors.Green}`, fontSize: "30px" }}
+              ></i>
+            )}
           </span>
         </div>
       </TextSection>
@@ -130,7 +139,7 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
 
       {/* Modal Data */}
       {modalData && (
-        <Modal show={show} >
+        <Modal show={show} onHide={handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>{modalData.menuName}</Modal.Title>
           </Modal.Header>
@@ -150,7 +159,7 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
             {modalData.menuContent ? modalData.menuContent : modalData.menuName}
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="danger" onClick={handleClose}>
+            <Button style={{background:`${colors.Orange}`, border:`${colors.Orange}`}} onClick={handleClose}>
               Close
             </Button>
           </Modal.Footer>

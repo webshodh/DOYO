@@ -3,7 +3,7 @@ import "../../styles/nav.css";
 import NavNotice from "./NavNotice";
 import NavMessage from "./NavMessage";
 import NavAvatar from "./NavAvatar";
-import HotelSelector from "../../Pages/Dashboard/HotelSelector";
+import HotelSelector from "../../Pages/Admin Dashboard/HotelSelector";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";

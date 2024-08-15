@@ -246,15 +246,21 @@ function AddHotel() {
       address: hotelAddress,
       pinCode,
       imageUrl,
-      uuid, 
+      uuid,
     };
   
     try {
       // Reference to the admin's hotels collection
-      const hotelRef = ref(db, `admins/${adminID}/hotels/${hotelName}`);
-      
-      // Set the hotel data under the admin's collection
-      await set(hotelRef, hotelData);
+      const adminHotelRef = ref(db, `admins/${adminID}/hotels/${hotelName}/`);
+  
+      // Reference to the general hotels collection
+      const generalHotelRef = ref(db, `hotels/${hotelName}/`);
+  
+      // Store hotel data under the admin's collection
+      await set(adminHotelRef, hotelData);
+  
+      // Store hotel name and UUID in the general hotels collection
+      await set(generalHotelRef, { hotelName, uuid });
   
       // Clear form fields after successful submission
       setHotelName("");
@@ -275,6 +281,7 @@ function AddHotel() {
       });
     }
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 

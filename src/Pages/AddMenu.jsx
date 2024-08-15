@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { db, storage } from "../data/firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, onValue, update } from "firebase/database";
+import { set, ref, onValue, update, get } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Form } from "react-bootstrap";
@@ -118,20 +118,20 @@ function AddMenu() {
   const adminID = currentAdminId;
  
   const { hotelName } = useHotelContext();
-  useEffect(() => {
-    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`), (snapshot) => {
-      setMenues([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        Object.values(data).forEach((category) => {
-          setMenues((oldCategories) => [...oldCategories, category]);
-        });
-      }
-    });
-  }, [hotelName]);
+  // useEffect(() => {
+  //   onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`), (snapshot) => {
+  //     setMenues([]);
+  //     const data = snapshot.val();
+  //     if (data !== null) {
+  //       Object.values(data).forEach((category) => {
+  //         setMenues((oldCategories) => [...oldCategories, category]);
+  //       });
+  //     }
+  //   });
+  // }, [hotelName]);
 
   useEffect(() => {
-    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`), (snapshot) => {
+    onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
       setCategories([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -150,15 +150,15 @@ function AddMenu() {
     setDisabledCards(initialDisabledState);
   }, [menues]);
 
-  useEffect(() => {
-    const countsByCategory = {};
-    menues.forEach((menu) => {
-      const category = menu.menuCategory;
-      countsByCategory[category] = (countsByCategory[category] || 0) + 1;
-    });
+  // useEffect(() => {
+  //   const countsByCategory = {};
+  //   menues.forEach((menu) => {
+  //     const category = menu.menuCategory;
+  //     countsByCategory[category] = (countsByCategory[category] || 0) + 1;
+  //   });
 
-    setMenuCountsByCategory(countsByCategory);
-  }, [menues]);
+  //   setMenuCountsByCategory(countsByCategory);
+  // }, [menues]);
 
   const handleMenuNameChange = (e) => {
     setMenuName(e.target.value);
@@ -189,97 +189,217 @@ function AddMenu() {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
   };
-
+  useEffect(() => {
+    onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
+      setMenues([]);
+      const data = snapshot.val();
+      if (data !== null) {
+        Object.values(data).forEach((menu) => {
+          setMenues((oldMenus) => [...oldMenus, menu]);
+        });
+      }
+    });
+  }, [hotelName]);
+  
   const writeToDatabase = async () => {
-    if (file) {
-      // Upload image to Firebase Storage
-      const imageRef = storageRef(storage, `images/${hotelName}/${file.name}`);
-      await uploadBytes(imageRef, file);
-
-      // Get the download URL of the uploaded image
-      const imageUrl = await getDownloadURL(imageRef);
-
-      if (editMode) {
-        // Update existing menu with the image URL
-        update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
-          menuName,
-          menuCookingTime,
-          menuPrice,
-          menuCategory,
-          menuContent,
-          availability,
-          imageUrl, // Save image URL
-          uuid: editedMenuId,
-        });
-        setEditMode(false);
-        setEditedMenuId(null);
-        toast.success("Menu Updated Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+    try {
+      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const adminHotelUuid = uuidSnapshot.val();
+  
+      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+      const generalHotelUuid = generalUuidSnapshot.val();
+  
+      if (adminHotelUuid === generalHotelUuid) {
+        if (file) {
+          // Upload image to Firebase Storage
+          const imageRef = storageRef(storage, `images/${hotelName}/${file.name}`);
+          await uploadBytes(imageRef, file);
+  
+          // Get the download URL of the uploaded image
+          const imageUrl = await getDownloadURL(imageRef);
+  
+          if (editMode) {
+            // Update existing menu with the image URL
+            await update(ref(db, `/hotels/${hotelName}/menu/${editedMenuId}`), {
+              menuName,
+              menuCookingTime,
+              menuPrice,
+              menuCategory,
+              menuContent,
+              availability,
+              imageUrl, // Save image URL
+              uuid: editedMenuId,
+            });
+            setEditMode(false);
+            setEditedMenuId(null);
+            toast.success("Menu Updated Successfully!", {
+              position: toast.POSITION.TOP_RIGHT,
+            });
+          } else {
+            // Add new menu with the image URL
+            const uuid = uid();
+            await set(ref(db, `/hotels/${hotelName}/menu/${uuid}`), {
+              menuName,
+              menuCookingTime,
+              menuPrice,
+              menuCategory,
+              menuContent,
+              availability,
+              imageUrl, // Save image URL
+              uuid,
+            });
+            toast.success("Menu Added Successfully!", {
+              position: toast.POSITION.TOP_RIGHT,
+            });
+          }
+        } else {
+          if (editMode) {
+            // Update existing menu without the image URL
+            await update(ref(db, `/hotels/${hotelName}/menu/${editedMenuId}`), {
+              menuName,
+              menuCookingTime,
+              menuPrice,
+              menuCategory,
+              menuContent,
+              availability,
+              uuid: editedMenuId,
+            });
+            setEditMode(false);
+            setEditedMenuId(null);
+            toast.success("Menu Updated Successfully!", {
+              position: toast.POSITION.TOP_RIGHT,
+            });
+          } else {
+            // Add new menu without the image URL
+            const uuid = uid();
+            await set(ref(db, `/hotels/${hotelName}/menu/${uuid}`), {
+              menuName,
+              menuCookingTime,
+              menuPrice,
+              menuCategory,
+              menuContent,
+              availability,
+              uuid,
+            });
+            toast.success("Menu Added Successfully!", {
+              position: toast.POSITION.TOP_RIGHT,
+            });
+          }
+        }
+  
+        // Clear form fields
+        setMenuName("");
+        setMenuCookingTime("");
+        setMenuPrice("");
+        setMenuCategory("");
+        setMenuContent("");
+        setAvailability("");
+        setFile(null);
+  
+        setShowForm(false);
       } else {
-        // Add new menu with the image URL
-        const uuid = uid();
-        set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
-          menuName,
-          menuCookingTime,
-          menuPrice,
-          menuCategory,
-          menuContent,
-          availability,
-          imageUrl, // Save image URL
-          uuid,
-        });
-        toast.success("Menu Added Successfully!", {
+        toast.error("You do not have permission to manage menus for this hotel.", {
           position: toast.POSITION.TOP_RIGHT,
         });
       }
-    } else {
-      // If no file is selected, proceed without uploading image
-      if (editMode) {
-        // Update existing menu without the image URL
-        update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
-          menuName,
-          menuCookingTime,
-          menuPrice,
-          menuCategory,
-          menuContent,
-          availability,
-          uuid: editedMenuId,
-        });
-        setEditMode(false);
-        setEditedMenuId(null);
-        toast.success("Menu Updated Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      } else {
-        // Add new menu without the image URL
-        const uuid = uid();
-        set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
-          menuName,
-          menuCookingTime,
-          menuPrice,
-          menuCategory,
-          menuContent,
-          availability,
-          uuid,
-        });
-        toast.success("Menu Added Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      }
+    } catch (error) {
+      console.error("Error managing menu:", error);
+      toast.error("Error managing menu. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
     }
-
-    // Clear form fields
-    setMenuName("");
-    setMenuCookingTime("");
-    setMenuPrice("");
-    setMenuCategory("");
-    setMenuContent("");
-    setAvailability("");
-    setFile(null);
-
-    setShowForm(false);
   };
+  
+  // const writeToDatabase = async () => {
+  //   if (file) {
+  //     // Upload image to Firebase Storage
+  //     const imageRef = storageRef(storage, `images/${hotelName}/${file.name}`);
+  //     await uploadBytes(imageRef, file);
+
+  //     // Get the download URL of the uploaded image
+  //     const imageUrl = await getDownloadURL(imageRef);
+
+  //     if (editMode) {
+  //       // Update existing menu with the image URL
+  //       update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
+  //         menuName,
+  //         menuCookingTime,
+  //         menuPrice,
+  //         menuCategory,
+  //         menuContent,
+  //         availability,
+  //         imageUrl, // Save image URL
+  //         uuid: editedMenuId,
+  //       });
+  //       setEditMode(false);
+  //       setEditedMenuId(null);
+  //       toast.success("Menu Updated Successfully!", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     } else {
+  //       // Add new menu with the image URL
+  //       const uuid = uid();
+  //       set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
+  //         menuName,
+  //         menuCookingTime,
+  //         menuPrice,
+  //         menuCategory,
+  //         menuContent,
+  //         availability,
+  //         imageUrl, // Save image URL
+  //         uuid,
+  //       });
+  //       toast.success("Menu Added Successfully!", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     }
+  //   } else {
+  //     // If no file is selected, proceed without uploading image
+  //     if (editMode) {
+  //       // Update existing menu without the image URL
+  //       update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
+  //         menuName,
+  //         menuCookingTime,
+  //         menuPrice,
+  //         menuCategory,
+  //         menuContent,
+  //         availability,
+  //         uuid: editedMenuId,
+  //       });
+  //       setEditMode(false);
+  //       setEditedMenuId(null);
+  //       toast.success("Menu Updated Successfully!", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     } else {
+  //       // Add new menu without the image URL
+  //       const uuid = uid();
+  //       set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
+  //         menuName,
+  //         menuCookingTime,
+  //         menuPrice,
+  //         menuCategory,
+  //         menuContent,
+  //         availability,
+  //         uuid,
+  //       });
+  //       toast.success("Menu Added Successfully!", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     }
+  //   }
+
+  //   // Clear form fields
+  //   setMenuName("");
+  //   setMenuCookingTime("");
+  //   setMenuPrice("");
+  //   setMenuCategory("");
+  //   setMenuContent("");
+  //   setAvailability("");
+  //   setFile(null);
+
+  //   setShowForm(false);
+  // };
 console.log('categories', categories)
   return (
     <>

@@ -1,10 +1,13 @@
 import React from 'react'
 import { PageTitle } from '../../Atoms'
 import { Tab } from '../../components'
+import AddStaff from './AddStaff';
+import AddRole from './AddRole';
 
 const StaffDashboard = () => {
     const tabs = [
-        { label: "Add Staff", content:'Add Staff' },
+      { label: "Add Role", content: <AddRole/> },
+        { label: "Add Staff", content: <AddStaff/> },
         { label: "View Menu", content: 'View Staff' },
       ];
   return (

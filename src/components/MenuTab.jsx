@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-
+import { colors } from '../theme/theme';
 const TabsWrapper = styled.div`
   display: flex;
   overflow-x: auto; /* Enable horizontal scrolling */
@@ -19,7 +19,7 @@ const TabsWrapper = styled.div`
 const Tab = styled.button`
   background: none;
   border: none;
-  color: ${props => (props.isActive ? '#ff0000' : '#6c757d')}; /* Red color for active tab, grey for inactive */
+  color: ${props => (props.isActive ? `${colors.Orange}` : '#6c757d')}; /* Red color for active tab, grey for inactive */
   padding: 12px 16px;
   cursor: pointer;
   font-size: 1.1rem;
@@ -29,7 +29,7 @@ const Tab = styled.button`
   white-space: nowrap; /* Prevent text wrapping */
 
   &:hover {
-    color: #ff0000; /* Red color on hover */
+    color: ${props => ( `${colors.Orange}`)}; 
   }
 
   &::after {

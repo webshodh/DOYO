@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Form, Dropdown, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { colors } from "../theme/theme";
 
 // Styled components
 const FilterSortSearchContainer = styled.div`
@@ -17,12 +18,10 @@ const SearchForm = styled(Form.Group)`
 `;
 
 const SearchInput = styled(Form.Control)`
-  margin-right: 8px;
   flex-grow: 1;
-`;
-
-const SearchButton = styled(Button)`
-  width: 50px;
+  border-color: ${(props) => `${colors.Orange}`};
+  border-radius: 20px !important;
+  margin-top: 10px;
 `;
 
 const SortDropdown = styled(Dropdown)`
@@ -64,17 +63,20 @@ const FilterSortSearch = ({
             value={searchTerm}
             onChange={handleSearch}
           />
-          <SearchButton variant="danger" onClick={() => handleSearch()}>
-            <img src="/search.png" height="20px" width="20px" alt="Search" />
-          </SearchButton>
         </div>
       </SearchForm>
 
       {/* Sort by Price */}
       {handleSort && (
         <SortDropdown className="ms-2">
-          <Dropdown.Toggle variant="danger" id="dropdownSort">
-            <img src="/sort.png" height="20px" width="20px" alt="Sort" />
+          <Dropdown.Toggle
+            style={{
+              background: `${colors.Orange}`,
+              borderColor: `${colors.Orange}`,
+            }}
+            id="dropdownSort"
+          >
+            <i class="bi bi-filter-circle-fill"></i>
           </Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item onClick={() => handleSort("lowToHigh")}>

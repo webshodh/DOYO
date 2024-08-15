@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { Button } from "react-bootstrap";
-
+import { colors } from "../../theme/theme";
 // Styled Components
 const CardWrapper = styled.div`
   display: flex;
@@ -39,7 +39,7 @@ const InfoText = styled.div`
 
 const QuantitySection = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   margin-top: 10px;
 `;
@@ -50,42 +50,54 @@ const CartCard = ({
   onRemoveQuantity,
   onRemoveFromCart,
 }) => {
+  // Truncate menuContent if it's longer than 25 characters
+  const truncatedContent =
+    item.menuName.length > 15
+      ? item.menuName.slice(0, 15) + "..."
+      : item.menuName;
   return (
     <CardWrapper>
       <ImageSection>
         <Image src={item.imageUrl} alt={item.menuName} />
       </ImageSection>
       <TextSection>
+        <div style={{ marginTop: "10px" }}>
+          <InfoText>{truncatedContent}</InfoText>
+
+          {onRemoveQuantity && onAddQuantity && (
+            <QuantitySection>
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={() => onRemoveQuantity(item.uuid)}
+              >
+                -
+              </Button>
+              <span style={{ margin: "0 10px" }}>{item.quantity}</span>
+              <Button
+                variant="outline-success"
+                size="sm"
+                onClick={() => onAddQuantity(item.uuid)}
+              >
+                +
+              </Button>
+            </QuantitySection>
+          )}
+        </div>
+
         <div>
-          <InfoText>{item.menuName}</InfoText>
-          <InfoText>
-            <img
-              src="/rupee.png"
-              alt="Menu Price"
-              width="18"
-              height="18"
-              style={{ marginRight: "5px", marginBottom: "5px" }}
-            />
-            {item.menuPrice}
+          <InfoText onClick={() => onRemoveFromCart(item.uuid)}>
+            {/* To adjust styling of cross button */}
+            <span style={{ color: `${colors.White}` }}>g</span>
+            <i
+              class="bi bi-x-circle-fill"
+              style={{ color: `${colors.Red}`, fontSize: "24px" }}
+            ></i>
+          </InfoText>
+          <InfoText style={{ marginTop: "25px" }}>
+            <b>₹ {item.menuPrice}</b>
           </InfoText>
         </div>
-        <QuantitySection>
-          <Button
-            variant="outline-danger"
-            size="sm"
-            onClick={() => onRemoveQuantity(item.uuid)}
-          >
-            -
-          </Button>
-          <span style={{ margin: "0 10px" }}>{item.quantity}</span>
-          <Button
-            variant="outline-success"
-            size="sm"
-            onClick={() => onAddQuantity(item.uuid)}
-          >
-            +
-          </Button>
-        </QuantitySection>
       </TextSection>
     </CardWrapper>
   );

@@ -43,6 +43,12 @@ import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
 import UserSignupPage from "./Pages/Login/UserSignupPage";
 import UserLoginPage from "./Pages/Login/UserLoginPage";
+import OrderDetails from "./Pages/OrderDetails";
+import OrderStatus from "./Pages/OrderStatus";
+import ThankYouPage from "./Pages/ThankYouPage";
+import WelcomePage from "./Pages/WelcomePage";
+import RestaurantRating from "./Pages/RestaurantRating";
+import TipEntry from "./Pages/TipEntry";
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -71,13 +77,18 @@ function App() {
           <Route path="/user/login" element={<UserLoginPage />} />
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/viewMenu/:hotelId" element={<Home />} />
-          <Route path="/:hotelName/orders/details" element={<OrderPage />} />
+          <Route path="/:hotelName/orders/details" element={<OrderStatus />} />
           <Route path="/:hotelName/cart-details" element={<CartDetails />} />
+          <Route path="/viewMenu/:hotelId/welcome" element={<WelcomePage />} />
           <Route
             path="/:hotelName/cart-details/split-bill"
             element={<SplitBill />}
           />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/orderDetails" element={<OrderDetails />} />
+          <Route path="/:hotelName/orders/details/thank-you" element={<ThankYouPage/>}/>
+          <Route path="/:hotelName/hotelRating" element={<RestaurantRating/>}/>
+          <Route path="/:hotelName/captionTip" element={<TipEntry/>}/>
         </Routes>)}
         {/* Routes that require Layout */}
         {isAdmin && (

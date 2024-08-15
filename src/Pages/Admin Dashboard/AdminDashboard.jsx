@@ -15,9 +15,7 @@ import {
   CountCard,
   Table,
   DonutChart,
-  Tab,
-  Header,
-  SideBar,
+  Tab
 } from "../../components";
 import {
   OrdersAndRevenueByCutomerColumns,
@@ -27,6 +25,7 @@ import {
 import useHotelsData from "../../data/useHotelsData";
 import { getAuth } from "firebase/auth";
 import { useHotelContext } from "../../Context/HotelContext";
+import { FaCreativeCommonsSamplingPlus } from "react-icons/fa";
 
 function AdminDashboard() {
   const [showAll, setShowAll] = useState(false);
@@ -181,7 +180,7 @@ function AdminDashboard() {
       return orderDate >= startDate && orderDate <= new Date(); // Check if the order date is within the range
     });
   };
-
+console.log('completedOrders', completedOrders)
   return (
     <div>
       {/* Page Title and Filter */}

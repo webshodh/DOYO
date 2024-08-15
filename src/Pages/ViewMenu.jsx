@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../data/firebase/firebaseConfig";
-import { ref, onValue, remove } from "firebase/database";
+import { ref, onValue, remove, get, update } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { DynamicTable, FilterSortSearch } from "../components";
@@ -32,7 +32,7 @@ function ViewMenu() {
 
   // Fetch Menu data from database
   useEffect(() => {
-    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu`), (snapshot) => {
+    onValue(ref(db, `/hotels/${hotelName}/menu`), (snapshot) => {
       setMenus([]);
       const data = snapshot.val();
       if (data !== null) {
@@ -45,15 +45,20 @@ function ViewMenu() {
 
   // Fetch Category data from database
   useEffect(() => {
-    onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`), (snapshot) => {
-      setCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        Object.values(data).forEach((category) => {
-          setCategories((oldCategories) => [...oldCategories, category]);
-        });
+    const categoryRef = ref(db, `/hotels/${hotelName}/categories/`);
+
+    const unsubscribe = onValue(categoryRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const categoryArray = Object.values(data);
+        setCategories(categoryArray);
+      } else {
+        setCategories([]); // Clear categories if none exist
       }
     });
+
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
   }, [hotelName]);
 
   useEffect(() => {
@@ -80,11 +85,111 @@ function ViewMenu() {
     );
     if (confirmDelete) {
       // Delete the menu
-      remove(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${menuId}`));
+      remove(ref(db, `/hotels/${hotelName}/menu/${menuId}`));
 
       toast.success("Menu Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
+    }
+  };
+
+  // const handleDelete = async (menuId) => {
+  //   console.log("menuId:", menuId); // Debugging: Check what menuId is
+    
+  //   const confirmDelete = window.confirm(
+  //     "Are you sure you want to delete this menu?"
+  //   );
+  //   if (confirmDelete) {
+  //     try {
+  //       // Ensure menuId is a valid string
+  //       if (typeof menuId !== "string") {
+  //         throw new Error("Invalid menuId. Expected a string but received: " + typeof menuId);
+  //       }
+  
+  //       // Fetch the UUID of the hotel from the admin's collection
+  //       const adminHotelUuidSnapshot = await get(
+  //         ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)
+  //       );
+  
+  //       if (!adminHotelUuidSnapshot.exists()) {
+  //         throw new Error("Admin hotel UUID not found.");
+  //       }
+  //       const adminHotelUuid = adminHotelUuidSnapshot.val();
+  
+  //       // Fetch the UUID associated with the menu from the general hotels collection
+  //       const generalHotelUuidSnapshot = await get(
+  //         ref(db, `hotels/${hotelName}/menu/${menuId}/uuid`)
+  //       );
+  
+  //       if (!generalHotelUuidSnapshot.exists()) {
+  //         throw new Error("Menu UUID not found.");
+  //       }
+  //       const generalHotelUuid = generalHotelUuidSnapshot.val();
+  
+  //       // Compare the UUIDs to ensure only the admin can delete
+  //       if (adminHotelUuid && adminHotelUuid === generalHotelUuid) {
+  //         // Delete the menu
+  //         await remove(ref(db, `hotels/${hotelName}/menu/${menuId}`));
+  
+  //         toast.success("Menu Deleted Successfully!", {
+  //           position: toast.POSITION.TOP_RIGHT,
+  //         });
+  //       } else {
+  //         toast.error("You do not have permission to delete this menu.", {
+  //           position: toast.POSITION.TOP_RIGHT,
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error("Error during delete process:", error.message);
+  //       toast.error("Error deleting menu. Please try again.", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     }
+  //   }
+  // };
+  
+  
+
+  const handleUpdate = async (menuId, updatedMenuData) => {
+    const confirmUpdate = window.confirm(
+      "Are you sure you want to update this menu?"
+    );
+    if (confirmUpdate) {
+      try {
+        // Fetch the UUID of the hotel from the admin's collection
+        const uuidSnapshot = await get(
+          ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)
+        );
+        const adminHotelUuid = uuidSnapshot.val();
+
+        // Fetch the UUID of the hotel from the general hotels collection
+        const generalUuidSnapshot = await get(
+          ref(db, `hotels/${hotelName}/uuid`)
+        );
+        const generalHotelUuid = generalUuidSnapshot.val();
+
+        // Compare the UUIDs to ensure only the admin can update
+        if (adminHotelUuid === generalHotelUuid) {
+          // Update the menu
+          await update(
+            ref(db, `/hotels/${hotelName}/menu/${menuId}`),
+            updatedMenuData
+          );
+
+          toast.success("Menu Updated Successfully!", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        } else {
+          toast.error("You do not have permission to update this menu.", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
+      } catch (error) {
+        console.error("Error updating menu:", error);
+        toast.error("Error updating menu. Please try again.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
     }
   };
 
@@ -156,9 +261,9 @@ function ViewMenu() {
       </>
     ),
   }));
-  
-  const columns = ViewMenuColumns
-  console.log('data', data)
+
+  const columns = ViewMenuColumns;
+  console.log("data", data);
   return (
     <>
       <PageTitle />
@@ -166,50 +271,49 @@ function ViewMenu() {
         <div className="row">
           <div className="col-12">
             <div className="d-flex flex-wrap justify-content-start">
-            <div
-              className="d-flex flex-nowrap overflow-auto"
-              style={{ whiteSpace: "nowrap" }}
-            >
               <div
-                className="p-2 mb-2 bg-light border  cursor-pointer d-inline-block categoryTab"
-                onClick={() => handleCategoryFilter("")}
-                style={{marginRight:'5px'}}
+                className="d-flex flex-nowrap overflow-auto"
+                style={{ whiteSpace: "nowrap" }}
               >
-                <div>
-                  All{" "}
-                  <span
-                    className="badge bg-danger badge-number"
-                    style={{ borderRadius: "50%" , padding:'5px'}}
-                  >
-                    {" "}
-                    {Object.values(menuCountsByCategory).reduce(
-                      (a, b) => a + b,
-                      0
-                    )}
-                  </span>
-                </div>
-              </div>
-              {categories
-                .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
-                .map((item) => (
-                  <div
-                    className="category p-2 mb-2 bg-light border cursor-pointer d-inline-block categoryTab"
-                    key={item.id}
-                    onClick={() => handleCategoryFilter(item.categoryName)}
-                  >
-                    <div className="category-name">
-                      {item.categoryName}{" "}
-                      <span
-                        className="badge bg-danger badge-number"
-                        style={{ borderRadius: "50%" }}
-                      >
-                        {menuCountsByCategory[item.categoryName]}
-                      </span>
-                    </div>
+                <div
+                  className="p-2 mb-2 bg-light border  cursor-pointer d-inline-block categoryTab"
+                  onClick={() => handleCategoryFilter("")}
+                  style={{ marginRight: "5px" }}
+                >
+                  <div>
+                    All{" "}
+                    <span
+                      className="badge bg-danger badge-number"
+                      style={{ borderRadius: "50%", padding: "5px" }}
+                    >
+                      {" "}
+                      {Object.values(menuCountsByCategory).reduce(
+                        (a, b) => a + b,
+                        0
+                      )}
+                    </span>
                   </div>
-                ))}
-            </div>
-
+                </div>
+                {categories
+                  .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
+                  .map((item) => (
+                    <div
+                      className="category p-2 mb-2 bg-light border cursor-pointer d-inline-block categoryTab"
+                      key={item.id}
+                      onClick={() => handleCategoryFilter(item.categoryName)}
+                    >
+                      <div className="category-name">
+                        {item.categoryName}{" "}
+                        <span
+                          className="badge bg-danger badge-number"
+                          style={{ borderRadius: "50%" }}
+                        >
+                          {menuCountsByCategory[item.categoryName]}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         </div>
@@ -218,15 +322,14 @@ function ViewMenu() {
       <div className="container mt-2">
         <FilterSortSearch searchTerm={searchTerm} handleSearch={handleSearch} />
         <BackgroundCard>
-          <PageTitle pageTitle={'View Menu'}/>
+          <PageTitle pageTitle={"View Menu"} />
           <DynamicTable
             columns={columns}
             data={data}
             onEdit={handleShow}
             onDelete={handleDelete}
           />
-          </BackgroundCard>
-        
+        </BackgroundCard>
       </div>
       <ToastContainer />
     </>

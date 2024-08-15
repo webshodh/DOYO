@@ -1,9 +1,9 @@
 import React from "react";
 import styled from "styled-components";
-
+import { colors } from "../../theme/theme";
 // Styled components
 const NavbarContainer = styled.div`
-  background: #dc3545;
+  background: #FE724C;
   color: white;
   padding: 10px 10px;
   display: flex;

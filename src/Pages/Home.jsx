@@ -56,16 +56,15 @@ function Home() {
   useEffect(() => {
     // Get the current pathname
     const path = window.location.pathname;
-
     // Split the path into segments
     const pathSegments = path.split("/");
-
     // Assuming the hotel name is the last segment in the path
     const hotelNameFromPath = pathSegments[pathSegments.length - 1];
 
     // Set the hotel name in state
     setHotelName(hotelNameFromPath);
   }, []);
+
   useEffect(() => {
     // Check if 'admin' is present in the URL pathname
     const path = window.location.pathname;
@@ -78,34 +77,28 @@ function Home() {
 
   // Menu
   useEffect(() => {
-    onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`),
-      (snapshot) => {
-        setMenus([]);
-        const data = snapshot.val();
-        if (data !== null) {
-          setMenus(Object.values(data));
-        }
+    onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
+      setMenus([]);
+      const data = snapshot.val();
+      if (data !== null) {
+        setMenus(Object.values(data));
       }
-    );
-  }, [hotelName]);
-  console.log("adminID", adminID);
-  //  Category
-  useEffect(() => {
-    onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`),
-      (snapshot) => {
-        setCategories([]);
-        const data = snapshot.val();
-        if (data !== null) {
-          const categoriesData = Object.values(data);
-          setCategories(categoriesData);
-          fetchMenuCounts(categoriesData);
-        }
-      }
-    );
+    });
   }, [hotelName]);
 
+  //  Category
+  useEffect(() => {
+    onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
+      setCategories([]);
+      const data = snapshot.val();
+      if (data !== null) {
+        const categoriesData = Object.values(data);
+        setCategories(categoriesData);
+        fetchMenuCounts(categoriesData);
+      }
+    });
+  }, [hotelName]);
+  console.log("categories", categories);
   // Menu Count
   const fetchMenuCounts = (categoriesData) => {
     const counts = {};
@@ -225,37 +218,52 @@ function Home() {
   const handleNext = () => {
     navigate(`/${hotelName}/cart-details`, { state: { cartItems: cartItems } });
   };
-  console.log("hotelName", hotelName);
-  console.log("categories", categories);
-  console.log("filteredAndSortedItems", filteredAndSortedItems);
-  console.log("isAdmin", isAdmin);
+  const handleBack = () => {
+    navigate(`/viewMenu/${hotelName}`);
+  };
   return (
     <>
-      {!isAdmin ? (
+      {!isAdmin && (
         <>
-          <Navbar title={`${hotelName}`} />
+          <Navbar
+            title={`${hotelName}`}
+            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
+          />
         </>
-      ) : (
-        ""
       )}
 
-      <div className="container" style={{ background: `${colors.White}` }}>
+      <div
+        className="container"
+        style={{
+          background: `${colors.White}`,
+          // Adjust according to the Navbar height
+        }}
+      >
         {/* Search and Sort */}
         <FilterSortSearch
           searchTerm={searchTerm}
           handleSearch={handleSearch}
           handleSort={handleSort}
-          // categories={categories}
+          style={{ position: "fixed", width: "100%", zIndex: 999 }}
         />
 
         <CategoryTabs
           categories={categories}
           menuCountsByCategory={menuCountsByCategory}
           handleCategoryFilter={handleCategoryFilter}
+          style={{ position: "fixed", width: "100%", zIndex: 998 }}
         />
       </div>
+
       {/* Menu Items */}
-      <div className="row" style={{ background: `${colors.LightBlue}` }}>
+      <div
+        className="row"
+        style={{
+          // Adjust according to the height of the fixed elements above
+          height: "calc(100vh - 240px)", // Adjust to leave space for the cart and other fixed elements
+          overflowY: "auto",
+        }}
+      >
         {filteredAndSortedItems.map((item) => (
           <div className="col-12 col-sm-6 col-md-4 mb-8" key={item.id}>
             <HorizontalMenuCard
@@ -269,41 +277,24 @@ function Home() {
         ))}
       </div>
 
-      {/* Modal Data */}
-      {/* <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>{modeldata.menuName}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <img
-            src={modeldata.imageUrl}
-            style={{ width: "100%", height: "250px", objectFit: "contain" }}
-            alt={modeldata.alt}
-          />
-          <b>Cooking Time: </b>
-          {modeldata.menuCookingTime} min
-          <br />
-          <b>Price: </b>
-          {modeldata.menuPrice} ₹
-          <br />
-          <b>Description: </b>
-          {modeldata.menuContent ? modeldata.menuContent : modeldata.menuName}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={handleClose}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal> */}
-
       {/* Cart Details */}
-      {!isAdmin ? (
-        <div className="fixed-bottom p-2 bg-light border-top">
+      {!isAdmin && (
+        <div
+          className="fixed-bottom p-2 bg-light border-top"
+          style={{ zIndex: 1001 }}
+        >
           <div className="d-flex justify-content-between align-items-center">
             <div>
               DOYO
-              {/* Order {cartItems.length}  */}
+              {/* Order {cartItems.length} */}
               {/* for {getTotalPrice()} INR */}
+            </div>
+            <div>
+              <i
+                class="bi bi-house-fill"
+                style={{ color: `${colors.White}`, fontSize: "24px" }}
+                onClick={handleBack}
+              ></i>
             </div>
             <div className="align-items-center">
               <div style={{ margin: "-5px 15px -10px 30px" }}>
@@ -312,15 +303,13 @@ function Home() {
 
               <div onClick={handleNext} style={{ marginRight: "20px" }}>
                 <i
-                  class="bi bi-cart-check-fill"
-                  style={{ color: "white", fontSize: "24px" }}
+                  className="bi bi-cart-check-fill"
+                  style={{ color: `${colors.White}`, fontSize: "24px" }}
                 ></i>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        ""
       )}
 
       <ToastContainer />

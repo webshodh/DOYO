@@ -36,6 +36,7 @@ const OrderDashboard = () => {
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
+
   useEffect(() => {
     const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
 
@@ -49,7 +50,7 @@ const OrderDashboard = () => {
         let cancelledOrders = [];
 
         Object.keys(data).forEach((orderId) => {
-          const order = data[orderId].orderData;
+          const order = data[orderId].orderData; // Access orderData directly
           const status = order.status || "Pending";
 
           if (status === "Pending") {
@@ -82,9 +83,9 @@ const OrderDashboard = () => {
         setCancelledOrderCount(0);
       }
     });
-console.log('completedOrderscompletedOrders', completedOrders)
+
     return () => unsubscribe();
-  }, [hotelName]);
+  }, [hotelName, adminID]); // Added adminID as a dependency
 
   const handleActionClick = (order, action) => {
     setCurrentOrder(order);
@@ -100,16 +101,14 @@ console.log('completedOrderscompletedOrders', completedOrders)
     const { orderId } = currentOrder;
 
     let newStatus;
-    let updateRef;
+    let updateRef = `/admins/${adminID}/hotels/${hotelName}/orders/${orderId}/orderData/`;
+
     if (actionType === "accept") {
       newStatus = "Accepted";
-      updateRef = `${hotelName}/orders/${orderId}/orderData/`;
     } else if (actionType === "complete") {
       newStatus = "Completed";
-      updateRef = `${hotelName}/orders/${orderId}/orderData/`;
     } else if (actionType === "reject") {
       newStatus = "Cancelled";
-      updateRef = `${hotelName}/orders/${orderId}/orderData/`;
     }
 
     try {
@@ -140,7 +139,7 @@ console.log('completedOrderscompletedOrders', completedOrders)
   };
 
   const handleMarkAsCompleted = async (order) => {
-    const itemRef = `${hotelName}/orders/${order.orderId}/orderData/`;
+    const itemRef = `/admins/${adminID}/hotels/${hotelName}/orders/${order.orderId}/orderData/`;
 
     await update(ref(db, itemRef), { status: "Completed" });
 
