@@ -7,5 +7,6 @@ export const colors = {
   Green: "#4EE476",
   Red: "#EA3F30",
   Grey:"#F6F6F6",
+  Grey2:"#DADADA"
 //   Purpul:'#604BE8',
 };

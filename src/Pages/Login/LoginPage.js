@@ -39,7 +39,7 @@ const LoginPage = () => {
         await signInWithEmailAndPassword(auth, email, password);
         toast.success("Logged in successfully!");
         
-        navigate(`/admin/dashboard`) // Redirect to the dashboard after successful login
+        navigate(`${hotelName}/admin/admin-dashboard`) // Redirect to the dashboard after successful login
       } catch (error) {
         toast.error("Error logging in: " + error.message);
       }

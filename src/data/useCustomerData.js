@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 const useCustomerData = (completedOrders) => {
   const customerData = useMemo(() => {
@@ -12,31 +12,46 @@ const useCustomerData = (completedOrders) => {
 
     completedOrders.forEach((order) => {
       const { checkoutData } = order;
-      const { name, cartItems , mobile } = checkoutData;
+      const { name, cartItems, mobileNo, date } = checkoutData;
+
+      // Ensure mobileNo and date are valid
+      if (!mobileNo || !name || !date) {
+        console.warn(`Missing data for order:`, order);
+        return; // Skip this order if essential data is missing
+      }
 
       const totalOrderPrice = cartItems.reduce(
         (sum, item) => sum + parseFloat(item.menuPrice) * item.quantity,
         0
       );
 
+      // Format the date to "dd-mm-yyyy"
+      const formattedDate = new Date(date).toLocaleDateString("en-GB");
+
       if (!customerInfo[name]) {
-        customerInfo[name] = { name, totalMenuPrice: 0, totalOrders: 0 };
+        customerInfo[name] = {
+          name,
+          mobileNo,
+          date: formattedDate, // Store the formatted date as a string
+          totalMenuPrice: 0,
+          totalOrders: 0,
+        };
         customerContData.newCustomers += 1;
       } else {
         customerContData.loyalCustomers += 1;
+        customerInfo[name].date += `, ${formattedDate}`; // Append the formatted date as a string
       }
 
       customerInfo[name].totalMenuPrice += totalOrderPrice;
       customerInfo[name].totalOrders += 1;
+
       customerContData.totalCustomers += 1;
     });
 
-    const customerDataArray = Object.values(customerInfo).map(
-      (customer, index) => ({
-        srNo: index + 1,
-        ...customer,
-      })
-    );
+    const customerDataArray = Object.values(customerInfo).map((customer, index) => ({
+      srNo: index + 1,
+      ...customer,
+    }));
 
     return { customerDataArray, customerContData };
   }, [completedOrders]);

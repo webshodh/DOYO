@@ -17,12 +17,28 @@ const LayoutContent = styled.div`
 `;
 
 const SidebarContainer = styled.div`
-  width: 250px;
   height: 100vh;
+  @media (min-width: 992px) {
+    /* Large screens (≥992px) */
+    width: 250px; /* Adjust based on sidebar width */
+  }
+
+  @media (max-width: 991.98px) {
+    /* Tablets and below (<992px) */
+    margin-left: 0px; /* Remove margin for smaller screens */
+  }
 `;
 
 const MainContent = styled.div`
-  margin-left: 150px; /* Adjust based on sidebar width */
+  @media (min-width: 992px) {
+    /* Large screens (≥992px) */
+    margin-left: 150px; /* Adjust based on sidebar width */
+  }
+
+  @media (max-width: 991.98px) {
+    /* Tablets and below (<992px) */
+    margin-left: 0px; /* Remove margin for smaller screens */
+  }
 `;
 
 const Layout = ({ children }) => {

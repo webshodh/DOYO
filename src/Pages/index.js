@@ -1,47 +1,52 @@
+// Admin Dashboard
+export { default as AdminDashboard } from "./Admin Dashboard/AdminDashboard";
+export { default as HotelSelector } from "./Admin Dashboard/HotelSelector";
 
-// Add Hotel
-export {default as AddHotel} from './AddHotel'
-export {default as AddHotelInfo} from './AddHotelInfo'
-export {default as UpdateHotel} from './UpdateHotel'
-export {default as ViewHotel} from './ViewHotel'
+// Customer Dahboard
+export { default as CustomerDashboard } from "./CustomerDashboard/CustomerDashboard";
 
-export {default as AddCategory} from './AddCategory'
-export {default as ViewMenu} from './ViewMenu'
+// Login
+export { default as LoginPage } from "./Login/LoginPage";
+export { default as SignupPage } from "./Login/SignupPage";
+export { default as ResetPasswordPage } from "./Login/ResetPasswordPage";
+export { default as ForgotPasswordPage } from "./Login/ForgotPasswordPage";
+export { default as UserLoginPage } from "./Login/UserLoginPage";
+export { default as UserSignupPage } from "./Login/UserSignupPage";
 
-// Dashboard
-export {default as AddMenu} from './AddMenu'
-export {default as AdminDashboard} from './Admin Dashboard/AdminDashboard'
-export {default as OrderDashboard} from './Admin Dashboard/OrderDashboard'
-export {default as StaffDashboard} from './Staff Management/StaffDashboard'
-export {default as Customers} from './Admin Dashboard/Customers'
-export {default as MenuDashboard} from './Admin Dashboard/MenuDashboard'
-export {default as TableDashboard} from './Admin Dashboard/TableDashboard'
+// MenuDashboard
+export { default as MenuDashboard } from "./MenuDashboard/MenuDashboard";
 
-export {default as AddSections} from './AddSections'
-export {default as AddTable} from './AddTable'
+// Order Dashboard
+export { default as OrderDashboard } from "./OrderDahboard/OrderDashboard";
 
-// Cart 
-export {default as CartDetails} from './CartDetails'
-export {default as OrderPage} from './OrderPage'
-export {default as SplitBill} from './SplitBill'
-export {default as Payment} from './Payment'
+// Screen
+export { default as WelcomeScreen } from "./Screens/WelcomeScreen";
+export { default as ThankYouScreen } from "./Screens/ThankYouScreen";
+export { default as NotFound } from "./Screens/NotFound";
+export { default as NotAuthorized } from "./Screens/NotAuthorized";
 
-// Home
-export {default as Home} from './Home'
+// StaffDashboard
+export { default as StaffDashboard } from "./StaffDahboard/StaffDashboard";
 
-// Miscellaneous
-export {default as NotFound} from './NotFound'
-export {default as NotAuthorized} from './NotAuthorized'
+// Super Admin Dashboard
+export { default as SuperAdminDashboard } from "./SuperAdminDashboard/SuperAdminDashboard";
+export { default as AdminList } from "./SuperAdminDashboard/AdminList";
+export { default as AddHotel } from "./SuperAdminDashboard/AddHotel";
 
-// Super Admin
-export {default as SuperAdminDashboard} from './SuperAdminDashboard/SuperAdminDashboard'
-export {default as AdminList} from './SuperAdminDashboard/AdminList'
+// Table Dashboard
+export { default as TableDashboard } from "./TableDashboard/TableDashboard";
 
-// Login 
-export {default as LoginPage} from './Login/LoginPage'
-export {default as SignupPage} from './Login/SignupPage'
-export {default as ResetPasswordPage} from './Login/ResetPasswordPage'
-export {default as ForgotPasswordPage} from './Login/ForgotPasswordPage'
+// User
+export { default as Home } from "./User/Home";
+// Cart
+export { default as CartDetails } from "./User/CartDetails";
+export { default as OrderBill } from "./User/OrderBill";
+export { default as MostOrderedMenu } from "./User/MostOrderedMenu";
+export { default as OrderHistory } from "./User/OrderHistory";
+export { default as TrackOrders } from "./User/TrackOrders";
 
 
+// Waiter
+export { default as CaptainFeedBack } from "./Waiter/CaptainFeedBack";
+export { default as CaptainTip } from "./Waiter/CaptainTip";
 

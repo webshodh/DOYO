@@ -50,10 +50,10 @@ export const ViewTableColumns = [
 export const customersColumns = [
   { header: "Sr.No", accessor: "srNo" },
   { header: "Customer Name", accessor: "name" },
-  { header: "Mobile Number", accessor: "mobile" },
+  { header: "Mobile Number", accessor: "mobileNo" },
   { header: "Order Count", accessor: "totalOrders" },
   { header: "Order Price", accessor: "totalMenuPrice" },
-  { header: "Last Visit", accessor: "" },
+  { header: "Last Visit", accessor: "date" },
 ];
 
 export const adminsListColumn = [
@@ -118,4 +118,12 @@ export const AcceptedOrderColumn = [
   { header: "Quantity", accessor: "quantity" },
   { header: "Table No", accessor: "tableNo" },
   { header: "Name", accessor: "name" },
+];
+
+export const  ViewStaffColumns = [
+  { header: "Sr.No", accessor: "Sr.No" },
+  { header: "First Name", accessor: "FirstName" },
+  { header: "Last Name", accessor: "LastName" },
+  { header: "UPI Id", accessor: "upiId" },
+  { header: "Role", accessor: "Role" },
 ];

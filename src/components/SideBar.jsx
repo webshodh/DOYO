@@ -23,31 +23,31 @@ function SideBar() {
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/dashboard`}>
+              <Link className="nav-link" to={`/${hotelName}/admin/admin-dashboard`}>
                 <i className="bi bi-grid"></i>
                 <span>Admin Dashboard</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin`}>
+              <Link className="nav-link" to={`/${hotelName}/admin/admin-dashboard`}>
                 <i class="bi bi-currency-rupee"></i>
                 <span>Revenue Managment</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/order-dashboard`}>
+              <Link className="nav-link" to={`/${hotelName}/admin/order/order-dashboard`}>
                 <i class="bi bi-cart-check-fill"></i>
                 <span>Orders Management</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/menu`}>
+              <Link className="nav-link" to={`/${hotelName}/admin/menu/menu-dashboard`}>
                 <i className="bi bi-speedometer2"></i>
                 <span>Menu Management</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/table`}>
+              <Link className="nav-link" to={`/${hotelName}/admin/table/table-dashboard`}>
                 <i className="bi bi-speedometer2"></i>
                 <span>Table Management</span>
               </Link>
@@ -55,20 +55,14 @@ function SideBar() {
             <li className="nav-item">
               <Link
                 className="nav-link"
-                to={`/${hotelName}/admin/staffDashboard`}
+                to={`/${hotelName}/admin/staff/staff-dashboard`}
               >
                 <i class="bi bi-person-fill"></i>
                 <span>Staff Management</span>
               </Link>
             </li>
-            {/* <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/orders`}>
-                <i className="bi bi-speedometer2"></i>
-                <span>Inventory Management</span>
-              </Link>
-            </li> */}
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/customers`}>
+              <Link className="nav-link" to={`/${hotelName}/admin/customers/customer-dashboard`}>
                 <i class="bi bi-person-heart"></i>
                 <span>Customers Management</span>
               </Link>

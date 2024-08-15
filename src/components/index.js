@@ -1,4 +1,3 @@
-export {default as CartSummary} from './CartSummary'
 export {default as ErrorBoundary} from './ErrorBoundary'
 export {default as FilterSortSearch} from './FilterSortSearch'
 export {default as MenuModal} from './MenuModal'
