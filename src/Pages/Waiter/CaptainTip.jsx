@@ -72,7 +72,10 @@ const CaptainTip = () => {
 
   return (
     <>
-      <Navbar title={"Atithi"} />
+      <Navbar
+            title={`${hotelName}`}
+            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
+          />
       <Container
         fluid
         className="d-flex flex-column align-items-center justify-content-center"
@@ -82,6 +85,7 @@ const CaptainTip = () => {
           padding: "2rem",
         }}
       >
+        
         <Row className="text-center w-100">
           <Col xs={12} md={10} lg={8}>
             <div className="p-1 text-dark bg-light rounded shadow-sm">

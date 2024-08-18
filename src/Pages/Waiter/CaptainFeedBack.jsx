@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { colors } from "../../theme/theme";
 import { useLocation } from "react-router-dom";
+import { Navbar } from "../../components";
 
 const feedbackOptions = {
   1: [
@@ -71,7 +72,7 @@ const TipEntry = () => {
       alert("Please select a rating and enter a tip amount.");
     }
   };
-
+const hotelName = "Atithi"
   return (
     <Container
       fluid
@@ -82,6 +83,10 @@ const TipEntry = () => {
         padding: "2rem",
       }}
     >
+       <Navbar
+            title={`${hotelName}`}
+            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
+          />
       <Row className="text-center w-100">
         <Col xs={12} md={8} lg={6}>
           <div className="p-4 text-white bg-dark rounded shadow-sm">

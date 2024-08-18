@@ -87,7 +87,7 @@
   align-items: center;
   font-size: 15px;
   font-weight: 600;
-  color: var(--Blue);
+  color: var(--Orange);
   transition: 0.3;
   padding: 10px 15px;
   border-radius: 4px;
@@ -96,11 +96,11 @@
 .sidebar-nav .nav-link i {
   font-size: 16px;
   margin-right: 10px;
-  color: var(--Blue);
+  color: var(--Orange);
 }
 
 .sidebar-nav .nav-link.collapsed {
-  color: var(--Blue);
+  color: var(--Orange);
   background: var(--White);;
 }
 
@@ -109,12 +109,12 @@
 }
 
 .sidebar-nav .nav-link:hover {
-  color: var(--Blue);
+  color: var(--Orange);
   background: #f6f9ff;
 }
 
 .sidebar-nav .nav-link:hover i {
-  color: var(--Blue);
+  color: var(--Orange);
 }
 
 .sidebar-nav .nav-link .bi-chevron-down {

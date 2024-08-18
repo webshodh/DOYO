@@ -90,6 +90,10 @@ function App() {
               path="/viewMenu/:hotelName"
               element={showWelcomeScreen ? <WelcomeScreen /> : <Home />}
             />
+            <Route
+              path="/:hotelName/feedback"
+              element={<Navigate to="/login" />}
+            />
 
             {/*Orders */}
             <Route

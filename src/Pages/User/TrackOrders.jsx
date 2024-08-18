@@ -51,7 +51,10 @@ function TrackOrders() {
   };
   return (
     <>
-      <Navbar title={`${hotelName}`} />
+     <Navbar
+            title={`${hotelName}`}
+            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
+          />
       <Container fluid className="px-3 px-md-5">
         <Row>
           <h5>My Pending Orders</h5>
