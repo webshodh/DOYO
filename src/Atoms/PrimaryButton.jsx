@@ -1,7 +1,7 @@
 import React from "react";
 import { colors } from "../theme/theme";
 import styled from "styled-components";
-const PrimaryButton = ({ btnText }) => {
+const PrimaryButton = ({ btnText, onClick}) => {
   const Button = styled.button`
     padding: 5px 10px;
     border-radius: 20px;
@@ -19,7 +19,7 @@ const PrimaryButton = ({ btnText }) => {
   `;
   return (
     <>
-      <Button>{btnText}</Button>
+      <Button onClick={onClick}>{btnText}</Button>
     </>
   );
 };

@@ -4,13 +4,31 @@ import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../../components";
+import {
+  Navbar,
+  FilterSortSearch,
+  HorizontalMenuCard,
+  MenuCard,
+} from "../../components";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 import { getAuth } from "firebase/auth";
 import CategoryTabs from "../../components/CategoryTab";
 import { PrimaryButton } from "../../Atoms";
+import styled from "styled-components";
+
+const MenuItemsContainer = styled.div`
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 10px 0;
+
+  .menu-card {
+    flex: 0 0 auto;
+    margin-right: 10px;
+  }
+`;
 
 function Home() {
   const [menus, setMenus] = useState([]);
@@ -27,7 +45,7 @@ function Home() {
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
-
+  const [selectedMainCategory, setSelectedMainCategory] = useState(null);
   const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
 
@@ -46,8 +64,6 @@ function Home() {
       setIsAdmin(false);
     }
   }, []);
-
- 
 
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
@@ -109,23 +125,6 @@ function Home() {
     setActiveCategory(category);
   };
 
-  const handleFilterClick = (category) => {
-    if (category === "Special") {
-      const specialMenus = menus.filter(
-        (menu) => menu.mainCategory === "Special"
-      );
-      setFilteredMenus(specialMenus);
-    } else if (category === "Best Seller") {
-      const bestSellerMenus = menus.filter(
-        (menu) => menu.mainCategory === "Best Seller"
-      );
-      setFilteredMenus(bestSellerMenus);
-    } else {
-      setFilteredMenus(menus); // Show all menus if no specific category is selected
-    }
-    setSelectedCategory(category); // Update the selected category
-  };
-  console.log("filteredMenus", filteredMenus);
   const filterAndSortItems = () => {
     let filteredItems = filteredMenus.filter((menu) =>
       menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -218,9 +217,24 @@ function Home() {
     );
   };
   console.log("filteredAndSortedItems", filteredAndSortedItems);
+  const handleMainCategoryClick = (category) => {
+    setSelectedMainCategory(category);
+  };
+  const handleMainCategoryCloseClick = () => {
+    setSelectedMainCategory(null);
+  };
+  // Group menus by mainCategory
+  const categorizedMenus = menus.reduce((acc, item) => {
+    if (item.mainCategory) {
+      if (!acc[item.mainCategory]) {
+        acc[item.mainCategory] = [];
+      }
+      acc[item.mainCategory].push(item);
+    }
+    return acc;
+  }, {});
   return (
     <>
-    
       {!isAdmin && (
         <>
           <Navbar
@@ -250,35 +264,41 @@ function Home() {
           handleCategoryFilter={handleCategoryFilter}
           style={{ position: "fixed", width: "100%", zIndex: 998 }}
         />
-
-        {/* Filter buttons */}
-        <div className="d-flex justify-content-between mb-3">
-          {menus.filter((menu) => menu.mainCategory === "Special").length ===
-          0 ? (
-            ""
-          ) : (
-            <PrimaryButton
-              btnText={`${hotelName} Special (${
-                menus.filter((menu) => menu.mainCategory === "Special").length
-              })`}
-              onClick={() => handleFilterClick("Special")}
-            />
-          )}
-          {menus.filter((menu) => menu.mainCategory === "Best Seller")
-            .length === 0 ? (
-            ""
-          ) : (
-            <PrimaryButton
-              btnText={`Best Seller (${
-                menus.filter((menu) => menu.mainCategory === "Best Seller")
-                  .length
-              })`}
-              onClick={() => handleFilterClick("Best Seller")}
-            />
-          )}
-        </div>
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          margin: "0px 20px",
+        }}
+      >
+        {Object.keys(categorizedMenus).map((category) => (
+          <PrimaryButton
+            key={category}
+            onClick={() => handleMainCategoryClick(category)}
+            btnText={`${hotelName} ${category}`}
+          />
+        ))}
 
+        <span
+          onClick={() => handleMainCategoryCloseClick()}
+          style={{ color: `${colors.Red}`, cursor:'pointer' }}
+        >
+          Close
+        </span>
+      </div>
+      <MenuItemsContainer className="menu-items">
+        {selectedMainCategory &&
+          categorizedMenus[selectedMainCategory].map((item) => (
+            <MenuCard
+              key={item.uuid} // Add a unique key prop for better performance
+              item={item}
+              handleImageLoad={handleImageLoad}
+              addToCart={addToCart}
+              className="menu-card" // Apply the class to the MenuCard component
+            />
+          ))}
+      </MenuItemsContainer>
       {/* Menu Items */}
       <div
         className="row"

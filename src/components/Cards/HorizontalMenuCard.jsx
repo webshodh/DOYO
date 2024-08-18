@@ -55,6 +55,7 @@ const HorizontalMenuCard = ({
   addToCart,
   onAddQuantity,
   onRemoveQuantity,
+  closeModal
 }) => {
   const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
@@ -74,7 +75,7 @@ const HorizontalMenuCard = ({
     e.stopPropagation();
     addToCart(item.uuid, quantity);
     setIsAdded(true); // Mark the item as added
-    setQuantity(1)
+    setQuantity(1);
   };
 
   const handleIncreaseQuantity = () => {
@@ -132,30 +133,40 @@ const HorizontalMenuCard = ({
             Read More
           </InfoText>
           <span onClick={(e) => e.stopPropagation()}>
-            {!isAdded && quantity === 0 ? (
+            {!isAdded ? (
               <i
                 className="bi bi-plus-circle-fill"
-                style={{ color: `${colors.Orange}`, fontSize: "30px" }}
+                style={{ color: colors.Orange, fontSize: "30px" }}
                 onClick={handleAddToCart}
               ></i>
             ) : (
               <QuantitySection>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={handleDecreaseQuantity}
-                >
-                  -
-                </Button>
-
-                <span style={{ margin: "0 10px" }}>{quantity}</span>
-                <Button
-                  variant="outline-success"
-                  size="sm"
-                  onClick={handleIncreaseQuantity}
-                >
-                  +
-                </Button>
+                {quantity > 0 && (
+                  <>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={handleDecreaseQuantity}
+                    >
+                      -
+                    </Button>
+                    <span style={{ margin: "0 10px" }}>{quantity}</span>
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      onClick={handleIncreaseQuantity}
+                    >
+                      +
+                    </Button>
+                  </>
+                )}
+                {quantity === 0 && (
+                  <i
+                    className="bi bi-plus-circle-fill"
+                    style={{ color: colors.Orange, fontSize: "30px" }}
+                    onClick={handleAddToCart}
+                  ></i>
+                )}
               </QuantitySection>
             )}
           </span>
@@ -184,7 +195,6 @@ const HorizontalMenuCard = ({
             {modalData.menuContent ? modalData.menuContent : modalData.menuName}
             <b>Nutritional Info: </b>
             {modalData.nutritionalInfo}
-
           </Modal.Body>
           <Modal.Footer>
             <Button

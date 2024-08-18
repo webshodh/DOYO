@@ -1,9 +1,10 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import { colors } from "../../theme/theme";
+
 const CardWrapper = styled.div`
   display: flex;
   padding: 0 !important;
@@ -77,12 +78,11 @@ const CardFooter = styled.div`
 `;
 
 const ReadMore = styled(CardFooter)`
-  color: ${colors.White};
-  background: #dc3545;
+  color: ${colors.Orange};
 `;
 
 const AddToCart = styled(CardFooter)`
-  background: green;
+  background: ${(props) => `${colors.Orange}`};
   color: white;
   border-radius: 5px;
   cursor: pointer;
@@ -92,14 +92,8 @@ const AddToCart = styled(CardFooter)`
 const Veg = "../../veglogo.jpeg";
 const Nonveg = "../../nonVeglogo.png";
 
-const MenuCard = ({
-  item,
-  handleImageLoad,
-  showDetail,
-  addToCart,
-  imageLoaded,
-}) => {
-  const [show, setShow] = useState(true);
+const MenuCard = ({ item, handleImageLoad, showDetail, addToCart }) => {
+  const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
 
   const handleShow = (item) => {
@@ -111,17 +105,19 @@ const MenuCard = ({
 
   return (
     <>
-      <div className="column flex-container" key={item.id}>
-        <CardWrapper className="card" availability={item.availability} onClick={() =>
-          item.availability === "Available" && handleShow(item)
-        }>
+      <div className="column flex-container">
+        <CardWrapper className="card" availability={item.availability}>
           {item.availability !== "Available" && (
             <span className="text-overlay">{item.availability}</span>
           )}
-          {!imageLoaded && (
-            <Spinner className="spinner-border text-danger" role="status"></Spinner>
+          {!item.imageUrl && (
+            <Spinner className="spinner-border text-danger" role="status" />
           )}
-          <CardImage src={item.imageUrl} alt={item.alt} onLoad={handleImageLoad} />
+          <CardImage
+            src={item.imageUrl}
+            alt={item.menuName}
+            onLoad={handleImageLoad}
+          />
           <CardBody className="card-body">
             <CardTitle className="card-title">{item.menuName}</CardTitle>
             <div className="container">
@@ -140,7 +136,7 @@ const MenuCard = ({
               {item.menuPrice}
             </CardText>
           </CardBody>
-           <ReadMore
+          <ReadMore
             className="card-footer read-more"
             availability={item.availability}
             onClick={() =>
@@ -149,13 +145,12 @@ const MenuCard = ({
           >
             Read More
           </ReadMore>
-          {/*
           <AddToCart
             className="card-footer add-to-cart"
             onClick={() => addToCart(item.uuid)}
           >
             Add to Cart
-          </AddToCart> */}
+          </AddToCart>
         </CardWrapper>
       </div>
 
@@ -169,7 +164,7 @@ const MenuCard = ({
             <img
               src={modalData.imageUrl}
               style={{ width: "100%", height: "250px", objectFit: "contain" }}
-              alt={modalData.alt}
+              alt={modalData.menuName}
             />
             <b>Cooking Time: </b>
             {modalData.menuCookingTime} min
