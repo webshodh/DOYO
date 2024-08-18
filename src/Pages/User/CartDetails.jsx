@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Container, Row, Col } from "react-bootstrap";
+import { Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import CheckoutForm from "../../components/Form/CheckoutForm";
 import { ToastContainer, toast } from "react-toastify";
@@ -24,7 +24,7 @@ function CartDetails() {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 3];
     setHotelName(hotelNameFromPath);
   }, []);
 
@@ -126,6 +126,7 @@ function CartDetails() {
     toast.success("Cart cleared successfully!", {
       position: toast.POSITION.TOP_RIGHT,
     });
+    navigate(`/viewMenu/${hotelName}`);
   };
 
   return (
@@ -133,13 +134,27 @@ function CartDetails() {
       <Navbar title={`${hotelName}`} />
       <Container fluid className="px-3 px-md-5">
         <Row>
-          <div className="d-flex mb-2">
+          <div
+            className="d-flex mb-2"
+            style={{ justifyContent: "space-between" }}
+          >
             <i
               class="bi bi-arrow-left-square-fill"
               onClick={handleBack}
               style={{ color: `${colors.Orange}`, fontSize: "30px" }}
             ></i>
-            <h5 style={{ marginLeft: "20px", marginTop: "10px" }}>My Cart</h5>
+            <h5 style={{ marginLeft: "20px", marginTop: "10px" }}>
+              Cart Summary
+            </h5>
+            <span
+              style={{
+                marginTop: "10px",
+                color: `${colors.Orange}`,
+              }}
+              onClick={clearCart}
+            >
+              Clear Cart
+            </span>
           </div>
 
           {cartItems.map((item) => (
@@ -152,56 +167,49 @@ function CartDetails() {
             </Col>
           ))}
         </Row>
-        <Row className="mt-3">
-          <Col xs={12}>
-            <Button
-              style={{
-                background: `${colors.Orange}`,
-                border: `${colors.Orange}`,
-              }}
-              onClick={clearCart}
-              className="w-100 mb-1"
-            >
-              Clear Cart
-            </Button>
-          </Col>
-        </Row>
-        <Row style={{ marginRight: "8px" }}>
-          <Container>
-            <Col
-              xs={12}
-              md={6}
-              className="mb-3 background-card"
-              style={{ padding: "10px" }}
-            >
-              <h5>Order Summary</h5>
-              <p>
-                Total Items: <b>{cartItems.length}</b>
-              </p>
-              <p>
-                Total Price:{" "}
-                <b>
-                  ₹{" "}
-                  {cartItems.reduce(
-                    (total, item) => total + item.menuPrice * item.quantity,
-                    0
-                  )}
-                </b>
-              </p>
-            </Col>
-          </Container>
-          <Container>
-            <Col
-              xs={12}
-              md={6}
-              className="mb-3 background-card"
-              style={{ padding: "10px" }}
-            >
-              <h5>Order Details</h5>
-              <CheckoutForm cartItems={cartItems} onCheckout={handleCheckout} />
-            </Col>
-          </Container>
-        </Row>
+        {cartItems.length > 0 ? (
+          <Row style={{ marginRight: "8px" }}>
+            <Container>
+              <Col
+                xs={12}
+                md={6}
+                className="mb-3 background-card"
+                style={{ padding: "10px" }}
+              >
+                <h5>Order Summary</h5>
+                <p>
+                  Total Items: <b>{cartItems.length}</b>
+                </p>
+                <p>
+                  Total Price:{" "}
+                  <b>
+                    ₹{" "}
+                    {cartItems.reduce(
+                      (total, item) => total + item.menuPrice * item.quantity,
+                      0
+                    )}
+                  </b>
+                </p>
+              </Col>
+            </Container>
+            <Container>
+              <Col
+                xs={12}
+                md={6}
+                className="mb-3 background-card"
+                style={{ padding: "10px" }}
+              >
+                <h5>Order Details</h5>
+                <CheckoutForm
+                  cartItems={cartItems}
+                  onCheckout={handleCheckout}
+                />
+              </Col>
+            </Container>
+          </Row>
+        ) : (
+          <Alert variant="warning">No items in cart</Alert>
+        )}
         <ToastContainer />
       </Container>
     </>

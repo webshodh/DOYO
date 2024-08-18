@@ -32,16 +32,20 @@ import {
   ThankYouScreen,
   CaptainTip,
   CustomerDashboard,
-  WelcomeScreen
+  WelcomeScreen,
+  CaptainFeedBack
 } from "./Pages";
 
 // Importing other components
 import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
+import MobileLoginPage from "./Pages/Login/MobileLoginPage";
+import UserLogin from "./Pages/Login/UserLogin";
 
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
 
   useEffect(() => {
     // Check if 'admin' is present in the URL pathname
@@ -53,6 +57,15 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    // Set a timer to hide the WelcomeScreen after 5 seconds
+    const timer = setTimeout(() => {
+      setShowWelcomeScreen(false);
+    }, 3000); 
+
+    // Clear the timer if the component is unmounted before the timeout
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <Router>
       <ErrorBoundary>
@@ -67,9 +80,14 @@ function App() {
           <Route path="/user/signup" element={<UserSignupPage />} />
           <Route path="/user/login" element={<UserLoginPage />} />
 
+          <Route path="/user/login/mobile" element={<MobileLoginPage />} />
+
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/viewMenu/:hotelName/welcome" element={<WelcomeScreen />} />
-          <Route path="/viewMenu/:hotelName" element={<Home />} />
+          <Route path="/viewMenu/:hotelName" element={
+      showWelcomeScreen ? (
+        <WelcomeScreen />
+      ) : (<Home />)} />
 
           {/*Orders */}
           <Route path="/:hotelName/cart/cart-details" element={<CartDetails />} />
@@ -77,7 +95,9 @@ function App() {
           <Route path="/:hotelName/orders/details/thank-you" element={<ThankYouScreen/>}/>
           <Route path="/:hotelName/orders/track-orders" element={<TrackOrders />} />
           <Route path="/:hotelName/orders/captain-tip" element={<CaptainTip/>}/>
+          <Route path="/:hotelName/orders/captain-feedback" element={<CaptainFeedBack/>}/>
           <Route path="/:hotelName/orders/order-history" element={<OrderHistory />} />
+
         </Routes>)}
         {/* Routes that require Layout */}
         {isAdmin && (

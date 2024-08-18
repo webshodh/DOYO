@@ -10,6 +10,7 @@ import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 import { getAuth } from "firebase/auth";
 import CategoryTabs from "../../components/CategoryTab";
+import { PrimaryButton } from "../../Atoms";
 
 function Home() {
   const [menus, setMenus] = useState([]);
@@ -25,30 +26,19 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState("");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
+  const [filteredMenus, setFilteredMenus] = useState([]);
 
-  // const { hotelName } = useHotelContext();
   const navigate = useNavigate();
-  const handleClose = () => setShow(false);
-  const auth = getAuth();
-  const currentAdminId = auth.currentUser?.uid;
-  const adminID = currentAdminId;
-
   const [hotelName, setHotelName] = useState("");
 
   useEffect(() => {
-    // Get the current pathname
     const path = window.location.pathname;
-    // Split the path into segments
     const pathSegments = path.split("/");
-    // Assuming the hotel name is the last segment in the path
     const hotelNameFromPath = pathSegments[pathSegments.length - 1];
-
-    // Set the hotel name in state
     setHotelName(hotelNameFromPath);
   }, []);
 
   useEffect(() => {
-    // Check if 'admin' is present in the URL pathname
     const path = window.location.pathname;
     if (path.includes("admin")) {
       setIsAdmin(true);
@@ -57,18 +47,19 @@ function Home() {
     }
   }, []);
 
-  // Menu
+ 
+
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
       setMenus([]);
       const data = snapshot.val();
       if (data !== null) {
         setMenus(Object.values(data));
+        setFilteredMenus(Object.values(data)); // Set the initial filtered menus
       }
     });
   }, [hotelName]);
 
-  //  Category
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
       setCategories([]);
@@ -80,30 +71,24 @@ function Home() {
       }
     });
   }, [hotelName]);
-  console.log("categories", categories);
-  // Menu Count
+
   const fetchMenuCounts = (categoriesData) => {
     const counts = {};
-
     categoriesData.forEach((category) => {
       const categoryMenus = menus.filter(
         (menu) => menu.menuCategory === category.categoryName
       );
-
       counts[category.categoryName] = categoryMenus.length;
     });
-
     setMenuCounts(counts);
   };
 
-  // Category Count
   useEffect(() => {
     const countsByCategory = {};
     menus.forEach((menu) => {
       const category = menu.menuCategory;
       countsByCategory[category] = (countsByCategory[category] || 0) + 1;
     });
-
     setMenuCountsByCategory(countsByCategory);
   }, [menus]);
 
@@ -124,8 +109,25 @@ function Home() {
     setActiveCategory(category);
   };
 
+  const handleFilterClick = (category) => {
+    if (category === "Special") {
+      const specialMenus = menus.filter(
+        (menu) => menu.mainCategory === "Special"
+      );
+      setFilteredMenus(specialMenus);
+    } else if (category === "Best Seller") {
+      const bestSellerMenus = menus.filter(
+        (menu) => menu.mainCategory === "Best Seller"
+      );
+      setFilteredMenus(bestSellerMenus);
+    } else {
+      setFilteredMenus(menus); // Show all menus if no specific category is selected
+    }
+    setSelectedCategory(category); // Update the selected category
+  };
+  console.log("filteredMenus", filteredMenus);
   const filterAndSortItems = () => {
-    let filteredItems = menus.filter((menu) =>
+    let filteredItems = filteredMenus.filter((menu) =>
       menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -155,24 +157,22 @@ function Home() {
     const menuData = filteredAndSortedItems.find((menu) => menu.uuid === id);
     setModeldata(menuData);
     setShow(true);
-    console.log("id", id);
   };
+
+  console.log("filteredAndSortedItems", filteredAndSortedItems);
 
   const addToCart = (menuId) => {
     const selectedItem = menus.find((menu) => menu.uuid === menuId);
 
-    // Check if the item is already in the cart
     const existingItem = cartItems.find((item) => item.uuid === menuId);
 
     if (existingItem) {
-      // If the item is already in the cart, update its quantity
       setCartItems((prevItems) =>
         prevItems.map((item) =>
           item.uuid === menuId ? { ...item, quantity: item.quantity + 1 } : item
         )
       );
     } else {
-      // If the item is not in the cart, add it with quantity 1
       setCartItems((prevItems) => [
         ...prevItems,
         { ...selectedItem, quantity: 1 },
@@ -183,28 +183,44 @@ function Home() {
       position: toast.POSITION.TOP_RIGHT,
     });
   };
-  const getTotalPrice = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.menuPrice * item.quantity,
-      0
-    );
-  };
 
-  const clearCart = () => {
-    setCartItems([]);
-    toast.success("Cart cleared successfully!", {
-      position: toast.POSITION.TOP_RIGHT,
+  const handleNext = () => {
+    navigate(`/${hotelName}/cart/cart-details`, {
+      state: { cartItems: cartItems },
     });
   };
 
-  const handleNext = () => {
-    navigate(`/${hotelName}/cart-details`, { state: { cartItems: cartItems } });
-  };
   const handleBack = () => {
     navigate(`/viewMenu/${hotelName}`);
   };
+
+  const handleAddQuantity = (menuId) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.uuid === menuId ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const handleRemoveQuantity = (menuId) => {
+    setCartItems((prevItems) =>
+      prevItems.reduce((updatedItems, item) => {
+        if (item.uuid === menuId) {
+          if (item.quantity === 1) {
+            return updatedItems;
+          } else {
+            return [...updatedItems, { ...item, quantity: item.quantity - 1 }];
+          }
+        } else {
+          return [...updatedItems, item];
+        }
+      }, [])
+    );
+  };
+  console.log("filteredAndSortedItems", filteredAndSortedItems);
   return (
     <>
+    
       {!isAdmin && (
         <>
           <Navbar
@@ -218,7 +234,6 @@ function Home() {
         className="container"
         style={{
           background: `${colors.White}`,
-          // Adjust according to the Navbar height
         }}
       >
         {/* Search and Sort */}
@@ -235,25 +250,51 @@ function Home() {
           handleCategoryFilter={handleCategoryFilter}
           style={{ position: "fixed", width: "100%", zIndex: 998 }}
         />
+
+        {/* Filter buttons */}
+        <div className="d-flex justify-content-between mb-3">
+          {menus.filter((menu) => menu.mainCategory === "Special").length ===
+          0 ? (
+            ""
+          ) : (
+            <PrimaryButton
+              btnText={`${hotelName} Special (${
+                menus.filter((menu) => menu.mainCategory === "Special").length
+              })`}
+              onClick={() => handleFilterClick("Special")}
+            />
+          )}
+          {menus.filter((menu) => menu.mainCategory === "Best Seller")
+            .length === 0 ? (
+            ""
+          ) : (
+            <PrimaryButton
+              btnText={`Best Seller (${
+                menus.filter((menu) => menu.mainCategory === "Best Seller")
+                  .length
+              })`}
+              onClick={() => handleFilterClick("Best Seller")}
+            />
+          )}
+        </div>
       </div>
 
       {/* Menu Items */}
       <div
         className="row"
         style={{
-          // Adjust according to the height of the fixed elements above
-          height: "calc(100vh - 240px)", // Adjust to leave space for the cart and other fixed elements
+          height: "calc(100vh - 240px)",
           overflowY: "auto",
         }}
       >
         {filteredAndSortedItems.map((item) => (
-          <div className="col-12 col-sm-6 col-md-4 mb-8" key={item.id}>
+          <div className="col-12 col-sm-6 col-md-4 mb-4" key={item.id}>
             <HorizontalMenuCard
               item={item}
               handleImageLoad={handleImageLoad}
-              showDetail={showDetail}
               addToCart={addToCart}
-              imageLoaded={imageLoaded}
+              onAddQuantity={handleAddQuantity} // Add this if needed
+              onRemoveQuantity={handleRemoveQuantity} // Add this if needed
             />
           </div>
         ))}
@@ -261,32 +302,37 @@ function Home() {
 
       {/* Cart Details */}
       {!isAdmin && (
-        <div
-          className="fixed-bottom p-2 bg-light border-top"
-          style={{ zIndex: 1001 }}
-        >
+        <div className="fixed-bottom p-2 bg-light" style={{ zIndex: 1001 }}>
           <div className="d-flex justify-content-between align-items-center">
-            <div>
-              DOYO
-              {/* Order {cartItems.length} */}
-              {/* for {getTotalPrice()} INR */}
+            <div style={{ marginLeft: "20px" }}>
+              {cartItems.length}{" "}
+              {cartItems.length > 1 ? "Items Added" : "Item Added"}
             </div>
             <div>
               <i
-                class="bi bi-house-fill"
-                style={{ color: `${colors.White}`, fontSize: "24px" }}
+                className="bi bi-house-fill"
+                style={{
+                  color: `${colors.White}`,
+                  fontSize: "24px",
+                  cursor: "pointer",
+                }}
                 onClick={handleBack}
               ></i>
             </div>
             <div className="align-items-center">
-              <div style={{ margin: "-5px 15px -10px 30px" }}>
-                {cartItems.length}
-              </div>
-
-              <div onClick={handleNext} style={{ marginRight: "20px" }}>
+              <div
+                onClick={handleNext}
+                style={{
+                  marginRight: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <span>Checkout</span>
                 <i
-                  className="bi bi-cart-check-fill"
-                  style={{ color: `${colors.White}`, fontSize: "24px" }}
+                  className="bi bi-caret-right-fill"
+                  style={{ fontSize: "30px", marginLeft: "5px" }}
                 ></i>
               </div>
             </div>
@@ -294,6 +340,7 @@ function Home() {
         </div>
       )}
 
+      {/* Toast Notification */}
       <ToastContainer />
     </>
   );

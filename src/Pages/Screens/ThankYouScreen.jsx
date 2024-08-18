@@ -17,7 +17,7 @@ const ThankYouPage = () => {
     }, []);
     
     const handleNext = () => {
-        navigate(`/${hotelName}/orders/details`, {
+        navigate(`/${hotelName}/orders/track-orders`, {
           state: {
             checkoutData,
             totalAmount,

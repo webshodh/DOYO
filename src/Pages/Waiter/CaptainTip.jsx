@@ -1,24 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../../data/firebase/firebaseConfig";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { colors } from "../../theme/theme";
-import CartCard from "../../components/Cards/CartCard";
 import { ref, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { CaptainCard, Navbar } from "../../components";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { db } from "../../data/firebase/firebaseConfig";
+
+const ScrollableDiv = styled.div`
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid ${colors.Gray}; // Add a border for better visual separation
+  border-radius: 8px; // Rounded corners
+  background-color: ${colors.LightGray}; // Light background color
+`;
 
 const CaptainTip = () => {
-  const [tipAmount, setTipAmount] = useState("");
   const [staff, setStaff] = useState([]);
-  const [selectedCaptain, setSelectedCaptain] = useState(null);
+  const [selectedCaptain, setSelectedCaptain] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const hotelName = "Atithi";
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
+  const navigate = useNavigate();
 
-  // Fetch staff data from the database
   useEffect(() => {
     const staffRef = ref(
       db,
-      `/admins/${currentAdminId}/hotels/${hotelName}/staff/`
+      `/hotels/${hotelName}/staff/`
     );
     const unsubscribe = onValue(staffRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -30,97 +42,105 @@ const CaptainTip = () => {
       }
     });
 
-    // Cleanup listener on component unmount
     return () => unsubscribe();
   }, [hotelName, currentAdminId]);
 
-  // Extract fullName and upiId for each staff member
   const staffDetails = staff.map((staff) => {
-    const { firstName, lastName, upiId } = staff;
+    const { firstName, lastName, upiId, imageUrl } = staff;
     const fullName = `${firstName} ${lastName}`;
-    return { fullName, upiId };
+    return { fullName, upiId, imageUrl };
   });
 
-  const handlePay = () => {
-    if (tipAmount && selectedCaptain) {
-      // Generate the payment link using the selected captain's upiId
-      const paymentLink = `upi://pay?pa=${selectedCaptain.upiId}&pn=${encodeURIComponent(
-        selectedCaptain.fullName
-      )}&am=${tipAmount}&cu=INR&tn=Payment%20for%20order`;
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
-      window.open(paymentLink); // Open the payment app
-      
-      // Redirect to Google after a slight delay to allow payment link to open
-      setTimeout(() => {
-        window.location.href = "https://www.google.com";
-      }, 2000); // Adjust the delay as needed
+  const handleNext = () => {
+    if (selectedCaptain) {
+      // Pass selectedCaptain object to the next page
+      navigate("/Atithi/orders/captain-feedback", {
+        state: { selectedCaptain },
+      });
     } else {
-      alert("Please select a captain and enter a tip amount.");
+      alert("Please select a captain before proceeding.");
     }
   };
 
-  const cartItems = [];
+  const filteredStaff = staffDetails.filter((staff) =>
+    staff.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <Container
-      fluid
-      className="d-flex align-items-center justify-content-center"
-      style={{ backgroundColor: colors.Orange, minHeight: "100vh" }}
-    >
-      <Row className="text-center">
-        <Col>
-          <div className="p-5 text-white">
-            <h1 className="mt-3">Leave a Tip for Our Captain!</h1>
-            <p className="lead">Show your appreciation with a tip!</p>
+    <>
+      <Navbar title={"Atithi"} />
+      <Container
+        fluid
+        className="d-flex flex-column align-items-center justify-content-center"
+        style={{
+          backgroundColor: colors.White,
+          minHeight: "100vh",
+          padding: "2rem",
+        }}
+      >
+        <Row className="text-center w-100">
+          <Col xs={12} md={10} lg={8}>
+            <div className="p-1 text-dark bg-light rounded shadow-sm">
+              <h1 className="mb-4">Leave a Tip for Our Captain!</h1>
+              <p className="lead mb-4">Show your appreciation with a tip!</p>
 
-            {cartItems.map((item) => (
-              <Col xs={12} md={6} lg={4} key={item.uuid} className="mb-1">
-                <CartCard item={item} />
-              </Col>
-            ))}
-            <Form>
-              <Form.Group controlId="selectCaptain">
-                <Form.Label>Select Captain</Form.Label>
-                <Form.Control
-                  as="select"
-                  value={selectedCaptain?.fullName || ""}
-                  onChange={(e) => {
-                    const selectedName = e.target.value;
-                    const captain = staffDetails.find(
-                      (staff) => staff.fullName === selectedName
-                    );
-                    setSelectedCaptain(captain);
+              <Form>
+                <Form.Group controlId="searchCaptain" className="mb-4">
+                  <Form.Label>Search Captain</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Search by name"
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    style={{ borderRadius: "4px" }} // Rounded corners for input
+                  />
+                </Form.Group>
+
+                <ScrollableDiv>
+                  <h5 className="mb-3">Select a Captain</h5>
+                  {filteredStaff.map((staff, index) => (
+                    <CaptainCard
+                      key={index}
+                      fullName={staff.fullName}
+                      imageUrl={staff.imageUrl}
+                      upiId={staff.upiId}
+                      selectedCaptain={selectedCaptain}
+                      setSelectedCaptain={setSelectedCaptain}
+                      isSelected={
+                        selectedCaptain.fullName === staff.fullName &&
+                        selectedCaptain.upiId === staff.upiId
+                      }
+                    />
+                  ))}
+                  {selectedCaptain.fullName && (
+                    <div className="mt-3">
+                      <h6>Selected Captain: {selectedCaptain.fullName}</h6>
+                    </div>
+                  )}
+                </ScrollableDiv>
+
+                <Button
+                  className="mt-4 w-100"
+                  onClick={handleNext}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "20px",
+                    background: `${colors.Orange}`,
+                    borderColor: `${colors.Orange}`,
                   }}
                 >
-                  <option value="" disabled>
-                    Select a Captain
-                  </option>
-                  {staffDetails.map((staff, index) => (
-                    <option key={index} value={staff.fullName}>
-                      {staff.fullName}
-                    </option>
-                  ))}
-                </Form.Control>
-              </Form.Group>
-
-              <Form.Group controlId="tipAmountInput">
-                <Form.Label>Tip Amount</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={tipAmount}
-                  onChange={(e) => setTipAmount(e.target.value)}
-                  placeholder="Enter Tip Amount"
-                />
-              </Form.Group>
-
-              <Button variant="light" onClick={handlePay}>
-                Pay
-              </Button>
-            </Form>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+                  Next
+                </Button>
+              </Form>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    </>
   );
 };
 

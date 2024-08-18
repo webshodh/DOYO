@@ -45,7 +45,7 @@ const Tab = styled.button`
 `;
 
 const TabPanel = styled.div`
-  padding: 16px;
+  padding: 8px;
   margin-top: 8px;
 `;
 

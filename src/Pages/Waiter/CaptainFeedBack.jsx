@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { colors } from "../../theme/theme";
+import { useLocation } from "react-router-dom";
 
 const feedbackOptions = {
   1: [
@@ -44,8 +45,9 @@ const TipEntry = () => {
   const [rating, setRating] = useState(null);
   const [selectedFeedback, setSelectedFeedback] = useState([]);
   const [tipAmount, setTipAmount] = useState("");
-  const [upiId] = useState("vishal.gholkar1@ybl"); // Replace with the captain's UPI ID
-  const payeeName = "Vishal";
+  const location = useLocation();
+  const { selectedCaptain } = location.state;
+
   const handleFeedbackChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
@@ -59,9 +61,10 @@ const TipEntry = () => {
 
   const handlePay = () => {
     if (tipAmount && rating) {
-      // Generate the UPI payment link
-      const paymentLink = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
-        payeeName
+      const paymentLink = `upi://pay?pa=${
+        selectedCaptain.upiId
+      }&pn=${encodeURIComponent(
+        selectedCaptain.fullName
       )}&am=${tipAmount}&cu=INR&tn=Payment%20for%20order`;
       window.open(paymentLink); // Open the payment app
     } else {
@@ -73,16 +76,18 @@ const TipEntry = () => {
     <Container
       fluid
       className="d-flex align-items-center justify-content-center"
-      style={{ backgroundColor: colors.Orange, minHeight: "100vh" }}
+      style={{
+        backgroundColor: colors.Orange,
+        minHeight: "100vh",
+        padding: "2rem",
+      }}
     >
-      <Row className="text-center">
-        <Col>
-          <div className="p-5 text-white">
-            <h1 className="mt-3">Leave a Tip for Our Captain!</h1>
-            <p className="lead">Show your appreciation with a tip!</p>
-
+      <Row className="text-center w-100">
+        <Col xs={12} md={8} lg={6}>
+          <div className="p-4 text-white bg-dark rounded shadow-sm">
+            <h1 className="mb-4">Rate and Tip to {selectedCaptain}</h1>
             <div className="mb-4">
-              <p>Rate Your Experience:</p>
+              <p className="lead">Rate Your Experience:</p>
               {["😞", "😐", "😊", "😁", "😍"].map((emoji, index) => (
                 <span
                   key={index}
@@ -90,11 +95,12 @@ const TipEntry = () => {
                   style={{
                     cursor: "pointer",
                     fontSize: "2rem",
-                    margin: "0 5px",
+                    margin: "0 10px",
                     filter:
                       rating === index + 1
                         ? "drop-shadow(0 0 10px white)"
                         : "none",
+                    transition: "filter 0.3s ease",
                   }}
                 >
                   {emoji}
@@ -104,35 +110,46 @@ const TipEntry = () => {
 
             {rating && (
               <Form>
-                <Form.Group controlId="feedbackSelect">
+                <Form.Group controlId="feedbackSelect" className="mb-4">
                   <Form.Label>
                     Select Feedback (You can select multiple options)
                   </Form.Label>
                   <div className="d-flex flex-column align-items-start">
-                    {feedbackOptions[rating].map((option, index) => (
+                    {feedbackOptions[rating].map((option, idx) => (
                       <Form.Check
-                        key={index}
+                        key={idx}
                         type="checkbox"
                         label={option}
                         value={option}
                         onChange={handleFeedbackChange}
                         className="mb-2"
+                        style={{ marginRight: "1rem" }} // Adjust spacing between checkboxes
                       />
                     ))}
                   </div>
                 </Form.Group>
 
-                <Form.Group controlId="tipAmountInput">
-                  <Form.Label>Tip Amount</Form.Label>
+                <Form.Group controlId="tipAmount" className="mb-4">
+                  <Form.Label>Tip Amount (₹)</Form.Label>
                   <Form.Control
                     type="number"
+                    placeholder="Enter tip amount"
                     value={tipAmount}
                     onChange={(e) => setTipAmount(e.target.value)}
-                    placeholder="Enter Tip Amount"
+                    style={{ borderRadius: "4px" }}
                   />
                 </Form.Group>
 
-                <Button variant="light" onClick={handlePay}>
+                <Button
+                  variant="light"
+                  className="w-100"
+                  style={{
+                    color: colors.Orange,
+                    fontWeight: "bold",
+                    padding: "0.75rem",
+                  }}
+                  onClick={handlePay}
+                >
                   Pay
                 </Button>
               </Form>

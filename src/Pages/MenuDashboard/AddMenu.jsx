@@ -14,8 +14,8 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 
-import styled from 'styled-components';
-import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import styled from "styled-components";
+import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 // Container for the form
@@ -43,14 +43,19 @@ export const Label = styled.label`
 // Input field with conditional styling
 export const Input = styled.input`
   padding: 10px;
-  border: 1px solid ${props => props.error ? '#dc3545' : props.success ? '#28a745' : '#ccc'};
+  border: 1px solid
+    ${(props) => (props.error ? "#dc3545" : props.success ? "#28a745" : "#ccc")};
   border-radius: 4px;
   outline: none;
-  box-shadow: ${props => props.error ? '0 0 0 1px rgba(220, 53, 69, 0.5)' : 'none'};
-  
+  box-shadow: ${(props) =>
+    props.error ? "0 0 0 1px rgba(220, 53, 69, 0.5)" : "none"};
+
   &:focus {
-    border-color: ${props => props.error ? '#dc3545' : '#80bdff'};
-    box-shadow: ${props => props.error ? '0 0 0 1px rgba(220, 53, 69, 0.5)' : '0 0 0 0.2rem rgba(38, 143, 255, 0.25)'};
+    border-color: ${(props) => (props.error ? "#dc3545" : "#80bdff")};
+    box-shadow: ${(props) =>
+      props.error
+        ? "0 0 0 1px rgba(220, 53, 69, 0.5)"
+        : "0 0 0 0.2rem rgba(38, 143, 255, 0.25)"};
   }
 `;
 
@@ -60,7 +65,7 @@ export const Icon = styled.div`
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: ${props => props.error ? '#dc3545' : '#28a745'};
+  color: ${(props) => (props.error ? "#dc3545" : "#28a745")};
 `;
 
 // Error message styling
@@ -89,11 +94,11 @@ export const Button = styled.button`
   border-radius: 4px;
   cursor: pointer;
   color: white;
-  background-color: ${props => props.primary ? '#28a745' : '#dc3545'};
+  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
   margin-top: 10px;
-  
+
   &:hover {
-    background-color: ${props => props.primary ? '#218838' : '#c82333'};
+    background-color: ${(props) => (props.primary ? "#218838" : "#c82333")};
   }
 `;
 function AddMenu() {
@@ -103,7 +108,8 @@ function AddMenu() {
   const [menuCategory, setMenuCategory] = useState("");
   const [menuContent, setMenuContent] = useState("");
   const [categories, setCategories] = useState([]);
-  const [availability, setAvailability] = useState("Available"); // Added state for availability
+  const [availability, setAvailability] = useState("Available");
+  const [mainCategory, setMainCategory] = useState("");
   const [file, setFile] = useState(null); // State for file upload
 
   const [menues, setMenues] = useState([]);
@@ -116,19 +122,8 @@ function AddMenu() {
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
- 
+
   const { hotelName } = useHotelContext();
-  // useEffect(() => {
-  //   onValue(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`), (snapshot) => {
-  //     setMenues([]);
-  //     const data = snapshot.val();
-  //     if (data !== null) {
-  //       Object.values(data).forEach((category) => {
-  //         setMenues((oldCategories) => [...oldCategories, category]);
-  //       });
-  //     }
-  //   });
-  // }, [hotelName]);
 
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
@@ -149,16 +144,6 @@ function AddMenu() {
     }, {});
     setDisabledCards(initialDisabledState);
   }, [menues]);
-
-  // useEffect(() => {
-  //   const countsByCategory = {};
-  //   menues.forEach((menu) => {
-  //     const category = menu.menuCategory;
-  //     countsByCategory[category] = (countsByCategory[category] || 0) + 1;
-  //   });
-
-  //   setMenuCountsByCategory(countsByCategory);
-  // }, [menues]);
 
   const handleMenuNameChange = (e) => {
     setMenuName(e.target.value);
@@ -184,6 +169,11 @@ function AddMenu() {
     setAvailability(e.target.value);
   };
 
+  const handleMainCategoryChange = (e) => {
+    setMainCategory(e.target.value);
+    console.log("Main Category Selected:", e.target.value);
+  };
+
   const handleFileChange = (e) => {
     // Handle file upload
     const selectedFile = e.target.files[0];
@@ -200,24 +190,31 @@ function AddMenu() {
       }
     });
   }, [hotelName]);
-  
+
   const writeToDatabase = async () => {
     try {
-      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const uuidSnapshot = await get(
+        ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)
+      );
       const adminHotelUuid = uuidSnapshot.val();
-  
-      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+
+      const generalUuidSnapshot = await get(
+        ref(db, `hotels/${hotelName}/uuid`)
+      );
       const generalHotelUuid = generalUuidSnapshot.val();
-  
+
       if (adminHotelUuid === generalHotelUuid) {
         if (file) {
           // Upload image to Firebase Storage
-          const imageRef = storageRef(storage, `images/${hotelName}/${file.name}`);
+          const imageRef = storageRef(
+            storage,
+            `images/${hotelName}/${file.name}`
+          );
           await uploadBytes(imageRef, file);
-  
+
           // Get the download URL of the uploaded image
           const imageUrl = await getDownloadURL(imageRef);
-  
+
           if (editMode) {
             // Update existing menu with the image URL
             await update(ref(db, `/hotels/${hotelName}/menu/${editedMenuId}`), {
@@ -227,7 +224,8 @@ function AddMenu() {
               menuCategory,
               menuContent,
               availability,
-              imageUrl, // Save image URL
+              imageUrl,
+              mainCategory,
               uuid: editedMenuId,
             });
             setEditMode(false);
@@ -245,7 +243,8 @@ function AddMenu() {
               menuCategory,
               menuContent,
               availability,
-              imageUrl, // Save image URL
+              mainCategory,
+              imageUrl,
               uuid,
             });
             toast.success("Menu Added Successfully!", {
@@ -262,6 +261,7 @@ function AddMenu() {
               menuCategory,
               menuContent,
               availability,
+              mainCategory,
               uuid: editedMenuId,
             });
             setEditMode(false);
@@ -279,6 +279,7 @@ function AddMenu() {
               menuCategory,
               menuContent,
               availability,
+              mainCategory,
               uuid,
             });
             toast.success("Menu Added Successfully!", {
@@ -286,7 +287,7 @@ function AddMenu() {
             });
           }
         }
-  
+
         // Clear form fields
         setMenuName("");
         setMenuCookingTime("");
@@ -294,13 +295,17 @@ function AddMenu() {
         setMenuCategory("");
         setMenuContent("");
         setAvailability("");
+        setMainCategory("");
         setFile(null);
-  
+
         setShowForm(false);
       } else {
-        toast.error("You do not have permission to manage menus for this hotel.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error(
+          "You do not have permission to manage menus for this hotel.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
       }
     } catch (error) {
       console.error("Error managing menu:", error);
@@ -309,262 +314,187 @@ function AddMenu() {
       });
     }
   };
-  
-  // const writeToDatabase = async () => {
-  //   if (file) {
-  //     // Upload image to Firebase Storage
-  //     const imageRef = storageRef(storage, `images/${hotelName}/${file.name}`);
-  //     await uploadBytes(imageRef, file);
 
-  //     // Get the download URL of the uploaded image
-  //     const imageUrl = await getDownloadURL(imageRef);
-
-  //     if (editMode) {
-  //       // Update existing menu with the image URL
-  //       update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
-  //         menuName,
-  //         menuCookingTime,
-  //         menuPrice,
-  //         menuCategory,
-  //         menuContent,
-  //         availability,
-  //         imageUrl, // Save image URL
-  //         uuid: editedMenuId,
-  //       });
-  //       setEditMode(false);
-  //       setEditedMenuId(null);
-  //       toast.success("Menu Updated Successfully!", {
-  //         position: toast.POSITION.TOP_RIGHT,
-  //       });
-  //     } else {
-  //       // Add new menu with the image URL
-  //       const uuid = uid();
-  //       set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
-  //         menuName,
-  //         menuCookingTime,
-  //         menuPrice,
-  //         menuCategory,
-  //         menuContent,
-  //         availability,
-  //         imageUrl, // Save image URL
-  //         uuid,
-  //       });
-  //       toast.success("Menu Added Successfully!", {
-  //         position: toast.POSITION.TOP_RIGHT,
-  //       });
-  //     }
-  //   } else {
-  //     // If no file is selected, proceed without uploading image
-  //     if (editMode) {
-  //       // Update existing menu without the image URL
-  //       update(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${editedMenuId}`), {
-  //         menuName,
-  //         menuCookingTime,
-  //         menuPrice,
-  //         menuCategory,
-  //         menuContent,
-  //         availability,
-  //         uuid: editedMenuId,
-  //       });
-  //       setEditMode(false);
-  //       setEditedMenuId(null);
-  //       toast.success("Menu Updated Successfully!", {
-  //         position: toast.POSITION.TOP_RIGHT,
-  //       });
-  //     } else {
-  //       // Add new menu without the image URL
-  //       const uuid = uid();
-  //       set(ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/${uuid}`), {
-  //         menuName,
-  //         menuCookingTime,
-  //         menuPrice,
-  //         menuCategory,
-  //         menuContent,
-  //         availability,
-  //         uuid,
-  //       });
-  //       toast.success("Menu Added Successfully!", {
-  //         position: toast.POSITION.TOP_RIGHT,
-  //       });
-  //     }
-  //   }
-
-  //   // Clear form fields
-  //   setMenuName("");
-  //   setMenuCookingTime("");
-  //   setMenuPrice("");
-  //   setMenuCategory("");
-  //   setMenuContent("");
-  //   setAvailability("");
-  //   setFile(null);
-
-  //   setShowForm(false);
-  // };
-console.log('categories', categories)
   return (
     <>
-     <div className="background-card">
-       <FormContainer>
-       <InputWrapper>
-         <Label htmlFor="menuName">Menu Name</Label>
-         <div style={{ position: 'relative' }}>
-           <Input
-             type="text"
-             value={menuName}
-             onChange={handleMenuNameChange}
-             id="menuName"
-             error={!menuName} // Replace with actual validation condition
-             success={menuName} // Replace with actual validation condition
-             placeholder="Enter Menu Name"
-           />
-           {menuName && <Icon success><FaCheckCircle /></Icon>}
-           {!menuName && <Icon error><FaExclamationCircle /></Icon>}
-         </div>
-         {!menuName && <ErrorMessage>Menu Name is required.</ErrorMessage>}
-       </InputWrapper>
-       
-       <InputWrapper>
-         <Label htmlFor="cookingTime">Cooking Time</Label>
-         <select
-           id="cookingTime"
-           className="form-select"
-           onChange={handleCookingTimeChange}
-          //  value={cookingTime}
-         >
-           <option value="" disabled>Select Cooking Time</option>
-           {[5, 10, 15, 20, 25, 30].map(time => (
-             <option key={time} value={time}>{time} min</option>
-           ))}
-         </select>
-       </InputWrapper>
- 
-       <InputWrapper>
-         <Label htmlFor="menuPrice">Menu Price</Label>
-         <div style={{ position: 'relative' }}>
-           <Input
-             type="number"
-             value={menuPrice}
-             onChange={handleMenuPriceChange}
-             id="menuPrice"
-             error={!menuPrice} // Replace with actual validation condition
-             success={menuPrice} // Replace with actual validation condition
-             placeholder="Enter Menu Price"
-           />
-           {menuPrice && <Icon success><FaCheckCircle /></Icon>}
-           {!menuPrice && <Icon error><FaExclamationCircle /></Icon>}
-         </div>
-         {!menuPrice && <ErrorMessage>Menu Price is required.</ErrorMessage>}
-       </InputWrapper>
- 
-       <InputWrapper>
-         <Label htmlFor="menuCategory">Menu Category</Label>
-         <select
-           id="menuCategory"
-           className="form-select"
-           onChange={handleMenuCategoryChange}
-           value={menuCategory}
-         >
-           <option value="" disabled>Select Menu Category</option>
-           {categories.map((category) => (
-             <option key={category.categoryId} value={category.categoryName}>
-               {category.categoryName}
-             </option>
-           ))}
-         </select>
-       </InputWrapper>
- 
-       <InputWrapper>
-         <Label htmlFor="menuContent">Menu Content</Label>
-         <textarea
-           id="menuContent"
-           className="form-control"
-           rows="3"
-           value={menuContent}
-           onChange={handleMenuContentChange}
-           placeholder="Enter Menu Content"
-         ></textarea>
-       </InputWrapper>
- 
-       <InputWrapper>
-         <Label>Status</Label>
-         <div>
-           <input
-             type="radio"
-             id="availableRadio"
-             name="status"
-             value="Available"
-             checked={availability === "Available"}
-             onChange={() => setAvailability("Available")}
-             className="form-check-input"
-           />
-           <label htmlFor="availableRadio" className="form-check-label" style={{width:'100px'}}>
-             Available
-           </label>
-           <input
-             type="radio"
-             id="notAvailableRadio"
-             name="status"
-             value="Not Available"
-             checked={availability === "Not Available"}
-             onChange={() => setAvailability("Not Available")}
-             className="form-check-input"
-           />
-           <label htmlFor="notAvailableRadio" className="form-check-label">
-             Not Available
-           </label>
-         </div>
-       </InputWrapper>
+      <div className="background-card">
+        <FormContainer>
+          <InputWrapper>
+            <Label htmlFor="menuName">Menu Name</Label>
+            <div style={{ position: "relative" }}>
+              <Input
+                type="text"
+                value={menuName}
+                onChange={handleMenuNameChange}
+                id="menuName"
+                error={!menuName} // Replace with actual validation condition
+                success={menuName} // Replace with actual validation condition
+                placeholder="Enter Menu Name"
+              />
+              {menuName && (
+                <Icon success>
+                  <FaCheckCircle />
+                </Icon>
+              )}
+              {!menuName && (
+                <Icon error>
+                  <FaExclamationCircle />
+                </Icon>
+              )}
+            </div>
+            {!menuName && <ErrorMessage>Menu Name is required.</ErrorMessage>}
+          </InputWrapper>
 
-       <InputWrapper>
-         <Label>Status</Label>
-         <div>
-           <input
-             type="radio"
-             id="availableRadio"
-             name="status"
-             value="Available"
-             checked={availability === "Available"}
-             onChange={() => setAvailability("Available")}
-             className="form-check-input"
-           />
-           <label htmlFor="availableRadio" className="form-check-label" style={{width:'100px'}}>
-             Special
-           </label>
-           <input
-             type="radio"
-             id="notAvailableRadio"
-             name="status"
-             value="Not Available"
-             checked={availability === "Not Available"}
-             onChange={() => setAvailability("Not Available")}
-             className="form-check-input"
-           />
-           <label htmlFor="notAvailableRadio" className="form-check-label">
-             Not Available
-           </label>
-         </div>
-       </InputWrapper>
- 
-       {!editMode && (
-         <FileUpload>
-           <Label htmlFor="formFile">Upload Image</Label>
-           <input type="file" id="formFile" onChange={handleFileChange} className="form-control" />
-         </FileUpload>
-       )}
- 
-       <Button primary onClick={writeToDatabase}>
-         {editMode ? "Update" : "Submit"}
-       </Button>
-     </FormContainer>
-     </div>
+          <InputWrapper>
+            <Label htmlFor="cookingTime">Cooking Time</Label>
+            <select
+              id="cookingTime"
+              className="form-select"
+              onChange={handleCookingTimeChange}
+              //  value={cookingTime}
+            >
+              <option value="" disabled>
+                Select Cooking Time
+              </option>
+              {[5, 10, 15, 20, 25, 30].map((time) => (
+                <option key={time} value={time}>
+                  {time} min
+                </option>
+              ))}
+            </select>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label htmlFor="menuPrice">Menu Price</Label>
+            <div style={{ position: "relative" }}>
+              <Input
+                type="number"
+                value={menuPrice}
+                onChange={handleMenuPriceChange}
+                id="menuPrice"
+                error={!menuPrice} // Replace with actual validation condition
+                success={menuPrice} // Replace with actual validation condition
+                placeholder="Enter Menu Price"
+              />
+              {menuPrice && (
+                <Icon success>
+                  <FaCheckCircle />
+                </Icon>
+              )}
+              {!menuPrice && (
+                <Icon error>
+                  <FaExclamationCircle />
+                </Icon>
+              )}
+            </div>
+            {!menuPrice && <ErrorMessage>Menu Price is required.</ErrorMessage>}
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label htmlFor="menuCategory">Menu Category</Label>
+            <select
+              id="menuCategory"
+              className="form-select"
+              onChange={handleMenuCategoryChange}
+              value={menuCategory}
+            >
+              <option value="" disabled>
+                Select Menu Category
+              </option>
+              {categories.map((category) => (
+                <option key={category.categoryId} value={category.categoryName}>
+                  {category.categoryName}
+                </option>
+              ))}
+            </select>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label htmlFor="menuContent">Menu Content</Label>
+            <textarea
+              id="menuContent"
+              className="form-control"
+              rows="3"
+              value={menuContent}
+              onChange={handleMenuContentChange}
+              placeholder="Enter Menu Content"
+            ></textarea>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label>Status</Label>
+            <div>
+              <input
+                type="radio"
+                id="availableRadio"
+                name="status"
+                value="Available"
+                checked={availability === "Available"}
+                onChange={() => setAvailability("Available")}
+                className="form-check-input"
+              />
+              <label
+                htmlFor="availableRadio"
+                className="form-check-label"
+                style={{ width: "100px" }}
+              >
+                Available
+              </label>
+              <input
+                type="radio"
+                id="notAvailableRadio"
+                name="status"
+                value="Not Available"
+                checked={availability === "Not Available"}
+                onChange={() => setAvailability("Not Available")}
+                className="form-check-input"
+              />
+              <label htmlFor="notAvailableRadio" className="form-check-label">
+                Not Available
+              </label>
+            </div>
+          </InputWrapper>
+
+          <InputWrapper>
+            <Label>Main Category</Label>
+            <div>
+              <select
+                value={mainCategory}
+                onChange={handleMainCategoryChange}
+                className="form-select"
+                style={{ width: "200px" }} // Adjust width as needed
+              >
+                <option value="Special">Special</option>
+                <option value="Best Seller">Best Seller</option>
+              </select>
+            </div>
+          </InputWrapper>
+
+          {!editMode && (
+            <FileUpload>
+              <Label htmlFor="formFile">Upload Image</Label>
+              <input
+                type="file"
+                id="formFile"
+                onChange={handleFileChange}
+                className="form-control"
+              />
+            </FileUpload>
+          )}
+
+          <Button primary onClick={writeToDatabase}>
+            {editMode ? "Update" : "Submit"}
+          </Button>
+        </FormContainer>
+      </div>
     </>
   );
 }
 
 export default AddMenu;
 
-
- {/* <div className="container">
+{
+  /* <div className="container">
         {!editMode ? <h2>Add Menu</h2> : <h2>Update Menu</h2>}
 
         <div className="mb-3">
@@ -682,18 +612,19 @@ export default AddMenu;
             </label>
           </div>
         </div>
-        {/* File upload field */}
+        {/* File upload field */
+}
 
-      //   {!editMode ? (
-      //     <Form.Group controlId="formFile" className="mb-3">
-      //       <Form.Label>Upload Image</Form.Label>
-      //       <Form.Control type="file" onChange={handleFileChange} />
-      //     </Form.Group>
-      //   ) : (
-      //     ""
-      //   )}
-      //   <button onClick={writeToDatabase} className="btn btn-success">
-      //     {editMode ? "Update" : "Submit"}
-      //   </button>
-      //   <ToastContainer />
-      // </div> 
+//   {!editMode ? (
+//     <Form.Group controlId="formFile" className="mb-3">
+//       <Form.Label>Upload Image</Form.Label>
+//       <Form.Control type="file" onChange={handleFileChange} />
+//     </Form.Group>
+//   ) : (
+//     ""
+//   )}
+//   <button onClick={writeToDatabase} className="btn btn-success">
+//     {editMode ? "Update" : "Submit"}
+//   </button>
+//   <ToastContainer />
+// </div>

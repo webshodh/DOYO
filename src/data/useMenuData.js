@@ -10,7 +10,7 @@ const useMenuData = (hotelName) => {
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   useEffect(() => {
-    const menuRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/menu/`);
+    const menuRef = ref(db, `/hotels/${hotelName}/menu/`);
     const unsubscribe = onValue(menuRef, (snapshot) => {
       try {
         const data = snapshot.val();

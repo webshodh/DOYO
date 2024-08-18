@@ -11,12 +11,7 @@ import {
   useCustomerData,
 } from "../../data";
 import { PageTitle } from "../../Atoms";
-import {
-  CountCard,
-  Table,
-  DonutChart,
-  Tab
-} from "../../components";
+import { CountCard, Table, DonutChart, Tab } from "../../components";
 import {
   OrdersAndRevenueByCutomerColumns,
   OrdersAndRevenueByMenuColumns,
@@ -29,6 +24,7 @@ import { FaCreativeCommonsSamplingPlus } from "react-icons/fa";
 
 function AdminDashboard() {
   const [showAll, setShowAll] = useState(false);
+  const [filterType, setFilterType] = useState("Daily");
   const [filterCount, setFilterCount] = useState(5); // Default to showing top 5
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
@@ -52,7 +48,7 @@ function AdminDashboard() {
     loading: menuLoading,
     error: menuError,
   } = useMenuData(hotelName);
-
+  console.log("menuData", menuData);
   const {
     categoriesData,
     totalCategories,
@@ -154,33 +150,41 @@ function AdminDashboard() {
       ),
     },
   ];
+
+  // Function to filter orders based on date
   const filterCompletedOrdersByDate = (completedOrders, filterType) => {
     const today = new Date();
     let startDate;
 
     switch (filterType) {
       case "Daily":
-        // Set start date to the beginning of the current day
-        startDate = new Date(today.setHours(0, 0, 0, 0));
+        startDate = new Date(today.setHours(0, 0, 0, 0)); // Start of the current day
         break;
       case "Weekly":
-        // Set start date to 7 days ago
-        startDate = new Date(today.setDate(today.getDate() - 6));
+        startDate = new Date(today.setDate(today.getDate() - 6)); // Last 7 days
         break;
       case "Monthly":
-        // Set start date to 30 days ago
-        startDate = new Date(today.setMonth(today.getMonth() - 1));
+        startDate = new Date(today.setDate(today.getDate() - 29)); // Last 30 days
         break;
       default:
-        return completedOrders; // If no filter type, return all completed orders
+        return completedOrders;
     }
 
     return completedOrders.filter((order) => {
-      const orderDate = new Date(order.date); // Convert the order's date string to a Date object
-      return orderDate >= startDate && orderDate <= new Date(); // Check if the order date is within the range
+      const orderDate = new Date(order.date);
+      return orderDate >= startDate && orderDate <= today;
     });
   };
-console.log('completedOrders', completedOrders)
+
+  // Get the filtered orders based on the selected filter type
+  const filteredCompletedOrders = filterCompletedOrdersByDate(
+    completedOrders,
+    filterType
+  );
+
+  const handleTabChange = (label) => {
+    setFilterType(label); // Update the filter type based on the selected tab
+  };
   return (
     <div>
       {/* Page Title and Filter */}

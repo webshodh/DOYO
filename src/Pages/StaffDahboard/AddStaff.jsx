@@ -710,6 +710,8 @@ import styled from "styled-components";
 import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { getAuth } from "firebase/auth";
 import { uid } from "uid";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 // Styled components for the form
 const FormContainer = styled.div`
@@ -782,45 +784,75 @@ function AddStaff() {
   const [lastName, setLastName] = useState("");
   const [upiId, setUpiId] = useState("");
   const [role, setRole] = useState("");
+  const [file, setFile] = useState(null); // State to hold the selected image file
   const [roles] = useState(["Captain", "Manager", "Chef", "Cleaner"]); // Example roles
 
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   const hotelName = "Atithi"; // Replace with your hotel name or use context
+  const storage = getStorage();
+  // Handle image file selection
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!firstName || !lastName || !upiId || !role) {
       toast.error("All fields are required!", {
         position: toast.POSITION.TOP_RIGHT,
       });
       return;
     }
-
+  
     const newStaffId = uid(); // Generate a unique ID for the new staff member
-    set(ref(db, `/admins/${adminID}/hotels/${hotelName}/staff/${newStaffId}`), {
-      firstName,
-      lastName,
-      upiId,
-      role,
-      uuid: newStaffId,
-    })
-      .then(() => {
-        toast.success("Staff Added Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        // Clear form fields
-        setFirstName("");
-        setLastName("");
-        setUpiId("");
-        setRole("");
-      })
-      .catch((error) => {
-        toast.error("Error adding staff: " + error.message, {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+  
+    try {
+      let imageUrl = null;
+  
+      if (file) {
+        // Upload image to Firebase Storage
+        const imageRef = storageRef(storage, `staff_images/${hotelName}/${file.name}`);
+        await uploadBytes(imageRef, file);
+  
+        // Get the download URL of the uploaded image
+        imageUrl = await getDownloadURL(imageRef);
+      }
+  
+      // Add new staff member under the admin's collection
+      const staffData = {
+        firstName,
+        lastName,
+        upiId,
+        role,
+        imageUrl, // Store the image URL in the database
+        uuid: newStaffId,
+      };
+  
+      await set(ref(db, `/admins/${adminID}/hotels/${hotelName}/staff/${newStaffId}`), staffData);
+  
+      // If the staff role is 'Captain', also store the data in the public hotel staff collection
+      if (role === "Captain") {
+        await set(ref(db, `/hotels/${hotelName}/staff/${newStaffId}`), staffData);
+      }
+  
+      toast.success("Staff Added Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
       });
+  
+      // Clear form fields
+      setFirstName("");
+      setLastName("");
+      setUpiId("");
+      setRole("");
+      setFile(null);
+    } catch (error) {
+      toast.error("Error adding staff: " + error.message, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
   };
+  
 
   return (
     <>
@@ -923,7 +955,10 @@ function AddStaff() {
             </select>
             {!role && <ErrorMessage>Role is required.</ErrorMessage>}
           </InputWrapper>
-
+          <InputWrapper>
+            <Label htmlFor="file">Profile Image</Label>
+            <input type="file" id="file" onChange={handleFileChange} />
+          </InputWrapper>
           <Button primary onClick={handleSubmit}>
             Submit
           </Button>

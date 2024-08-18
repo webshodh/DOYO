@@ -14,6 +14,7 @@ const CardWrapper = styled.div`
   overflow: hidden;
   position: relative;
   margin: 10px;
+  cursor: pointer; // Added cursor pointer
 `;
 
 const ImageSection = styled.div`
@@ -37,29 +38,28 @@ const TextSection = styled.div`
 `;
 
 const InfoText = styled.div`
-  margin: 5px 10px 5px 0px;
+  margin: 5px 10px 5px 0;
   word-wrap: break-word;
 `;
 
-const ButtonSection = styled.div`
+const QuantitySection = styled.div`
   display: flex;
-  flex-direction: column;
-  position: absolute;
-  right: 10px;
-  top: 15px;
-`;
-
-const AddToCart = styled(Button)`
-  background: red;
-  color: white;
-  border-radius: 5px;
+  flex-direction: row;
+  align-items: center;
   margin-top: 10px;
 `;
 
-const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
+const HorizontalMenuCard = ({
+  item,
+  handleImageLoad,
+  addToCart,
+  onAddQuantity,
+  onRemoveQuantity,
+}) => {
   const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
   const [isAdded, setIsAdded] = useState(false); // State to track if item is added
+  const [quantity, setQuantity] = useState(0); // Local state for quantity
 
   const handleShow = (item) => {
     setModalData(item);
@@ -72,8 +72,19 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    addToCart(item.uuid);
+    addToCart(item.uuid, quantity);
     setIsAdded(true); // Mark the item as added
+    setQuantity(1)
+  };
+
+  const handleIncreaseQuantity = () => {
+    setQuantity((prevQuantity) => prevQuantity + 1);
+    onAddQuantity(item.uuid); // Call the parent function to update the quantity
+  };
+
+  const handleDecreaseQuantity = () => {
+    setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 0));
+    onRemoveQuantity(item.uuid); // Call the parent function to update the quantity
   };
 
   // Truncate menuContent if it's longer than 25 characters
@@ -86,8 +97,8 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
     <CardWrapper onClick={() => handleShow(item)}>
       <ImageSection>
         <Image
-          src={item.imageUrl || '/dish.png'}
-          // alt={item.menuName}
+          src={item.imageUrl || "/dish.png"}
+          alt={item.menuName}
           onLoad={handleImageLoad}
         />
       </ImageSection>
@@ -96,14 +107,14 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
         <div className="d-flex">
           <InfoText>
             <i
-              class="bi bi-stopwatch-fill"
+              className="bi bi-stopwatch-fill"
               style={{ color: `${colors.Orange}`, fontSize: "18px" }}
             ></i>
             {item.menuCookingTime} min
           </InfoText>
           <InfoText>
             <i
-              class="bi bi-currency-rupee"
+              className="bi bi-currency-rupee"
               style={{ color: `${colors.Orange}`, fontSize: "18px" }}
             ></i>
             {item.menuPrice}
@@ -120,22 +131,36 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
           >
             Read More
           </InfoText>
-          <span onClick={handleAddToCart}>
-            {!isAdded ? (
+          <span onClick={(e) => e.stopPropagation()}>
+            {!isAdded && quantity === 0 ? (
               <i
                 className="bi bi-plus-circle-fill"
                 style={{ color: `${colors.Orange}`, fontSize: "30px" }}
+                onClick={handleAddToCart}
               ></i>
             ) : (
-              <i
-                className="bi bi-check-circle-fill"
-                style={{ color: `${colors.Green}`, fontSize: "30px" }}
-              ></i>
+              <QuantitySection>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={handleDecreaseQuantity}
+                >
+                  -
+                </Button>
+
+                <span style={{ margin: "0 10px" }}>{quantity}</span>
+                <Button
+                  variant="outline-success"
+                  size="sm"
+                  onClick={handleIncreaseQuantity}
+                >
+                  +
+                </Button>
+              </QuantitySection>
             )}
           </span>
         </div>
       </TextSection>
-      <ButtonSection></ButtonSection>
 
       {/* Modal Data */}
       {modalData && (
@@ -147,7 +172,7 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
             <img
               src={modalData.imageUrl}
               style={{ width: "100%", height: "250px", objectFit: "contain" }}
-              alt={modalData.alt}
+              alt={modalData.menuName}
             />
             <b>Cooking Time: </b>
             {modalData.menuCookingTime} min
@@ -157,9 +182,18 @@ const HorizontalMenuCard = ({ item, handleImageLoad, addToCart }) => {
             <br />
             <b>Description: </b>
             {modalData.menuContent ? modalData.menuContent : modalData.menuName}
+            <b>Nutritional Info: </b>
+            {modalData.nutritionalInfo}
+
           </Modal.Body>
           <Modal.Footer>
-            <Button style={{background:`${colors.Orange}`, border:`${colors.Orange}`}} onClick={handleClose}>
+            <Button
+              style={{
+                background: `${colors.Orange}`,
+                border: `1px solid ${colors.Orange}`,
+              }}
+              onClick={handleClose}
+            >
               Close
             </Button>
           </Modal.Footer>

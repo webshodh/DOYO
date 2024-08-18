@@ -3,41 +3,46 @@ import styled from "styled-components";
 import Header from "../components/Header";
 import Sidebar from "../components/SideBar";
 import { colors } from "../theme/theme";
+
 // Styled components
 const LayoutContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
   background: ${colors.LightBlue};
 `;
 
 const LayoutContent = styled.div`
   display: flex;
   flex: 1;
+  flex-direction: row;
 `;
 
 const SidebarContainer = styled.div`
-  height: 100vh;
-  @media (min-width: 992px) {
-    /* Large screens (≥992px) */
-    width: 250px; /* Adjust based on sidebar width */
-  }
+  height: 100%;
+  background: ${colors.LightGray}; /* Optional: Adds a background color to the sidebar */
+  width: 250px; /* Default width for large screens */
 
   @media (max-width: 991.98px) {
-    /* Tablets and below (<992px) */
-    margin-left: 0px; /* Remove margin for smaller screens */
+    width: 80px; /* Narrower width for smaller screens */
+  }
+
+  @media (max-width: 767.98px) {
+    width: 60px; /* Even narrower width for mobile screens */
+  }
+
+  @media (max-width: 575.98px) {
+    display: none; /* Hide sidebar on very small screens */
   }
 `;
 
 const MainContent = styled.div`
-  @media (min-width: 992px) {
-    /* Large screens (≥992px) */
-    margin-left: 150px; /* Adjust based on sidebar width */
-  }
+  flex: 1; /* Take up the remaining space */
+  padding: 20px; /* Add padding for content */
+  background: ${colors.White}; /* Optional: Adds a background color to the main content */
 
-  @media (max-width: 991.98px) {
-    /* Tablets and below (<992px) */
-    margin-left: 0px; /* Remove margin for smaller screens */
+  @media (max-width: 575.98px) {
+    padding: 10px; /* Adjust padding for smaller screens */
   }
 `;
 
