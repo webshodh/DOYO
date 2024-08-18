@@ -132,7 +132,7 @@ function CartDetails() {
   return (
     <>
       <Navbar title={`${hotelName}`} />
-      <Container fluid className="px-3 px-md-5">
+      <Container fluid className="px-3 px-md-5 mt-3" style={{height:'100vh'}}>
         <Row>
           <div
             className="d-flex mb-2"

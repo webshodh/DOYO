@@ -282,7 +282,7 @@ function Home() {
 
         <span
           onClick={() => handleMainCategoryCloseClick()}
-          style={{ color: `${colors.Red}`, cursor:'pointer' }}
+          style={{ color: `${colors.Red}`, cursor: "pointer" }}
         >
           Close
         </span>
@@ -328,17 +328,7 @@ function Home() {
               {cartItems.length}{" "}
               {cartItems.length > 1 ? "Items Added" : "Item Added"}
             </div>
-            <div>
-              <i
-                className="bi bi-house-fill"
-                style={{
-                  color: `${colors.White}`,
-                  fontSize: "24px",
-                  cursor: "pointer",
-                }}
-                onClick={handleBack}
-              ></i>
-            </div>
+
             <div className="align-items-center">
               <div
                 onClick={handleNext}

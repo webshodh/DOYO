@@ -1,30 +1,33 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { colors } from "../../theme/theme";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const ThankYouPage = () => {
-    const [hotelName, setHotelName] = useState("");
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { checkoutData, totalAmount, userInfo } = location.state || {};
-  
-    useEffect(() => {
-      const path = window.location.pathname;
-      const pathSegments = path.split("/");
-      const hotelNameFromPath = pathSegments[pathSegments.length - 4];
-      setHotelName(hotelNameFromPath);
-    }, []);
-    
-    const handleNext = () => {
-        navigate(`/${hotelName}/orders/track-orders`, {
-          state: {
-            checkoutData,
-            totalAmount,
-            userInfo,
-          },
-        });
-      };
+  const [hotelName, setHotelName] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { checkoutData, totalAmount, userInfo } = location.state || {};
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const pathSegments = path.split("/");
+    const hotelNameFromPath = pathSegments[pathSegments.length - 4];
+    setHotelName(hotelNameFromPath);
+  }, []);
+
+  const handleNext = () => {
+    navigate(`/${hotelName}/orders/track-orders`, {
+      state: {
+        checkoutData,
+        totalAmount,
+        userInfo,
+      },
+    });
+  };
+  console.log("totalAmount", totalAmount);
+  console.log("checkoutData", checkoutData);
+  console.log("userInfo", userInfo);
   return (
     <Container
       fluid

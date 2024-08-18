@@ -72,21 +72,23 @@ const TipEntry = () => {
       alert("Please select a rating and enter a tip amount.");
     }
   };
-const hotelName = "Atithi"
+  const hotelName = "Atithi";
   return (
+    <>
+     <Navbar
+        title={`${hotelName}`}
+        style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
+      />
+    
     <Container
       fluid
       className="d-flex align-items-center justify-content-center"
       style={{
         backgroundColor: colors.Orange,
-        minHeight: "100vh",
-        padding: "2rem",
+        minHeight: "90vh",
       }}
     >
-       <Navbar
-            title={`${hotelName}`}
-            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
-          />
+     
       <Row className="text-center w-100">
         <Col xs={12} md={8} lg={6}>
           <div className="p-4 text-white bg-dark rounded shadow-sm">
@@ -163,6 +165,7 @@ const hotelName = "Atithi"
         </Col>
       </Row>
     </Container>
+    </>
   );
 };
 
