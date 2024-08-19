@@ -6,7 +6,6 @@ import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title);
 
 const dummyData = {
-  // Dummy data for 7 days
   "2024-08-11": [{ "orderData": { "quantity": 3 } }],
   "2024-08-12": [{ "orderData": { "quantity": 2 } }],
   "2024-08-13": [{ "orderData": { "quantity": 5 } }],
@@ -31,8 +30,11 @@ const predictOrders = async (ordersPerDay) => {
   const outputTensor = tf.tensor2d(normalizedData.slice(1), [normalizedData.length - 1, 1]);
 
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 1 }));
+  
+  const initializer = tf.initializers.glorotUniform({ seed: 42 });
+
+  model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu', kernelInitializer: initializer }));
+  model.add(tf.layers.dense({ units: 1, kernelInitializer: initializer }));
 
   model.compile({
     optimizer: 'adam',
@@ -42,6 +44,7 @@ const predictOrders = async (ordersPerDay) => {
   await model.fit(inputTensor, outputTensor, {
     epochs: 200,
     batchSize: 4,
+    shuffle: false, // Maintain the order of data
   });
 
   const predictions = [];
@@ -58,8 +61,16 @@ const predictOrders = async (ordersPerDay) => {
 };
 
 const calculateAccuracy = (actual, predicted) => {
+  if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
+    return 0;
+  }
+
+  const totalActual = actual.reduce((acc, val) => acc + val, 0);
   const totalError = actual.reduce((acc, val, idx) => acc + Math.abs(val - predicted[idx]), 0);
-  const accuracy = ((1 - totalError / actual.reduce((acc, val) => acc + val, 0)) * 100).toFixed(2);
+
+  // Avoid division by zero
+  const accuracy = totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
+
   return accuracy;
 };
 
@@ -70,8 +81,10 @@ const OrderForecasting = () => {
   useEffect(() => {
     const ordersPerDay = aggregateOrdersPerDay(dummyData);
     predictOrders(ordersPerDay).then((predictions) => {
+      // Ensure lengths match before calculating accuracy
+      const adjustedPredictions = predictions.slice(0, ordersPerDay.length);
       setForecast(predictions);
-      setAccuracy(calculateAccuracy(ordersPerDay, predictions.slice(0, -1)));
+      setAccuracy(calculateAccuracy(ordersPerDay, adjustedPredictions));
     });
   }, []);
 

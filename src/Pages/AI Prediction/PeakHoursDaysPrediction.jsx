@@ -14,7 +14,6 @@ const dummyPeakData = {
     "hourly": [15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115, 125],
     "daily": [320, 410, 360, 460, 520, 610, 710]
   }
-  // Add more dates as needed
 };
 
 const preprocessPeakData = (data) => {
@@ -26,25 +25,51 @@ const preprocessPeakData = (data) => {
 
   dates.forEach(date => {
     const item = data[date];
-    hourlyInputs.push(...item.hourly.map((val, index) => [index]));
+    hourlyInputs.push(...item.hourly.map((_, index) => [index]));
     hourlyOutputs.push(...item.hourly);
 
-    dailyInputs.push(...item.daily.map((val, index) => [index]));
+    dailyInputs.push(...item.daily.map((_, index) => [index]));
     dailyOutputs.push(...item.daily);
   });
 
-  return { hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs };
+  const normalize = (arr) => {
+    const max = Math.max(...arr);
+    const min = Math.min(...arr);
+    return arr.map(value => (value - min) / (max - min));
+  };
+
+  return {
+    hourlyInputs: normalize(hourlyInputs.flat()),
+    hourlyOutputs: normalize(hourlyOutputs),
+    dailyInputs: normalize(dailyInputs.flat()),
+    dailyOutputs: normalize(dailyOutputs),
+  };
 };
 
-const predictPeakHoursDays = async (hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs) => {
-  const hourlyInputTensor = tf.tensor2d(hourlyInputs);
+const saveModel = async (model) => {
+  await model.save('localstorage://my-model');
+};
+
+const loadModel = async () => {
+  try {
+    const model = await tf.loadLayersModel('localstorage://my-model');
+    return model;
+  } catch (error) {
+    console.error("Model not found. Training new model.");
+    return null;
+  }
+};
+
+const buildAndTrainModel = async (hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs) => {
+  const hourlyInputTensor = tf.tensor2d(hourlyInputs, [hourlyInputs.length, 1]);
   const hourlyOutputTensor = tf.tensor2d(hourlyOutputs, [hourlyOutputs.length, 1]);
 
-  const dailyInputTensor = tf.tensor2d(dailyInputs);
+  const dailyInputTensor = tf.tensor2d(dailyInputs, [dailyInputs.length, 1]);
   const dailyOutputTensor = tf.tensor2d(dailyOutputs, [dailyOutputs.length, 1]);
 
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 16, inputShape: [hourlyInputs[0].length], activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 64, inputShape: [1], activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
   model.add(tf.layers.dense({ units: 1 }));
 
   model.compile({
@@ -53,16 +78,32 @@ const predictPeakHoursDays = async (hourlyInputs, hourlyOutputs, dailyInputs, da
   });
 
   await model.fit(hourlyInputTensor, hourlyOutputTensor, {
-    epochs: 300,
+    epochs: 500,
     batchSize: 8,
+    validationSplit: 0.2, // Split 20% of the data for validation
   });
+
+  await saveModel(model);
+
+  return model;
+};
+
+const predictPeakHoursDays = async (hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs) => {
+  let model = await loadModel();
+
+  if (!model) {
+    model = await buildAndTrainModel(hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs);
+  }
+
+  const hourlyInputTensor = tf.tensor2d(hourlyInputs, [hourlyInputs.length, 1]);
+  const dailyInputTensor = tf.tensor2d(dailyInputs, [dailyInputs.length, 1]);
 
   const hourlyPredictions = model.predict(hourlyInputTensor);
   const dailyPredictions = model.predict(dailyInputTensor);
 
   return {
-    hourly: hourlyPredictions.arraySync().map(row => Math.round(row[0])),
-    daily: dailyPredictions.arraySync().map(row => Math.round(row[0])),
+    hourly: hourlyPredictions.arraySync().map(row => row[0]),
+    daily: dailyPredictions.arraySync().map(row => row[0]),
   };
 };
 
@@ -75,10 +116,9 @@ const PeakHoursDaysPrediction = () => {
   useEffect(() => {
     const { hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs } = preprocessPeakData(dummyPeakData);
     predictPeakHoursDays(hourlyInputs, hourlyOutputs, dailyInputs, dailyOutputs).then(predictions => {
-      setHourlyForecast(predictions.hourly);
-      setDailyForecast(predictions.daily);
+      setHourlyForecast(predictions.hourly.map(value => value * 100)); // Denormalize
+      setDailyForecast(predictions.daily.map(value => value * 100)); // Denormalize
 
-      // Extract actual data
       const allHourlyData = Object.values(dummyPeakData).flatMap(item => item.hourly);
       const allDailyData = Object.values(dummyPeakData).flatMap(item => item.daily);
       setActualHourly(allHourlyData);
@@ -87,18 +127,17 @@ const PeakHoursDaysPrediction = () => {
   }, []);
 
   const calculateAccuracy = (predictions, actuals) => {
-    const total = predictions.length;
-    const correct = predictions.reduce((acc, pred, index) => {
-      return acc + (Math.round(pred) === actuals[index] ? 1 : 0);
-    }, 0);
-    return (correct / total) * 100;
+    const total = Math.min(predictions.length, actuals.length);
+    const totalError = predictions.slice(0, total).reduce((acc, pred, index) => acc + Math.abs(pred - actuals[index]), 0);
+    const totalActuals = actuals.slice(0, total).reduce((acc, val) => acc + val, 0);
+    return totalActuals ? ((1 - totalError / totalActuals) * 100).toFixed(2) : 0;
   };
 
   const hourlyAccuracy = calculateAccuracy(hourlyForecast, actualHourly);
   const dailyAccuracy = calculateAccuracy(dailyForecast, actualDaily);
 
   const chartDataHourly = {
-    labels: Array.from({ length: 24 }, (_, i) => `Hour ${i + 1}`),
+    labels: Array.from({ length: 12 }, (_, i) => `Hour ${i + 1}`),
     datasets: [
       {
         label: 'Predicted Hourly Traffic',
@@ -143,7 +182,7 @@ const PeakHoursDaysPrediction = () => {
       tooltip: {
         callbacks: {
           label: function (context) {
-            return `${context.dataset.label}: ${Math.round(context.raw)} customers`;
+            return `${context.dataset.label}: ${Math.round(context.raw).toFixed(2)} orders`;
           },
         },
       },
@@ -158,7 +197,7 @@ const PeakHoursDaysPrediction = () => {
       y: {
         title: {
           display: true,
-          text: 'Number of Customers',
+          text: 'Number of Orders',
         },
       },
     },
@@ -175,8 +214,8 @@ const PeakHoursDaysPrediction = () => {
         <Line data={chartDataDaily} options={chartOptions} />
       </div>
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <p>Hourly Prediction Accuracy: {hourlyAccuracy.toFixed(2)}%</p>
-        <p>Daily Prediction Accuracy: {dailyAccuracy.toFixed(2)}%</p>
+        <p>Hourly Prediction Accuracy: {hourlyAccuracy}%</p>
+        <p>Daily Prediction Accuracy: {dailyAccuracy}%</p>
       </div>
     </div>
   );

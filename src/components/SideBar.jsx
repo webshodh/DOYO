@@ -23,31 +23,46 @@ function SideBar() {
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/admin-dashboard`}>
+              <Link
+                className="nav-link"
+                to={`/${hotelName}/admin/admin-dashboard`}
+              >
                 <i className="bi bi-grid"></i>
                 <span>Admin Dashboard</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/admin-dashboard`}>
+              <Link
+                className="nav-link"
+                to={`/${hotelName}/admin/forecasting/forecasting-dashboard`}
+              >
                 <i class="bi bi-currency-rupee"></i>
-                <span>Revenue Managment</span>
+                <span>Prediction</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/order/order-dashboard`}>
+              <Link
+                className="nav-link"
+                to={`/${hotelName}/admin/order/order-dashboard`}
+              >
                 <i class="bi bi-cart-check-fill"></i>
                 <span>Orders Management</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/menu/menu-dashboard`}>
+              <Link
+                className="nav-link"
+                to={`/${hotelName}/admin/menu/menu-dashboard`}
+              >
                 <i className="bi bi-speedometer2"></i>
                 <span>Menu Management</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/table/table-dashboard`}>
+              <Link
+                className="nav-link"
+                to={`/${hotelName}/admin/table/table-dashboard`}
+              >
                 <i className="bi bi-speedometer2"></i>
                 <span>Table Management</span>
               </Link>
@@ -62,7 +77,10 @@ function SideBar() {
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/admin/customers/customer-dashboard`}>
+              <Link
+                className="nav-link"
+                to={`/${hotelName}/admin/customers/customer-dashboard`}
+              >
                 <i class="bi bi-person-heart"></i>
                 <span>Customers Management</span>
               </Link>

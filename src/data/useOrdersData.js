@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase/firebaseConfig';
 import { onValue, ref } from 'firebase/database';
-import { getAuth } from "firebase/auth";
+import { getAuth } from 'firebase/auth';
 const useOrdersData = (hotelName) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);

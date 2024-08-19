@@ -16,9 +16,7 @@ const dummySalesData = {
 };
 
 const aggregateSalesPerDay = (data) => {
-  return Object.keys(data).map((date) => {
-    return Math.round(data[date]);
-  });
+  return Object.keys(data).map((date) => Math.round(data[date]));
 };
 
 const predictSales = async (salesPerDay) => {
@@ -28,19 +26,26 @@ const predictSales = async (salesPerDay) => {
   const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [normalizedData.length - 1, 1]);
   const outputTensor = tf.tensor2d(normalizedData.slice(1), [normalizedData.length - 1, 1]);
 
-  const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 1 }));
+  let model;
+  try {
+    model = await tf.loadLayersModel('localstorage://sales-model'); // Load model from local storage
+  } catch (e) {
+    // Model not found, so train it
+    model = tf.sequential();
+    model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1 }));
+    model.compile({
+      optimizer: 'adam',
+      loss: 'meanSquaredError',
+    });
 
-  model.compile({
-    optimizer: 'adam',
-    loss: 'meanSquaredError',
-  });
+    await model.fit(inputTensor, outputTensor, {
+      epochs: 200,
+      batchSize: 4,
+    });
 
-  await model.fit(inputTensor, outputTensor, {
-    epochs: 200,
-    batchSize: 4,
-  });
+    await model.save('localstorage://sales-model'); // Save model to local storage
+  }
 
   const predictions = [];
   for (let i = 0; i < normalizedData.length - 1; i++) {
@@ -56,8 +61,16 @@ const predictSales = async (salesPerDay) => {
 };
 
 const calculateAccuracy = (actual, predicted) => {
+  if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
+    return 0;
+  }
+
   const totalError = actual.reduce((acc, val, idx) => acc + Math.abs(val - predicted[idx]), 0);
-  const accuracy = ((1 - totalError / actual.reduce((acc, val) => acc + val, 0)) * 100).toFixed(2);
+  const totalActual = actual.reduce((acc, val) => acc + val, 0);
+  
+  // Prevent division by zero
+  const accuracy = totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
+
   return accuracy;
 };
 
@@ -68,8 +81,10 @@ const SalesForecasting = () => {
   useEffect(() => {
     const salesPerDay = aggregateSalesPerDay(dummySalesData);
     predictSales(salesPerDay).then((predictions) => {
+      // Ensure lengths match before calculating accuracy
+      const adjustedPredictions = predictions.slice(0, salesPerDay.length);
       setForecast(predictions);
-      setAccuracy(calculateAccuracy(salesPerDay, predictions.slice(0, -1)));
+      setAccuracy(calculateAccuracy(salesPerDay, adjustedPredictions));
     });
   }, []);
 
@@ -103,7 +118,7 @@ const SalesForecasting = () => {
       tooltip: {
         callbacks: {
           label: function (context) {
-            return `${context.dataset.label}: $${Math.round(context.raw)}`;
+            return `${context.dataset.label}: ₹${Math.round(context.raw)}`;
           },
         },
       },
@@ -127,7 +142,7 @@ const SalesForecasting = () => {
   return (
     <div style={{ width: '80%', height: '400px', margin: '0 auto' }}>
       <h2>Sales Forecast</h2>
-      <p>Predicted Sales for Next Day: ${forecast[forecast.length - 1]?.toFixed(0)}</p>
+      <p>Predicted Sales for Next Day: ₹{forecast[forecast.length - 1]?.toFixed(0)}</p>
       <p>Prediction Accuracy: {accuracy}%</p>
       <Line data={chartData} options={chartOptions} />
     </div>

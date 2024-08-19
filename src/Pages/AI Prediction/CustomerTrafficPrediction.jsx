@@ -16,49 +16,7 @@ const dummyTrafficData = {
 };
 
 const aggregateTrafficPerDay = (data) => {
-  return Object.keys(data).map((date) => {
-    return Math.round(data[date]);
-  });
-};
-
-const predictTraffic = async (trafficPerDay) => {
-  const maxTraffic = Math.max(...trafficPerDay);
-  const normalizedData = trafficPerDay.map((traffic) => traffic / maxTraffic);
-
-  const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [normalizedData.length - 1, 1]);
-  const outputTensor = tf.tensor2d(normalizedData.slice(1), [normalizedData.length - 1, 1]);
-
-  const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 1 }));
-
-  model.compile({
-    optimizer: 'adam',
-    loss: 'meanSquaredError',
-  });
-
-  await model.fit(inputTensor, outputTensor, {
-    epochs: 200,
-    batchSize: 4,
-  });
-
-  const predictions = [];
-  for (let i = 0; i < normalizedData.length - 1; i++) {
-    const prediction = model.predict(tf.tensor2d([normalizedData[i]], [1, 1]));
-    predictions.push(Math.round(prediction.dataSync()[0] * maxTraffic));
-  }
-
-  const lastValue = normalizedData[normalizedData.length - 1];
-  const forecastedValue = model.predict(tf.tensor2d([lastValue], [1, 1]));
-  predictions.push(Math.round(forecastedValue.dataSync()[0] * maxTraffic));
-
-  return predictions;
-};
-
-const calculateAccuracy = (actual, predicted) => {
-  const totalError = actual.reduce((acc, val, idx) => acc + Math.abs(val - predicted[idx]), 0);
-  const accuracy = ((1 - totalError / actual.reduce((acc, val) => acc + val, 0)) * 100).toFixed(2);
-  return accuracy;
+  return Object.keys(data).map((date) => Math.round(data[date]));
 };
 
 const CustomerTrafficPrediction = () => {
@@ -67,9 +25,79 @@ const CustomerTrafficPrediction = () => {
 
   useEffect(() => {
     const trafficPerDay = aggregateTrafficPerDay(dummyTrafficData);
+
+    const predictTraffic = async (trafficPerDay) => {
+      const maxTraffic = Math.max(...trafficPerDay);
+      const normalizedData = trafficPerDay.map((traffic) => traffic / maxTraffic);
+
+      const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [normalizedData.length - 1, 1]);
+      const outputTensor = tf.tensor2d(normalizedData.slice(1), [normalizedData.length - 1, 1]);
+
+      let model = await loadModel();
+
+      if (!model) {
+        model = tf.sequential();
+        model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu' }));
+        model.add(tf.layers.dense({ units: 1 }));
+
+        model.compile({
+          optimizer: 'adam',
+          loss: 'meanSquaredError',
+        });
+
+        await model.fit(inputTensor, outputTensor, {
+          epochs: 200,
+          batchSize: 4,
+        });
+
+        await saveModel(model);
+      }
+
+      const predictions = [];
+      for (let i = 0; i < normalizedData.length - 1; i++) {
+        const prediction = model.predict(tf.tensor2d([normalizedData[i]], [1, 1]));
+        predictions.push(Math.round(prediction.dataSync()[0] * maxTraffic));
+      }
+
+      const lastValue = normalizedData[normalizedData.length - 1];
+      const forecastedValue = model.predict(tf.tensor2d([lastValue], [1, 1]));
+      predictions.push(Math.round(forecastedValue.dataSync()[0] * maxTraffic));
+
+      return predictions;
+    };
+
+    const calculateAccuracy = (actual, predicted) => {
+      if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
+        return 0;
+      }
+
+      const totalActual = actual.reduce((acc, val) => acc + val, 0);
+      const totalError = actual.reduce((acc, val, idx) => acc + Math.abs(val - predicted[idx]), 0);
+
+      // Avoid division by zero
+      const accuracy = totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(2) : 0;
+
+      return accuracy;
+    };
+
+    const loadModel = async () => {
+      try {
+        return await tf.loadLayersModel('localstorage://my-model');
+      } catch (error) {
+        console.error('Failed to load model:', error);
+        return null;
+      }
+    };
+
+    const saveModel = async (model) => {
+      await model.save('localstorage://my-model');
+    };
+
     predictTraffic(trafficPerDay).then((predictions) => {
+      // Ensure lengths match before calculating accuracy
+      const adjustedPredictions = predictions.slice(0, trafficPerDay.length);
       setForecast(predictions);
-      setAccuracy(calculateAccuracy(trafficPerDay, predictions.slice(0, -1)));
+      setAccuracy(calculateAccuracy(trafficPerDay, adjustedPredictions));
     });
   }, []);
 

@@ -1,22 +1,24 @@
 import React from "react";
 import { PageTitle } from "../../Atoms";
 import { Tab } from "../../components";
-import AddMenu from "./AddMenu";
-import ViewMenu from "./ViewMenu";
-import AddCategory from "./AddCategory";
 import OrderForecasting from "./OrderForecasting";
 import SalesForecasting from "./SalesForecasting";
-
+import CustomerTrafficPrediction from "./CustomerTrafficPrediction"
+import MenuItemPopularityPrediction from "./MenuItemPopularityPrediction"
+import PeakHoursDaysPrediction from "./PeakHoursDaysPrediction"
 const PredictionDashboard = () => {
   const tabs = [
     { label: "Orders Forecasting", content: <OrderForecasting /> },
     { label: "Sales Forecasting", content: <SalesForecasting /> },
-    { label: "View Menu", content: <ViewMenu /> },
+    { label: "Customer Traffic Prediction", content: <CustomerTrafficPrediction /> },
+    { label: "Menu Item Popularity Prediction", content: <MenuItemPopularityPrediction /> },
+    { label: "Peak Hours Days Prediction", content: <PeakHoursDaysPrediction /> },
+    
   ];
   return (
     <>
       <div style={{ marginTop: "70px" }}>
-        <PageTitle pageTitle={"Menu Dashboard"} />
+        <PageTitle pageTitle={"Forecasting Dashboard"} />
       </div>
       <Tab tabs={tabs} width='70vw'/>
     </>
