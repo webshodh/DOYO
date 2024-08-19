@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Container, Row, Col, Spinner, Alert, Button } from "react-bootstrap";
 import CartCard from "../../components/Cards/CartCard";
 import { Navbar } from "../../components";
@@ -6,14 +6,20 @@ import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
 import useOrdersData from "../../data/useOrdersData";
 import { colors } from "../../theme/theme";
+import { UserAuthContext } from "../../Context/UserAuthContext";
 
 function TrackOrders() {
   const location = useLocation();
-  const { checkoutData, totalAmount, userInfo } = location.state || {};
+  const { currentUser, loading } = useContext(UserAuthContext);
+  const { checkoutData, totalAmount } = location.state || {};
+  const userInfo = {
+    name: currentUser.displayName,
+    email: currentUser.email,
+  };
   const [hotelName, setHotelName] = useState("");
   const currentDate = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
   const navigate = useNavigate();
-console.log('userInfo', userInfo)
+  console.log("userInfo", userInfo);
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
@@ -49,21 +55,26 @@ console.log('userInfo', userInfo)
   const filteredCancelledOrders = filterOrdersByStatus(cancelledOrders);
 
   const handleBack = () => {
-    navigate(`/viewMenu/${hotelName}`);
+    navigate(`/viewMenu/${hotelName}/home`);
   };
   // if (!userInfo) {
   //   return <div>User information is not available.</div>;
   // }
+  console.log("filteredPendingOrders", filteredPendingOrders);
+  console.log("hotelNmae", hotelName);
   return (
     <>
       <Navbar
         title={hotelName}
         style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
       />
-      <Container fluid className="px-3 px-md-5 mt-3" style={{height:'100vh'}}>
-    
+      <Container
+        fluid
+        className="px-3 px-md-5 mt-3"
+        style={{ height: "100vh" }}
+      >
         <Row className="mb-4">
-        <div
+          <div
             className="d-flex mb-2"
             style={{ justifyContent: "space-between" }}
           >
@@ -76,12 +87,13 @@ console.log('userInfo', userInfo)
               Track Your Orders
             </h5>
             <span></span>
-            
           </div>
         </Row>
 
         <Row className="mb-4">
-          <h5 className="text-start">My Pending Orders ({`${filteredPendingOrders.length}`})</h5>
+          <h5 className="text-start">
+            My Pending Orders ({`${filteredPendingOrders.length}`})
+          </h5>
           {ordersLoading ? (
             <Spinner animation="border" style={{ color: colors.Orange }} />
           ) : ordersError ? (
@@ -102,7 +114,9 @@ console.log('userInfo', userInfo)
         </Row>
 
         <Row className="mb-4">
-          <h5 className="text-start">My Accepted Orders ({`${filteredAcceptedOrders.length}`})</h5>
+          <h5 className="text-start">
+            My Accepted Orders ({`${filteredAcceptedOrders.length}`})
+          </h5>
           {ordersLoading ? (
             <Spinner animation="border" style={{ color: colors.Orange }} />
           ) : ordersError ? (
@@ -123,7 +137,9 @@ console.log('userInfo', userInfo)
         </Row>
 
         <Row className="mb-4">
-          <h5 className="text-start">My Completed Orders ({`${filteredCompletedOrders.length}`})</h5>
+          <h5 className="text-start">
+            My Completed Orders ({`${filteredCompletedOrders.length}`})
+          </h5>
           {ordersLoading ? (
             <Spinner animation="border" style={{ color: colors.Orange }} />
           ) : ordersError ? (
@@ -144,7 +160,9 @@ console.log('userInfo', userInfo)
         </Row>
 
         <Row className="mb-4">
-          <h5 className="text-start">My Cancelled Orders ({`${filteredCancelledOrders.length}`})</h5>
+          <h5 className="text-start">
+            My Cancelled Orders ({`${filteredCancelledOrders.length}`})
+          </h5>
           {ordersLoading ? (
             <Spinner animation="border" style={{ color: colors.Orange }} />
           ) : ordersError ? (

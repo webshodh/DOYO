@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { colors } from "../../theme/theme";
+import { UserAuthContext } from "../../Context/UserAuthContext";
 
 // Styled components
 const NavbarContainer = styled.div`
@@ -88,19 +89,38 @@ const UpdateProfileButton = styled.button`
 
 const Navbar = ({ title }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const { currentUser, loading } = useContext(UserAuthContext);
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
   const hotelName = "Atithi";
-  const userProfile = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    totalOrders: 25,
-    initial: "J", // This will be used as a placeholder in the profile image
-  };
 
+  const getInitials = (name) => {
+    if (!name) return '';
+    const nameParts = name.split(' ');
+    if (nameParts.length === 1) {
+      return nameParts[0].charAt(0).toUpperCase(); // Return the first initial if only one name part
+    }
+    return nameParts[0].charAt(0).toUpperCase() + nameParts[1].charAt(0).toUpperCase(); // Return initials from first and last name
+  };
+  
+  const userProfile = {
+    name: currentUser.displayName || 'User',
+    email: currentUser.email || 'No email provided',
+    totalOrders: 25,
+    initial: getInitials(currentUser.displayName) 
+  };
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!currentUser) {
+    return <div>Please log in</div>;
+  }
+ 
+  
   return (
     <>
       <NavbarContainer>
@@ -129,12 +149,12 @@ const Navbar = ({ title }) => {
               <span>Home</span>
             </Link>
           </li>
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <Link className="nav-link" to={`/${hotelName}/cart/cart-details`}>
               <i className="bi bi-cart-check-fill"></i>
               <span>My Cart</span>
             </Link>
-          </li>
+          </li> */}
           <li className="nav-item">
             <Link className="nav-link" to={`/${hotelName}/orders/track-orders`}>
               <i className="bi bi-clock-history"></i>

@@ -10,8 +10,6 @@ export { default as LoginPage } from "./Login/LoginPage";
 export { default as SignupPage } from "./Login/SignupPage";
 export { default as ResetPasswordPage } from "./Login/ResetPasswordPage";
 export { default as ForgotPasswordPage } from "./Login/ForgotPasswordPage";
-export { default as UserLoginPage } from "./Login/UserLoginPage";
-export { default as UserSignupPage } from "./Login/UserSignupPage";
 
 // MenuDashboard
 export { default as MenuDashboard } from "./MenuDashboard/MenuDashboard";

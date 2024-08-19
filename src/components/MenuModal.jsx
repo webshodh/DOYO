@@ -1,34 +1,54 @@
-import React from 'react';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
+import React from "react";
+import { Modal, Button } from "react-bootstrap";
+import styled from "styled-components";
 
-const MenuModal = ({ show, handleClose, modeldata }) => {
+const AddToCartButton = styled(Button)`
+  background-color: #28a745;
+  border: none;
+
+  &:hover {
+    background-color: #218838;
+  }
+`;
+
+const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
+  if (!modalData) return null;
+
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>{modeldata.menuName}</Modal.Title>
+        <Modal.Title>{modalData.menuName}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <img
-          src={modeldata.imageUrl}
-          style={{ width: '100%', height: '250px', objectFit: 'contain' }}
-          alt={modeldata.alt}
+          src={modalData.imageUrl}
+          style={{ width: "100%", height: "250px", objectFit: "contain" }}
+          alt={modalData.menuName}
         />
         <b>Cooking Time: </b>
-        {modeldata.menuCookingTime} min
+        {modalData.menuCookingTime} min
         <br />
         <b>Price: </b>
-        {modeldata.menuPrice} ₹
+        {modalData.menuPrice} ₹
         <br />
         <b>Description: </b>
-        {modeldata.menuContent ? modeldata.menuContent : modeldata.menuName}
+        {modalData.menuContent ? modalData.menuContent : modalData.menuName}
       </Modal.Body>
       <Modal.Footer>
+        <AddToCartButton
+          onClick={() => {
+            addToCart(modalData.uuid);
+            handleClose();
+          }}
+        >
+          Add to Cart
+        </AddToCartButton>
         <Button variant="danger" onClick={handleClose}>
           Close
         </Button>
       </Modal.Footer>
     </Modal>
+  
   );
 };
 

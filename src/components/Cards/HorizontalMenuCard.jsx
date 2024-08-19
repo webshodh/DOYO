@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { colors } from "../../theme/theme";
+import MenuModal from "../MenuModal";
 
 // Styled Components
 const CardWrapper = styled.div`
@@ -48,6 +49,24 @@ const QuantitySection = styled.div`
   align-items: center;
   margin-top: 10px;
 `;
+const CardFooter = styled.div`
+  display: block;
+  text-align: center;
+  cursor: ${({ availability }) =>
+    availability === "Available" ? "pointer" : "not-allowed"};
+`;
+
+const ReadMore = styled(CardFooter)`
+  color: ${colors.Orange};
+`;
+
+const AddToCart = styled(CardFooter)`
+  background: ${(props) => `${colors.Orange}`};
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 7px;
+`;
 
 const HorizontalMenuCard = ({
   item,
@@ -55,7 +74,6 @@ const HorizontalMenuCard = ({
   addToCart,
   onAddQuantity,
   onRemoveQuantity,
-  closeModal
 }) => {
   const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
@@ -68,7 +86,8 @@ const HorizontalMenuCard = ({
   };
 
   const handleClose = () => {
-    setShow(false);
+    setShow(false)
+    console.log('handleClose', show)
   };
 
   const handleAddToCart = (e) => {
@@ -95,7 +114,7 @@ const HorizontalMenuCard = ({
       : item.menuName;
 
   return (
-    <CardWrapper onClick={() => handleShow(item)}>
+    <CardWrapper>
       <ImageSection>
         <Image
           src={item.imageUrl || "/dish.png"}
@@ -174,41 +193,12 @@ const HorizontalMenuCard = ({
       </TextSection>
 
       {/* Modal Data */}
-      {modalData && (
-        <Modal show={show} onHide={handleClose}>
-          <Modal.Header closeButton>
-            <Modal.Title>{modalData.menuName}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <img
-              src={modalData.imageUrl}
-              style={{ width: "100%", height: "250px", objectFit: "contain" }}
-              alt={modalData.menuName}
-            />
-            <b>Cooking Time: </b>
-            {modalData.menuCookingTime} min
-            <br />
-            <b>Price: </b>
-            {modalData.menuPrice} ₹
-            <br />
-            <b>Description: </b>
-            {modalData.menuContent ? modalData.menuContent : modalData.menuName}
-            <b>Nutritional Info: </b>
-            {modalData.nutritionalInfo}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              style={{
-                background: `${colors.Orange}`,
-                border: `1px solid ${colors.Orange}`,
-              }}
-              onClick={handleClose}
-            >
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
+      <MenuModal
+        show={show}
+        handleClose={handleClose}
+        modalData={modalData}
+        addToCart={addToCart}
+      />
     </CardWrapper>
   );
 };

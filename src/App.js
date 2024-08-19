@@ -25,8 +25,6 @@ import {
   MenuDashboard,
   TableDashboard,
   OrderBill,
-  UserSignupPage,
-  UserLoginPage,
   OrderHistory,
   TrackOrders,
   ThankYouScreen,
@@ -39,9 +37,10 @@ import {
 // Importing other components
 import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
-import MobileLoginPage from "./Pages/Login/MobileLoginPage";
-import UserLogin from "./Pages/Login/UserLogin";
 import PredictionDashboard from "./Pages/AI Prediction/PredictionDashboard";
+import UserLogin from "./Pages/Login/UserLogin";
+import GoogleLogin from "./Pages/Login/GoogleLogin";
+
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -73,14 +72,14 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/user/signup" element={<UserSignupPage />} />
-            <Route path="/user/login" element={<UserLoginPage />} />
-            <Route path="/user/login/mobile" element={<MobileLoginPage />} />
+            <Route path="/user/login" element={<UserLogin />} />
             <Route path="/" element={<Navigate to="/login" />} />
 
             {/* User Routes */}
+           
             <Route path="/viewMenu/:hotelName/welcome" element={<WelcomeScreen />} />
-            <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <Home />} />
+            <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <GoogleLogin />} />
+            <Route path="/viewMenu/:hotelName/home" element={ <Home />} />
             <Route path="/:hotelName/feedback" element={''} />
             <Route path="/:hotelName/cart/cart-details" element={<CartDetails />} />
             <Route path="/:hotelName/orders/payment/menu-bill" element={<OrderBill />} />

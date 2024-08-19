@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import { colors } from "../../theme/theme";
+import MenuModal from "../MenuModal";
 
 const CardWrapper = styled.div`
   display: flex;
@@ -101,7 +102,10 @@ const MenuCard = ({ item, handleImageLoad, showDetail, addToCart }) => {
     setShow(true);
   };
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => {
+    setShow(false)
+    console.log('handleCloseMenu', show)
+  };
 
   return (
     <>
@@ -155,7 +159,13 @@ const MenuCard = ({ item, handleImageLoad, showDetail, addToCart }) => {
       </div>
 
       {/* Modal Data */}
-      {modalData && (
+      <MenuModal
+        show={show}
+        handleClose={handleClose}
+        modalData={modalData}
+        addToCart={addToCart}
+      />
+      {/* {modalData && (
         <Modal show={show} onHide={handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>{modalData.menuName}</Modal.Title>
@@ -190,7 +200,7 @@ const MenuCard = ({ item, handleImageLoad, showDetail, addToCart }) => {
             </Button>
           </Modal.Footer>
         </Modal>
-      )}
+      )} */}
     </>
   );
 };

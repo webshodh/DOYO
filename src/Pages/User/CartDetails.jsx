@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
-import CheckoutForm from "../../components/Form/CheckoutForm";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { db, ref, push, set } from "../../data/firebase/firebaseConfig";
@@ -9,6 +8,7 @@ import { getAuth } from "firebase/auth";
 import CartCard from "../../components/Cards/CartCard";
 import { Navbar } from "../../components";
 import { colors } from "../../theme/theme";
+import { UserAuthContext } from "../../Context/UserAuthContext";
 
 function CartDetails() {
   const location = useLocation();
@@ -20,6 +20,7 @@ function CartDetails() {
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   const [hotelName, setHotelName] = useState("");
+  const { currentUser, loading } = useContext(UserAuthContext);
 
   useEffect(() => {
     const path = window.location.pathname;
@@ -28,22 +29,21 @@ function CartDetails() {
     setHotelName(hotelNameFromPath);
   }, []);
 
-  const handleCheckout = async (data) => {
-    const removeCartItems = (data) => {
-      const updatedData = { ...data };
-      delete updatedData.cartItems;
-      return updatedData;
-    };
-
-    const updatedData = removeCartItems(data);
-    setCheckoutData(updatedData);
+  const handleCheckout = async () => {
+    if (loading) {
+      toast.info("Loading user data...", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
 
     const currentDate = new Date().toISOString();
 
     try {
       const ordersRef = ref(
         db,
-        `/admins/${adminID}/hotels/${hotelName}/orders/`
+        // `/admins/${adminID}/hotels/${hotelName}/orders/`
+        `/hotels/${hotelName}/orders/`
       );
 
       for (const item of cartItems) {
@@ -52,7 +52,8 @@ function CartDetails() {
           ...item,
           status: "Pending",
           checkoutData: {
-            ...data,
+            name: currentUser.displayName || "Anonymous",
+            email: currentUser.email || "No email provided",
             date: currentDate,
           },
         };
@@ -77,24 +78,20 @@ function CartDetails() {
     );
 
     // Pass user info along with the checkout data to the OrderStatus page
-    // navigate(`/${hotelName}/orders/details`, {
-    //   state: {
-    //     checkoutData: updatedData,
-    //     totalAmount: totalAmount,
-    //     userInfo: { name: data.name, mobile: data.mobileNo },
-    //   },
-    // });
     navigate(`/${hotelName}/orders/details/thank-you`, {
       state: {
-        checkoutData: updatedData,
+        checkoutData: {
+          name: currentUser.displayName || "Anonymous",
+          email: currentUser.email || "No email provided",
+        },
         totalAmount: totalAmount,
-        userInfo: { name: data.name, mobile: data.mobileNo },
+        userInfo: { name: currentUser.displayName, email: currentUser.email },
       },
     });
   };
 
   const handleBack = () => {
-    navigate(`/viewMenu/${hotelName}`);
+    navigate(`/viewMenu/${hotelName}/home`);
   };
 
   const handleRemoveQuantity = (menuId) => {
@@ -121,25 +118,35 @@ function CartDetails() {
     );
   };
 
+  const onRemoveFromCart = (menuId) => {
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.uuid !== menuId)
+    );
+  };
+
   const clearCart = () => {
     setCartItems([]);
     toast.success("Cart cleared successfully!", {
       position: toast.POSITION.TOP_RIGHT,
     });
-    navigate(`/viewMenu/${hotelName}`);
+    navigate(`/viewMenu/${hotelName}/home`);
   };
 
   return (
     <>
       <Navbar title={`${hotelName}`} />
-      <Container fluid className="px-3 px-md-5 mt-3" style={{height:'100vh'}}>
+      <Container
+        fluid
+        className="px-3 px-md-5 mt-3"
+        style={{ height: "100vh" }}
+      >
         <Row>
           <div
             className="d-flex mb-2"
             style={{ justifyContent: "space-between" }}
           >
             <i
-              class="bi bi-arrow-left-square-fill"
+              className="bi bi-arrow-left-square-fill"
               onClick={handleBack}
               style={{ color: `${colors.Orange}`, fontSize: "30px" }}
             ></i>
@@ -163,6 +170,7 @@ function CartDetails() {
                 item={item}
                 onAddQuantity={handleAddQuantity}
                 onRemoveQuantity={handleRemoveQuantity}
+                onRemoveFromCart={onRemoveFromCart}
               />
             </Col>
           ))}
@@ -200,10 +208,9 @@ function CartDetails() {
                 style={{ padding: "10px" }}
               >
                 <h5>Order Details</h5>
-                <CheckoutForm
-                  cartItems={cartItems}
-                  onCheckout={handleCheckout}
-                />
+                <Button onClick={handleCheckout} variant="primary">
+                  Place Order
+                </Button>
               </Col>
             </Container>
           </Row>

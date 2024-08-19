@@ -55,6 +55,8 @@ const CartCard = ({
     item.menuName.length > 15
       ? item.menuName.slice(0, 15) + "..."
       : item.menuName;
+
+  console.log("data", item);
   return (
     <CardWrapper>
       <ImageSection>
@@ -63,7 +65,7 @@ const CartCard = ({
       <TextSection>
         <div style={{ marginTop: "10px" }}>
           <InfoText>{truncatedContent}</InfoText>
-
+          {!onRemoveFromCart && <InfoText>Qty : {item.quantity}</InfoText>}
           {onRemoveQuantity && onAddQuantity && (
             <QuantitySection>
               <Button
@@ -86,14 +88,16 @@ const CartCard = ({
         </div>
 
         <div>
-          <InfoText onClick={() => onRemoveFromCart(item.uuid)}>
-            {/* To adjust styling of cross button */}
-            <span style={{ color: `${colors.White}` }}>g</span>
-            <i
-              class="bi bi-x-circle-fill"
-              style={{ color: `${colors.Red}`, fontSize: "24px" }}
-            ></i>
-          </InfoText>
+          {onRemoveFromCart && (
+            <InfoText onClick={() => onRemoveFromCart(item.uuid)}>
+              {/* To adjust styling of cross button */}
+              <span style={{ color: `${colors.White}` }}>g</span>
+              <i
+                class="bi bi-x-circle-fill"
+                style={{ color: `${colors.Red}`, fontSize: "24px" }}
+              ></i>
+            </InfoText>
+          )}
           <InfoText style={{ marginTop: "25px" }}>
             <b>₹ {item.menuPrice}</b>
           </InfoText>

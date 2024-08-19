@@ -38,7 +38,8 @@ const OrderDashboard = () => {
   const adminID = currentAdminId;
 
   useEffect(() => {
-    const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
+    //const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
+    const ordersRef = ref(db, `/hotels/${hotelName}/orders/`);
 
     const unsubscribe = onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
@@ -101,8 +102,8 @@ const OrderDashboard = () => {
     const { orderId } = currentOrder;
 
     let newStatus;
-    let updateRef = `/admins/${adminID}/hotels/${hotelName}/orders/${orderId}/orderData/`;
-
+    // let updateRef = `/admins/${adminID}/hotels/${hotelName}/orders/${orderId}/orderData/`;
+    let updateRef = `/hotels/${hotelName}/orders/${orderId}/orderData/`;
     if (actionType === "accept") {
       newStatus = "Accepted";
     } else if (actionType === "complete") {
@@ -139,8 +140,8 @@ const OrderDashboard = () => {
   };
 
   const handleMarkAsCompleted = async (order) => {
-    const itemRef = `/admins/${adminID}/hotels/${hotelName}/orders/${order.orderId}/orderData/`;
-
+    // const itemRef = `/admins/${adminID}/hotels/${hotelName}/orders/${order.orderId}/orderData/`;
+    const itemRef = `/hotels/${hotelName}/orders/${order.orderId}/orderData/`;
     await update(ref(db, itemRef), { status: "Completed" });
 
     setAcceptedOrders((prevOrders) =>

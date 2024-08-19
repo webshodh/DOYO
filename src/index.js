@@ -15,6 +15,7 @@ import { HotelProvider } from "./Context/HotelContext";
 // Inject colors into CSS
 import { injectColorsIntoCSS } from "./theme/InjectColors";
 import { AuthProvider } from "./Context/AuthContext";
+import { UserAuthProvider } from "./Context/UserAuthContext";
 injectColorsIntoCSS();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -22,8 +23,11 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <HotelProvider>
+      <UserAuthProvider>
         <App />
+        </UserAuthProvider>
       </HotelProvider>
+
     </AuthProvider>
   </React.StrictMode>
 );

@@ -20,7 +20,8 @@ const useOrdersData = (hotelName) => {
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   useEffect(() => {
-    const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
+    //const ordersRef = ref(db, `/admins/${adminID}/hotels/${hotelName}/orders/`);
+    const ordersRef = ref(db, `/hotels/${hotelName}/orders/`);
     const unsubscribe = onValue(ordersRef, (snapshot) => {
       try {
         const data = snapshot.val();

@@ -52,7 +52,7 @@ function Home() {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 1];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
     setHotelName(hotelNameFromPath);
   }, []);
 
@@ -181,7 +181,7 @@ function Home() {
     toast.success("Added to Cart Successfully!", {
       position: toast.POSITION.TOP_RIGHT,
     });
-  };
+  }; 
 
   const handleNext = () => {
     navigate(`/${hotelName}/cart/cart-details`, {

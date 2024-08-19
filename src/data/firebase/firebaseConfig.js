@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
-import { getAuth } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPhoneNumber, signInWithPopup, OAuthProvider } from 'firebase/auth';
 import { getDatabase, ref, push, set, serverTimestamp, onValue, update, remove} from 'firebase/database';
 
 // const firebaseConfig = {
@@ -31,6 +31,7 @@ export const db = getDatabase(app);
 export const storage = getStorage(app);
 export {ref, push, set, serverTimestamp, onValue, update, remove};
 // Get a reference to the auth service
-export const auth = getAuth(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
-
+export { auth, googleProvider, signInWithPhoneNumber, signInWithPopup, OAuthProvider };
