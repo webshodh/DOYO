@@ -11,7 +11,7 @@ import {
   useCustomerData,
 } from "../../data";
 import { PageTitle } from "../../Atoms";
-import { CountCard, Table, DonutChart, Tab } from "../../components";
+import { CountCard, Table, DonutChart, Tab, InfoCard } from "../../components";
 import {
   OrdersAndRevenueByCutomerColumns,
   OrdersAndRevenueByMenuColumns,
@@ -30,8 +30,9 @@ function AdminDashboard() {
   const currentAdminId = auth.currentUser?.uid;
 
   console.log("currentAdminId", currentAdminId);
-  const { hotelsData, addHotel, loading, error } =
-    useHotelsData(currentAdminId);
+  const { hotelsData, addHotel, loading, error } = useHotelsData(
+    currentAdminId
+  );
   console.log("hotelsData", hotelsData);
   // Function to handle filter change
   const handleFilterChange = (count) => {
@@ -66,12 +67,16 @@ function AdminDashboard() {
     error: ordersError,
   } = useOrdersData(hotelName);
 
-  const { categoryDataArray, totalRevenue, ordersByCategoryGraphData } =
-    useProcessedCategoryData(completedOrders);
+  const {
+    categoryDataArray,
+    totalRevenue,
+    ordersByCategoryGraphData,
+  } = useProcessedCategoryData(completedOrders);
 
   const menuDataArray = useProcessedMenuData(completedOrders);
-  const { customerDataArray, customerContData } =
-    useCustomerData(completedOrders);
+  const { customerDataArray, customerContData } = useCustomerData(
+    completedOrders
+  );
 
   if (menuLoading || categoriesLoading || ordersLoading)
     return <div>Loading...</div>;
@@ -190,173 +195,174 @@ function AdminDashboard() {
       {/* Page Title and Filter */}
       <div
         className="d-flex justify-content-between"
-        style={{ marginTop: "70px" }}
+        style={{ marginTop: "50px" }}
       >
         <PageTitle pageTitle={"Dashboard"} />
-        <Tab tabs={tabs} />
+        {/* <Tab tabs={tabs} /> */}
       </div>
 
       {/* Count Card for Orders & Customers */}
       <div>
         <div>
-          <div>
-            <div className="container">
-              <div className="row" style={{ marginLeft: "-40px" }}>
-                {/* Main content area */}
-                <div className="col-md-9">
-                  {/* Total */}
-                  <div className="row background-card">
-                    <PageTitle pageTitle={"Orders"} />
-                    <div className="col-md-3 mb-3">
+          <div className="container-fluid">
+            <div className="row gx-0">
+              {/* Main content area */}
+              <div className="col-lg-9 col-md-8 col-sm-12">
+                {/* Orders Section */}
+                <div className="background-card">
+                  <PageTitle pageTitle="Orders" />
+                  <div className="d-flex flex-wrap">
+                    <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <CountCard
                         icon="bi-exclamation-circle-fill"
                         iconColor="red"
                         count={orderCounts.pending}
-                        label={"Pending Orders"}
+                        label="Pending Orders"
                         type="primary"
                       />
                     </div>
-                    <div className="col-md-3 mb-3">
+                    <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <CountCard
                         icon="bi-check-circle"
                         iconColor="orange"
                         count={orderCounts.accepted}
-                        label={"Accepted Orders"}
+                        label="Accepted Orders"
                         type="primary"
                       />
                     </div>
-                    <div className="col-md-3 mb-3">
+                    <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <CountCard
                         icon="bi-check-circle-fill"
                         iconColor="#00C000"
                         count={orderCounts.completed}
-                        label={"Completed Orders"}
+                        label="Completed Orders"
                         type="primary"
                       />
                     </div>
-                    <div className="col-md-3 mb-3">
+                    <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <CountCard
                         icon="bi-x-circle-fill"
                         iconColor="red"
                         count={orderCounts.cancelled}
-                        label={"Cancelled Orders"}
+                        label="Cancelled Orders"
                         type="primary"
                       />
                     </div>
                   </div>
-                  <div className="row">
-                    <div className="col-md-3">
-                      <div className="row background-card">
-                        {/* Second row of cards */}
+                </div>
+                <div className="row gx-0">
+  <div className="col-lg-9 col-md-8 col-sm-12">
+    {/* Customer Section */}
+    <div className="row mt-4">
+      <div className="col-12">
+        <div className="background-card">
+          <PageTitle pageTitle="Customers" />
+          <div className="row">
+            <div className="col-12 col-md-6 col-lg-4 mb-3">
+              <CountCard
+                icon="bi-person-fill-add"
+                iconColor=""
+                count={customerContData.totalCustomers}
+                label="Total Customers"
+                type="primary"
+              />
+            </div>
+            <div className="col-12 col-md-6 col-lg-4 mb-3">
+              <CountCard
+                icon="bi-person-fill-up"
+                iconColor="#00C000"
+                count={customerContData.newCustomers}
+                label="New Customers"
+                type="primary"
+              />
+            </div>
+            <div className="col-12 col-md-6 col-lg-4 mb-3">
+              <CountCard
+                icon="bi-person-heart"
+                iconColor="red"
+                count={customerContData.loyalCustomers}
+                label="Loyal Customers"
+                type="primary"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                        <PageTitle pageTitle="Menu" />
-                        <div className="d-flex justify-content-between">
-                          <div
-                            className="col-md-0 mb-6"
-                            style={{
-                              marginLeft: "-10px",
-                              marginBottom: "50px",
-                            }}
-                          >
-                            <CountCard
-                              src="/serving.png"
-                              iconColor="orange"
-                              count={totalMenus}
-                              label="Total Menu's"
-                              type="primary"
-                              width="50px"
-                              height="50px"
-                              marginTop="10px"
-                              marginLeft="0px"
-                            />
-                            <PageTitle pageTitle={"Category"} />
-                            <CountCard
-                              src="/tag.png"
-                              iconColor="red"
-                              count={totalCategories}
-                              label="Total Categories"
-                              type="primary"
-                              width="50px"
-                              height="50px"
-                              marginTop="5px"
-                              marginLeft="0px"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-md-9">
-                      <div className="row d-flex">
-                        <div className="background-card">
-                          <PageTitle pageTitle={"Customers"} />
-                          <div className="d-flex justify-content-between">
-                            <div className="col-md-4 mb-1">
-                              <CountCard
-                                icon="bi-person-fill-add"
-                                iconColor=""
-                                count={customerContData.totalCustomers}
-                                label={"Total Customers"}
-                                type="primary"
-                              />
-                            </div>
-                            <div className="col-md-4 mb-1">
-                              <CountCard
-                                icon="bi-person-fill-up"
-                                iconColor="#00C000"
-                                count={customerContData.newCustomers}
-                                label={"New Customers"}
-                                type="primary"
-                              />
-                            </div>
-                            <div className="col-md-4 mb-1">
-                              <CountCard
-                                icon="bi-person-heart"
-                                iconColor="red"
-                                count={customerContData.loyalCustomers}
-                                label={"Loyal Customers"}
-                                type="primary"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row d-flex">
-                        <div className="background-card">
-                          <PageTitle pageTitle={"Revenue"} />
-                          <div className="d-flex justify-content-between">
-                            <div className="col-md-4 mb-1">
-                              <CountCard
-                                icon="bi-currency-rupee"
-                                iconColor="#00C000"
-                                count={totalRevenue}
-                                label={"Total Revenue"}
-                                type="primary"
-                              />
-                            </div>
-                            <div className="col-md-4 mb-1">
-                              <CountCard
-                                icon="fa-list"
-                                count={0}
-                                label={"Avg Revenue/Day"}
-                                type="primary"
-                              />
-                            </div>
-                            <div className="col-md-4 mb-1">
-                              <CountCard
-                                icon="fa-list"
-                                count={0}
-                                label={"Avg Revenue/Day"}
-                                type="primary"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Capsules */}
-                  <div className="row d-flex flex-wrap col-md-12 background-card">
-                    <PageTitle pageTitle={"Orders by Category"} />
+    {/* Revenue Section */}
+    <div className="row mt-4">
+      <div className="col-12">
+        <div className="background-card">
+          <PageTitle pageTitle="Revenue" />
+          <div className="row">
+            <div className="col-12 col-md-6 col-lg-4 mb-3">
+              <CountCard
+                icon="bi-currency-rupee"
+                iconColor="#00C000"
+                count={totalRevenue}
+                label="Total Revenue"
+                type="primary"
+              />
+            </div>
+            <div className="col-12 col-md-6 col-lg-4 mb-3">
+              <CountCard
+                icon="fa-list"
+                count={0}
+                label="Avg Revenue/Day"
+                type="primary"
+              />
+            </div>
+            <div className="col-12 col-md-6 col-lg-4 mb-3">
+              <CountCard
+                icon="fa-list"
+                count={0}
+                label="Avg Revenue/Day"
+                type="primary"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div className="col-lg-3 col-md-12 col-sm-12">
+    {/* Menu and Category Section */}
+    <div className="row mt-4">
+      <div className="col-12">
+        <div className="background-card">
+          <PageTitle pageTitle="Menu" />
+          <div className="row">
+            <div className="col-12 col-md-6 col-lg-12 mb-3">
+              <CountCard
+                src="/serving.png"
+                iconColor="orange"
+                count={totalMenus}
+                label="Total Menus"
+                type="primary"
+              />
+            </div>
+            <div className="col-12 col-md-6 col-lg-12 mb-3">
+              <CountCard
+                src="/tag.png"
+                iconColor="red"
+                count={totalCategories}
+                label="Total Categories"
+                type="primary"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+                {/* Orders by Category Section */}
+                <div className="row mt-4 d-flex flex-wrap">
+                  <div className="col-12 background-card">
+                    <PageTitle pageTitle="Orders by Category" />
                     <div className="category-items d-flex flex-wrap mb-3">
                       {categoryDataArray
                         .slice(0, showAll ? categoryDataArray.length : 4)
@@ -376,56 +382,64 @@ function AdminDashboard() {
                           </div>
                         ))}
                     </div>
-                    <div>
-                      {menuDataArray.length > 6 && (
-                        <div className="show-more-card">
-                          <p
-                            onClick={() => setShowAll(!showAll)}
-                            className="show-more"
-                          >
-                            {showAll ? "Show Less" : "Show More"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {/* <div className="d-flex justfy-content-between">
-                    <img src="/ads.png" height={'200px'} width={'500px'} style={{marginRight:'10px'}}/>
-                    <img src="/ads2.jpg" height={'200px'} width={'500px'}/>
-                    </div> */}
+                    {menuDataArray.length > 6 && (
+                      <div className="show-more-card text-center">
+                        <p
+                          onClick={() => setShowAll(!showAll)}
+                          className="show-more"
+                        >
+                          {showAll ? "Show Less" : "Show More"}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="d-flex justify-content-around">
-                    {/* Donut Chart */}
-                    <div className="row donut-chart col-md-6 background-card">
-                      <PageTitle pageTitle={"Orders By Category"} />
+                </div>
+
+                {/* Donut Chart and Revenue by Category Section */}
+                <div className="row mt-4">
+                  <div className="col-12 col-lg-6 mb-4">
+                    <div className="background-card">
+                      <PageTitle pageTitle="Orders By Category" />
                       <DonutChart data={OrdersByCategoryGraphData} />
                     </div>
-                    <div className=" row col-lg-6 col-md-6 col-sm-12 col-12 mb-4 background-card ">
-                      <PageTitle pageTitle={"Revenue By Category"} />
+                  </div>
+                  <div className="col-12 col-lg-6 mb-4">
+                    <div className="background-card">
+                      <PageTitle pageTitle="Revenue By Category" />
                       <Table columns={columns2} data={categoryDataArray} />
-                    </div>
-                  </div>
-                  <div className="d-flex justify-content-around">
-                    <div className=" row col-lg-12 col-md-6 col-sm-12 col-12 mb-4 background-card ">
-                      <PageTitle pageTitle={"Orders and Revenue By Menu"} />
-                      <Table columns={Column1} data={menuDataArray} />
-                    </div>
-                  </div>
-                  <div className="d-flex justify-content-around">
-                    <div className=" row col-lg-12 col-md-6 col-sm-12 col-12 mb-4 background-card ">
-                      <PageTitle pageTitle={"Orders and Revenue By Customer"} />
-                      <Table columns={column3} data={customerDataArray} />
                     </div>
                   </div>
                 </div>
 
-                {/* Sidebar for Top 5 Menus */}
-                <div className="col-md-3" style={{ marginTop: "-15px" }}>
-                  <div className="mb-3 background-card">
-                    <div style={{ marginLeft: "10px" }}>
-                      <PageTitle pageTitle={"Most Orderd Menu"} />
+                {/* Orders and Revenue By Menu Section */}
+                <div className="row mt-4">
+                  <div className="col-12 mb-4">
+                    <div className="background-card">
+                      <PageTitle pageTitle="Orders and Revenue By Menu" />
+                      <Table columns={Column1} data={menuDataArray} />
                     </div>
-                    <Tab tabs={tabs2} />
                   </div>
+                </div>
+
+                {/* Orders and Revenue By Customer Section */}
+                <div className="row mt-4">
+                  <div className="col-12 mb-4">
+                    <div className="background-card">
+                      <PageTitle pageTitle="Orders and Revenue By Customer" />
+                      <Table columns={column3} data={customerDataArray} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar for Top 5 Menus */}
+              <div
+                className="col-lg-3 col-md-4 col-sm-12"
+                style={{ marginLeft: "0px" }}
+              >
+                <div className="mb-3 background-card">
+                  <PageTitle pageTitle="Most Ordered Menu" />
+                  <Tab tabs={tabs2} />
                 </div>
               </div>
             </div>

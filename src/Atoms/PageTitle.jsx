@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { colors } from '../theme/theme';
 const PageTitleContainer = styled.div`
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 `;
 
 const PageTitleHeading = styled.h1`

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../styles/sideBar.css";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useHotelContext } from "../Context/HotelContext";
 
 function SideBar() {
@@ -10,13 +10,21 @@ function SideBar() {
   const handleClick = () => {
     setAdmin(!admin);
   };
+  const location = useLocation();
   return (
     <aside id="sidebar" className="sidebar">
       <ul className="sidebar-nav" id="sidebar-nav">
         {admin ? (
           <>
             <li className="nav-item">
-              <Link className="nav-link" to={`/viewMenu/${hotelName}`}>
+              <Link
+                className={`nav-link ${
+                  location.pathname.includes(`/viewMenu/${hotelName}`)
+                    ? "active"
+                    : ""
+                }`}
+                to={`/viewMenu/${hotelName}`}
+              >
                 <i className="bi bi-house"></i>
                 <span>Home</span>
               </Link>
@@ -24,7 +32,11 @@ function SideBar() {
 
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/admin/admin-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/admin-dashboard`}
               >
                 <i className="bi bi-grid"></i>
@@ -33,7 +45,13 @@ function SideBar() {
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes(
+                    "/forecasting/forecasting-dashboard"
+                  )
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/forecasting/forecasting-dashboard`}
               >
                 <i class="bi bi-currency-rupee"></i>
@@ -42,7 +60,11 @@ function SideBar() {
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/order/order-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/order/order-dashboard`}
               >
                 <i class="bi bi-cart-check-fill"></i>
@@ -51,7 +73,11 @@ function SideBar() {
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/menu/menu-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/menu/menu-dashboard`}
               >
                 <i className="bi bi-speedometer2"></i>
@@ -60,7 +86,11 @@ function SideBar() {
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/table/table-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/table/table-dashboard`}
               >
                 <i className="bi bi-speedometer2"></i>
@@ -69,7 +99,11 @@ function SideBar() {
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/staff/staff-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/staff/staff-dashboard`}
               >
                 <i class="bi bi-person-fill"></i>
@@ -78,7 +112,11 @@ function SideBar() {
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/customers/customer-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/admin/customers/customer-dashboard`}
               >
                 <i class="bi bi-person-heart"></i>
@@ -89,14 +127,25 @@ function SideBar() {
         ) : (
           <>
             <li className="nav-item">
-              <Link className="nav-link" to={`/super-admin/dashboard`}>
+              <Link
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/dashboard")
+                    ? "active"
+                    : ""
+                }`}
+                to={`/super-admin/dashboard`}
+              >
                 <i className="bi bi-grid"></i>
                 <span>Super Admin Dashboard</span>
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/revenue")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/super-admin/revenue`}
               >
                 <i className="bi bi-grid"></i>
@@ -104,26 +153,51 @@ function SideBar() {
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/hotels/admin/add-hotel`}>
+              <Link
+                className={`nav-link ${
+                  location.pathname.includes("/hotels/admin/add-hotel")
+                    ? "active"
+                    : ""
+                }`}
+                to={`/hotels/admin/add-hotel`}
+              >
                 <i class="bi bi-building"></i>
                 <span>Hotels Management</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/super-admin/cafes`}>
+              <Link
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/cafes")
+                    ? "active"
+                    : ""
+                }`}
+                to={`/${hotelName}/super-admin/cafes`}
+              >
                 <i className="bi bi-speedometer2"></i>
                 <span>Restaurant Management</span>
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/super-admin/cafes`}>
+              <Link
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/cafes")
+                    ? "active"
+                    : ""
+                }`}
+                to={`/${hotelName}/super-admin/cafes`}
+              >
                 <i className="bi bi-speedometer2"></i>
                 <span>Cafe Management</span>
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/order-dashboard")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/super-admin/order-dashboard`}
               >
                 <i className="bi bi-speedometer2"></i>
@@ -131,14 +205,25 @@ function SideBar() {
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to={`/${hotelName}/super-admin/staff`}>
+              <Link
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/staff")
+                    ? "active"
+                    : ""
+                }`}
+                to={`/${hotelName}/super-admin/staff`}
+              >
                 <i className="bi bi-speedometer2"></i>
                 <span>Staff Management</span>
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`nav-link ${
+                  location.pathname.includes("/super-admin/customers")
+                    ? "active"
+                    : ""
+                }`}
                 to={`/${hotelName}/super-admin/customers`}
               >
                 <i className="bi bi-speedometer2"></i>

@@ -1,24 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import * as tf from '@tensorflow/tfjs';
-import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Title } from 'chart.js';
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
+import * as tf from "@tensorflow/tfjs";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+} from "chart.js";
+import { InfoCard } from "../../components";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title);
 
 const dummyData = {
-  "2024-08-11": [{ "orderData": { "quantity": 3 } }],
-  "2024-08-12": [{ "orderData": { "quantity": 2 } }],
-  "2024-08-13": [{ "orderData": { "quantity": 5 } }],
-  "2024-08-14": [{ "orderData": { "quantity": 4 } }],
-  "2024-08-15": [{ "orderData": { "quantity": 6 } }],
-  "2024-08-16": [{ "orderData": { "quantity": 3 } }],
-  "2024-08-17": [{ "orderData": { "quantity": 7 } }],
+  "2024-08-11": [{ orderData: { quantity: 3 } }],
+  "2024-08-12": [{ orderData: { quantity: 2 } }],
+  "2024-08-13": [{ orderData: { quantity: 5 } }],
+  "2024-08-14": [{ orderData: { quantity: 4 } }],
+  "2024-08-15": [{ orderData: { quantity: 6 } }],
+  "2024-08-16": [{ orderData: { quantity: 3 } }],
+  "2024-08-17": [{ orderData: { quantity: 7 } }],
 };
 
 const aggregateOrdersPerDay = (data) => {
   return Object.keys(data).map((date) => {
     const orders = data[date];
-    return Math.round(orders.reduce((total, order) => total + order.orderData.quantity, 0));
+    return Math.round(
+      orders.reduce((total, order) => total + order.orderData.quantity, 0)
+    );
   });
 };
 
@@ -26,19 +36,32 @@ const predictOrders = async (ordersPerDay) => {
   const maxOrders = Math.max(...ordersPerDay);
   const normalizedData = ordersPerDay.map((orders) => orders / maxOrders);
 
-  const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [normalizedData.length - 1, 1]);
-  const outputTensor = tf.tensor2d(normalizedData.slice(1), [normalizedData.length - 1, 1]);
+  const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [
+    normalizedData.length - 1,
+    1,
+  ]);
+  const outputTensor = tf.tensor2d(normalizedData.slice(1), [
+    normalizedData.length - 1,
+    1,
+  ]);
 
   const model = tf.sequential();
-  
+
   const initializer = tf.initializers.glorotUniform({ seed: 42 });
 
-  model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu', kernelInitializer: initializer }));
+  model.add(
+    tf.layers.dense({
+      units: 8,
+      inputShape: [1],
+      activation: "relu",
+      kernelInitializer: initializer,
+    })
+  );
   model.add(tf.layers.dense({ units: 1, kernelInitializer: initializer }));
 
   model.compile({
-    optimizer: 'adam',
-    loss: 'meanSquaredError',
+    optimizer: "adam",
+    loss: "meanSquaredError",
   });
 
   await model.fit(inputTensor, outputTensor, {
@@ -61,15 +84,23 @@ const predictOrders = async (ordersPerDay) => {
 };
 
 const calculateAccuracy = (actual, predicted) => {
-  if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
+  if (
+    actual.length === 0 ||
+    predicted.length === 0 ||
+    actual.length !== predicted.length
+  ) {
     return 0;
   }
 
   const totalActual = actual.reduce((acc, val) => acc + val, 0);
-  const totalError = actual.reduce((acc, val, idx) => acc + Math.abs(val - predicted[idx]), 0);
+  const totalError = actual.reduce(
+    (acc, val, idx) => acc + Math.abs(val - predicted[idx]),
+    0
+  );
 
   // Avoid division by zero
-  const accuracy = totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
+  const accuracy =
+    totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
 
   return accuracy;
 };
@@ -94,15 +125,15 @@ const OrderForecasting = () => {
     labels: Object.keys(dummyData),
     datasets: [
       {
-        label: 'Actual Orders',
+        label: "Actual Orders",
         data: ordersPerDay,
-        borderColor: 'blue',
+        borderColor: "blue",
         fill: false,
       },
       {
-        label: 'Predicted Orders',
+        label: "Predicted Orders",
         data: forecast,
-        borderColor: 'red',
+        borderColor: "red",
         fill: false,
       },
     ],
@@ -113,11 +144,11 @@ const OrderForecasting = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: "top",
       },
       tooltip: {
         callbacks: {
-          label: function (context) {
+          label: function(context) {
             return `${context.dataset.label}: ${Math.round(context.raw)}`;
           },
         },
@@ -127,25 +158,40 @@ const OrderForecasting = () => {
       x: {
         title: {
           display: true,
-          text: 'Date',
+          text: "Date",
         },
       },
       y: {
         title: {
           display: true,
-          text: 'Order Quantity',
+          text: "Order Quantity",
         },
       },
     },
   };
 
   return (
-    <div style={{ width: '80%', height: '400px', margin: '0 auto' }}>
-      <h2>Order Forecast</h2>
-      <p>Predicted Orders for Next Day: {forecast[forecast.length - 1]?.toFixed(0)}</p>
-      <p>Prediction Accuracy: {accuracy}%</p>
-      <Line data={chartData} options={chartOptions} />
-    </div>
+    <>
+      <InfoCard
+        title={"Order Forecast"}
+        children={
+          <>
+            <div style={{ display: "flex" }}>
+              <p style={{ marginRight: "40px" }}>
+                Predicted Orders for Next Day:{" "}
+                {forecast[forecast.length - 1]?.toFixed(0)}
+              </p>
+              <p>Prediction Accuracy: {accuracy}%</p>
+            </div>
+          </>
+        }
+      />
+      <div className="background-card">
+        <div style={{ width: "80%", height: "400px", margin: "0 auto" }}>
+          <Line data={chartData} options={chartOptions} />
+        </div>
+      </div>
+    </>
   );
 };
 

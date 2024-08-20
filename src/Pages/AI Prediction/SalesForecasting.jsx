@@ -1,7 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import * as tf from '@tensorflow/tfjs';
-import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Title } from 'chart.js';
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
+import * as tf from "@tensorflow/tfjs";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+} from "chart.js";
+import InfoCard from "../../components/Cards/InfoCard";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title);
 
@@ -23,20 +31,28 @@ const predictSales = async (salesPerDay) => {
   const maxSales = Math.max(...salesPerDay);
   const normalizedData = salesPerDay.map((sales) => sales / maxSales);
 
-  const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [normalizedData.length - 1, 1]);
-  const outputTensor = tf.tensor2d(normalizedData.slice(1), [normalizedData.length - 1, 1]);
+  const inputTensor = tf.tensor2d(normalizedData.slice(0, -1), [
+    normalizedData.length - 1,
+    1,
+  ]);
+  const outputTensor = tf.tensor2d(normalizedData.slice(1), [
+    normalizedData.length - 1,
+    1,
+  ]);
 
   let model;
   try {
-    model = await tf.loadLayersModel('localstorage://sales-model'); // Load model from local storage
+    model = await tf.loadLayersModel("localstorage://sales-model"); // Load model from local storage
   } catch (e) {
     // Model not found, so train it
     model = tf.sequential();
-    model.add(tf.layers.dense({ units: 8, inputShape: [1], activation: 'relu' }));
+    model.add(
+      tf.layers.dense({ units: 8, inputShape: [1], activation: "relu" })
+    );
     model.add(tf.layers.dense({ units: 1 }));
     model.compile({
-      optimizer: 'adam',
-      loss: 'meanSquaredError',
+      optimizer: "adam",
+      loss: "meanSquaredError",
     });
 
     await model.fit(inputTensor, outputTensor, {
@@ -44,7 +60,7 @@ const predictSales = async (salesPerDay) => {
       batchSize: 4,
     });
 
-    await model.save('localstorage://sales-model'); // Save model to local storage
+    await model.save("localstorage://sales-model"); // Save model to local storage
   }
 
   const predictions = [];
@@ -61,15 +77,23 @@ const predictSales = async (salesPerDay) => {
 };
 
 const calculateAccuracy = (actual, predicted) => {
-  if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
+  if (
+    actual.length === 0 ||
+    predicted.length === 0 ||
+    actual.length !== predicted.length
+  ) {
     return 0;
   }
 
-  const totalError = actual.reduce((acc, val, idx) => acc + Math.abs(val - predicted[idx]), 0);
+  const totalError = actual.reduce(
+    (acc, val, idx) => acc + Math.abs(val - predicted[idx]),
+    0
+  );
   const totalActual = actual.reduce((acc, val) => acc + val, 0);
-  
+
   // Prevent division by zero
-  const accuracy = totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
+  const accuracy =
+    totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
 
   return accuracy;
 };
@@ -94,15 +118,15 @@ const SalesForecasting = () => {
     labels: Object.keys(dummySalesData),
     datasets: [
       {
-        label: 'Actual Sales',
+        label: "Actual Sales",
         data: salesPerDay,
-        borderColor: 'blue',
+        borderColor: "blue",
         fill: false,
       },
       {
-        label: 'Predicted Sales',
+        label: "Predicted Sales",
         data: forecast,
-        borderColor: 'red',
+        borderColor: "red",
         fill: false,
       },
     ],
@@ -113,11 +137,11 @@ const SalesForecasting = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: "top",
       },
       tooltip: {
         callbacks: {
-          label: function (context) {
+          label: function(context) {
             return `${context.dataset.label}: ₹${Math.round(context.raw)}`;
           },
         },
@@ -127,25 +151,40 @@ const SalesForecasting = () => {
       x: {
         title: {
           display: true,
-          text: 'Date',
+          text: "Date",
         },
       },
       y: {
         title: {
           display: true,
-          text: 'Sales Revenue ($)',
+          text: "Sales Revenue ($)",
         },
       },
     },
   };
 
   return (
-    <div style={{ width: '80%', height: '400px', margin: '0 auto' }}>
-      <h2>Sales Forecast</h2>
-      <p>Predicted Sales for Next Day: ₹{forecast[forecast.length - 1]?.toFixed(0)}</p>
-      <p>Prediction Accuracy: {accuracy}%</p>
-      <Line data={chartData} options={chartOptions} />
-    </div>
+    <>
+      <InfoCard
+        title={"Sales Forecast"}
+        children={
+          <>
+            <div style={{ display: "flex" }}>
+              <p style={{ marginRight: "40px" }}>
+                Predicted Sales for Next Day:{" "}
+                {forecast[forecast.length - 1]?.toFixed(0)}
+              </p>
+              <p>Prediction Accuracy: {accuracy}%</p>
+            </div>
+          </>
+        }
+      />
+      <div className="background-card">
+        <div style={{ width: "80%", height: "400px", margin: "0 auto" }}>
+          <Line data={chartData} options={chartOptions} />
+        </div>
+      </div>
+    </>
   );
 };
 

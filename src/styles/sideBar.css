@@ -7,7 +7,7 @@
   top: 60px;
   left: 0;
   bottom: 0;
-  width: 300px;
+  width: 270px;
   z-index: 996;
   transition: all 0.3s;
   padding: 20px;
@@ -87,7 +87,7 @@
   align-items: center;
   font-size: 15px;
   font-weight: 600;
-  color: var(--Orange);
+  color: var(--Black);
   transition: 0.3;
   padding: 10px 15px;
   border-radius: 4px;
@@ -96,11 +96,11 @@
 .sidebar-nav .nav-link i {
   font-size: 16px;
   margin-right: 10px;
-  color: var(--Orange);
+  color: var(--Black);
 }
 
 .sidebar-nav .nav-link.collapsed {
-  color: var(--Orange);
+  color: var(--Black);
   background: var(--White);;
 }
 
@@ -109,13 +109,23 @@
 }
 
 .sidebar-nav .nav-link:hover {
-  color: var(--Orange);
-  background: #f6f9ff;
+  color: var(--White);
+  background: var(--Orange);;
 }
 
 .sidebar-nav .nav-link:hover i {
-  color: var(--Orange);
+  color: var(--White);
 }
+
+.sidebar-nav .nav-link.active {
+  color: var(--White);
+  background: var(--Orange);;
+}
+
+.sidebar-nav .nav-link.active i {
+  color: var(--White);
+}
+
 
 .sidebar-nav .nav-link .bi-chevron-down {
   margin-right: 0;
@@ -164,7 +174,7 @@
 }
 .bottom{
   /* color: #4154f1; */
-  background: #f6f9ff;
+  background: var(--Orange);;
   padding: 20px 1px;
   margin-top: 300px;
 }

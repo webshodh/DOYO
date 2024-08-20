@@ -12,6 +12,7 @@ export {default as CardSlider} from './Cards/CardSlider'
 export {default as MenuCard} from './Cards/MenuCard'
 export {default as HorizontalMenuCard} from './Cards/HorizontalMenuCard'
 export {default as CaptainCard} from './Cards/CaptainCard'
+export {default as InfoCard} from './Cards/InfoCard'
 
 // Navbar
 export {default as Nav} from './Navbar/Nav'
