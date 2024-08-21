@@ -1,56 +1,39 @@
 import React from "react";
-import styled from "styled-components";
-import Nav from "./Navbar/Nav";
-import { colors } from "../theme/theme";
 import { useHotelContext } from "../Context/HotelContext";
-// Styled components
-const StyledHeader = styled.header`
-  transition: all 0.5s;
-  z-index: 997;
-  height: 60px;
-  box-shadow: 0px 2px 20px rgba(1, 41, 112, 0.1);
-  background-color: ${colors.White};
-  padding-left: 20px;
-`;
-
-const Logo = styled.div`
-  line-height: 1;
-
-  @media (min-width: 1200px) {
-    width: 280px;
-  }
-
-  img {
-    max-height: 26px;
-    margin-right: 6px;
-  }
-
-  span {
-    font-size: 26px;
-    font-weight: 700;
-    color: #012970;
-    font-family: "Nunito", sans-serif;
-  }
-`;
+import Nav from "./Navbar/Nav";
+import { colors } from "theme/theme";
 
 const Header = () => {
   const handleToggleSideBar = () => {
     document.body.classList.toggle("toggle-sidebar");
   };
+
   const { hotelName } = useHotelContext();
+
   return (
-    <StyledHeader className="fixed-top d-flex align-items-center">
-      <div className="d-flex align-items-center justify-content-between">
-        <Logo>
-          <span>{hotelName} Dashboard</span>
-        </Logo>
-        <i
-          className="bi bi-list toggle-sidebar-btn"
-          onClick={handleToggleSideBar}
-        ></i>
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 shadow-md bg-white flex items-center px-4 md:px-8 lg:px-16">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center">
+          <div className="flex items-center space-x-2">
+            <button
+              className="text-2xl md:hidden"
+              onClick={handleToggleSideBar}
+              aria-label="Toggle Sidebar"
+            >
+              <i className="bi bi-list"></i>
+            </button>
+
+            <span
+              className="text-xl font-bold lg:text-2xl"
+              style={{ color: colors.Orange }}
+            >
+              {hotelName}
+            </span>
+          </div>
+        </div>
       </div>
       <Nav />
-    </StyledHeader>
+    </header>
   );
 };
 

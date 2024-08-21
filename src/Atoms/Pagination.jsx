@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const handlePageChange = (page) => {
@@ -10,39 +9,44 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <nav aria-label="Page navigation">
-      <ul className="pagination justify-content-center">
-        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+    <nav aria-label="Page navigation" className="flex justify-center">
+      <ul className="inline-flex items-center -space-x-px">
+        <li>
           <button
-            className="page-link"
+            className={`px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 transition-colors duration-200 ${
+              currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
+            }`}
             onClick={() => handlePageChange(currentPage - 1)}
             aria-label="Previous"
             disabled={currentPage === 1}
           >
-            <span aria-hidden="true">&laquo;</span>
+            &laquo;
           </button>
         </li>
         {[...Array(totalPages).keys()].map((page) => (
-          <li
-            key={page + 1}
-            className={`page-item ${currentPage === page + 1 ? "active" : ""}`}
-          >
+          <li key={page + 1}>
             <button
-              className="page-link"
+              className={`px-3 py-2 leading-tight border ${
+                currentPage === page + 1
+                  ? "text-white bg-orange-500 border-orange-500"
+                  : "text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700 transition-colors duration-200"
+              }`}
               onClick={() => handlePageChange(page + 1)}
             >
               {page + 1}
             </button>
           </li>
         ))}
-        <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+        <li>
           <button
-            className="page-link"
+            className={`px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 transition-colors duration-200 ${
+              currentPage === totalPages ? "cursor-not-allowed opacity-50" : ""
+            }`}
             onClick={() => handlePageChange(currentPage + 1)}
             aria-label="Next"
             disabled={currentPage === totalPages}
           >
-            <span aria-hidden="true">&raquo;</span>
+            &raquo;
           </button>
         </li>
       </ul>

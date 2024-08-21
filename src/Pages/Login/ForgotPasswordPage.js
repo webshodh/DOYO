@@ -3,7 +3,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css"; // Ensure this import is present
-import '../../styles/ForgotPasswordPage.css'
+
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -31,31 +31,39 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="container text-center mt-5">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <ToastContainer />
-      <div className="row">
-        <div className="col-md-6 offset-md-3">
-          <h3 className="mb-4">Forgot Password</h3>
-          <form onSubmit={handleResetPassword}>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email address
-              </label>
-              <input
-                type="email"
-                className={`form-control ${error ? "border-danger" : ""}`}
-                id="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              {error && <p className="text-danger">{error}</p>}
-            </div>
-            <button type="submit" className="btn btn-primary w-100">
-              Send Reset Link
-            </button>
-          </form>
-        </div>
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+        <h3 className="text-2xl font-semibold text-center text-orange-600 mb-6">
+          Forgot Password
+        </h3>
+        <form onSubmit={handleResetPassword}>
+          <div className="mb-4">
+            <label
+              htmlFor="email"
+              className="block text-left text-gray-700 font-medium"
+            >
+              Email address
+            </label>
+            <input
+              type="email"
+              className={`mt-1 block w-full px-4 py-2 border ${
+                error ? "border-red-500" : "border-gray-300"
+              } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent`}
+              id="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+          >
+            Send Reset Link
+          </button>
+        </form>
       </div>
     </div>
   );

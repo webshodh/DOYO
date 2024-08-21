@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../../styles/SignupPage.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import {
@@ -23,7 +22,7 @@ const SignupPage = () => {
   const [errors, setErrors] = useState({});
 
   const auth = getAuth();
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -93,35 +92,37 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="signup-container">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <ToastContainer />
-      <div className="signup-card">
-        <h3 className="text-center mb-4">Sign Up</h3>
+      <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
+        <h3 className="text-center text-2xl font-semibold text-orange-600 mb-6">
+          Sign Up
+        </h3>
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="name" className="form-label">
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name
             </label>
             <input
               type="text"
-              className={`form-control ${
-                errors.name ? "border-danger" : "border-success"
+              className={`mt-1 block w-full rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+                errors.name ? "border-red-500" : "border-gray-300"
               }`}
               id="name"
               placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            {errors.name && <p className="error-message">{errors.name}</p>}
+            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
           </div>
-          <div className="mb-3">
-            <label htmlFor="surname" className="form-label">
+          <div className="mb-4">
+            <label htmlFor="surname" className="block text-sm font-medium text-gray-700">
               Surname
             </label>
             <input
               type="text"
-              className={`form-control ${
-                errors.surname ? "border-danger" : "border-success"
+              className={`mt-1 block w-full rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+                errors.surname ? "border-red-500" : "border-gray-300"
               }`}
               id="surname"
               placeholder="Enter your surname"
@@ -129,49 +130,49 @@ const SignupPage = () => {
               onChange={(e) => setSurname(e.target.value)}
             />
             {errors.surname && (
-              <p className="error-message">{errors.surname}</p>
+              <p className="text-red-500 text-sm">{errors.surname}</p>
             )}
           </div>
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email address
             </label>
             <input
               type="email"
-              className={`form-control ${
-                errors.email ? "border-danger" : "border-success"
+              className={`mt-1 block w-full rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+                errors.email ? "border-red-500" : "border-gray-300"
               }`}
               id="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
           </div>
-          <div className="mb-3">
-            <label htmlFor="mobile" className="form-label">
+          <div className="mb-4">
+            <label htmlFor="mobile" className="block text-sm font-medium text-gray-700">
               Mobile Number
             </label>
             <input
               type="tel"
-              className={`form-control ${
-                errors.mobile ? "border-danger" : "border-success"
+              className={`mt-1 block w-full rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+                errors.mobile ? "border-red-500" : "border-gray-300"
               }`}
               id="mobile"
               placeholder="Enter your mobile number"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
             />
-            {errors.mobile && <p className="error-message">{errors.mobile}</p>}
+            {errors.mobile && <p className="text-red-500 text-sm">{errors.mobile}</p>}
           </div>
-          <div className="mb-3 position-relative">
-            <label htmlFor="password" className="form-label">
+          <div className="mb-4 relative">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
               type={passwordVisible ? "text" : "password"}
-              className={`form-control ${
-                errors.password ? "border-danger" : "border-success"
+              className={`mt-1 block w-full rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+                errors.password ? "border-red-500" : "border-gray-300"
               }`}
               id="password"
               placeholder="Enter your password"
@@ -180,23 +181,23 @@ const SignupPage = () => {
             />
             <button
               type="button"
-              className="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3"
+              className="absolute right-3 top-9 text-gray-500"
               onClick={togglePasswordVisibility}
             >
               {passwordVisible ? <FaEyeSlash /> : <FaEye />}
             </button>
             {errors.password && (
-              <p className="error-message">{errors.password}</p>
+              <p className="text-red-500 text-sm">{errors.password}</p>
             )}
           </div>
-          <div className="mb-3 position-relative">
-            <label htmlFor="confirmPassword" className="form-label">
+          <div className="mb-4 relative">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
               Confirm Password
             </label>
             <input
               type={confirmPasswordVisible ? "text" : "password"}
-              className={`form-control ${
-                errors.confirmPassword ? "border-danger" : "border-success"
+              className={`mt-1 block w-full rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+                errors.confirmPassword ? "border-red-500" : "border-gray-300"
               }`}
               id="confirmPassword"
               placeholder="Confirm your password"
@@ -205,19 +206,25 @@ const SignupPage = () => {
             />
             <button
               type="button"
-              className="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3"
+              className="absolute right-3 top-9 text-gray-500"
               onClick={toggleConfirmPasswordVisibility}
             >
               {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
             </button>
             {errors.confirmPassword && (
-              <p className="error-message">{errors.confirmPassword}</p>
+              <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
             )}
           </div>
-          <button type="submit" className="btn btn-primary w-100 mb-3">
+          <button
+            type="submit"
+            className="w-full bg-orange-600 text-white font-semibold py-2 rounded-md shadow-sm hover:bg-orange-700 transition-colors"
+          >
             Sign Up
           </button>
-          <a href="/login" className="d-block text-center">
+          <a
+            href="/login"
+            className="block text-center text-orange-600 mt-4 hover:underline"
+          >
             Already have an account? Login
           </a>
         </form>

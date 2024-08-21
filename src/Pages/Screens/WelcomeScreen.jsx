@@ -1,28 +1,21 @@
 import React from "react";
-import { Container, Row, Col } from "react-bootstrap";
 import { colors } from "../../theme/theme";
 
 const WelcomeScreen = () => {
   return (
-    <Container
-      fluid
-      className="d-flex align-items-center justify-content-center"
-      style={{ backgroundColor: colors.Orange, minHeight: "100vh" }}
+    <div
+      className="flex items-center justify-center bg-orange-500 min-h-screen p-6"
+      style={{ backgroundColor: colors.Orange }}
     >
-      <Row className="text-center">
-        <Col>
-          <div className="p-5 text-white">
-            <img src="/logo.png" width={"400px"} />
-
-            <h1 className="mt-3">Welcome!</h1>
-            <p className="lead">
-              We're thrilled to have you here. Start exploring our menu and
-              enjoy your meal!
-            </p>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+      <div className="text-center text-white max-w-lg w-full">
+        <img src="/logo.png" alt="Logo" className="w-80 mx-auto mb-4" />
+        <h1 className="text-4xl font-bold mb-4">Welcome!</h1>
+        <p className="text-lg">
+          We're thrilled to have you here. Start exploring our menu and enjoy
+          your meal!
+        </p>
+      </div>
+    </div>
   );
 };
 

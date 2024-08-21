@@ -1,72 +1,9 @@
 import React, { useState } from "react";
-import styled from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { colors } from "../../theme/theme";
 import MenuModal from "../MenuModal";
-
-// Styled Components
-const CardWrapper = styled.div`
-  display: flex;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: relative;
-  margin: 10px;
-  cursor: pointer; // Added cursor pointer
-`;
-
-const ImageSection = styled.div`
-  flex: 0 0 120px;
-  overflow: hidden;
-`;
-
-const Image = styled.img`
-  width: 120px;
-  height: 125px;
-  border-radius: 10px 0 0 10px;
-`;
-
-const TextSection = styled.div`
-  flex: 1;
-  padding: 5px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 300px;
-`;
-
-const InfoText = styled.div`
-  margin: 5px 10px 5px 0;
-  word-wrap: break-word;
-`;
-
-const QuantitySection = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-top: 10px;
-`;
-const CardFooter = styled.div`
-  display: block;
-  text-align: center;
-  cursor: ${({ availability }) =>
-    availability === "Available" ? "pointer" : "not-allowed"};
-`;
-
-const ReadMore = styled(CardFooter)`
-  color: ${colors.Orange};
-`;
-
-const AddToCart = styled(CardFooter)`
-  background: ${(props) => `${colors.Orange}`};
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  padding: 7px;
-`;
 
 const HorizontalMenuCard = ({
   item,
@@ -77,89 +14,74 @@ const HorizontalMenuCard = ({
 }) => {
   const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
-  const [isAdded, setIsAdded] = useState(false); // State to track if item is added
-  const [quantity, setQuantity] = useState(0); // Local state for quantity
+  const [isAdded, setIsAdded] = useState(false);
+  const [quantity, setQuantity] = useState(0);
 
   const handleShow = (item) => {
     setModalData(item);
     setShow(true);
   };
 
-  const handleClose = () => {
-    setShow(false)
-    console.log('handleClose', show)
-  };
+  const handleClose = () => setShow(false);
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
     addToCart(item.uuid, quantity);
-    setIsAdded(true); // Mark the item as added
+    setIsAdded(true);
     setQuantity(1);
   };
 
   const handleIncreaseQuantity = () => {
     setQuantity((prevQuantity) => prevQuantity + 1);
-    onAddQuantity(item.uuid); // Call the parent function to update the quantity
+    onAddQuantity(item.uuid);
   };
 
   const handleDecreaseQuantity = () => {
     setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 0));
-    onRemoveQuantity(item.uuid); // Call the parent function to update the quantity
+    onRemoveQuantity(item.uuid);
   };
 
-  // Truncate menuContent if it's longer than 25 characters
   const truncatedContent =
     item.menuName.length > 25
       ? item.menuName.slice(0, 25) + "..."
       : item.menuName;
 
   return (
-    <CardWrapper>
-      <ImageSection>
-        <Image
+    <div className="flex bg-white rounded-lg shadow-lg overflow-hidden m-2 cursor-pointer">
+      <div className="flex-shrink-0 w-32 h-40 overflow-hidden">
+        <img
           src={item.imageUrl || "/dish.png"}
           alt={item.menuName}
           onLoad={handleImageLoad}
+          className="w-full h-full object-cover rounded-l-lg"
         />
-      </ImageSection>
-      <TextSection>
-        <InfoText>{truncatedContent}</InfoText>
-        <div className="d-flex">
-          <InfoText>
-            <i
-              className="bi bi-stopwatch-fill"
-              style={{ color: `${colors.Orange}`, fontSize: "18px" }}
-            ></i>
-            {item.menuCookingTime} min
-          </InfoText>
-          <InfoText>
-            <i
-              className="bi bi-currency-rupee"
-              style={{ color: `${colors.Orange}`, fontSize: "18px" }}
-            ></i>
-            {item.menuPrice}
-          </InfoText>
+      </div>
+      <div className="flex-1 p-4 flex flex-col justify-between">
+        <div>
+          <h3 className="text-xl font-semibold truncate">{truncatedContent}</h3>
+          <div className="flex text-gray-600 mt-1 text-sm">
+            <i className="bi bi-stopwatch-fill mr-2 text-orange-500"></i>
+            <span>{item.menuCookingTime} min</span>
+            <span className="mx-2">|</span>
+            <i className="bi bi-currency-rupee ml-1 mr-2 text-orange-500"></i>
+            <span>{item.menuPrice}</span>
+          </div>
         </div>
-        <div className="d-flex justify-content-between">
-          <InfoText
-            style={{
-              color: "red",
-              textDecoration: "underline",
-              cursor: "pointer",
-            }}
+        <div className="mt-2 flex justify-between items-center">
+          <span
+            className="text-red-500 underline cursor-pointer"
             onClick={() => handleShow(item)}
           >
             Read More
-          </InfoText>
-          <span onClick={(e) => e.stopPropagation()}>
+          </span>
+          <span>
             {!isAdded ? (
               <i
-                className="bi bi-plus-circle-fill"
-                style={{ color: colors.Orange, fontSize: "30px" }}
+                className="bi bi-plus-circle-fill text-orange-500 text-3xl cursor-pointer"
                 onClick={handleAddToCart}
               ></i>
             ) : (
-              <QuantitySection>
+              <div className="flex items-center">
                 {quantity > 0 && (
                   <>
                     <Button
@@ -169,7 +91,7 @@ const HorizontalMenuCard = ({
                     >
                       -
                     </Button>
-                    <span style={{ margin: "0 10px" }}>{quantity}</span>
+                    <span className="mx-2">{quantity}</span>
                     <Button
                       variant="outline-success"
                       size="sm"
@@ -181,25 +103,23 @@ const HorizontalMenuCard = ({
                 )}
                 {quantity === 0 && (
                   <i
-                    className="bi bi-plus-circle-fill"
-                    style={{ color: colors.Orange, fontSize: "30px" }}
+                    className="bi bi-plus-circle-fill text-orange-500 text-3xl cursor-pointer"
                     onClick={handleAddToCart}
                   ></i>
                 )}
-              </QuantitySection>
+              </div>
             )}
           </span>
         </div>
-      </TextSection>
+      </div>
 
-      {/* Modal Data */}
       <MenuModal
         show={show}
         handleClose={handleClose}
         modalData={modalData}
         addToCart={addToCart}
       />
-    </CardWrapper>
+    </div>
   );
 };
 

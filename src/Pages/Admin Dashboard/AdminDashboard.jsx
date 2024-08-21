@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/AdminDashboard.css";
@@ -10,7 +10,7 @@ import {
   useOrdersData,
   useCustomerData,
 } from "../../data";
-import { PageTitle } from "../../Atoms";
+import { PageTitle, PrimaryButton } from "../../Atoms";
 import { CountCard, Table, DonutChart, Tab, InfoCard } from "../../components";
 import {
   OrdersAndRevenueByCutomerColumns,
@@ -20,26 +20,49 @@ import {
 import useHotelsData from "../../data/useHotelsData";
 import { getAuth } from "firebase/auth";
 import { useHotelContext } from "../../Context/HotelContext";
-import { FaCreativeCommonsSamplingPlus } from "react-icons/fa";
+import { IoMdHome } from "react-icons/io";
+import Widget from "srcV2/components/widget/Widget";
+import { MdBarChart } from "react-icons/md";
+import HistoryCard from "srcV2/views/admin/marketplace/components/HistoryCard";
+import Banner1 from "srcV2/views/admin/marketplace/components/Banner";
+import DailyTraffic from "srcV2/views/admin/default/components/DailyTraffic";
+import PieChartCard from "srcV2/views/admin/default/components/PieChartCard";
+
+// Filter functions
+const filterDataByDateRange = (data, startDate, endDate) => {
+  return data.filter((item) => {
+    const itemDate = new Date(item.checkoutData.date);
+    return itemDate >= startDate && itemDate <= endDate;
+  });
+};
+
+const filterDaily = (data) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set time to midnight
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1); // Set to the next day
+  return filterDataByDateRange(data, today, tomorrow);
+};
+
+const filterWeekly = (data) => {
+  const today = new Date();
+  const lastWeek = new Date(today);
+  lastWeek.setDate(today.getDate() - 7); // Set to 7 days before today
+  return filterDataByDateRange(data, lastWeek, today);
+};
+
+const filterMonthly = (data) => {
+  const today = new Date();
+  const lastMonth = new Date(today);
+  lastMonth.setDate(today.getDate() - 30); // Set to 30 days before today
+  return filterDataByDateRange(data, lastMonth, today);
+};
 
 function AdminDashboard() {
-  const [showAll, setShowAll] = useState(false);
   const [filterType, setFilterType] = useState("Daily");
-  const [filterCount, setFilterCount] = useState(5); // Default to showing top 5
+
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
-
-  console.log("currentAdminId", currentAdminId);
-  const { hotelsData, addHotel, loading, error } = useHotelsData(
-    currentAdminId
-  );
-  console.log("hotelsData", hotelsData);
-  // Function to handle filter change
-  const handleFilterChange = (count) => {
-    setFilterCount(count);
-  };
-
-  /*--------------------------- Extract hotel name from URL path ---------------------------------------*/
 
   const { hotelName } = useHotelContext();
 
@@ -49,7 +72,7 @@ function AdminDashboard() {
     loading: menuLoading,
     error: menuError,
   } = useMenuData(hotelName);
-  console.log("menuData", menuData);
+
   const {
     categoriesData,
     totalCategories,
@@ -67,15 +90,48 @@ function AdminDashboard() {
     error: ordersError,
   } = useOrdersData(hotelName);
 
-  const {
-    categoryDataArray,
-    totalRevenue,
-    ordersByCategoryGraphData,
-  } = useProcessedCategoryData(completedOrders);
+  // Filtered data based on selected filterType
+  const filteredPendingOrders =
+    filterType === "Daily"
+      ? filterDaily(pendingOrders)
+      : filterType === "Weekly"
+      ? filterWeekly(pendingOrders)
+      : filterMonthly(pendingOrders);
 
-  const menuDataArray = useProcessedMenuData(completedOrders);
+  const filteredAcceptedOrders =
+    filterType === "Daily"
+      ? filterDaily(acceptedOrders)
+      : filterType === "Weekly"
+      ? filterWeekly(acceptedOrders)
+      : filterMonthly(acceptedOrders);
+
+  const filteredCompletedOrders =
+    filterType === "Daily"
+      ? filterDaily(completedOrders)
+      : filterType === "Weekly"
+      ? filterWeekly(completedOrders)
+      : filterMonthly(completedOrders);
+
+  const filteredCancelledOrders =
+    filterType === "Daily"
+      ? filterDaily(cancelledOrders)
+      : filterType === "Weekly"
+      ? filterWeekly(cancelledOrders)
+      : filterMonthly(cancelledOrders);
+
+  const filteredOrderCounts = {
+    pending: filteredPendingOrders.length,
+    accepted: filteredAcceptedOrders.length,
+    completed: filteredCompletedOrders.length,
+    cancelled: filteredCancelledOrders.length,
+  };
+
+  const { categoryDataArray, totalRevenue, ordersByCategoryGraphData } =
+    useProcessedCategoryData(filteredCompletedOrders);
+
+  const menuDataArray = useProcessedMenuData(filteredCompletedOrders);
   const { customerDataArray, customerContData } = useCustomerData(
-    completedOrders
+    filteredCompletedOrders
   );
 
   if (menuLoading || categoriesLoading || ordersLoading)
@@ -94,359 +150,157 @@ function AdminDashboard() {
       menuCategoryCount,
     })
   );
-  // Sort the array by menuCount to get the top most ordered dishes
-  const sortedMenuDataArray = [...menuDataArray].sort(
-    (a, b) => b.menuCount - a.menuCount
-  );
-  // Columns
+
+  const filteredCustomerDataArray =
+    filterType === "Daily"
+      ? filterDaily(customerDataArray)
+      : filterType === "Weekly"
+      ? filterWeekly(customerDataArray)
+      : filterMonthly(customerDataArray);
+
   const Column1 = OrdersAndRevenueByMenuColumns;
   const columns2 = RevenueByCategoryColumns;
   const column3 = OrdersAndRevenueByCutomerColumns;
 
-  const tabs = [
-    { label: "Daily", content: "Daily" },
-    { label: "Weekly", content: "Weekly" },
-    { label: "Monthly", content: "Monthly" },
-  ];
-
-  const tabs2 = [
-    {
-      label: "Top 5",
-      content: (
-        <div className="row">
-          {sortedMenuDataArray
-            .slice(0, 5) // Show top 'filterCount' items
-            .map(({ menuName, menuCount, imageUrl }, index) => (
-              <div className="col-md-12" key={menuName}>
-                <CountCard
-                  src={imageUrl}
-                  count={menuCount}
-                  label={menuName}
-                  type={`type${index % 4}`} // Cycle through types if there are more items than types
-                  width="80px"
-                  height="80px"
-                  marginTop="-10px"
-                />
-              </div>
-            ))}
-        </div>
-      ),
-    },
-    {
-      label: "Top 10",
-      content: (
-        <div className="row">
-          {sortedMenuDataArray
-            .slice(0, 10) // Show top 'filterCount' items
-            .map(({ menuName, menuCount, imageUrl }, index) => (
-              <div className="col-md-12" key={menuName}>
-                <CountCard
-                  src={imageUrl}
-                  count={menuCount}
-                  label={menuName}
-                  type={`type${index % 4}`} // Cycle through types if there are more items than types
-                  width="80px"
-                  height="80px"
-                  marginTop="-10px"
-                />
-              </div>
-            ))}
-        </div>
-      ),
-    },
-  ];
-
-  // Function to filter orders based on date
-  const filterCompletedOrdersByDate = (completedOrders, filterType) => {
-    const today = new Date();
-    let startDate;
-
-    switch (filterType) {
-      case "Daily":
-        startDate = new Date(today.setHours(0, 0, 0, 0)); // Start of the current day
-        break;
-      case "Weekly":
-        startDate = new Date(today.setDate(today.getDate() - 6)); // Last 7 days
-        break;
-      case "Monthly":
-        startDate = new Date(today.setDate(today.getDate() - 29)); // Last 30 days
-        break;
-      default:
-        return completedOrders;
-    }
-
-    return completedOrders.filter((order) => {
-      const orderDate = new Date(order.date);
-      return orderDate >= startDate && orderDate <= today;
-    });
+  const handleTabChange = (newTab) => {
+    setFilterType(newTab);
   };
-
-  // Get the filtered orders based on the selected filter type
-  const filteredCompletedOrders = filterCompletedOrdersByDate(
-    completedOrders,
-    filterType
-  );
-
-  const handleTabChange = (label) => {
-    setFilterType(label); // Update the filter type based on the selected tab
-  };
+  
+  console.log("filteredCustomerDataArray", filteredCustomerDataArray);
   return (
     <div>
-      {/* Page Title and Filter */}
-      <div
-        className="d-flex justify-content-between"
-        style={{ marginTop: "50px" }}
-      >
+      <div className="d-flex justify-between mt-12">
         <PageTitle pageTitle={"Dashboard"} />
-        {/* <Tab tabs={tabs} /> */}
-      </div>
-
-      {/* Count Card for Orders & Customers */}
-      <div>
-        <div>
-          <div className="container-fluid">
-            <div className="row gx-0">
-              {/* Main content area */}
-              <div className="col-lg-9 col-md-8 col-sm-12">
-                {/* Orders Section */}
-                <div className="background-card">
-                  <PageTitle pageTitle="Orders" />
-                  <div className="d-flex flex-wrap">
-                    <div className="col-12 col-md-6 col-lg-3 mb-3">
-                      <CountCard
-                        icon="bi-exclamation-circle-fill"
-                        iconColor="red"
-                        count={orderCounts.pending}
-                        label="Pending Orders"
-                        type="primary"
-                      />
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-3 mb-3">
-                      <CountCard
-                        icon="bi-check-circle"
-                        iconColor="orange"
-                        count={orderCounts.accepted}
-                        label="Accepted Orders"
-                        type="primary"
-                      />
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-3 mb-3">
-                      <CountCard
-                        icon="bi-check-circle-fill"
-                        iconColor="#00C000"
-                        count={orderCounts.completed}
-                        label="Completed Orders"
-                        type="primary"
-                      />
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-3 mb-3">
-                      <CountCard
-                        icon="bi-x-circle-fill"
-                        iconColor="red"
-                        count={orderCounts.cancelled}
-                        label="Cancelled Orders"
-                        type="primary"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="row gx-0">
-  <div className="col-lg-9 col-md-8 col-sm-12">
-    {/* Customer Section */}
-    <div className="row mt-4">
-      <div className="col-12">
-        <div className="background-card">
-          <PageTitle pageTitle="Customers" />
-          <div className="row">
-            <div className="col-12 col-md-6 col-lg-4 mb-3">
-              <CountCard
-                icon="bi-person-fill-add"
-                iconColor=""
-                count={customerContData.totalCustomers}
-                label="Total Customers"
-                type="primary"
-              />
-            </div>
-            <div className="col-12 col-md-6 col-lg-4 mb-3">
-              <CountCard
-                icon="bi-person-fill-up"
-                iconColor="#00C000"
-                count={customerContData.newCustomers}
-                label="New Customers"
-                type="primary"
-              />
-            </div>
-            <div className="col-12 col-md-6 col-lg-4 mb-3">
-              <CountCard
-                icon="bi-person-heart"
-                iconColor="red"
-                count={customerContData.loyalCustomers}
-                label="Loyal Customers"
-                type="primary"
-              />
-            </div>
+        <div className="d-flex justify-between">
+          <div className="d-flex">
+            <button
+              onClick={() => setFilterType("Daily")}
+              className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
+                filterType === "Daily"
+                  ? "text-orange-500 underline"
+                  : "text-gray-700 hover:text-orange-500 hover:underline"
+              }`}
+            >
+              Daily
+            </button>
+            <button
+              onClick={() => setFilterType("Weekly")}
+              className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
+                filterType === "Weekly"
+                  ? "text-orange-500 underline"
+                  : "text-gray-700 hover:text-orange-500 hover:underline"
+              }`}
+            >
+              Weekly
+            </button>
+            <button
+              onClick={() => setFilterType("Monthly")}
+              className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
+                filterType === "Monthly"
+                  ? "text-orange-500 underline"
+                  : "text-gray-700 hover:text-orange-500 hover:underline"
+              }`}
+            >
+              Monthly
+            </button>
           </div>
         </div>
       </div>
-    </div>
 
-    {/* Revenue Section */}
-    <div className="row mt-4">
-      <div className="col-12">
-        <div className="background-card">
-          <PageTitle pageTitle="Revenue" />
-          <div className="row">
-            <div className="col-12 col-md-6 col-lg-4 mb-3">
-              <CountCard
-                icon="bi-currency-rupee"
-                iconColor="#00C000"
-                count={totalRevenue}
-                label="Total Revenue"
-                type="primary"
-              />
-            </div>
-            <div className="col-12 col-md-6 col-lg-4 mb-3">
-              <CountCard
-                icon="fa-list"
-                count={0}
-                label="Avg Revenue/Day"
-                type="primary"
-              />
-            </div>
-            <div className="col-12 col-md-6 col-lg-4 mb-3">
-              <CountCard
-                icon="fa-list"
-                count={0}
-                label="Avg Revenue/Day"
-                type="primary"
-              />
-            </div>
+      <div className="mt-3 grid h-full grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
+        <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-3">
+          <Banner1 />
+          <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-6">
+            <Widget
+              icon={<i className="bi bi-exclamation-circle-fill"></i>}
+              title={"Pending Orders"}
+              subtitle={filteredOrderCounts.pending}
+            />
+            <Widget
+              icon={<i className="bi bi-check-circle-fill"></i>}
+              title={"Accepted Orders"}
+              subtitle={filteredOrderCounts.accepted}
+            />
+            <Widget
+              icon={<i className="bi bi-check-circle-fill"></i>}
+              title={"Completed Orders"}
+              subtitle={filteredOrderCounts.completed}
+            />
+            <Widget
+              icon={<i className="bi bi-x-circle-fill"></i>}
+              title={"Cancelled Orders"}
+              subtitle={filteredOrderCounts.cancelled}
+            />
+            <Widget
+              icon={<i className="bi bi-person-plus-fill"></i>}
+              title={"Total Customers"}
+              subtitle={customerContData.totalCustomers}
+            />
+            <Widget
+              icon={<i className="bi bi-person-fill-check"></i>}
+              title={"New Customers"}
+              subtitle={customerContData.newCustomers}
+            />
+            <Widget
+              icon={<i className="bi bi-person-heart"></i>}
+              title={"Loyal Customers"}
+              subtitle={customerContData.loyalCustomers}
+            />
+            <Widget
+              icon={<i className="bi bi-currency-rupee"></i>}
+              title={"Total Revenue"}
+              subtitle={totalRevenue}
+            />
+            <Widget
+              icon={<IoMdHome className="h-6 w-6" />}
+              title={"Avg Revenue/Day"}
+              subtitle={totalRevenue}
+            />
+            <Widget
+              icon={<MdBarChart className="h-7 w-7" />}
+              title={"Total Menus"}
+              subtitle={totalMenus}
+            />
+            <Widget
+              icon={<IoMdHome className="h-6 w-6" />}
+              title={"Total Categories"}
+              subtitle={totalCategories}
+            />
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <div className="col-lg-3 col-md-12 col-sm-12">
-    {/* Menu and Category Section */}
-    <div className="row mt-4">
-      <div className="col-12">
-        <div className="background-card">
-          <PageTitle pageTitle="Menu" />
-          <div className="row">
-            <div className="col-12 col-md-6 col-lg-12 mb-3">
-              <CountCard
-                src="/serving.png"
-                iconColor="orange"
-                count={totalMenus}
-                label="Total Menus"
-                type="primary"
-              />
-            </div>
-            <div className="col-12 col-md-6 col-lg-12 mb-3">
-              <CountCard
-                src="/tag.png"
-                iconColor="red"
-                count={totalCategories}
-                label="Total Categories"
-                type="primary"
-              />
-            </div>
+        <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
+          <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
+            <DailyTraffic />
+            <PieChartCard donutChartData={OrdersByCategoryGraphData} />
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-                {/* Orders by Category Section */}
-                <div className="row mt-4 d-flex flex-wrap">
-                  <div className="col-12 background-card">
-                    <PageTitle pageTitle="Orders by Category" />
-                    <div className="category-items d-flex flex-wrap mb-3">
-                      {categoryDataArray
-                        .slice(0, showAll ? categoryDataArray.length : 4)
-                        .map(({ menuCategory, menuCategoryCount }, index) => (
-                          <div
-                            key={index}
-                            className="category-item d-flex align-items-center mx-2 mb-3 capsule"
-                          >
-                            <div className="category-content d-flex align-items-center">
-                              <span className="category-name mx-2">
-                                {menuCategory}
-                              </span>
-                              <span className="category-badge-number">
-                                {menuCategoryCount}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                    {menuDataArray.length > 6 && (
-                      <div className="show-more-card text-center">
-                        <p
-                          onClick={() => setShowAll(!showAll)}
-                          className="show-more"
-                        >
-                          {showAll ? "Show Less" : "Show More"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Donut Chart and Revenue by Category Section */}
-                <div className="row mt-4">
-                  <div className="col-12 col-lg-6 mb-4">
-                    <div className="background-card">
-                      <PageTitle pageTitle="Orders By Category" />
-                      <DonutChart data={OrdersByCategoryGraphData} />
-                    </div>
-                  </div>
-                  <div className="col-12 col-lg-6 mb-4">
-                    <div className="background-card">
-                      <PageTitle pageTitle="Revenue By Category" />
-                      <Table columns={columns2} data={categoryDataArray} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Orders and Revenue By Menu Section */}
-                <div className="row mt-4">
-                  <div className="col-12 mb-4">
-                    <div className="background-card">
-                      <PageTitle pageTitle="Orders and Revenue By Menu" />
-                      <Table columns={Column1} data={menuDataArray} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Orders and Revenue By Customer Section */}
-                <div className="row mt-4">
-                  <div className="col-12 mb-4">
-                    <div className="background-card">
-                      <PageTitle pageTitle="Orders and Revenue By Customer" />
-                      <Table columns={column3} data={customerDataArray} />
-                    </div>
-                  </div>
-                </div>
+          <div className="mt-5">
+            <div>
+              <div className="background-card">
+                <PageTitle pageTitle="Orders and Revenue By Menu" />
+                <Table columns={Column1} data={menuDataArray} />
               </div>
-
-              {/* Sidebar for Top 5 Menus */}
-              <div
-                className="col-lg-3 col-md-4 col-sm-12"
-                style={{ marginLeft: "0px" }}
-              >
-                <div className="mb-3 background-card">
-                  <PageTitle pageTitle="Most Ordered Menu" />
-                  <Tab tabs={tabs2} />
-                </div>
+            </div>
+            <div className="mt-5">
+              <div className="background-card">
+                <PageTitle pageTitle="Revenue By Category" />
+                <Table columns={columns2} data={categoryDataArray} />
+              </div>
+            </div>
+            <div className="mt-5">
+              <div className="background-card">
+                <PageTitle pageTitle="Orders and Revenue By Customer" />
+                <Table columns={column3} data={customerDataArray} />
               </div>
             </div>
           </div>
         </div>
-      </div>
 
+        <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-1">
+          <div className="h-full w-full">
+            <HistoryCard />
+          </div>
+        </div>
+      </div>
       <ToastContainer />
     </div>
   );

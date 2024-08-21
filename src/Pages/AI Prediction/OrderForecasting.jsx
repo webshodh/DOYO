@@ -10,6 +10,7 @@ import {
   Title,
 } from "chart.js";
 import { InfoCard } from "../../components";
+import TotalSpent from "srcV2/views/admin/default/components/TotalSpent";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title);
 
@@ -189,6 +190,7 @@ const OrderForecasting = () => {
       <div className="background-card">
         <div style={{ width: "80%", height: "400px", margin: "0 auto" }}>
           <Line data={chartData} options={chartOptions} />
+          {/* <TotalSpent lineChartOptionsTotalSpent={chartOptions} lineChartDataTotalSpent={chartData}/> */}
         </div>
       </div>
     </>

@@ -1,58 +1,5 @@
-import React, { useState } from "react";
-import styled from "styled-components";
-import "bootstrap/dist/css/bootstrap.min.css";
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
-import { colors } from "../../theme/theme";
-
-// Styled Components (reused from your existing code)
-const CardWrapper = styled.div`
-  display: flex;
-  background: ${(props) => `${colors.White}`};
-  color: black;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: relative;
-  margin: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s; // Smooth transition for background and text color
-
-  &:hover {
-    background-color: ${(props) => `${colors.Orange}`};
-    color: ${(props) => `${colors.White}`};
-  }
-
-  &:active {
-    background-color: ${(props) => `${colors.Orange}`};
-    color: ${(props) => `${colors.White}`};
-  }
-`;
-
-const ImageSection = styled.div`
-  flex: 0 0 100px;
-  overflow: hidden;
-`;
-
-const Image = styled.img`
-  width: 100px;
-  height: 100px;
-  border-radius: 10px 0 0 10px;
-`;
-
-const TextSection = styled.div`
-  flex: 1;
-  padding: 5px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 300px;
-`;
-
-const InfoText = styled.div`
-  margin: 5px 10px 5px 0px;
-  word-wrap: break-word;
-`;
+import React from "react";
+import { colors } from "../../theme/theme"; // If you need custom colors
 
 const CaptainCard = ({
   fullName,
@@ -67,24 +14,26 @@ const CaptainCard = ({
   };
 
   return (
-    <CardWrapper
+    <div
       onClick={handleSelect}
-      isSelected={isSelected}
-      className={selectedCaptain?.fullName === fullName ? "border-primary" : ""}
+      className={`flex bg-white text-black rounded-lg shadow-md overflow-hidden m-2 cursor-pointer transition-colors duration-300 
+        ${selectedCaptain?.fullName === fullName ? 'border-4 border-orange-500' : ''} 
+        hover:bg-orange-500 hover:text-white active:bg-orange-500 active:text-white`}
     >
-      <ImageSection>
-        <Image
+      <div className="flex-shrink-0 w-24 h-24 overflow-hidden">
+        <img
           src={imageUrl || "/captain.png"} // Placeholder image for captain
+          alt={fullName}
+          className="w-full h-full object-cover rounded-l-lg"
         />
-      </ImageSection>
-      <TextSection>
-        <InfoText>{fullName}</InfoText>
-        <div className="d-flex">
-          {/* You can add more captain details if needed */}
-          <InfoText>{upiId}</InfoText>
+      </div>
+      <div className="flex-1 p-2 flex flex-col justify-center max-w-xs">
+        <div className="mb-2 break-words">{fullName}</div>
+        <div className="flex">
+          <div className="break-words">{upiId}</div>
         </div>
-      </TextSection>
-    </CardWrapper>
+      </div>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -40,11 +39,7 @@ function CartDetails() {
     const currentDate = new Date().toISOString();
 
     try {
-      const ordersRef = ref(
-        db,
-        // `/admins/${adminID}/hotels/${hotelName}/orders/`
-        `/hotels/${hotelName}/orders/`
-      );
+      const ordersRef = ref(db, `/hotels/${hotelName}/orders/`);
 
       for (const item of cartItems) {
         const newOrderRef = push(ordersRef);
@@ -77,7 +72,6 @@ function CartDetails() {
       0
     );
 
-    // Pass user info along with the checkout data to the OrderStatus page
     navigate(`/${hotelName}/orders/details/thank-you`, {
       state: {
         checkoutData: {
@@ -135,90 +129,63 @@ function CartDetails() {
   return (
     <>
       <Navbar title={`${hotelName}`} />
-      <Container
-        fluid
-        className="px-3 px-md-5 mt-3"
-        style={{ height: "100vh" }}
-      >
-        <Row>
-          <div
-            className="d-flex mb-2"
-            style={{ justifyContent: "space-between" }}
+      <div className="px-4 py-2 bg-gray-100 min-h-screen">
+        <div className="flex items-center justify-between mb-4">
+          <i
+            className="bi bi-arrow-left-square-fill text-orange-500 text-2xl cursor-pointer"
+            onClick={handleBack}
+          ></i>
+          <h5 className="ml-4 text-lg font-semibold">Cart Summary</h5>
+          <span
+            className="text-orange-500 cursor-pointer"
+            onClick={clearCart}
           >
-            <i
-              className="bi bi-arrow-left-square-fill"
-              onClick={handleBack}
-              style={{ color: `${colors.Orange}`, fontSize: "30px" }}
-            ></i>
-            <h5 style={{ marginLeft: "20px", marginTop: "10px" }}>
-              Cart Summary
-            </h5>
-            <span
-              style={{
-                marginTop: "10px",
-                color: `${colors.Orange}`,
-              }}
-              onClick={clearCart}
-            >
-              Clear Cart
-            </span>
-          </div>
+            Clear Cart
+          </span>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cartItems.map((item) => (
-            <Col xs={12} md={6} lg={4} key={item.uuid} className="mb-1">
+           
               <CartCard
                 item={item}
                 onAddQuantity={handleAddQuantity}
                 onRemoveQuantity={handleRemoveQuantity}
                 onRemoveFromCart={onRemoveFromCart}
               />
-            </Col>
+            
           ))}
-        </Row>
+        </div>
+
         {cartItems.length > 0 ? (
-          <Row style={{ marginRight: "8px" }}>
-            <Container>
-              <Col
-                xs={12}
-                md={6}
-                className="mb-3 background-card"
-                style={{ padding: "10px" }}
+          <div className="flex flex-col md:flex-row justify-between mt-4">
+            <div className="bg-white shadow-lg rounded-lg p-4 mb-4 md:mb-0 md:w-1/2">
+              <h5 className="text-lg font-semibold">Order Summary</h5>
+              <p>Total Items: <b>{cartItems.length}</b></p>
+              <p>
+                Total Price: <b>₹ {cartItems.reduce(
+                  (total, item) => total + item.menuPrice * item.quantity,
+                  0
+                )}</b>
+              </p>
+            </div>
+            
+              
+              <button
+                onClick={handleCheckout}
+                className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600"
               >
-                <h5>Order Summary</h5>
-                <p>
-                  Total Items: <b>{cartItems.length}</b>
-                </p>
-                <p>
-                  Total Price:{" "}
-                  <b>
-                    ₹{" "}
-                    {cartItems.reduce(
-                      (total, item) => total + item.menuPrice * item.quantity,
-                      0
-                    )}
-                  </b>
-                </p>
-              </Col>
-            </Container>
-            <Container>
-              <Col
-                xs={12}
-                md={6}
-                className="mb-3 background-card"
-                style={{ padding: "10px" }}
-              >
-                <h5>Order Details</h5>
-                <Button onClick={handleCheckout} variant="primary">
-                  Place Order
-                </Button>
-              </Col>
-            </Container>
-          </Row>
+                Place Order
+              </button>
+          
+          </div>
         ) : (
-          <Alert variant="warning">No items in cart</Alert>
+          <div className="mt-4 p-4 bg-yellow-100 text-yellow-800 rounded">
+            No items in cart
+          </div>
         )}
         <ToastContainer />
-      </Container>
+      </div>
     </>
   );
 }

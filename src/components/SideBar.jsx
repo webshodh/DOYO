@@ -1,255 +1,242 @@
 import React, { useState } from "react";
-import "../styles/sideBar.css";
 import { Link, useLocation } from "react-router-dom";
 import { useHotelContext } from "../Context/HotelContext";
+import FreeCard from "srcV2/components/sidebar/components/SidebarCard";
 
 function SideBar() {
   const { hotelName } = useHotelContext(); // Get hotelName from context
-  console.log("hotelNamehotelName", hotelName);
   const [admin, setAdmin] = useState(true);
   const handleClick = () => {
     setAdmin(!admin);
   };
   const location = useLocation();
+
   return (
-    <aside id="sidebar" className="sidebar">
-      <ul className="sidebar-nav" id="sidebar-nav">
+    <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg p-4 space-y-4 lg:w-80">
+      <ul className="space-y-2">
         {admin ? (
           <>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+            <li style={{marginTop:'50px'}}>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes(`/viewMenu/${hotelName}`)
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/viewMenu/${hotelName}`}
               >
-                <i className="bi bi-house"></i>
+                <i className="bi bi-house text-lg mr-2"></i>
                 <span>Home</span>
               </Link>
             </li>
 
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+            <li>
+              <Link style={{textDecoration:'none'}} 
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/admin/admin-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/admin-dashboard`}
               >
-                <i className="bi bi-grid"></i>
+                <i className="bi bi-grid text-lg mr-2"></i>
                 <span>Admin Dashboard</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
-                  location.pathname.includes(
-                    "/forecasting/forecasting-dashboard"
-                  )
-                    ? "active"
-                    : ""
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
+                  location.pathname.includes("/forecasting/forecasting-dashboard")
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/forecasting/forecasting-dashboard`}
               >
-                <i class="bi bi-currency-rupee"></i>
+                <i className="bi bi-currency-rupee text-lg mr-2"></i>
                 <span>Prediction</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/order/order-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/order/order-dashboard`}
               >
-                <i class="bi bi-cart-check-fill"></i>
+                <i className="bi bi-cart-check-fill text-lg mr-2"></i>
                 <span>Orders Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/menu/menu-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/menu/menu-dashboard`}
               >
-                <i className="bi bi-speedometer2"></i>
+                <i className="bi bi-speedometer2 text-lg mr-2"></i>
                 <span>Menu Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/table/table-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/table/table-dashboard`}
               >
-                <i className="bi bi-speedometer2"></i>
+                <i className="bi bi-speedometer2 text-lg mr-2"></i>
                 <span>Table Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/staff/staff-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/staff/staff-dashboard`}
               >
-                <i class="bi bi-person-fill"></i>
+                <i className="bi bi-person-fill text-lg mr-2"></i>
                 <span>Staff Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/customers/customer-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/admin/customers/customer-dashboard`}
               >
-                <i class="bi bi-person-heart"></i>
+                <i className="bi bi-person-heart text-lg mr-2"></i>
                 <span>Customers Management</span>
               </Link>
             </li>
           </>
         ) : (
           <>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/super-admin/dashboard`}
               >
-                <i className="bi bi-grid"></i>
+                <i className="bi bi-grid text-lg mr-2"></i>
                 <span>Super Admin Dashboard</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/revenue")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/super-admin/revenue`}
               >
-                <i className="bi bi-grid"></i>
-                <span>Revenue Managment</span>
+                <i className="bi bi-grid text-lg mr-2"></i>
+                <span>Revenue Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/hotels/admin/add-hotel")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/hotels/admin/add-hotel`}
               >
-                <i class="bi bi-building"></i>
+                <i className="bi bi-building text-lg mr-2"></i>
                 <span>Hotels Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/cafes")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/super-admin/cafes`}
               >
-                <i className="bi bi-speedometer2"></i>
+                <i className="bi bi-speedometer2 text-lg mr-2"></i>
                 <span>Restaurant Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
-                  location.pathname.includes("/super-admin/cafes")
-                    ? "active"
-                    : ""
-                }`}
-                to={`/${hotelName}/super-admin/cafes`}
-              >
-                <i className="bi bi-speedometer2"></i>
-                <span>Cafe Management</span>
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/order-dashboard")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/super-admin/order-dashboard`}
               >
-                <i className="bi bi-speedometer2"></i>
+                <i className="bi bi-speedometer2 text-lg mr-2"></i>
                 <span>Bar Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/staff")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/super-admin/staff`}
               >
-                <i className="bi bi-speedometer2"></i>
+                <i className="bi bi-speedometer2 text-lg mr-2"></i>
                 <span>Staff Management</span>
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${
+
+            <li>
+              <Link style={{textDecoration:'none'}}
+                className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/customers")
-                    ? "active"
-                    : ""
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
                 to={`/${hotelName}/super-admin/customers`}
               >
-                <i className="bi bi-speedometer2"></i>
+                <i className="bi bi-speedometer2 text-lg mr-2"></i>
                 <span>Customers Management</span>
               </Link>
             </li>
           </>
         )}
-        <button onClick={handleClick}>
+        {/* <button
+          onClick={handleClick}
+          className="w-full py-2 mt-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
           {!admin ? "Admin" : "Super Admin"}
-        </button>
-        <li>
-          <footer className="bottom">
-            <div className="copyright">
-              &copy; Copyright{" "}
-              <strong>
-                <span className="company-name">DOYO</span>
-              </strong>
-              <br />
-              All Rights Reserved @2024
-            </div>
-            <div className="credits">
-              Designed by <a href="/home">DOYO</a>
-            </div>
-          </footer>
-        </li>
+        </button> */}
+
+        <FreeCard/>
       </ul>
     </aside>
   );

@@ -284,7 +284,7 @@ function Home() {
           onClick={() => handleMainCategoryCloseClick()}
           style={{ color: `${colors.Red}`, cursor: "pointer" }}
         >
-          Close
+         <i class="bi bi-x-lg"></i>
         </span>
       </div>
       <MenuItemsContainer className="menu-items">
@@ -308,7 +308,7 @@ function Home() {
         }}
       >
         {filteredAndSortedItems.map((item) => (
-          <div className="col-12 col-sm-6 col-md-4 mb-4" key={item.id}>
+          <div className="col-12 col-sm-6 col-md-4 mb-2" key={item.id}>
             <HorizontalMenuCard
               item={item}
               handleImageLoad={handleImageLoad}
@@ -321,34 +321,20 @@ function Home() {
       </div>
 
       {/* Cart Details */}
-      {!isAdmin && (
-        <div className="fixed-bottom p-2 bg-light" style={{ zIndex: 1001 }}>
-          <div className="d-flex justify-content-between align-items-center">
-            <div style={{ marginLeft: "20px" }}>
-              {cartItems.length}{" "}
-              {cartItems.length > 1 ? "Items Added" : "Item Added"}
-            </div>
+{!isAdmin && (
+  <div className="fixed bottom-0 left-0 right-0 p-3 bg-orange-500 shadow-lg z-50">
+    <div className="flex justify-between items-center">
+      <div className="ml-4 text-white">
+        {cartItems.length} {cartItems.length > 1 ? "Items Added" : "Item Added"}
+      </div>
+      <div className="flex items-center mr-4 cursor-pointer" onClick={handleNext}>
+        <span className="text-white text-lg font-semibold">Checkout</span>
+        <i className="bi bi-caret-right-fill text-2xl ml-2 text-white"></i>
+      </div>
+    </div>
+  </div>
+)}
 
-            <div className="align-items-center">
-              <div
-                onClick={handleNext}
-                style={{
-                  marginRight: "20px",
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                }}
-              >
-                <span>Checkout</span>
-                <i
-                  className="bi bi-caret-right-fill"
-                  style={{ fontSize: "30px", marginLeft: "5px" }}
-                ></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Toast Notification */}
       <ToastContainer />

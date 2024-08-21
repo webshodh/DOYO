@@ -1,7 +1,7 @@
+import { Navbar } from "components";
 import React, { useState, useEffect } from "react";
-import { colors } from "../../theme/theme";
-import { Container, Row, Col, Button } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
+
 
 const ThankYouPage = () => {
   const [hotelName, setHotelName] = useState("");
@@ -25,65 +25,47 @@ const ThankYouPage = () => {
       },
     });
   };
-  console.log("totalAmount", totalAmount);
-  console.log("checkoutData", checkoutData);
-  console.log("userInfo", userInfo);
-  return (
-    <Container
-      fluid
-      className="text-center py-5"
-      style={{ backgroundColor: colors.Grey, minHeight: "100vh" }}
-    >
-      <Row className="justify-content-center">
-        <Col md={8} lg={6}>
-          <div className="p-4 bg-white shadow rounded">
-            <i
-              className="bi bi-check-circle-fill"
-              style={{ fontSize: "4rem", color: colors.Orange }}
-            ></i>
-            <h2 className="mt-3">Thank You!</h2>
-            <p className="lead">Your order has been placed successfully.</p>
-            <p>
-              We're excited to serve you! Your food is being prepared with love
-              and care. Meanwhile, you can relax and track your order status.
-            </p>
-            <Button
-              variant="warning"
-              className="mt-4 px-4 py-2"
-              style={{
-                backgroundColor: colors.Orange,
-                color: colors.White,
-                borderColor: colors.Orange,
-              }}
-              onClick={handleNext}
-            >
-              Track Your Orders
-            </Button>
 
-            {/* <div className="p-4 text-black">
-              <h5>Want to add more items?</h5>
-              <p>
-                Feel free to explore our menu and add more delicious dishes to
-                your order.
-              </p>
-              <Button
-                className="mt-2"
-                style={{
-                  backgroundColor: colors.Orange,
-                  color: colors.White,
-                  borderColor: colors.Orange,
-                }}
-              >
-                View Menu
-              </Button>
-            </div> */}
-          </div>
-        </Col>
-      </Row>
-      <Row className="justify-content-center mt-5">
-        <Col md={8} lg={6}></Col>
-      </Row>
-    </Container>
+  return (
+    <>
+      <Navbar title={`${hotelName}`}/>
+   
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-10">
+      <div className="bg-white shadow-xl rounded-lg p-8 w-full max-w-lg text-center">
+        <i
+          className="bi bi-check-circle-fill text-orange-500 text-6xl"
+        ></i>
+        <h2 className="mt-4 text-4xl font-bold text-gray-800">Thank You!</h2>
+        <p className="mt-2 text-xl text-gray-600">
+          Your order has been placed successfully.
+        </p>
+        <p className="mt-2 text-base text-gray-500">
+          We're excited to serve you! Your food is being prepared with love and care.
+          Meanwhile, you can relax and track your order status.
+        </p>
+        <button
+          variant="warning"
+          className="mt-6 px-6 py-3 rounded-md bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          onClick={handleNext}
+        >
+          Track Your Orders
+        </button>
+
+        {/* Optional section */}
+        <div className="mt-6">
+          <h5 className="text-xl font-semibold text-gray-800">Want to add more items?</h5>
+          <p className="mt-2 text-base text-gray-600">
+            Feel free to explore our menu and add more delicious dishes to your order.
+          </p>
+          <button
+            className="mt-2 px-6 py-3 bg-orange-500 text-white border border-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            View Menu
+          </button>
+        </div>
+      </div>
+    </div>
+    </>
   );
 };
 

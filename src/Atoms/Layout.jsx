@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Header from "../components/Header";
 import Sidebar from "../components/SideBar";
 import { colors } from "../theme/theme";
+import Footer from "srcV2/components/footer/FooterAuthDefault";
 
 // Styled components
 const LayoutContainer = styled.div`
@@ -21,7 +22,7 @@ const LayoutContent = styled.div`
 const SidebarContainer = styled.div`
   height: 100%;
   background: ${colors.LightGray}; /* Optional: Adds a background color to the sidebar */
-  width: 250px; /* Default width for large screens */
+  width: 300px; /* Default width for large screens */
 
   @media (max-width: 1000px) {
     width: 0px; /* Narrower width for smaller screens */
@@ -60,6 +61,7 @@ const Layout = ({ children }) => {
           {children}
         </MainContent>
       </LayoutContent>
+      <Footer />
     </LayoutContainer>
   );
 };

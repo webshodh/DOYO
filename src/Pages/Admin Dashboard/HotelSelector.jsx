@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useHotelsData from "../../data/useHotelsData"; // Adjust the import path accordingly
-import { PageTitle } from "../../Atoms";
-import { Navbar, Nav, Form, FormControl } from "react-bootstrap";
+import { Navbar, Form, FormControl } from "react-bootstrap";
 
 const HotelSelector = ({ adminId, onHotelSelect }) => {
   const { hotelsData, loading, error } = useHotelsData(adminId);
   const [selectedHotelId, setSelectedHotelId] = useState("");
+
+  // Set the first hotel as default when data is loaded or updated
+  useEffect(() => {
+    if (!loading && hotelsData.length > 0) {
+      const firstHotel = hotelsData[0];
+      setSelectedHotelId(firstHotel.uuid);
+      onHotelSelect(firstHotel.hotelName);
+    }
+  }, [hotelsData, loading, onHotelSelect]);
 
   const handleHotelChange = (e) => {
     const selectedId = e.target.value;
@@ -19,7 +27,7 @@ const HotelSelector = ({ adminId, onHotelSelect }) => {
   };
 
   return (
-    <Navbar  expand="lg" className="justify-content-between">
+    <Navbar expand="lg" className="justify-content-between">
       <Form inline className="ml-auto">
         {loading ? (
           <FormControl as="span" className="text-muted mr-3">
@@ -37,12 +45,20 @@ const HotelSelector = ({ adminId, onHotelSelect }) => {
             className="custom-select mr-sm-2"
             style={{ minWidth: "200px" }}
           >
-            <option value="">Select a hotel</option>
-            {hotelsData.map((hotel) => (
-              <option key={hotel.uuid} value={hotel.uuid}>
-                {hotel.hotelName}
-              </option>
-            ))}
+            {hotelsData.length === 0 ? (
+              <option value="">No hotels available</option>
+            ) : (
+              <>
+                <option value="" disabled>
+                  Select a hotel
+                </option>
+                {hotelsData.map((hotel) => (
+                  <option key={hotel.uuid} value={hotel.uuid}>
+                    {hotel.hotelName}
+                  </option>
+                ))}
+              </>
+            )}
           </FormControl>
         )}
       </Form>

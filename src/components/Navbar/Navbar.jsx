@@ -1,95 +1,12 @@
 import React, { useContext, useState } from "react";
-import styled from "styled-components";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { colors } from "../../theme/theme";
 import { UserAuthContext } from "../../Context/UserAuthContext";
-
-// Styled components
-const NavbarContainer = styled.div`
-  background: ${colors.Orange};
-  color: white;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-`;
-
-const Title = styled.h3`
-  margin: 0;
-`;
-
-const Sidebar = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 250px;
-  background: ${colors.White};
-  color: ${colors.Black};
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
-  transform: ${({ isOpen }) =>
-    isOpen ? "translateX(0)" : "translateX(-100%)"};
-  transition: transform 0.3s ease;
-  padding: 20px;
-  z-index: 1000;
-`;
-
-const SidebarCloseButton = styled.div`
-  cursor: pointer;
-  font-size: 24px;
-  color: ${colors.Black};
-  margin-bottom: 20px;
-`;
-
-const ProfileContainer = styled.div`
-  text-align: center;
-  margin-bottom: 20px;
-`;
-
-const ProfileImage = styled.div`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: ${colors.Orange};
-  color: ${colors.White};
-  margin: 0 auto 10px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-`;
-
-const ProfileName = styled.h4`
-  margin: 5px 0;
-`;
-
-const ProfileEmail = styled.p`
-  margin: 5px 0;
-  color: ${colors.GrayDark};
-  font-size: 14px;
-`;
-
-const ProfileOrderCount = styled.p`
-  margin: 5px 0;
-  color: ${colors.GrayDark};
-  font-size: 14px;
-`;
-
-const UpdateProfileButton = styled.button`
-  background: ${colors.Orange};
-  color: ${colors.White};
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-`;
 
 const Navbar = ({ title }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { currentUser, loading } = useContext(UserAuthContext);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -113,68 +30,78 @@ const Navbar = ({ title }) => {
   };
   
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="text-center">Loading...</div>;
   }
 
   if (!currentUser) {
-    return <div>Please log in</div>;
+    return <div className="text-center">Please log in</div>;
   }
- 
   
   return (
     <>
-      <NavbarContainer>
+      <div className="bg-orange-500 text-white p-2 flex justify-between items-center relative">
         <FaBars
           onClick={toggleSidebar}
-          style={{ cursor: "pointer", fontSize: "24px" }}
+          className="cursor-pointer text-2xl"
         />
-        <Title>{title}</Title>
-      </NavbarContainer>
+        <h3 className="text-lg font-semibold">{title}</h3>
+      </div>
 
-      <Sidebar isOpen={isSidebarOpen}>
-        <SidebarCloseButton onClick={toggleSidebar}>×</SidebarCloseButton>
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-white text-black shadow-lg transform ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out p-4 z-50`}
+      >
+        <button
+          onClick={toggleSidebar}
+          className="absolute top-4 right-4 text-2xl text-gray-600"
+        >
+          <FaTimes />
+        </button>
+        
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl mb-2">
+            {userProfile.initial}
+          </div>
+          <h4 className="text-lg font-semibold">{userProfile.name}</h4>
+          <p className="text-gray-600 text-sm">{userProfile.email}</p>
+          <p className="text-gray-600 text-sm">Total Orders: {userProfile.totalOrders}</p>
+          <button className="bg-orange-500 text-white px-4 py-2 rounded mt-4">Update Profile</button>
+        </div>
 
-        <ProfileContainer>
-          <ProfileImage>{userProfile.initial}</ProfileImage>
-          <ProfileName>{userProfile.name}</ProfileName>
-          <ProfileEmail>{userProfile.email}</ProfileEmail>
-          <ProfileOrderCount>Total Orders: {userProfile.totalOrders}</ProfileOrderCount>
-          <UpdateProfileButton>Update Profile</UpdateProfileButton>
-        </ProfileContainer>
-
-        <ul className="sidebar-nav" id="sidebar-nav" style={{ color: colors.Orange }}>
-          <li className="nav-item">
-            <Link className="nav-link" to={`/viewMenu/${hotelName}`}>
-              <i className="bi bi-house"></i>
+        <ul className="space-y-2">
+          <li>
+            <Link style={{textDecoration:'none'}} className="flex items-center p-2 text-orange-500 hover:text-orange-700" to={`/viewMenu/${hotelName}`}>
+              <i className="bi bi-house mr-2"></i>
               <span>Home</span>
             </Link>
           </li>
-          {/* <li className="nav-item">
-            <Link className="nav-link" to={`/${hotelName}/cart/cart-details`}>
-              <i className="bi bi-cart-check-fill"></i>
+          {/* <li>
+            <Link style={{textDecoration:'none'}} className="flex p-2 items-center text-orange-500 hover:text-orange-700" to={`/${hotelName}/cart/cart-details`}>
+              <i className="bi bi-cart-check-fill mr-2"></i>
               <span>My Cart</span>
             </Link>
           </li> */}
-          <li className="nav-item">
-            <Link className="nav-link" to={`/${hotelName}/orders/track-orders`}>
-              <i className="bi bi-clock-history"></i>
+          <li>
+            <Link style={{textDecoration:'none'}} className="flex p-2 items-center text-orange-500 hover:text-orange-700" to={`/${hotelName}/orders/track-orders`}>
+              <i className="bi bi-clock-history mr-2"></i>
               <span>My Orders</span>
             </Link>
           </li>
-          <li className="nav-item">
-            <Link className="nav-link" to={`/${hotelName}/orders/captain-tip`}>
-              <i className="bi bi-currency-rupee"></i>
+          <li>
+            <Link style={{textDecoration:'none'}} className="flex p-2 items-center text-orange-500 hover:text-orange-700" to={`/${hotelName}/orders/captain-tip`}>
+              <i className="bi bi-currency-rupee mr-2"></i>
               <span>Tip</span>
             </Link>
           </li>
-          <li className="nav-item">
-            <Link className="nav-link" to={`/${hotelName}/feedback`}>
-              <i className="bi bi-house"></i>
+          <li>
+            <Link style={{textDecoration:'none'}} className="flex p-2 items-center text-orange-500 hover:text-orange-700" to={`/${hotelName}/feedback`}>
+              <i className="bi bi-house mr-2"></i>
               <span>Feedback</span>
             </Link>
           </li>
         </ul>
-      </Sidebar>
+      </div>
     </>
   );
 };
