@@ -10,14 +10,13 @@ import {
   useOrdersData,
   useCustomerData,
 } from "../../data";
-import { PageTitle, PrimaryButton } from "../../Atoms";
-import { CountCard, Table, DonutChart, Tab, InfoCard } from "../../components";
+import { PageTitle } from "../../Atoms";
+import { Table } from "../../components";
 import {
   OrdersAndRevenueByCutomerColumns,
   OrdersAndRevenueByMenuColumns,
   RevenueByCategoryColumns,
 } from "../../data/Columns";
-import useHotelsData from "../../data/useHotelsData";
 import { getAuth } from "firebase/auth";
 import { useHotelContext } from "../../Context/HotelContext";
 import { IoMdHome } from "react-icons/io";

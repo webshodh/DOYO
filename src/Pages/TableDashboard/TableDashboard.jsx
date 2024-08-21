@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { PageTitle } from "../../Atoms";
 import { Tab } from "../../components";
-import ViewMenu from "../MenuDashboard/ViewMenu";
 import AddSection from "./AddSections";
-import AddTable  from "./AddTable";
+import AddTable from "./AddTable";
 import ViewTable from "./ViewTable";
 
 const TableDashboard = () => {
@@ -17,7 +16,7 @@ const TableDashboard = () => {
       <div style={{ marginTop: "70px" }}>
         <PageTitle pageTitle={"Table Dashboard"} />
       </div>
-      <Tab tabs={tabs} width='70vw'/>
+      <Tab tabs={tabs} width="70vw" />
     </>
   );
 };
