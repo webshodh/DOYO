@@ -2,11 +2,42 @@ import BarChart from "../../../../components/charts/BarChart";
 import { MdArrowDropUp } from "react-icons/md";
 import Card from "../../../../components/card";
 import { colors } from "theme/theme";
+import { useOrdersData } from "data";
+import { useHotelContext } from "Context/HotelContext";
 
-const DailyTraffic = () => {
+const DailyOrders = () => {
+  const { hotelName } = useHotelContext();
+  const { completedOrders } = useOrdersData(hotelName);
+
+  // Object to store order counts by date
+  const orderCountByDate = {};
+
+  // Iterate over the order data
+  completedOrders.forEach((order) => {
+    // Extract the date and format it as "Mon 19 Aug"
+    const dateObj = new Date(order.checkoutData.date);
+    const formattedDate = dateObj.toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    });
+
+    // If the date is already in the object, increment the count
+    if (orderCountByDate[formattedDate]) {
+      orderCountByDate[formattedDate]++;
+    } else {
+      // Otherwise, initialize the count to 1
+      orderCountByDate[formattedDate] = 1;
+    }
+  });
+
+  // Separate the data into two arrays
+  const dates = Object.keys(orderCountByDate);
+  const orders = Object.values(orderCountByDate);
+
   const customOptions = {
     xaxis: {
-      categories: ["Mon", "Tue", "Wes", "Thu", "Fri", "Sat", "Sun"],
+      categories: dates,
     },
     fill: {
       gradient: {
@@ -28,8 +59,8 @@ const DailyTraffic = () => {
 
   const customData = [
     {
-      name: "Traffic",
-      data: [30, 40, 35, 50, 49, 60, 70],
+      name: "Orders",
+      data: orders,
     },
   ];
   return (
@@ -37,12 +68,12 @@ const DailyTraffic = () => {
       <div className="flex flex-row justify-between">
         <div className="ml-1 pt-2">
           <p className="text-sm font-medium leading-4 text-gray-600">
-            Daily Traffic
+            Daily Orders 
           </p>
           <p className="text-[34px] font-bold text-navy-700 dark:text-white">
             2,579{" "}
             <span className="text-sm font-medium leading-6 text-gray-600">
-              Visitors
+              Total Orders
             </span>
           </p>
         </div>
@@ -61,4 +92,4 @@ const DailyTraffic = () => {
   );
 };
 
-export default DailyTraffic;
+export default DailyOrders;

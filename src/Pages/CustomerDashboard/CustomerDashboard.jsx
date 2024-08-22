@@ -40,7 +40,7 @@ const CustomersDashboard = () => {
   };
 
   const columns = customersColumns;
-console.log('customerDataArray', customerDataArray)
+console.log('customerDataArray', completedOrders)
   return (
     <>
       <div style={{marginTop:'70px'}}>

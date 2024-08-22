@@ -26,6 +26,8 @@ import HistoryCard from "srcV2/views/admin/marketplace/components/HistoryCard";
 import Banner1 from "srcV2/views/admin/marketplace/components/Banner";
 import DailyTraffic from "srcV2/views/admin/default/components/DailyTraffic";
 import PieChartCard from "srcV2/views/admin/default/components/PieChartCard";
+import TotalSpent from "srcV2/views/admin/default/components/TotalSpent";
+import DailyOrders from "srcV2/views/admin/default/components/DailyOrders";
 
 // Filter functions
 const filterDataByDateRange = (data, startDate, endDate) => {
@@ -132,7 +134,11 @@ function AdminDashboard() {
   const { customerDataArray, customerContData } = useCustomerData(
     filteredCompletedOrders
   );
-
+  console.log(
+    "filteredCompletedOrdersfilteredCompletedOrders",
+    filteredCompletedOrders
+  );
+  console.log("customerDataArraycustomerDataArray", customerDataArray);
   if (menuLoading || categoriesLoading || ordersLoading)
     return <div>Loading...</div>;
   if (menuError || categoriesError || ordersError)
@@ -161,10 +167,6 @@ function AdminDashboard() {
   const columns2 = RevenueByCategoryColumns;
   const column3 = OrdersAndRevenueByCutomerColumns;
 
-  const handleTabChange = (newTab) => {
-    setFilterType(newTab);
-  };
-  
   console.log("filteredCustomerDataArray", filteredCustomerDataArray);
   return (
     <div>
@@ -270,6 +272,10 @@ function AdminDashboard() {
         <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
           <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
             <DailyTraffic />
+            <PieChartCard donutChartData={OrdersByCategoryGraphData} />
+          </div>
+          <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
+            <DailyOrders />
             <PieChartCard donutChartData={OrdersByCategoryGraphData} />
           </div>
           <div className="mt-5">

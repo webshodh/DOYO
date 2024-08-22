@@ -12,10 +12,10 @@ const useCustomerData = (completedOrders) => {
 
     completedOrders.forEach((order) => {
       const { checkoutData } = order;
-      const { name, cartItems, mobileNo, date } = checkoutData;
+      const { name, cartItems, mobileNo, date, email } = checkoutData;
 
       // Ensure mobileNo and date are valid
-      if (!mobileNo || !name || !date) {
+      if (!mobileNo || !name || !date || !email) {
         console.warn(`Missing data for order:`, order);
         return; // Skip this order if essential data is missing
       }
@@ -32,6 +32,7 @@ const useCustomerData = (completedOrders) => {
         customerInfo[name] = {
           name,
           mobileNo,
+          email,
           date: formattedDate, // Store the formatted date as a string
           totalMenuPrice: 0,
           totalOrders: 0,
@@ -52,7 +53,7 @@ const useCustomerData = (completedOrders) => {
       srNo: index + 1,
       ...customer,
     }));
-
+    console.log('customerDataArraycustomerDataArray', customerDataArray)
     return { customerDataArray, customerContData };
   }, [completedOrders]);
 
