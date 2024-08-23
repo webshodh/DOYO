@@ -24,7 +24,6 @@ const PendingOrders = ({ orders, onAccept, onReject, count }) => {
 
   return (
     <>
-      <h4>Pending Orders ({count})</h4>
       {count === 0 ? (
         <Alert variant="info">No pending orders at the moment.</Alert>
       ) : (

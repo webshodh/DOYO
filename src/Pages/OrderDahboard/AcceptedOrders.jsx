@@ -23,7 +23,6 @@ const AcceptedOrders = ({ orders, onMarkAsCompleted, count }) => {
 
   return (
     <>
-      <h4>Accepted Orders ({count})</h4>
       {count === 0 ? (
         <Alert variant="info">No accepted orders at the moment.</Alert>
       ) : (

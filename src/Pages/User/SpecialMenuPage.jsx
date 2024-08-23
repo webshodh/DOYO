@@ -14,7 +14,7 @@ import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 import { getAuth } from "firebase/auth";
 import CategoryTabs from "../../components/CategoryTab";
-import { PrimaryButton } from "../../Atoms";
+import { PageTitle, PrimaryButton } from "../../Atoms";
 import styled from "styled-components";
 import AlertMessage from "Atoms/AlertMessage";
 import ImageSlider from "components/Slider/ImageSlider";
@@ -31,7 +31,7 @@ const MenuItemsContainer = styled.div`
   }
 `;
 
-function Home() {
+function SpecialMenuPage() {
   const [menus, setMenus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
@@ -53,7 +53,7 @@ function Home() {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 3];
     setHotelName(hotelNameFromPath);
   }, []);
 
@@ -249,7 +249,7 @@ function Home() {
   };
   console.log("filteredAndSortedItems", filteredAndSortedItems);
   const handleMainCategoryClick = (category) => {
-    navigate(`/viewMenu/${hotelName}/home/specialMenu`)
+    setSelectedMainCategory(category);
   };
   const handleMainCategoryCloseClick = () => {
     setSelectedMainCategory(null);
@@ -291,7 +291,7 @@ function Home() {
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
           />
           {/* Image Slider */}
-          <ImageSlider slides={slides} />
+          {/* <ImageSlider slides={slides} /> */}
           <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
@@ -323,56 +323,66 @@ function Home() {
           handleCategoryFilter={handleCategoryFilter}
           style={{ position: "fixed", width: "100%", zIndex: 998 }}
         />
+      </div>
 
-        <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2">
-          {mainCategories.map((mainCategory) => (
-            <button
-              key={mainCategory.categoryName}
-              onClick={handleMainCategoryClick}
-              className="inline-block bg-white text-orange-500 px-4 py-2 rounded-full whitespace-nowrap shadow-md hover:bg-blue-600 transition duration-300 ease-in-out"
+      <PageTitle pageTitle={"Atithi Special"} />
+      <div className="overflow-x-auto whitespace-nowrap py-4">
+        <div className="flex">
+          {filteredAndSortedItems.map((item) => (
+            <div
+              className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
+              key={item.id}
             >
-              {mainCategory.categoryName} (
-              {mainCategoryCounts[mainCategory.categoryName] || 0})
-            </button>
+              <MenuCard
+                item={item}
+                handleImageLoad={handleImageLoad}
+                addToCart={addToCart}
+                onAddQuantity={handleAddQuantity}
+                onRemoveQuantity={handleRemoveQuantity}
+              />
+            </div>
           ))}
         </div>
       </div>
 
-      {/* <MenuItemsContainer className="menu-items">
-        {selectedMainCategory &&
-          categorizedMenus[selectedMainCategory].map((item) => (
-            <MenuCard
-              key={item.uuid} // Add a unique key prop for better performance
-              item={item}
-              handleImageLoad={handleImageLoad}
-              addToCart={addToCart}
-              className="menu-card" // Apply the class to the MenuCard component
-            />
+      <PageTitle pageTitle={"Best Seller"} />
+      <div className="overflow-x-auto whitespace-nowrap py-4">
+        <div className="flex">
+          {filteredAndSortedItems.map((item) => (
+            <div
+              className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
+              key={item.id}
+            >
+              <MenuCard
+                item={item}
+                handleImageLoad={handleImageLoad}
+                addToCart={addToCart}
+                onAddQuantity={handleAddQuantity}
+                onRemoveQuantity={handleRemoveQuantity}
+              />
+            </div>
           ))}
-      </MenuItemsContainer> */}
-     
-      {/* Menu Items */}
-      <div
-        className="flex flex-wrap justify-center gap-4"
-        style={{
-          height: "calc(100vh - 240px)",
-          overflowY: "auto",
-        }}
-      >
-        {filteredAndSortedItems.map((item) => (
-          <div
-            className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
-            key={item.id}
-          >
-            <HorizontalMenuCard
-              item={item}
-              handleImageLoad={handleImageLoad}
-              addToCart={addToCart}
-              onAddQuantity={handleAddQuantity} // Add this if needed
-              onRemoveQuantity={handleRemoveQuantity} // Add this if needed
-            />
-          </div>
-        ))}
+        </div>
+      </div>
+
+      <PageTitle pageTitle={"Chef Special"} />
+      <div className="overflow-x-auto whitespace-nowrap py-4">
+        <div className="flex">
+          {filteredAndSortedItems.map((item) => (
+            <div
+              className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
+              key={item.id}
+            >
+              <MenuCard
+                item={item}
+                handleImageLoad={handleImageLoad}
+                addToCart={addToCart}
+                onAddQuantity={handleAddQuantity}
+                onRemoveQuantity={handleRemoveQuantity}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Cart Details */}
@@ -400,4 +410,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default SpecialMenuPage;

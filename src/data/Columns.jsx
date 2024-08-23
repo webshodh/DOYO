@@ -31,6 +31,11 @@ export const ViewSectionColumns = [
   { header: "Section Name", accessor: "sectionName" },
 ];
 
+export const ViewRoleColumns = [
+  { header: "Sr.No", accessor: "srNo" },
+  { header: "Role", accessor: "roleName" },
+];
+
 export const ViewMenuColumns = [
   { header: "Sr.No", accessor: "Sr.No" },
   { header: "Menu Category", accessor: "Menu Category" },
@@ -99,7 +104,6 @@ export const completedOrderColumn = [
   { header: "Quantity", accessor: "quantity" },
   { header: "Price", accessor: "menuPrice" },
   { header: "Total", accessor: "bill" },
-  { header: "Payment", accessor: "bill" },
 ];
 
 export const cancelledOrderColumn = [
@@ -127,3 +131,4 @@ export const  ViewStaffColumns = [
   { header: "UPI Id", accessor: "upiId" },
   { header: "Role", accessor: "Role" },
 ];
+

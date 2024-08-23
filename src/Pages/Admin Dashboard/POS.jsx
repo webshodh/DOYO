@@ -1,3 +1,4 @@
+// ViewMenu.js
 import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
@@ -8,6 +9,8 @@ import {
   FilterSortSearch,
   HorizontalMenuCard,
   MenuCard,
+  Header,
+  Table,
 } from "../../components";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
@@ -16,8 +19,6 @@ import { getAuth } from "firebase/auth";
 import CategoryTabs from "../../components/CategoryTab";
 import { PrimaryButton } from "../../Atoms";
 import styled from "styled-components";
-import AlertMessage from "Atoms/AlertMessage";
-import ImageSlider from "components/Slider/ImageSlider";
 
 const MenuItemsContainer = styled.div`
   display: flex;
@@ -30,15 +31,14 @@ const MenuItemsContainer = styled.div`
     margin-right: 10px;
   }
 `;
-
-function Home() {
+const POS = () => {
   const [menus, setMenus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
-  const [mainCategories, setMainCategories] = useState([]);
-  const [mainCategoryCounts, setMainCategoryCounts] = useState({});
+  const [show, setShow] = useState(false);
+  const [modeldata, setModeldata] = useState({});
   const [cartItems, setCartItems] = useState([]);
   const [menuCounts, setMenuCounts] = useState({});
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -53,7 +53,7 @@ function Home() {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 3];
     setHotelName(hotelNameFromPath);
   }, []);
 
@@ -89,18 +89,6 @@ function Home() {
     });
   }, [hotelName]);
 
-  useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/Maincategories/`), (snapshot) => {
-      setMainCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        const mainCategoriesData = Object.values(data);
-        setMainCategories(mainCategoriesData);
-        fetchMainCategoryCounts(mainCategoriesData);
-      }
-    });
-  }, [hotelName]);
-
   const fetchMenuCounts = (categoriesData) => {
     const counts = {};
     categoriesData.forEach((category) => {
@@ -111,27 +99,6 @@ function Home() {
     });
     setMenuCounts(counts);
   };
-
-  const fetchMainCategoryCounts = (mainCategoriesData) => {
-    const counts = {};
-    mainCategoriesData.forEach((mainCategory) => {
-      const mainCategoryMenus = menus.filter(
-        (menu) => menu.mainCategory === mainCategory.mainCategoryName
-      );
-      counts[mainCategory.mainCategoryName] = mainCategoryMenus.length;
-    });
-    setMainCategoryCounts(counts);
-  };
-
-  useEffect(() => {
-    const countsByMainCategory = {};
-    menus.forEach((menu) => {
-      const mainCategory = menu.mainCategory;
-      countsByMainCategory[mainCategory] =
-        (countsByMainCategory[mainCategory] || 0) + 1;
-    });
-    setMainCategoryCounts(countsByMainCategory);
-  }, [menus]);
 
   useEffect(() => {
     const countsByCategory = {};
@@ -171,13 +138,6 @@ function Home() {
       );
     }
 
-    if (selectedMainCategory !== null) {
-      filteredItems = filteredItems.filter(
-        (menu) =>
-          menu.mainCategory.toLowerCase() === selectedMainCategory.toLowerCase()
-      );
-    }
-
     if (sortOrder === "lowToHigh") {
       filteredItems.sort(
         (a, b) => parseFloat(a.menuPrice) - parseFloat(b.menuPrice)
@@ -192,6 +152,12 @@ function Home() {
   };
 
   const filteredAndSortedItems = filterAndSortItems();
+
+  const showDetail = (id) => {
+    const menuData = filteredAndSortedItems.find((menu) => menu.uuid === id);
+    setModeldata(menuData);
+    setShow(true);
+  };
 
   console.log("filteredAndSortedItems", filteredAndSortedItems);
 
@@ -224,6 +190,10 @@ function Home() {
     });
   };
 
+  const handleBack = () => {
+    navigate(`/viewMenu/${hotelName}`);
+  };
+
   const handleAddQuantity = (menuId) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
@@ -249,7 +219,7 @@ function Home() {
   };
   console.log("filteredAndSortedItems", filteredAndSortedItems);
   const handleMainCategoryClick = (category) => {
-    navigate(`/viewMenu/${hotelName}/home/specialMenu`)
+    setSelectedMainCategory(category);
   };
   const handleMainCategoryCloseClick = () => {
     setSelectedMainCategory(null);
@@ -264,81 +234,43 @@ function Home() {
     }
     return acc;
   }, {});
-
-  console.log("categories", categories);
-  console.log("mainCategories", mainCategories);
-  // Slider data
-  const slides = [
-    {
-      src: "/ads.png",
-      alt: "Slide 1",
-    },
-    {
-      src: "/ads2.jpg",
-      alt: "Slide 2",
-    },
-    {
-      src: "ads.png",
-      alt: "Slide 3",
-    },
-  ];
   return (
-    <>
-      {!isAdmin && (
-        <>
-          <Navbar
-            title={`${hotelName}`}
-            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
-          />
-          {/* Image Slider */}
-          <ImageSlider slides={slides} />
-          <AlertMessage
-            linkText={
-              "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
-            }
-            type="info"
-            icon="bi-info-circle"
-            linkUrl="www.google.com"
-          />
-        </>
-      )}
-
-      <div
-        className="container"
-        style={{
-          background: `${colors.White}`,
-        }}
-      >
+    <div className="d-flex mt-5">
+    {/* Left Column - 70% Width */}
+    <div className="col-12 col-lg-8">
+      <div className="container bg-white">
         {/* Search and Sort */}
         <FilterSortSearch
           searchTerm={searchTerm}
           handleSearch={handleSearch}
           handleSort={handleSort}
-          style={{ position: "fixed", width: "100%", zIndex: 999 }}
+          className="position-fixed w-100 top-0 start-0 z-index-999"
         />
-
+  
         <CategoryTabs
           categories={categories}
           menuCountsByCategory={menuCountsByCategory}
           handleCategoryFilter={handleCategoryFilter}
-          style={{ position: "fixed", width: "100%", zIndex: 998 }}
+          className="position-fixed w-100 top-0 start-0 z-index-998"
         />
-
-        <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2">
-          {mainCategories.map((mainCategory) => (
-            <button
-              key={mainCategory.categoryName}
-              onClick={handleMainCategoryClick}
-              className="inline-block bg-white text-orange-500 px-4 py-2 rounded-full whitespace-nowrap shadow-md hover:bg-blue-600 transition duration-300 ease-in-out"
-            >
-              {mainCategory.categoryName} (
-              {mainCategoryCounts[mainCategory.categoryName] || 0})
-            </button>
-          ))}
-        </div>
       </div>
-
-      {/* <MenuItemsContainer className="menu-items">
+      <div className="d-flex justify-content-between mx-2">
+        {Object.keys(categorizedMenus).map((category) => (
+          <PrimaryButton
+            key={category}
+            onClick={() => handleMainCategoryClick(category)}
+            btnText={`${hotelName} ${category}`}
+          />
+        ))}
+  
+        <span
+          onClick={() => handleMainCategoryCloseClick()}
+          className="text-danger cursor-pointer"
+        >
+          <i className="bi bi-x-lg"></i>
+        </span>
+      </div>
+      <MenuItemsContainer className="menu-items">
         {selectedMainCategory &&
           categorizedMenus[selectedMainCategory].map((item) => (
             <MenuCard
@@ -349,21 +281,11 @@ function Home() {
               className="menu-card" // Apply the class to the MenuCard component
             />
           ))}
-      </MenuItemsContainer> */}
-     
+      </MenuItemsContainer>
       {/* Menu Items */}
-      <div
-        className="flex flex-wrap justify-center gap-4"
-        style={{
-          height: "calc(100vh - 240px)",
-          overflowY: "auto",
-        }}
-      >
+      <div className="row" style={{ height: "calc(100vh - 240px)", overflowY: "auto" }}>
         {filteredAndSortedItems.map((item) => (
-          <div
-            className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
-            key={item.id}
-          >
+          <div className="col-12 col-sm-6 col-md-4 mb-2" key={item.id}>
             <HorizontalMenuCard
               item={item}
               handleImageLoad={handleImageLoad}
@@ -374,30 +296,87 @@ function Home() {
           </div>
         ))}
       </div>
+    </div>
+  
+    {/* Right Column - 30% Width */}
+    <div className="col-12 col-lg-4 sticky-top">
+  <div className="bg-white p-4 border border-gray-200" style={{ height: "100vh" }}>
+    <div className="text-xl font-semibold mb-4">Cart</div>
+    <div className="overflow-auto">
+      <div className="table-responsive">
+        <table className="table table-striped table-bordered">
+          <thead className="bg-orange-500 text-white">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                Item
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                Price
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                Quantity
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white">
+            {cartItems.map((item) =>
+              item ? (
+                <tr key={item.uuid}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.menuName}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500"></i>
+                    {item.menuPrice}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="d-flex align-items-center space-x-2">
+                      <button
+                        onClick={() => handleRemoveQuantity(item.uuid)}
+                        className="btn btn-outline-secondary"
+                      >
+                        -
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        onClick={() => handleAddQuantity(item.uuid)}
+                        className="btn btn-outline-secondary"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : null
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div className="d-flex justify-content-between mt-4 font-weight-bold">
+      <span>Total:</span>
+      <span>
+        $
+        {cartItems.reduce(
+          (total, item) => total + item.menuPrice * item.quantity,
+          0
+        )}
+      </span>
+    </div>
+    <div className="mt-4">
+      <PrimaryButton onClick={handleNext} btnText="Checkout" />
+      <PrimaryButton
+        onClick={handleBack}
+        btnText="Back"
+        className="mt-2 btn-secondary"
+      />
+    </div>
+  </div>
+</div>
 
-      {/* Cart Details */}
-      {!isAdmin && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-orange-500 shadow-lg z-50">
-          <div className="flex justify-between items-center">
-            <div className="ml-4 text-white">
-              {cartItems.length}{" "}
-              {cartItems.length > 1 ? "Items Added" : "Item Added"}
-            </div>
-            <div
-              className="flex items-center mr-4 cursor-pointer"
-              onClick={handleNext}
-            >
-              <span className="text-white text-lg font-semibold">Checkout</span>
-              <i className="bi bi-caret-right-fill text-2xl ml-2 text-white"></i>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      <ToastContainer />
-    </>
+  </div>
+  
   );
-}
+};
 
-export default Home;
+export default POS;

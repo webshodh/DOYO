@@ -97,6 +97,38 @@ function ViewTable() {
 
   return (
     <>
+      <div className="d-flex justify-end" style={{ marginTop: "-1rem" }}>
+        <button
+          onClick={() => setFilterType("Daily")}
+          className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
+            filterType === "Daily"
+              ? "text-orange-500 underline"
+              : "text-gray-700 hover:text-orange-500 hover:underline"
+          }`}
+        >
+          Daily
+        </button>
+        <button
+          onClick={() => setFilterType("Weekly")}
+          className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
+            filterType === "Weekly"
+              ? "text-orange-500 underline"
+              : "text-gray-700 hover:text-orange-500 hover:underline"
+          }`}
+        >
+          Weekly
+        </button>
+        <button
+          onClick={() => setFilterType("Monthly")}
+          className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
+            filterType === "Monthly"
+              ? "text-orange-500 underline"
+              : "text-gray-700 hover:text-orange-500 hover:underline"
+          }`}
+        >
+          Monthly
+        </button>
+      </div>
       <div className="d-flex justify-between">
         <div
           style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}
@@ -105,40 +137,6 @@ function ViewTable() {
           <ColoredCheckbox label="Order Pending" color="orange" />
           <ColoredCheckbox label="Order Processing" color="green" />
           <ColoredCheckbox label="Payment Pending" color="blue" />
-        </div>
-
-        <div className="d-flex"  style={{ marginTop: "-1rem" }}>
-
-          <button
-            onClick={() => setFilterType("Daily")}
-            className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
-              filterType === "Daily"
-                ? "text-orange-500 underline"
-                : "text-gray-700 hover:text-orange-500 hover:underline"
-            }`}
-          >
-            Daily
-          </button>
-          <button
-            onClick={() => setFilterType("Weekly")}
-            className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
-              filterType === "Weekly"
-                ? "text-orange-500 underline"
-                : "text-gray-700 hover:text-orange-500 hover:underline"
-            }`}
-          >
-            Weekly
-          </button>
-          <button
-            onClick={() => setFilterType("Monthly")}
-            className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
-              filterType === "Monthly"
-                ? "text-orange-500 underline"
-                : "text-gray-700 hover:text-orange-500 hover:underline"
-            }`}
-          >
-            Monthly
-          </button>
         </div>
       </div>
       <div className="container mt-2">

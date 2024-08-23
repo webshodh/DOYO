@@ -3,79 +3,14 @@ import { db } from "../../data/firebase/firebaseConfig";
 import { ref, onValue, update, set, remove } from "firebase/database";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import styled from "styled-components";
 import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 import { uid } from "uid";
 import { DynamicTable } from "../../components";
 import { ViewTableColumns } from "../../data/Columns";
-// Styled components for the form
-export const FormContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin: 20px;
-`;
 
-export const InputWrapper = styled.div`
-  flex: 1 1 calc(50% - 300px);
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-`;
-
-export const Label = styled.label`
-  margin-bottom: 8px;
-  font-weight: bold;
-`;
-
-export const Input = styled.input`
-  padding: 10px;
-  border: 1px solid
-    ${(props) => (props.error ? "#dc3545" : props.success ? "#28a745" : "#ccc")};
-  border-radius: 4px;
-  outline: none;
-  box-shadow: ${(props) =>
-    props.error ? "0 0 0 1px rgba(220, 53, 69, 0.5)" : "none"};
-
-  &:focus {
-    border-color: ${(props) => (props.error ? "#dc3545" : "#80bdff")};
-    box-shadow: ${(props) =>
-      props.error
-        ? "0 0 0 1px rgba(220, 53, 69, 0.5)"
-        : "0 0 0 0.2rem rgba(38, 143, 255, 0.25)"};
-  }
-`;
-
-export const Icon = styled.div`
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${(props) => (props.error ? "#dc3545" : "#28a745")};
-`;
-
-export const ErrorMessage = styled.p`
-  color: #dc3545;
-  font-size: 0.875rem;
-  margin: 5px 0 0;
-`;
-
-export const Button = styled.button`
-  width:200px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
-  margin-top: 10px;
-
-  &:hover {
-    background-color: ${(props) => (props.primary ? "#218838" : "#c82333")};
-  }
-`;
-
+// Tailwind CSS classes are used directly in JSX
 function AddTable() {
   const [tableName, setTableName] = useState("");
   const [tableCapacity, setTableCapacity] = useState("");
@@ -92,16 +27,13 @@ function AddTable() {
   const { hotelName } = useHotelContext();
 
   const [selectedSection, setSelectedSection] = useState("");
-
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
   const [tableCountsBySection, setTableCountsBySection] = useState({});
-  
 
-  
   useEffect(() => {
     onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/table/`),
+      ref(db, `/admins/${adminID}/hotels/${hotelName}/tables`),
       (snapshot) => {
         setTables([]);
         const data = snapshot.val();
@@ -114,7 +46,7 @@ function AddTable() {
 
   useEffect(() => {
     onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/sections/`),
+      ref(db, `/admins/${adminID}/hotels/${hotelName}/sections`),
       (snapshot) => {
         setSections([]);
         const data = snapshot.val();
@@ -125,17 +57,19 @@ function AddTable() {
     );
   }, [hotelName, adminID]);
 
-  const handleTableNameChange = (e) => {
-    setTableName(e.target.value);
-  };
+  useEffect(() => {
+    const countsBySection = {};
+    tables.forEach((table) => {
+      const section = table.tableSection;
+      countsBySection[section] = (countsBySection[section] || 0) + 1;
+    });
 
-  const handleTableCapacityChange = (e) => {
-    setTableCapacity(e.target.value);
-  };
+    setTableCountsBySection(countsBySection);
+  }, [tables]);
 
-  const handleTableSectionChange = (e) => {
-    setTableSection(e.target.value);
-  };
+  const handleTableNameChange = (e) => setTableName(e.target.value);
+  const handleTableCapacityChange = (e) => setTableCapacity(e.target.value);
+  const handleTableSectionChange = (e) => setTableSection(e.target.value);
 
   const writeToDatabase = () => {
     if (editMode) {
@@ -170,63 +104,19 @@ function AddTable() {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
-  
+
     // Clear form fields
     setTableName("");
     setTableCapacity("");
     setTableSection("");
   };
 
-  // Fetch Table data from database
-  useEffect(() => {
-    onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/tables`),
-      (snapshot) => {
-        setTables([]);
-        const data = snapshot.val();
-        if (data !== null) {
-          Object.values(data).forEach((table) => {
-            setTables((oldTables) => [...oldTables, table]);
-          });
-        }
-      }
-    );
-  }, [hotelName, adminID]);
-
-  // Fetch Section data from database
-  useEffect(() => {
-    onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/sections/`),
-      (snapshot) => {
-        setSections([]);
-        const data = snapshot.val();
-        if (data !== null) {
-          Object.values(data).forEach((section) => {
-            setSections((oldSections) => [...oldSections, section]);
-          });
-        }
-      }
-    );
-  }, [hotelName, adminID]);
-
-  useEffect(() => {
-    const countsBySection = {};
-    tables.forEach((table) => {
-      const section = table.tableSection;
-      countsBySection[section] = (countsBySection[section] || 0) + 1;
-    });
-
-    setTableCountsBySection(countsBySection);
-  }, [tables]);
-
   const handleShow = (tableId) => {
     const selectedTable = tables.find((table) => table.uuid === tableId);
     console.log("Selected Table:", selectedTable);
   };
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  const handleSearch = (e) => setSearchTerm(e.target.value);
 
   const handleDelete = (tableId) => {
     const confirmDelete = window.confirm(
@@ -234,10 +124,7 @@ function AddTable() {
     );
     if (confirmDelete) {
       // Delete the table
-      remove(
-        ref(db, `/admins/${adminID}/hotels/${hotelName}/tables/${tableId}`)
-      );
-
+      remove(ref(db, `/admins/${adminID}/hotels/${hotelName}/tables/${tableId}`));
       toast.success("Table Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -251,20 +138,15 @@ function AddTable() {
 
     if (selectedSection !== "") {
       filteredItems = filteredItems.filter(
-        (table) =>
-          table.tableSection.toLowerCase() === selectedSection.toLowerCase()
+        (table) => table.tableSection.toLowerCase() === selectedSection.toLowerCase()
       );
     }
 
     // Sort by table capacity if needed
     if (sortOrder === "lowToHigh") {
-      filteredItems.sort(
-        (a, b) => parseFloat(a.capacity) - parseFloat(b.capacity)
-      );
+      filteredItems.sort((a, b) => parseFloat(a.tableCapacity) - parseFloat(b.tableCapacity));
     } else if (sortOrder === "highToLow") {
-      filteredItems.sort(
-        (a, b) => parseFloat(b.capacity) - parseFloat(a.capacity)
-      );
+      filteredItems.sort((a, b) => parseFloat(b.tableCapacity) - parseFloat(a.tableCapacity));
     }
 
     return filteredItems;
@@ -272,179 +154,170 @@ function AddTable() {
 
   const filteredAndSortedItems = filterAndSortItems();
 
-  const handleCategoryFilter = (section) => {
-    setSelectedSection(section);
-  };
+  const handleCategoryFilter = (section) => setSelectedSection(section);
 
-  // Prepare data for the table
   const data = filteredAndSortedItems.map((item, index) => ({
     "Sr.No": index + 1,
     SectionName: item.tableSection || "Other",
     TableName: item.tableName,
-    Capacity: item.capacity,
+    Capacity: item.tableCapacity,
     Actions: (
       <>
         <button
           className="btn btn-primary btn-sm mr-2"
           onClick={() => handleShow(item.uuid)}
         >
-          <img src="/update.png" width="20px" height="20px" alt="Update" />
+          <img src="/update.png" width="20" height="20" alt="Update" />
         </button>
         <button
           className="btn btn-danger btn-sm"
           onClick={() => handleDelete(item.uuid)}
         >
-          <img src="/delete.png" width="20px" height="20px" alt="Delete" />
+          <img src="/delete.png" width="20" height="20" alt="Delete" />
         </button>
       </>
     ),
   }));
 
-  const columns =ViewTableColumns
-console.log('data', data)
+  const columns = ViewTableColumns;
+
   return (
     <>
-    <div className="background-card">
-      <FormContainer>
-        <InputWrapper>
-          <Label htmlFor="TableName">Table Name</Label>
-          <div style={{ position: "relative" }}>
-            <Input
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative">
+            <label htmlFor="TableName" className="block font-semibold mb-2">Table Name</label>
+            <input
               type="text"
               value={tableName}
               onChange={handleTableNameChange}
               id="TableName"
-              error={!tableName}
-              success={tableName}
+              className={`w-full p-3 border rounded-md ${
+                !tableName ? 'border-red-500' : 'border-gray-300'
+              } focus:outline-none focus:ring-2 ${
+                !tableName ? 'focus:ring-red-500' : 'focus:ring-blue-500'
+              }`}
               placeholder="Enter Table Name"
             />
             {tableName && (
-              <Icon success>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
                 <FaCheckCircle />
-              </Icon>
+              </div>
             )}
             {!tableName && (
-              <Icon error>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
                 <FaExclamationCircle />
-              </Icon>
+              </div>
+            )}
+            {!tableName && (
+              <p className="text-red-500 text-sm mt-1">Table Name is required.</p>
             )}
           </div>
-          {!tableName && <ErrorMessage>Table Name is required.</ErrorMessage>}
-        </InputWrapper>
 
-        <InputWrapper>
-          <Label htmlFor="TableCapacity">Table Capacity</Label>
-          <div style={{ position: "relative" }}>
-            <Input
+          <div className="relative">
+            <label htmlFor="TableCapacity" className="block font-semibold mb-2">Table Capacity</label>
+            <input
               type="number"
               value={tableCapacity}
               onChange={handleTableCapacityChange}
               id="TableCapacity"
-              error={!tableCapacity}
-              success={tableCapacity}
+              className={`w-full p-3 border rounded-md ${
+                !tableCapacity ? 'border-red-500' : 'border-gray-300'
+              } focus:outline-none focus:ring-2 ${
+                !tableCapacity ? 'focus:ring-red-500' : 'focus:ring-blue-500'
+              }`}
               placeholder="Enter Table Capacity"
             />
             {tableCapacity && (
-              <Icon success>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
                 <FaCheckCircle />
-              </Icon>
+              </div>
             )}
             {!tableCapacity && (
-              <Icon error>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
                 <FaExclamationCircle />
-              </Icon>
+              </div>
+            )}
+            {!tableCapacity && (
+              <p className="text-red-500 text-sm mt-1">Table Capacity is required.</p>
             )}
           </div>
-          {!tableCapacity && (
-            <ErrorMessage>Table Capacity is required.</ErrorMessage>
-          )}
-        </InputWrapper>
 
-       
-      </FormContainer>
-      <FormContainer>
-      <InputWrapper>
-          <Label htmlFor="tableSection">Table Section</Label>
-          <select
-            id="tableSection"
-            className="form-select"
-            onChange={handleTableSectionChange}
-            value={tableSection}
-          >
-            <option value="" disabled>
-              Select Table Section
-            </option>
-            {sections.map((section) => (
-              <option key={section.sectionId} value={section.sectionName}>
-                {section.sectionName}
-              </option>
-            ))}
-          </select>
-        </InputWrapper>
+          <div>
+            <label htmlFor="TableSection" className="block font-semibold mb-2">Table Section</label>
+            <select
+              id="TableSection"
+              value={tableSection}
+              onChange={handleTableSectionChange}
+              className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Section</option>
+              {sections.map((section, index) => (
+                <option key={index} value={section.sectionName}>
+                  {section.sectionName}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <Button primary onClick={writeToDatabase}>
-          {editMode ? "Update" : "Submit"}
-        </Button>
-        </FormContainer>
-      
-    </div>
-    <div className="container mt-2">
-        <div className="row">
-          <div className="col-12">
-            <div className="d-flex flex-wrap justify-content-start">
-              <div
-                className="d-flex flex-nowrap overflow-auto"
-                style={{ whiteSpace: "nowrap" }}
-              >
-                <div
-                  className="p-2 mb-2 bg-light border cursor-pointer d-inline-block categoryTab"
-                  onClick={() => handleCategoryFilter("")}
-                  style={{ marginRight: "5px" }}
-                >
-                  <div>
-                    All{" "}
-                    <span
-                      className="badge bg-danger badge-number"
-                      style={{ borderRadius: "50%", padding: "5px" }}
-                    >
-                      {" "}
-                      {Object.values(tableCountsBySection).reduce(
-                        (a, b) => a + b,
-                        0
-                      )}
-                    </span>
-                  </div>
-                </div>
-                {sections
-                  .filter((item) => tableCountsBySection[item.sectionName] > 0) // Only include sections with non-zero counts
-                  .map((item) => (
-                    <div
-                      className="section p-2 mb-2 bg-light border cursor-pointer d-inline-block categoryTab"
-                      key={item.id}
-                      onClick={() => handleCategoryFilter(item.sectionName)}
-                    >
-                      <div className="section-name">
-                        {item.sectionName}{" "}
-                        <span
-                          className="badge bg-danger badge-number"
-                          style={{ borderRadius: "50%" }}
-                        >
-                          {tableCountsBySection[item.sectionName]}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
+          <div className="col-span-2 flex justify-end mt-4">
+            <button
+              onClick={writeToDatabase}
+              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-blue-600"
+            >
+              {editMode ? "Update Table" : "Add Table"}
+            </button>
           </div>
         </div>
-        <DynamicTable
-        columns={columns}
-        data={data}
-        onEdit={handleShow}
-        onDelete={handleDelete}/>
       </div>
 
+      <div className="bg-white p-6 mt-6 rounded-lg shadow-md">
+        <div className="flex mb-4">
+          <input
+            type="text"
+            placeholder="Search Tables"
+            value={searchTerm}
+            onChange={handleSearch}
+            className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-4 mb-4">
+          <button
+            onClick={() => handleCategoryFilter("")}
+            className={`px-4 py-2 rounded-md ${
+              selectedSection === "" ? "bg-orange-500 text-white" : "bg-gray-200"
+            }`}
+          >
+            All Sections
+          </button>
+          {Object.keys(tableCountsBySection).map((section) => (
+            <button
+              key={section}
+              onClick={() => handleCategoryFilter(section)}
+              className={`px-4 py-2 rounded-md ${
+                selectedSection === section ? "bg-orange-500 text-white" : "bg-gray-200"
+              }`}
+            >
+              {section} ({tableCountsBySection[section]})
+            </button>
+          ))}
+        </div>
+
+        <div className="flex mb-4">
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="default">Sort By Capacity</option>
+            <option value="lowToHigh">Low to High</option>
+            <option value="highToLow">High to Low</option>
+          </select>
+        </div>
+
+        <DynamicTable columns={columns} data={data} />
+      </div>
     </>
   );
 }

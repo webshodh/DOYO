@@ -21,7 +21,7 @@ const Navbar = ({ title }) => {
     }
     return nameParts[0].charAt(0).toUpperCase() + nameParts[1].charAt(0).toUpperCase(); // Return initials from first and last name
   };
-  
+  console.log('currentUser', currentUser)
   const userProfile = {
     name: currentUser.displayName || 'User',
     email: currentUser.email || 'No email provided',

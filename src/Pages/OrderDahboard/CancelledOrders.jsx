@@ -21,7 +21,6 @@ const CancelledOrders = ({ orders, count }) => {
 
   return (
     <>
-      <h4>Cancelled Orders ({count})</h4>
       {count === 0 ? (
         <Alert variant="info">No cancelled orders at the moment.</Alert>
       ) : (

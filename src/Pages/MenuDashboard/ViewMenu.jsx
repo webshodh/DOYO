@@ -9,6 +9,7 @@ import { ViewMenuColumns } from "../../data/Columns";
 import styled from "styled-components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import { FaSearch } from "react-icons/fa";
 // Background Card
 const BackgroundCard = styled.div`
   background: #fff;
@@ -209,71 +210,70 @@ function ViewMenu() {
   console.log("data", data);
   return (
     <>
+    <div>
       <PageTitle />
-      <div className="container mt-2">
-        <div className="row">
-          <div className="col-12">
-            <div className="d-flex flex-wrap justify-content-start">
-              <div
-                className="d-flex flex-nowrap overflow-auto"
-                style={{ whiteSpace: "nowrap" }}
-              >
+      <div className="container  px-4">
+      <div className="mt-4">
+        <div className="overflow-x-auto">
+          <div className="flex flex-wrap space-x-2 overflow-x-auto">
+            <div
+              className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
+              onClick={() => handleCategoryFilter("")}
+            >
+              <div className="flex items-center">
+                All{" "}
+                <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
+                  {Object.values(menuCountsByCategory).reduce((a, b) => a + b, 0)}
+                </span>
+              </div>
+            </div>
+            {categories
+              .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
+              .map((item) => (
                 <div
-                  className="p-2 mb-2 bg-light border  cursor-pointer d-inline-block categoryTab"
-                  onClick={() => handleCategoryFilter("")}
-                  style={{ marginRight: "5px" }}
+                  className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
+                  key={item.id}
+                  onClick={() => handleCategoryFilter(item.categoryName)}
                 >
-                  <div>
-                    All{" "}
-                    <span
-                      className="badge bg-danger badge-number"
-                      style={{ borderRadius: "50%", padding: "5px" }}
-                    >
-                      {" "}
-                      {Object.values(menuCountsByCategory).reduce(
-                        (a, b) => a + b,
-                        0
-                      )}
+                  <div className="flex items-center">
+                    {item.categoryName}{" "}
+                    <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
+                      {menuCountsByCategory[item.categoryName]}
                     </span>
                   </div>
                 </div>
-                {categories
-                  .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
-                  .map((item) => (
-                    <div
-                      className="category p-2 mb-2 bg-light border cursor-pointer d-inline-block categoryTab"
-                      key={item.id}
-                      onClick={() => handleCategoryFilter(item.categoryName)}
-                    >
-                      <div className="category-name">
-                        {item.categoryName}{" "}
-                        <span
-                          className="badge bg-danger badge-number"
-                          style={{ borderRadius: "50%" }}
-                        >
-                          {menuCountsByCategory[item.categoryName]}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
+              ))}
           </div>
         </div>
       </div>
 
-      <div className="container mt-2">
-        <FilterSortSearch searchTerm={searchTerm} handleSearch={handleSearch} />
-        <BackgroundCard>
-          <PageTitle pageTitle={"View Menu"} />
+      <div className="mt-4">
+        <div className="flex items-center space-x-4 mb-4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearch}
+            placeholder="Search..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <FaSearch />
+          </button>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">View Menu</h2>
+          {/* DynamicTable and BackgroundCard are assumed to be custom components */}
           <DynamicTable
             columns={columns}
             data={data}
             onEdit={handleShow}
             onDelete={handleDelete}
           />
-        </BackgroundCard>
+        </div>
       </div>
+    </div>
+    </div>
       <ToastContainer />
     </>
   );

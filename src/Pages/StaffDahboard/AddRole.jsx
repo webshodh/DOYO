@@ -4,7 +4,7 @@ import { uid } from "uid";
 import { set, ref, onValue, remove, update } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import { PageTitle } from "../../Atoms";
-import { ViewSectionColumns } from "../../data/Columns";
+import { ViewRoleColumns, ViewSectionColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import styled from "styled-components";
 import { useHotelContext } from "../../Context/HotelContext";
@@ -113,7 +113,7 @@ function AddRole() {
     srNo: index + 1, // Serial number (1-based index)
     ...role,
   }));
-  const columns = ViewSectionColumns; // Ensure this matches the expected format
+  const columns = ViewRoleColumns; // Ensure this matches the expected format
   console.log("roles", rolesArray);
   return (
     <>

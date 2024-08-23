@@ -1,6 +1,7 @@
 // Admin Dashboard
 export { default as AdminDashboard } from "./Admin Dashboard/AdminDashboard";
 export { default as HotelSelector } from "./Admin Dashboard/HotelSelector";
+export { default as POS } from "./Admin Dashboard/POS";
 
 // Customer Dahboard
 export { default as CustomerDashboard } from "./CustomerDashboard/CustomerDashboard";
@@ -36,6 +37,7 @@ export { default as TableDashboard } from "./TableDashboard/TableDashboard";
 
 // User
 export { default as Home } from "./User/Home";
+export { default as SpecialMenuPage } from "./User/SpecialMenuPage";
 // Cart
 export { default as CartDetails } from "./User/CartDetails";
 export { default as OrderBill } from "./User/OrderBill";

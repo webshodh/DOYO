@@ -12,8 +12,8 @@ function SideBar() {
   const location = useLocation();
 
   return (
-    <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg p-4 space-y-4 lg:w-80">
-      <ul className="space-y-2">
+    <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg p-2 space-y-4 lg:w-72" style={{marginTop:'20px'}}>
+      <ul>
         {admin ? (
           <>
             <li style={{marginTop:'50px'}}>
@@ -23,10 +23,10 @@ function SideBar() {
                     ? "bg-orange-500 text-white"
                     : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
-                to={`/viewMenu/${hotelName}`}
+                to={`/viewMenu/${hotelName}/admin/POS`}
               >
                 <i className="bi bi-house text-lg mr-2"></i>
-                <span>Home</span>
+                <span>POS</span>
               </Link>
             </li>
 
@@ -236,8 +236,11 @@ function SideBar() {
           {!admin ? "Admin" : "Super Admin"}
         </button> */}
 
-        <FreeCard/>
+      <FreeCard/>
+     
+        
       </ul>
+      
     </aside>
   );
 }

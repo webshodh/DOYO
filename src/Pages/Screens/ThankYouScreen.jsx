@@ -50,19 +50,6 @@ const ThankYouPage = () => {
         >
           Track Your Orders
         </button>
-
-        {/* Optional section */}
-        <div className="mt-6">
-          <h5 className="text-xl font-semibold text-gray-800">Want to add more items?</h5>
-          <p className="mt-2 text-base text-gray-600">
-            Feel free to explore our menu and add more delicious dishes to your order.
-          </p>
-          <button
-            className="mt-2 px-6 py-3 bg-orange-500 text-white border border-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            View Menu
-          </button>
-        </div>
       </div>
     </div>
     </>

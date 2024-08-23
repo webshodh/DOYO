@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Header from "../components/Header";
 import Sidebar from "../components/SideBar";
 import { colors } from "../theme/theme";
 import Footer from "srcV2/components/footer/FooterAuthDefault";
+import { useLocation } from "react-router-dom";
 
 // Styled components
 const LayoutContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: ${colors.LightBlue};
+  background: ${colors.Grey};
 `;
 
 const LayoutContent = styled.div`
@@ -21,7 +22,7 @@ const LayoutContent = styled.div`
 
 const SidebarContainer = styled.div`
   height: 100%;
-  background: ${colors.LightGray}; /* Optional: Adds a background color to the sidebar */
+  background: ${colors.Grey}; /* Optional: Adds a background color to the sidebar */
   width: 300px; /* Default width for large screens */
 
   @media (max-width: 1000px) {
@@ -50,18 +51,35 @@ const MainContent = styled.div`
 `;
 
 const Layout = ({ children }) => {
+  const location = useLocation();
+  const [hotelName, setHotelName] = useState("");
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const pathSegments = path.split("/");
+    const hotelNameFromPath = pathSegments[pathSegments.length - 3];
+    setHotelName(hotelNameFromPath);
+  }, []);
+  const excludeSidebarRoutes = [
+    `/viewMenu/${hotelName}/admin/POS`, // Add the route you want to exclude the sidebar for
+  ];
+
+  const shouldRenderSidebar = !excludeSidebarRoutes.includes(location.pathname);
+
   return (
     <LayoutContainer>
       <Header />
       <LayoutContent>
-        <SidebarContainer>
-          <Sidebar />
-        </SidebarContainer>
-        <MainContent id="main" style={{ marginLeft: "20px" }}>
+        {/* {shouldRenderSidebar && (
+          <SidebarContainer>
+            <Sidebar />
+          </SidebarContainer>
+        )} */}
+        <MainContent id="main">
           {children}
+          <Footer />
         </MainContent>
       </LayoutContent>
-      <Footer />
     </LayoutContainer>
   );
 };

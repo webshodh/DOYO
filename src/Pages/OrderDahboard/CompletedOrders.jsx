@@ -20,7 +20,6 @@ const CompletedOrders = ({ orders, count }) => {
   console.log("data", data);
   return (
     <>
-      <h4>Completed Orders ({count})</h4>
       {count === 0 ? (
         <Alert variant="info">No completed orders at the moment.</Alert>
       ) : (

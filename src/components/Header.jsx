@@ -29,6 +29,7 @@ const Header = () => {
             >
               {hotelName}
             </span>
+            
           </div>
         </div>
       </div>

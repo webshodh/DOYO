@@ -65,66 +65,70 @@ const HistoryCard = () => {
     {
       label: "Top 5",
       content: (
-        <div className="row">
-          {sortedMenuDataArray
-            .slice(0, 5) // Show top 5 items
-            .map(({ menuName, menuCount, imageUrl }, index) => (
-              <div
-                key={index}
-                className="flex h-full w-full items-start justify-between bg-white px-3 py-[20px] hover:shadow-2xl dark:!bg-navy-800 dark:shadow-none dark:hover:!bg-navy-700"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-16 w-16 items-center justify-center">
-                    <img
-                      className="h-full w-full rounded-xl"
-                      src={imageUrl}
-                      alt={menuName}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <h5 className="text-base font-bold text-navy-700 dark:text-white">
-                      {menuName}
-                    </h5>
-                    <p className="mt-1 text-sm font-normal text-gray-600">
-                      {menuCount}
-                    </p>
+        <div className="container mx-auto px-1 py-1">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            {sortedMenuDataArray
+              .slice(0, 5) // Show top 10 items
+              .map(({ menuName, menuCount, imageUrl }, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-start justify-between bg-white p-1 rounded-lg shadow-md hover:shadow-xl dark:bg-navy-800 dark:text-white transition-shadow duration-300"
+                >
+                  <div className=" items-center gap-3 mb-1">
+                    <div className="flex h-20 w-20 items-center justify-center">
+                      <img
+                        className="h-full w-full rounded-lg object-cover"
+                        src={imageUrl}
+                        alt={menuName}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h5 className="text-base font-semibold text-navy-700 dark:text-white">
+                        {menuName}
+                      </h5>
+                      <p className="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
+                        {menuCount}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+          </div>
         </div>
       ),
     },
     {
       label: "Top 10",
       content: (
-        <div className="row">
-          {sortedMenuDataArray
-            .slice(0, 10) // Show top 10 items
-            .map(({ menuName, menuCount, imageUrl }, index) => (
-              <div
+        <div className="container mx-auto px-1 py-1">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            {sortedMenuDataArray
+              .slice(0, 10) // Show top 10 items
+              .map(({ menuName, menuCount, imageUrl }, index) => (
+                <div
                 key={index}
-                className="flex h-full w-full items-start justify-between bg-white px-3 py-[20px] hover:shadow-2xl dark:!bg-navy-800 dark:shadow-none dark:hover:!bg-navy-700"
+                className="flex flex-col items-start justify-between bg-white p-1 rounded-lg shadow-md hover:shadow-xl dark:bg-navy-800 dark:text-white transition-shadow duration-300"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-16 w-16 items-center justify-center">
+                <div className=" items-center gap-3 mb-1">
+                  <div className="flex h-20 w-20 items-center justify-center">
                     <img
-                      className="h-full w-full rounded-xl"
+                      className="h-full w-full rounded-lg object-cover"
                       src={imageUrl}
                       alt={menuName}
                     />
                   </div>
                   <div className="flex flex-col">
-                    <h5 className="text-base font-bold text-navy-700 dark:text-white">
+                    <h5 className="text-base font-semibold text-navy-700 dark:text-white">
                       {menuName}
                     </h5>
-                    <p className="mt-1 text-sm font-normal text-gray-600">
+                    <p className="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
                       {menuCount}
                     </p>
                   </div>
                 </div>
               </div>
-            ))}
+              ))}
+          </div>
         </div>
       ),
     },
@@ -133,22 +137,34 @@ const HistoryCard = () => {
   return (
     <Card extra={"mt-3 !z-5 overflow-hidden"}>
       {/* Filter Buttons */}
-      <div className="flex justify-between p-3">
+      <div className="flex justify-end p-3">
         <button
           onClick={() => setFilterType("Daily")}
-          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${filterType === "Daily" ? "text-orange-500 underline" : "text-gray-700 hover:text-orange-500 hover:underline"}`}
+          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
+            filterType === "Daily"
+              ? "text-orange-500 underline"
+              : "text-gray-700 hover:text-orange-500 hover:underline"
+          }`}
         >
           Daily
         </button>
         <button
           onClick={() => setFilterType("Weekly")}
-          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${filterType === "Weekly" ? "text-orange-500 underline" : "text-gray-700 hover:text-orange-500 hover:underline"}`}
+          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
+            filterType === "Weekly"
+              ? "text-orange-500 underline"
+              : "text-gray-700 hover:text-orange-500 hover:underline"
+          }`}
         >
           Weekly
         </button>
         <button
           onClick={() => setFilterType("Monthly")}
-          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${filterType === "Monthly" ? "text-orange-500 underline" : "text-gray-700 hover:text-orange-500 hover:underline"}`}
+          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
+            filterType === "Monthly"
+              ? "text-orange-500 underline"
+              : "text-gray-700 hover:text-orange-500 hover:underline"
+          }`}
         >
           Monthly
         </button>
