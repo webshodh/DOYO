@@ -6,6 +6,7 @@ import SalesForecasting from "./SalesForecasting";
 import CustomerTrafficPrediction from "./CustomerTrafficPrediction"
 import MenuItemPopularityPrediction from "./MenuItemPopularityPrediction"
 import PeakHoursDaysPrediction from "./PeakHoursDaysPrediction"
+import TabButtons from "components/TabButtons";
 const PredictionDashboard = () => {
   const tabs = [
     { label: "Orders Forecasting", content: <OrderForecasting /> },
@@ -17,10 +18,7 @@ const PredictionDashboard = () => {
   ];
   return (
     <>
-      <div style={{ marginTop: "70px" }}>
-        <PageTitle pageTitle={"Forecasting Dashboard"} />
-      </div>
-      <Tab tabs={tabs} width='70vw'/>
+      <TabButtons tabs={tabs} width='70vw'/>
     </>
   );
 };

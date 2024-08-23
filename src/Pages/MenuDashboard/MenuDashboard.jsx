@@ -5,6 +5,7 @@ import AddMenu from "./AddMenu";
 import ViewMenu from "./ViewMenu";
 import AddCategory from "./AddCategory";
 import AddMainCategory from "./AddMainCategory";
+import TabButtons from "components/TabButtons";
 
 const MenuDashboard = () => {
   const tabs = [
@@ -15,10 +16,7 @@ const MenuDashboard = () => {
   ];
   return (
     <>
-      <div style={{ marginTop: "70px" }}>
-        <PageTitle pageTitle={"Menu Dashboard"} />
-      </div>
-      <Tab tabs={tabs} width='70vw'/>
+      <TabButtons tabs={tabs} width='70vw'/>
     </>
   );
 };

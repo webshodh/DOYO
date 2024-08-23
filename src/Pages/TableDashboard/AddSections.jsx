@@ -98,10 +98,13 @@ function AddSection() {
 
   const addCategoryToDatabase = () => {
     const sectionId = uid();
-    set(ref(db, `/admins/${adminID}/hotels/${hotelName}/sections/${sectionId}`), {
-      sectionName,
-      sectionId,
-    });
+    set(
+      ref(db, `/admins/${adminID}/hotels/${hotelName}/sections/${sectionId}`),
+      {
+        sectionName,
+        sectionId,
+      }
+    );
 
     setSectionName("");
     toast.success("Section Added Successfully !", {
@@ -146,7 +149,7 @@ function AddSection() {
   console.log("sections", sectionsArray);
   return (
     <>
-      <div className="background-card" style={{ padding: "40px" }}>
+      <div style={{ padding: "40px" }}>
         <PageTitle pageTitle={"Add Sections"} />
         <Input
           type="text"
@@ -178,7 +181,7 @@ function AddSection() {
           </>
         )}
       </div>
-      <BackgroundCard>
+      <BackgroundCard style={{ padding: "40px" }}>
         <PageTitle pageTitle={"View Sections"} />
         <DynamicTable
           columns={columns}

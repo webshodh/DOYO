@@ -149,7 +149,7 @@ function AddRole() {
           </>
         )}
       </div>
-      <BackgroundCard>
+      <BackgroundCard style={{ padding: "40px" }}>
         <PageTitle pageTitle={"View Roles"} />
         <DynamicTable
           columns={columns}

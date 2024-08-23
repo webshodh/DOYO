@@ -70,7 +70,7 @@ function TrackOrders() {
       />
       <Container
         fluid
-        className="px-3 px-md-5 mt-3"
+        className="px-3 px-md-5 mt-3 bg-white"
         style={{ height: "100vh" }}
       >
         <Row className="mb-4">

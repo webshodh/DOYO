@@ -10,6 +10,7 @@ import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 import CompletedOrders from "./CompletedOrders";
 import { PageTitle } from "Atoms";
+import TabButtons from "components/TabButtons";
 
 // Filter functions
 const filterDataByDateRange = (data, startDate, endDate) => {
@@ -254,8 +255,7 @@ const OrderDashboard = () => {
 
   return (
     <div>
-      <div className="d-flex justify-between mt-5">
-      <PageTitle title={"Order Dashboard"} />
+      <div className="d-flex justify-end mt-1 mb-1">
         <div className="d-flex">
           <button
             onClick={() => setFilterType("Daily")}
@@ -290,7 +290,7 @@ const OrderDashboard = () => {
         </div>
       </div>
       <div className="container mx-auto px-4 py-6">
-      <Tab tabs={tabs} />
+      <TabButtons tabs={tabs} />
       </div>
       <Modal show={showPopup} onHide={() => setShowPopup(false)}>
         <Modal.Header closeButton>

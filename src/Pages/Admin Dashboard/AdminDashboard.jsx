@@ -170,8 +170,7 @@ function AdminDashboard() {
   console.log("filteredCustomerDataArray", filteredCustomerDataArray);
   return (
     <div>
-      <div className="d-flex justify-between mt-12">
-        <PageTitle pageTitle={"Dashboard"} />
+      <div className="d-flex justify-end mt-1 mb-1">
         <div className="d-flex justify-between">
           <div className="d-flex">
             <button
@@ -208,67 +207,67 @@ function AdminDashboard() {
         </div>
       </div>
 
-      <div className="mt-3 grid h-full grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
-        <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-3">
-          <Banner1 />
-          <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-6">
-            <Widget
-              icon={<i className="bi bi-exclamation-circle-fill"></i>}
-              title={"Pending Orders"}
-              subtitle={filteredOrderCounts.pending}
-            />
-            <Widget
-              icon={<i className="bi bi-check-circle-fill"></i>}
-              title={"Accepted Orders"}
-              subtitle={filteredOrderCounts.accepted}
-            />
-            <Widget
-              icon={<i className="bi bi-check-circle-fill"></i>}
-              title={"Completed Orders"}
-              subtitle={filteredOrderCounts.completed}
-            />
-            <Widget
-              icon={<i className="bi bi-x-circle-fill"></i>}
-              title={"Cancelled Orders"}
-              subtitle={filteredOrderCounts.cancelled}
-            />
-            <Widget
-              icon={<i className="bi bi-person-plus-fill"></i>}
-              title={"Total Customers"}
-              subtitle={customerContData.totalCustomers}
-            />
-            <Widget
-              icon={<i className="bi bi-person-fill-check"></i>}
-              title={"New Customers"}
-              subtitle={customerContData.newCustomers}
-            />
-            <Widget
-              icon={<i className="bi bi-person-heart"></i>}
-              title={"Loyal Customers"}
-              subtitle={customerContData.loyalCustomers}
-            />
-            <Widget
-              icon={<i className="bi bi-currency-rupee"></i>}
-              title={"Total Revenue"}
-              subtitle={totalRevenue}
-            />
-            <Widget
-              icon={<IoMdHome className="h-6 w-6" />}
-              title={"Avg Revenue/Day"}
-              subtitle={totalRevenue}
-            />
-            <Widget
-              icon={<MdBarChart className="h-7 w-7" />}
-              title={"Total Menus"}
-              subtitle={totalMenus}
-            />
-            <Widget
-              icon={<IoMdHome className="h-6 w-6" />}
-              title={"Total Categories"}
-              subtitle={totalCategories}
-            />
-          </div>
+      <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-3">
+        <Banner1 />
+        <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-6">
+          <Widget
+            icon={<i className="bi bi-exclamation-circle-fill"></i>}
+            title={"Pending Orders"}
+            subtitle={filteredOrderCounts.pending}
+          />
+          <Widget
+            icon={<i className="bi bi-check-circle-fill"></i>}
+            title={"Accepted Orders"}
+            subtitle={filteredOrderCounts.accepted}
+          />
+          <Widget
+            icon={<i className="bi bi-check-circle-fill"></i>}
+            title={"Completed Orders"}
+            subtitle={filteredOrderCounts.completed}
+          />
+          <Widget
+            icon={<i className="bi bi-x-circle-fill"></i>}
+            title={"Cancelled Orders"}
+            subtitle={filteredOrderCounts.cancelled}
+          />
+          <Widget
+            icon={<i className="bi bi-person-plus-fill"></i>}
+            title={"Total Customers"}
+            subtitle={customerContData.totalCustomers}
+          />
+          <Widget
+            icon={<i className="bi bi-person-fill-check"></i>}
+            title={"New Customers"}
+            subtitle={customerContData.newCustomers}
+          />
+          <Widget
+            icon={<i className="bi bi-person-heart"></i>}
+            title={"Loyal Customers"}
+            subtitle={customerContData.loyalCustomers}
+          />
+          <Widget
+            icon={<i className="bi bi-currency-rupee"></i>}
+            title={"Total Revenue"}
+            subtitle={totalRevenue}
+          />
+          <Widget
+            icon={<IoMdHome className="h-6 w-6" />}
+            title={"Avg Revenue/Day"}
+            subtitle={totalRevenue}
+          />
+          <Widget
+            icon={<MdBarChart className="h-7 w-7" />}
+            title={"Total Menus"}
+            subtitle={totalMenus}
+          />
+          <Widget
+            icon={<IoMdHome className="h-6 w-6" />}
+            title={"Total Categories"}
+            subtitle={totalCategories}
+          />
         </div>
+      </div>
+      <div className="mt-3 grid h-full grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
         <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
           <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
             <DailyTraffic />

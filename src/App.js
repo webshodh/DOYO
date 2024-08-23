@@ -68,7 +68,7 @@ function App() {
   return (
     <Router>
       <ErrorBoundary>
-        {!isAdmin && (
+       
           <Routes>
             {/* Login Routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -93,7 +93,7 @@ function App() {
             <Route path="/:hotelName/orders/order-history" element={<OrderHistory />} />
             <Route path="/viewMenu/:hotelName/home/specialMenu" element={<SpecialMenuPage />} />
           </Routes>
-        )}
+        
         {isAdmin && (
           <Layout>
             <Routes>
