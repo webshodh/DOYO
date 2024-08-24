@@ -174,7 +174,7 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
       </div>
 
       {/* Pagination and Rows Per Page Selector */}
-      <div className="flex flex-wrap mt-4 items-center gap-4">
+      <div className="flex flex-wrap mt-4 items-center justify-center gap-4">
         <div className="flex-1">
           <Pagination
             currentPage={currentPage}
@@ -182,20 +182,23 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
             onPageChange={setCurrentPage}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <label htmlFor="rowsPerPage" className="text-sm font-medium">
+         {/* Rows Per Page Selector */}
+         <div>
+          <label htmlFor="rowsPerPage" className="text-sm text-gray-700">
             Rows per page:
           </label>
           <select
             id="rowsPerPage"
-            className="form-select px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             value={rowsPerPage}
-            onChange={handleRowsPerPageChange}
+            onChange={(e) => {
+              setRowsPerPage(Number(e.target.value));
+              setCurrentPage(1); // Reset to first page when changing rows per page
+            }}
+            className="ml-2 border border-gray-300 rounded p-1 text-sm"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>
-            <option value={20}>20</option>
           </select>
         </div>
       </div>

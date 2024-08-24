@@ -86,7 +86,7 @@ function ViewMenu() {
     );
     if (confirmDelete) {
       // Delete the menu
-      remove(ref(db, `/hotels/${hotelName}/menu/${menuId}`));
+      remove(ref(db, `/hotels/${hotelName}/menu/${menuId}/`));
 
       toast.success("Menu Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,

@@ -7,131 +7,40 @@ import "../../styles/AddCategory.css";
 import { PageTitle } from "../../Atoms";
 import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
-import styled from "styled-components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
-
-// Input field
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-// Button styles
-const Button = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
-  margin-right: 10px;
-`;
-
-// Background Card
-const BackgroundCard = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-`;
 
 function AddCategory() {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
   const [tempCategoryId, setTempCategoryId] = useState("");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const { hotelName } = useHotelContext();
   const auth = getAuth();
-  const currentAdminId = auth.currentUser?.uid;
-  const adminID = currentAdminId;
-  const handleCategoryNameChange = (e) => {
-    setCategoryName(e.target.value);
-  };
+  const adminID = auth.currentUser?.uid;
 
-  // useEffect(() => {
-  //   onValue(
-  //     ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/`),
-  //     (snapshot) => {
-  //       setCategories([]);
-  //       const data = snapshot.val();
-  //       if (data !== null) {
-  //         const categoryArray = Object.values(data);
-  //         setCategories(categoryArray);
-  //       }
-  //     }
-  //   );
-  // }, [hotelName]);
-
-  // const addCategoryToDatabase = () => {
-  //   const categoryId = uid();
-  //   set(ref(db, `/admins/${adminID}/hotels/${hotelName}/categories/${categoryId}`), {
-  //     categoryName,
-  //     categoryId,
-  //   });
-
-  //   setCategoryName("");
-  //   toast.success("Category Added Successfully !", {
-  //     position: toast.POSITION.TOP_RIGHT,
-  //   });
-  // };
-
-  // const handleUpdateCategory = (category) => {
-  //   setIsEdit(true);
-  //   setTempCategoryId(category.categoryId);
-  //   setCategoryName(category.categoryName);
-  // };
-
-  // const handleSubmitCategoryChange = () => {
-  //   if (window.confirm("confirm update")) {
-  //     update(ref(db, `/${hotelName}/categories/${tempCategoryId}`), {
-  //       categoryName,
-  //       categoryId: tempCategoryId,
-  //     });
-  //     toast.success("Category Updated Successfully !", {
-  //       position: toast.POSITION.TOP_RIGHT,
-  //     });
-  //   }
-  //   setCategoryName("");
-  //   setIsEdit(false);
-  // };
-
-  // const handleDeleteCategory = (category) => {
-  //   if (window.confirm("confirm delete")) {
-  //     remove(ref(db, `/${hotelName}/categories/${category.categoryId}`));
-  //     toast.error("Category Deleted Successfully !", {
-  //       position: toast.POSITION.TOP_RIGHT,
-  //     });
-  //   }
-  // };
-
-
-  // Convert customerInfo to an array and add serial numbers
-  
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
-      setCategories([]);
       const data = snapshot.val();
-      if (data !== null) {
-        const categoryArray = Object.values(data);
-        setCategories(categoryArray);
+      if (data) {
+        setCategories(Object.values(data));
+      } else {
+        setCategories([]);
       }
     });
   }, [hotelName]);
-  
+
+  const handleCategoryNameChange = (e) => setCategoryName(e.target.value);
+
   const addCategoryToDatabase = async () => {
     const categoryId = uid();
     try {
-      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
-      const adminHotelUuid = uuidSnapshot.val();
-  
-      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
-      const generalHotelUuid = generalUuidSnapshot.val();
-  
+      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+      ]);
+
       if (adminHotelUuid === generalHotelUuid) {
         await set(ref(db, `/hotels/${hotelName}/categories/${categoryId}`), {
           categoryName,
@@ -153,15 +62,14 @@ function AddCategory() {
       });
     }
   };
-  
+
   const handleUpdateCategory = async (category) => {
     try {
-      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
-      const adminHotelUuid = uuidSnapshot.val();
-  
-      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
-      const generalHotelUuid = generalUuidSnapshot.val();
-  
+      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+      ]);
+
       if (adminHotelUuid === generalHotelUuid) {
         setIsEdit(true);
         setTempCategoryId(category.categoryId);
@@ -175,15 +83,14 @@ function AddCategory() {
       console.error("Error preparing category update:", error);
     }
   };
-  
+
   const handleSubmitCategoryChange = async () => {
     try {
-      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
-      const adminHotelUuid = uuidSnapshot.val();
-  
-      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
-      const generalHotelUuid = generalUuidSnapshot.val();
-  
+      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+      ]);
+
       if (adminHotelUuid === generalHotelUuid) {
         if (window.confirm("Confirm update")) {
           await update(ref(db, `/hotels/${hotelName}/categories/${tempCategoryId}`), {
@@ -208,15 +115,14 @@ function AddCategory() {
       });
     }
   };
-  
+
   const handleDeleteCategory = async (category) => {
     try {
-      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
-      const adminHotelUuid = uuidSnapshot.val();
-  
-      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
-      const generalHotelUuid = generalUuidSnapshot.val();
-  
+      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+      ]);
+
       if (adminHotelUuid === generalHotelUuid) {
         if (window.confirm("Confirm delete")) {
           await remove(ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`));
@@ -236,56 +142,72 @@ function AddCategory() {
       });
     }
   };
-  
-  const categoriesArray = Object.values(categories).map((category, index) => ({
-    srNo: index + 1, // Serial number (1-based index)
-    ...category,
-  }));
-  const columns = ViewCategoryColumns; // Ensure this matches the expected format
-  console.log("categories", categoriesArray);
+
+  const filteredCategories = categories
+    .filter((category) => category.categoryName.toLowerCase().includes(searchTerm.toLowerCase()))
+    .map((category, index) => ({
+      srNo: index + 1, // Serial number (1-based index)
+      ...category,
+    }));
+
+  const columns = ViewCategoryColumns;
+
   return (
     <>
-      <div className="background-card" style={{ padding: "40px" }}>
+      <div className="bg-white p-10 rounded-lg shadow-md">
         <PageTitle pageTitle={"Add Category"} />
-        <Input
+        <input
           type="text"
           value={categoryName}
           onChange={handleCategoryNameChange}
           placeholder="Enter Category Name"
+          className="w-full p-3 border mb-4 rounded-md"
         />
         {isEdit ? (
           <>
-            <Button primary onClick={handleSubmitCategoryChange}>
+            <button onClick={handleSubmitCategoryChange} className="bg-green-500 text-white p-3 rounded-md mr-2">
               Submit Change
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={() => {
                 setIsEdit(false);
                 setCategoryName("");
               }}
+              className="bg-red-500 text-white p-3 rounded-md"
             >
               Cancel
-            </Button>
-            <ToastContainer />
+            </button>
           </>
         ) : (
-          <>
-            <Button primary onClick={addCategoryToDatabase}>
-              Submit
-            </Button>
-            <ToastContainer />
-          </>
+          <button onClick={addCategoryToDatabase} className="bg-green-500 text-white p-3 rounded-md">
+            Submit
+          </button>
         )}
+        <ToastContainer />
       </div>
-      <BackgroundCard>
+
+      <div className="bg-white p-10 rounded-lg shadow-md mt-10">
         <PageTitle pageTitle={"View Categories"} />
+        <div className="mb-6">
+          <label htmlFor="SearchByName" className="block font-semibold mb-2">
+            Search by Name
+          </label>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            id="SearchByName"
+            className="w-full p-3 border rounded-md"
+            placeholder="Search by Category Name"
+          />
+        </div>
         <DynamicTable
           columns={columns}
-          data={categoriesArray}
+          data={filteredCategories}
           onEdit={handleUpdateCategory}
           onDelete={handleDeleteCategory}
         />
-      </BackgroundCard>
+      </div>
     </>
   );
 }

@@ -4,68 +4,59 @@ import { uid } from "uid";
 import { set, ref, onValue, remove, update } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import { PageTitle } from "../../Atoms";
-import { ViewRoleColumns, ViewSectionColumns } from "../../data/Columns";
+import { ViewRoleColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
-import styled from "styled-components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 
+// Tailwind Input and Button components
+const Input = ({ value, onChange, placeholder }) => (
+  <input
+    type="text"
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    className="w-full p-2 mb-4 border border-gray-300 rounded"
+  />
+);
 
-// Input field
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-// Button styles
-const Button = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
-  margin-right: 10px;
-`;
-
-// Background Card
-const BackgroundCard = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-`;
+const Button = ({ primary, onClick, children }) => (
+  <button
+    onClick={onClick}
+    className={`p-2 rounded text-white ${
+      primary ? "bg-green-500" : "bg-red-500"
+    } mr-2`}
+  >
+    {children}
+  </button>
+);
 
 function AddRole() {
   const [roleName, setRoleName] = useState("");
   const [roles, setRoles] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
   const [tempRoleId, setTempRoleId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { hotelName } = useHotelContext();
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
-  const handleRoleNameChange = (e) => {
-    setRoleName(e.target.value);
-  };
+
+  const handleRoleNameChange = (e) => setRoleName(e.target.value);
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   useEffect(() => {
     onValue(
       ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/`),
       (snapshot) => {
-        setRoles([]);
         const data = snapshot.val();
-        if (data !== null) {
-          const sectionArray = Object.values(data);
-          setRoles(sectionArray);
+        if (data) {
+          setRoles(Object.values(data));
         }
       }
     );
-  }, [hotelName]);
+  }, [hotelName, adminID]);
 
   const addRoleToDatabase = () => {
     const roleId = uid();
@@ -73,9 +64,8 @@ function AddRole() {
       roleName,
       roleId,
     });
-
     setRoleName("");
-    toast.success("Role Added Successfully !", {
+    toast.success("Role Added Successfully!", {
       position: toast.POSITION.TOP_RIGHT,
     });
   };
@@ -87,40 +77,42 @@ function AddRole() {
   };
 
   const handleSubmitRoleChange = () => {
-    if (window.confirm("confirm update")) {
-      update(ref(db, `/${hotelName}/roles/${tempRoleId}`), {
+    if (window.confirm("Confirm update")) {
+      update(ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${tempRoleId}`), {
         roleName,
         roleId: tempRoleId,
       });
-      toast.success("Role Updated Successfully !", {
+      toast.success("Role Updated Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
+      setRoleName("");
+      setIsEdit(false);
     }
-    setRoleName("");
-    setIsEdit(false);
   };
 
   const handleDeleteRole = (role) => {
-    if (window.confirm("confirm delete")) {
-      remove(ref(db, `/${hotelName}/roles/${role.roleId}`));
-      toast.error("Role Deleted Successfully !", {
+    if (window.confirm("Confirm delete")) {
+      remove(ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${role.roleId}`));
+      toast.error("Role Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
   };
-  // Convert customerInfo to an array and add serial numbers
-  const rolesArray = Object.values(roles).map((role, index) => ({
-    srNo: index + 1, // Serial number (1-based index)
+
+  const filteredRoles = roles.filter((role) =>
+    role.roleName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const rolesArray = filteredRoles.map((role, index) => ({
+    srNo: index + 1,
     ...role,
   }));
-  const columns = ViewRoleColumns; // Ensure this matches the expected format
-  console.log("roles", rolesArray);
+
   return (
     <>
-      <div className="background-card" style={{ padding: "40px" }}>
-        <PageTitle pageTitle={"Add Roles"} />
+      <div className="bg-white rounded shadow p-10">
+        <PageTitle pageTitle="Add Roles" />
         <Input
-          type="text"
           value={roleName}
           onChange={handleRoleNameChange}
           placeholder="Enter Role Name"
@@ -130,34 +122,30 @@ function AddRole() {
             <Button primary onClick={handleSubmitRoleChange}>
               Submit Change
             </Button>
-            <Button
-              onClick={() => {
-                setIsEdit(false);
-                setRoleName("");
-              }}
-            >
+            <Button onClick={() => setIsEdit(false) && setRoleName("")}>
               Cancel
             </Button>
-            <ToastContainer />
           </>
         ) : (
-          <>
-            <Button primary onClick={addRoleToDatabase}>
-              Submit
-            </Button>
-            <ToastContainer />
-          </>
+          <Button primary onClick={addRoleToDatabase}>Submit</Button>
         )}
+        <ToastContainer />
       </div>
-      <BackgroundCard style={{ padding: "40px" }}>
-        <PageTitle pageTitle={"View Roles"} />
+
+      <div className="bg-white rounded shadow p-10 mt-10">
+        <PageTitle pageTitle="View Roles" />
+        <Input
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search Roles"
+        />
         <DynamicTable
-          columns={columns}
+          columns={ViewRoleColumns}
           data={rolesArray}
           onEdit={handleUpdateRole}
           onDelete={handleDeleteRole}
         />
-      </BackgroundCard>
+      </div>
     </>
   );
 }

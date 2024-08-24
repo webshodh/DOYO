@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
 import { db } from "../../data/firebase/firebaseConfig";
 import { ref, onValue, remove } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
@@ -28,6 +29,7 @@ function ViewStaff() {
   const hotelName = "Atithi"; // Replace with dynamic value if needed
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
+  const navigate = useNavigate(); // Initialize navigate function for redirection
 
   // Fetch staff data from database
   useEffect(() => {
@@ -41,7 +43,7 @@ function ViewStaff() {
         setStaff([]); // Clear staff if none exist
       }
     });
-console.log('staff', staff)
+
     // Cleanup listener on component unmount
     return () => unsubscribe();
   }, [hotelName, currentAdminId]);
@@ -77,16 +79,21 @@ console.log('staff', staff)
     setSearchTerm(e.target.value);
   };
 
-  const handleDelete = (staffId) => {
+  const handleDelete = (staff) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this staff member?");
     if (confirmDelete) {
       // Delete the staff member
-      remove(ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/staff/${staffId}`));
+      remove(ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/staff/${staff.staffId}`));
 
       toast.success("Staff Member Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
+  };
+
+  const handleEdit = (staffMember) => {
+    // Navigate to AddStaff page with staff details as state
+    navigate("/addstaff", { state: { staff: staffMember } });
   };
 
   const filterAndSortItems = () => {
@@ -110,19 +117,24 @@ console.log('staff', staff)
   const handleRoleFilter = (role) => {
     setSelectedRole(role);
   };
-console.log('filteredAndSortedItems', filteredAndSortedItems)
-  // Prepare data for the table
 
+  // Prepare data for the table
   const data = filteredAndSortedItems.map((item, index) => ({
     "Sr.No": index + 1,
     "FirstName": item.firstName,
     "LastName": item.lastName,
-    "upiId":item.upiId,
+    "upiId": item.upiId,
     "Role": item.role,
     "Actions": (
       <>
         <button
-          className="btn btn-danger btn-sm"
+          className="btn btn-primary btn-sm"
+          onClick={() => handleEdit(item)}
+        >
+          Edit
+        </button>
+        <button
+          className="btn btn-danger btn-sm ml-2"
           onClick={() => handleDelete(item.id)}
         >
           <img src="/delete.png" width="20px" height="20px" alt="Delete" />
@@ -132,7 +144,6 @@ console.log('filteredAndSortedItems', filteredAndSortedItems)
   }));
 
   const columns = ViewStaffColumns;
-  console.log('data', data)
 
   return (
     <>
@@ -192,6 +203,7 @@ console.log('filteredAndSortedItems', filteredAndSortedItems)
           <DynamicTable
             columns={columns}
             data={data}
+            onEdit={handleEdit}
             onDelete={handleDelete}
           />
         </BackgroundCard>

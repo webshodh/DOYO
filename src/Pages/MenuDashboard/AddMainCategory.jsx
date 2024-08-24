@@ -3,52 +3,23 @@ import { db } from "../../data/firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
-import "../../styles/AddCategory.css";
 import { PageTitle } from "../../Atoms";
 import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
-import styled from "styled-components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
-
-// Input field
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-// Button styles
-const Button = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
-  margin-right: 10px;
-`;
-
-// Background Card
-const BackgroundCard = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-`;
 
 function AddMainCategory() {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
   const [tempCategoryId, setTempCategoryId] = useState("");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const { hotelName } = useHotelContext();
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
+
   const handleCategoryNameChange = (e) => {
     setCategoryName(e.target.value);
   };
@@ -63,16 +34,15 @@ function AddMainCategory() {
       }
     });
   }, [hotelName]);
-  
+
   const addCategoryToDatabase = async () => {
     const categoryId = uid();
     try {
       const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
       const adminHotelUuid = uuidSnapshot.val();
-  
       const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
       const generalHotelUuid = generalUuidSnapshot.val();
-  
+
       if (adminHotelUuid === generalHotelUuid) {
         await set(ref(db, `/hotels/${hotelName}/Maincategories/${categoryId}`), {
           categoryName,
@@ -94,15 +64,14 @@ function AddMainCategory() {
       });
     }
   };
-  
+
   const handleUpdateCategory = async (category) => {
     try {
       const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
       const adminHotelUuid = uuidSnapshot.val();
-  
       const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
       const generalHotelUuid = generalUuidSnapshot.val();
-  
+
       if (adminHotelUuid === generalHotelUuid) {
         setIsEdit(true);
         setTempCategoryId(category.categoryId);
@@ -116,15 +85,14 @@ function AddMainCategory() {
       console.error("Error preparing category update:", error);
     }
   };
-  
+
   const handleSubmitCategoryChange = async () => {
     try {
       const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
       const adminHotelUuid = uuidSnapshot.val();
-  
       const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
       const generalHotelUuid = generalUuidSnapshot.val();
-  
+
       if (adminHotelUuid === generalHotelUuid) {
         if (window.confirm("Confirm update")) {
           await update(ref(db, `/hotels/${hotelName}/Maincategories/${tempCategoryId}`), {
@@ -149,15 +117,14 @@ function AddMainCategory() {
       });
     }
   };
-  
+
   const handleDeleteCategory = async (category) => {
     try {
       const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
       const adminHotelUuid = uuidSnapshot.val();
-  
       const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
       const generalHotelUuid = generalUuidSnapshot.val();
-  
+
       if (adminHotelUuid === generalHotelUuid) {
         if (window.confirm("Confirm delete")) {
           await remove(ref(db, `/hotels/${hotelName}/Maincategories/${category.categoryId}`));
@@ -177,56 +144,84 @@ function AddMainCategory() {
       });
     }
   };
-  
-  const categoriesArray = Object.values(categories).map((category, index) => ({
-    srNo: index + 1, // Serial number (1-based index)
-    ...category,
-  }));
+
+  const categoriesArray = Object.values(categories)
+    .map((category, index) => ({
+      srNo: index + 1, // Serial number (1-based index)
+      ...category,
+    }))
+    .filter((category) =>
+      category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
   const columns = ViewCategoryColumns; // Ensure this matches the expected format
-  console.log("categories", categoriesArray);
+
   return (
     <>
-      <div className="background-card" style={{ padding: "40px" }}>
+      <div className="p-10 bg-white rounded-lg shadow-md">
         <PageTitle pageTitle={"Add Special Category"} />
-        <Input
+        <input
           type="text"
           value={categoryName}
           onChange={handleCategoryNameChange}
           placeholder="Enter Category Name"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
         />
         {isEdit ? (
           <>
-            <Button primary onClick={handleSubmitCategoryChange}>
+            <button
+              onClick={handleSubmitCategoryChange}
+              className="px-5 py-2 text-white bg-green-500 rounded-md mr-2"
+            >
               Submit Change
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={() => {
                 setIsEdit(false);
                 setCategoryName("");
               }}
+              className="px-5 py-2 text-white bg-red-500 rounded-md"
             >
               Cancel
-            </Button>
+            </button>
             <ToastContainer />
           </>
         ) : (
           <>
-            <Button primary onClick={addCategoryToDatabase}>
+            <button
+              onClick={addCategoryToDatabase}
+              className="px-5 py-2 text-white bg-green-500 rounded-md"
+            >
               Submit
-            </Button>
+            </button>
             <ToastContainer />
           </>
         )}
       </div>
-      <BackgroundCard>
+
+      <div className="p-10 mt-6 bg-white rounded-lg shadow-md">
         <PageTitle pageTitle={"View Categories"} />
+        {/* Search Bar */}
+        <div className="mb-6">
+          <label htmlFor="SearchByName" className="block font-semibold mb-2">
+            Search by Name
+          </label>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            id="SearchByName"
+            className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search by Category Name"
+          />
+        </div>
         <DynamicTable
           columns={columns}
           data={categoriesArray}
           onEdit={handleUpdateCategory}
           onDelete={handleDeleteCategory}
         />
-      </BackgroundCard>
+      </div>
     </>
   );
 }
