@@ -83,7 +83,7 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
   }, [filteredData, currentPage, rowsPerPage]);
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="mx-auto p-4">
       {title && (
         <CardTitle title={title} />
       )}

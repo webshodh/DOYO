@@ -137,7 +137,7 @@ console.log('filteredAndSortedItems', filteredAndSortedItems)
   return (
     <>
       <PageTitle />
-      <div className="container mt-2">
+      <div className="mt-2">
         <div className="row">
           <div className="col-12">
             <div className="d-flex flex-wrap justify-content-start">
@@ -185,7 +185,7 @@ console.log('filteredAndSortedItems', filteredAndSortedItems)
         </div>
       </div>
 
-      <div className="container mt-2">
+      <div className="mt-2">
         <FilterSortSearch searchTerm={searchTerm} handleSearch={handleSearch} />
         <BackgroundCard>
           <PageTitle pageTitle={"View Staff"} />

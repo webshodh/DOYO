@@ -209,7 +209,7 @@ function AdminDashboard() {
 
       <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-3">
         <Banner1 />
-        <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-6">
+        <div className="mt-5 grid grid-cols-2 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-6">
           <Widget
             icon={<i className="bi bi-exclamation-circle-fill"></i>}
             title={"Pending Orders"}

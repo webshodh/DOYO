@@ -1,120 +1,50 @@
-// UserLogin.js
-import React, { useState } from "react";
-import {
-  auth,
-  googleProvider,
-  signInWithPhoneNumber,
-  signInWithPopup,
-} from "../../data/firebase/firebaseConfig";
-import { RecaptchaVerifier } from "firebase/auth";
-import { Button, Form, InputGroup, FormControl } from "react-bootstrap"; // Import from react-bootstrap
-import { useNavigate } from "react-router-dom";
+// import React, { useState, useEffect } from "react";
+// import { useNavigate } from "react-router-dom";
+// import { useMobileLoginAuth } from "../../Context/MobileLoginAuthProvider"; // Adjust the path as needed
 
-const UserLogin = () => {
-  // const [phoneNumber, setPhoneNumber] = useState("");
-  // const [verificationCode, setVerificationCode] = useState("");
-  // const [isCodeSent, setIsCodeSent] = useState(false);
-  const navigate = useNavigate();
-  const hotelName = "Atithi";
-  // const setupRecaptcha = () => {
-  //   window.recaptchaVerifier = new RecaptchaVerifier(
-  //     "recaptcha-container",
-  //     {
-  //       size: "invisible",
-  //       callback: (response) => {
-  //         // Recaptcha resolved
-  //       },
-  //     },
-  //     auth
-  //   );
-  // };
+// function UserLogin() {
+//   const [name, setName] = useState("");
+//   const [mobile, setMobile] = useState("");
+//   const navigate = useNavigate();
+//   const [hotelName, setHotelName] = useState("");
+//   const { loginUser } = useMobileLoginAuth();
 
-  // const handleLoginWithPhone = async (e) => {
-  //   e.preventDefault();
-  //   setupRecaptcha();
+//   useEffect(() => {
+//     const path = window.location.pathname;
+//     const pathSegments = path.split("/");
+//     const hotelNameFromPath = pathSegments[pathSegments.length - 3];
+//     setHotelName(hotelNameFromPath);
+//   }, []);
 
-  //   const appVerifier = window.recaptchaVerifier;
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     loginUser(name, mobile, hotelName);
+//     navigate(`/viewMenu/${hotelName}/home`);
+//   };
 
-  //   try {
-  //     const confirmationResult = await signInWithPhoneNumber(
-  //       auth,
-  //       phoneNumber,
-  //       appVerifier
-  //     );
-  //     window.confirmationResult = confirmationResult;
-  //     setIsCodeSent(true);
-  //   } catch (error) {
-  //     console.error("Error during signInWithPhoneNumber", error);
-  //   }
-  // };
+//   return (
+//     <form onSubmit={handleSubmit}>
+//       <div>
+//         <label>Name:</label>
+//         <input
+//           type="text"
+//           value={name}
+//           onChange={(e) => setName(e.target.value)}
+//           required
+//         />
+//       </div>
+//       <div>
+//         <label>Mobile Number:</label>
+//         <input
+//           type="text"
+//           value={mobile}
+//           onChange={(e) => setMobile(e.target.value)}
+//           required
+//         />
+//       </div>
+//       <button type="submit">Register/Login</button>
+//     </form>
+//   );
+// }
 
-  // const handleVerifyCode = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const confirmationResult = window.confirmationResult;
-  //     await confirmationResult.confirm(verificationCode);
-  //     alert("Successfully logged in!");
-  //   } catch (error) {
-  //     console.error("Error during verification", error);
-  //   }
-  // };
-
-  const handleLoginWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      alert("Successfully logged in with Google!");
-      navigate(`/viewMenu/${hotelName}`);
-    } catch (error) {
-      console.error("Error during signInWithPopup", error);
-    }
-  };
-
-  return (
-    <div className="login-container">
-      <h2>Login</h2>
-      {/* <div id="recaptcha-container"></div>
-
-      {!isCodeSent ? (
-        <Form onSubmit={handleLoginWithPhone}>
-          <InputGroup className="mb-3">
-            <FormControl
-              type="text"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter your phone number"
-              required
-            />
-          </InputGroup>
-          <Button type="submit" variant="primary">
-            Send Verification Code
-          </Button>
-        </Form>
-      ) : (
-        <Form onSubmit={handleVerifyCode}>
-          <InputGroup className="mb-3">
-            <FormControl
-              type="text"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              placeholder="Enter the verification code"
-              required
-            />
-          </InputGroup>
-          <Button type="submit" variant="primary">
-            Verify Code
-          </Button>
-        </Form>
-      )} */}
-
-      <Button
-        onClick={handleLoginWithGoogle}
-        variant="secondary"
-        className="mt-3"
-      >
-        Login with Google
-      </Button>
-    </div>
-  );
-};
-
-export default UserLogin;
+// export default UserLogin;

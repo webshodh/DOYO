@@ -210,70 +210,73 @@ function ViewMenu() {
   console.log("data", data);
   return (
     <>
-    <div>
-      <PageTitle />
-      <div className="container  px-4">
-      <div className="mt-4">
-        <div className="overflow-x-auto">
-          <div className="flex flex-wrap space-x-2 overflow-x-auto">
-            <div
-              className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
-              onClick={() => handleCategoryFilter("")}
-            >
-              <div className="flex items-center">
-                All{" "}
-                <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
-                  {Object.values(menuCountsByCategory).reduce((a, b) => a + b, 0)}
-                </span>
-              </div>
-            </div>
-            {categories
-              .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
-              .map((item) => (
+      <div>
+        <PageTitle />
+        <div className="">
+          <div className="mt-4">
+            <div className="overflow-x-auto">
+              <div className="flex flex-wrap space-x-2 overflow-x-auto">
                 <div
                   className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
-                  key={item.id}
-                  onClick={() => handleCategoryFilter(item.categoryName)}
+                  onClick={() => handleCategoryFilter("")}
                 >
                   <div className="flex items-center">
-                    {item.categoryName}{" "}
+                    All{" "}
                     <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
-                      {menuCountsByCategory[item.categoryName]}
+                      {Object.values(menuCountsByCategory).reduce(
+                        (a, b) => a + b,
+                        0
+                      )}
                     </span>
                   </div>
                 </div>
-              ))}
+                {categories
+                  .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
+                  .map((item) => (
+                    <div
+                      className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
+                      key={item.id}
+                      onClick={() => handleCategoryFilter(item.categoryName)}
+                    >
+                      <div className="flex items-center">
+                        {item.categoryName}{" "}
+                        <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
+                          {menuCountsByCategory[item.categoryName]}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center space-x-4 mb-4">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearch}
+                placeholder="Search..."
+                className="w-full py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
+              <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <FaSearch />
+              </button>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4">View Menu</h2>
+              {/* DynamicTable and BackgroundCard are assumed to be custom components */}
+              <DynamicTable
+                columns={columns}
+                data={data}
+                onEdit={handleShow}
+                onDelete={handleDelete}
+              />
+            </div>
           </div>
         </div>
       </div>
-
-      <div className="mt-4">
-        <div className="flex items-center space-x-4 mb-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearch}
-            placeholder="Search..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <FaSearch />
-          </button>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">View Menu</h2>
-          {/* DynamicTable and BackgroundCard are assumed to be custom components */}
-          <DynamicTable
-            columns={columns}
-            data={data}
-            onEdit={handleShow}
-            onDelete={handleDelete}
-          />
-        </div>
-      </div>
-    </div>
-    </div>
       <ToastContainer />
     </>
   );

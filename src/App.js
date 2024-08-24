@@ -75,7 +75,7 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/user/login" element={<UserLogin />} />
+            <Route path="/viewMenu/:hotelName/login/user-login" element={<UserLogin />} />
             <Route path="/" element={<Navigate to="/login" />} />
 
             {/* User Routes */}

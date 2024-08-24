@@ -48,7 +48,7 @@ console.log('customerDataArray', completedOrders)
           pageTitle={`Customers (${customerContData.totalCustomers})`}
         />
       </div>
-      <div className="container mt-2">
+      <div className=" mt-2">
         <FilterSortSearch
           searchTerm={searchTerm}
           handleSearch={handleSearch}

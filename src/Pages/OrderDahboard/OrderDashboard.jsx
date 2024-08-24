@@ -289,7 +289,7 @@ const OrderDashboard = () => {
           </button>
         </div>
       </div>
-      <div className="container mx-auto px-4 py-6">
+      <div className=" mx-auto  py-6">
       <TabButtons tabs={tabs} />
       </div>
       <Modal show={showPopup} onHide={() => setShowPopup(false)}>
