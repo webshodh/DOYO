@@ -32,7 +32,7 @@ import DailyOrders from "srcV2/views/admin/default/components/DailyOrders";
 // Filter functions
 const filterDataByDateRange = (data, startDate, endDate) => {
   return data.filter((item) => {
-    const itemDate = new Date(item.checkoutData.date);
+    const itemDate = new Date(item.checkoutData?.date);
     return itemDate >= startDate && itemDate <= endDate;
   });
 };

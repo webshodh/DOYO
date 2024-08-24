@@ -15,7 +15,7 @@ import TabButtons from "components/TabButtons";
 // Filter functions
 const filterDataByDateRange = (data, startDate, endDate) => {
   return data.filter((item) => {
-    const itemDate = new Date(item.checkoutData.date);
+    const itemDate = new Date(item.checkoutData?.date);
     return itemDate >= startDate && itemDate <= endDate;
   });
 };
@@ -84,7 +84,7 @@ const OrderDashboard = () => {
 
         Object.keys(data).forEach((orderId) => {
           const order = data[orderId].orderData; // Access orderData directly
-          const status = order.status || "Pending";
+          const status = order?.status || "Pending";
 
           if (status === "Pending") {
             pendingOrders.push({ ...order, orderId });
