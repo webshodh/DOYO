@@ -40,9 +40,9 @@ import {
 import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
 import PredictionDashboard from "./Pages/AI Prediction/PredictionDashboard";
-import UserLogin from "./Pages/Login/UserLogin";
 import GoogleLogin from "./Pages/Login/GoogleLogin";
 import Dashboard from "Pages/Dashboard";
+import UserLogin from "Pages/Login/UserLogin";
 
 
 function App() {
@@ -81,7 +81,8 @@ function App() {
             {/* User Routes */}
            
             <Route path="/viewMenu/:hotelName/welcome" element={<WelcomeScreen />} />
-            <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <GoogleLogin />} />
+            <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <UserLogin />} />
+            {/* <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <Home />} /> */}
             <Route path="/viewMenu/:hotelName/home" element={ <Home />} />
             <Route path="/:hotelName/feedback" element={''} />
             <Route path="/:hotelName/cart/cart-details" element={<CartDetails />} />

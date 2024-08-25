@@ -12,7 +12,7 @@ const CustomersDashboard = () => {
   const { hotelName } = useHotelContext();
 
   const { completedOrders, loading, error } = useCompletedOrders(hotelName);
-  const { customerDataArray, customerContData } =
+  const { customerDataArray, customerCountData } =
     useCustomerData(completedOrders);
 
   if (loading) return <div>Loading...</div>;
@@ -40,12 +40,11 @@ const CustomersDashboard = () => {
   };
 
   const columns = customersColumns;
-console.log('customerDataArray', completedOrders)
   return (
     <>
-      <div style={{marginTop:'70px'}}>
+      <div style={{ marginTop: "70px" }}>
         <PageTitle
-          pageTitle={`Customers (${customerContData.totalCustomers})`}
+          pageTitle={`Customers (${customerCountData.totalCustomers})`}
         />
       </div>
       <div className=" mt-2">

@@ -1,12 +1,17 @@
+import { UserContext } from "Context/UserContext";
 import React, { useContext, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { UserAuthContext } from "../../Context/UserAuthContext";
+// import { UserAuthContext } from "../../Context/UserAuthContext";
 
 const Navbar = ({ title }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { currentUser, loading } = useContext(UserAuthContext);
-
+  // const { currentUser, loading } = useContext(UserAuthContext);
+  const { user } = useContext(UserContext);
+console.log("user", user)
+  if (!user) {
+    return <div>Please log in</div>;
+  }
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -21,22 +26,20 @@ const Navbar = ({ title }) => {
     }
     return nameParts[0].charAt(0).toUpperCase() + nameParts[1].charAt(0).toUpperCase(); // Return initials from first and last name
   };
-  console.log('currentUser', currentUser)
   const userProfile = {
-    name: currentUser.displayName || 'User',
-    email: currentUser.email || 'No email provided',
+    name: user.name || 'User',
+    mobile: user.mobile || 'No mobile provided',
     totalOrders: 25,
-    initial: getInitials(currentUser.displayName) 
+    initial: getInitials(user.name) 
   };
   
-  if (loading) {
-    return <div className="text-center">Loading...</div>;
-  }
+  // if (loading) {
+  //   return <div className="text-center">Loading...</div>;
+  // }
 
-  if (!currentUser) {
+  if (!user) {
     return <div className="text-center">Please log in</div>;
   }
-  
   return (
     <>
       <div className="bg-orange-500 text-white p-2 flex justify-between items-center relative">
@@ -64,7 +67,7 @@ const Navbar = ({ title }) => {
             {userProfile.initial}
           </div>
           <h4 className="text-lg font-semibold">{userProfile.name}</h4>
-          <p className="text-gray-600 text-sm">{userProfile.email}</p>
+          <p className="text-gray-600 text-sm">{userProfile.mobile}</p>
           <p className="text-gray-600 text-sm">Total Orders: {userProfile.totalOrders}</p>
           <button className="bg-orange-500 text-white px-4 py-2 rounded mt-4">Update Profile</button>
         </div>

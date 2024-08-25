@@ -55,10 +55,10 @@ export const ViewTableColumns = [
 export const customersColumns = [
   { header: "Sr.No", accessor: "srNo" },
   { header: "Customer Name", accessor: "name" },
-  { header: "Mobile Number", accessor: "mobileNo" },
+  { header: "Mobile Number", accessor: "mobile" },
   { header: "Order Count", accessor: "totalOrders" },
   { header: "Order Price", accessor: "totalMenuPrice" },
-  { header: "Last Visit", accessor: "date" },
+  { Header: 'Last Login Date', accessor: 'userLastLoginDate' }
 ];
 
 export const adminsListColumn = [
@@ -92,14 +92,14 @@ export const pendingOrdercolumns = [
   { header: "Sr.No", accessor: "index" },
   { header: "Menu Name", accessor: "menuName" },
   { header: "Quantity", accessor: "quantity" },
-  { header: "Table No", accessor: "tableNo" },
+  { header: "Table No", accessor: "tableNumber" },
   { header: "Name", accessor: "name" },
 ];
 
 export const completedOrderColumn = [
   { header: "Sr.No", accessor: "index" },
   { header: "Name", accessor: "name" },
-  { header: "Table No", accessor: "tableNo" },
+  { header: "Table No", accessor: "tableNumber" },
   { header: "Item Name", accessor: "menuName" },
   { header: "Quantity", accessor: "quantity" },
   { header: "Price", accessor: "menuPrice" },
@@ -110,7 +110,7 @@ export const cancelledOrderColumn = [
   { header: "Sr.No", accessor: "index" },
   { header: "Item Name", accessor: "menuName" },
   { header: "Quantity", accessor: "quantity" },
-  { header: "Table No", accessor: "tableNo" },
+  { header: "Table No", accessor: "tableNumber" },
   { header: "Name", accessor: "name" },
   { header: "Waiter Name", accessor: "waiterName" },
   { header: "Rejection Reason", accessor: "rejectionReason" },
@@ -120,7 +120,7 @@ export const AcceptedOrderColumn = [
   { header: "Sr.No", accessor: "index" },
   { header: "Item Name", accessor: "menuName" },
   { header: "Quantity", accessor: "quantity" },
-  { header: "Table No", accessor: "tableNo" },
+  { header: "Table No", accessor: "tableNumber" },
   { header: "Name", accessor: "name" },
 ];
 

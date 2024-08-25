@@ -6,15 +6,21 @@ import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
 import useOrdersData from "../../data/useOrdersData";
 import { colors } from "../../theme/theme";
-import { UserAuthContext } from "../../Context/UserAuthContext";
+import { UserContext } from "Context/UserContext";
+//import { UserAuthContext } from "../../Context/UserAuthContext";
 
 function TrackOrders() {
   const location = useLocation();
-  const { currentUser, loading } = useContext(UserAuthContext);
+  //const { currentUser, loading } = useContext(UserAuthContext);
+  const { user } = useContext(UserContext);
   const { checkoutData, totalAmount } = location.state || {};
+  // const userInfo = {
+  //   name: currentUser.displayName,
+  //   email: currentUser.email,
+  // };
   const userInfo = {
-    name: currentUser.displayName,
-    email: currentUser.email,
+    name: user.name,
+    email: user.mobile,
   };
   const [hotelName, setHotelName] = useState("");
   const currentDate = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format

@@ -131,7 +131,7 @@ function AdminDashboard() {
     useProcessedCategoryData(filteredCompletedOrders);
 
   const menuDataArray = useProcessedMenuData(filteredCompletedOrders);
-  const { customerDataArray, customerContData } = useCustomerData(
+  const { customerDataArray, customerCountData } = useCustomerData(
     filteredCompletedOrders
   );
   console.log(
@@ -233,17 +233,17 @@ function AdminDashboard() {
           <Widget
             icon={<i className="bi bi-person-plus-fill"></i>}
             title={"Total Customers"}
-            subtitle={customerContData.totalCustomers}
+            subtitle={customerCountData.totalCustomers}
           />
           <Widget
             icon={<i className="bi bi-person-fill-check"></i>}
             title={"New Customers"}
-            subtitle={customerContData.newCustomers}
+            subtitle={customerCountData.newCustomers}
           />
           <Widget
             icon={<i className="bi bi-person-heart"></i>}
             title={"Loyal Customers"}
-            subtitle={customerContData.loyalCustomers}
+            subtitle={customerCountData.loyalCustomers}
           />
           <Widget
             icon={<i className="bi bi-currency-rupee"></i>}

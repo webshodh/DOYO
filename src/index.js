@@ -18,6 +18,7 @@ import { HotelProvider } from "./Context/HotelContext";
 import { injectColorsIntoCSS } from "./theme/InjectColors";
 import { AuthProvider } from "./Context/AuthContext";
 import { UserAuthProvider } from "./Context/UserAuthContext";
+import { UserProvider } from "./Context/UserContext";
 injectColorsIntoCSS();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -26,10 +27,11 @@ root.render(
     <AuthProvider>
       <HotelProvider>
       <UserAuthProvider>
+      <UserProvider>
         <App />
+        </UserProvider>
         </UserAuthProvider>
       </HotelProvider>
-
     </AuthProvider>
   </React.StrictMode>
 );

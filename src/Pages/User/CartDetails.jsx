@@ -8,11 +8,14 @@ import CartCard from "../../components/Cards/CartCard";
 import { Navbar } from "../../components";
 import { colors } from "../../theme/theme";
 import { UserAuthContext } from "../../Context/UserAuthContext";
+import CheckoutForm from "components/Form/CheckoutForm";
+import { UserContext } from "Context/UserContext";
 
 function CartDetails() {
   const location = useLocation();
   const { cartItems: initialCartItems } = location.state || { cartItems: [] };
   const [cartItems, setCartItems] = useState(initialCartItems);
+  const [tableNumber, setTableNumber] = useState(""); // New state for table number
   const [checkoutData, setCheckoutData] = useState(null);
   const navigate = useNavigate();
   const auth = getAuth();
@@ -20,6 +23,7 @@ function CartDetails() {
   const adminID = currentAdminId;
   const [hotelName, setHotelName] = useState("");
   const { currentUser, loading } = useContext(UserAuthContext);
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     const path = window.location.pathname;
@@ -29,8 +33,8 @@ function CartDetails() {
   }, []);
 
   const handleCheckout = async () => {
-    if (loading) {
-      toast.info("Loading user data...", {
+    if (!tableNumber) {
+      toast.error("Please enter your table number.", {
         position: toast.POSITION.TOP_RIGHT,
       });
       return;
@@ -47,9 +51,10 @@ function CartDetails() {
           ...item,
           status: "Pending",
           checkoutData: {
-            name: currentUser.displayName || "Anonymous",
-            email: currentUser.email || "No email provided",
+            name: user.name || "Anonymous",
+            mobile: user.mobile || "No mobile provided",
             date: currentDate,
+            tableNumber: tableNumber, // Added table number
           },
         };
 
@@ -75,11 +80,12 @@ function CartDetails() {
     navigate(`/${hotelName}/orders/details/thank-you`, {
       state: {
         checkoutData: {
-          name: currentUser.displayName || "Anonymous",
-          email: currentUser.email || "No email provided",
+          name: user.name || "Anonymous",
+          mobile: user.mobile || "No mobile provided",
+          tableNumber: tableNumber, // Added table number
         },
         totalAmount: totalAmount,
-        userInfo: { name: currentUser.displayName, email: currentUser.email },
+        userInfo: { name: user.name, mobile: user.mobile },
       },
     });
   };
@@ -134,7 +140,7 @@ function CartDetails() {
           <i
             className="bi bi-arrow-left-square-fill text-orange-500 text-2xl cursor-pointer hover:text-orange-600 transition-colors"
             onClick={handleBack}
-          ></i>
+          ></i> 
           <h5 className="text-lg font-semibold text-gray-800">Cart Summary</h5>
           <span
             className="text-orange-500 cursor-pointer hover:text-orange-600 transition-colors"
@@ -147,7 +153,7 @@ function CartDetails() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cartItems.map((item) => (
             <CartCard
-              key={item.uuid} // Added unique key for each CartCard
+              key={item.uuid}
               item={item}
               onAddQuantity={handleAddQuantity}
               onRemoveQuantity={handleRemoveQuantity}
@@ -158,28 +164,41 @@ function CartDetails() {
 
         {cartItems.length > 0 ? (
           <>
-          <div className="mt-6 space-y-6 md:space-y-0 md:space-x-6 flex flex-col md:flex-row md:justify-center">
-            <div className="bg-white shadow-md rounded-lg p-6 flex flex-col space-y-4 md:w-1/2">
-              <h5 className="text-lg font-semibold text-gray-800">Order Summary</h5>
-              <p className="text-gray-700">Total Items: <b>{cartItems.length}</b></p>
-              <p className="text-gray-700">
-                Total Price: <b>₹ {cartItems.reduce(
-                  (total, item) => total + item.menuPrice * item.quantity,
-                  0
-                )}</b>
-              </p>
+            <div className="mt-6 space-y-6 md:space-y-0 md:space-x-6 flex flex-col md:flex-row md:justify-center">
+              <div className="bg-white shadow-md rounded-lg p-6 flex flex-col space-y-4 md:w-1/2">
+                <h5 className="text-lg font-semibold text-gray-800">Order Summary</h5>
+                <p className="text-gray-700">Total Items: <b>{cartItems.length}</b></p>
+                <p className="text-gray-700">
+                  Total Price: <b>₹ {cartItems.reduce(
+                    (total, item) => total + item.menuPrice * item.quantity,
+                    0
+                  )}</b>
+                </p>
+                {/* Table number input */}
+                <div className="mt-4">
+                  <label htmlFor="tableNumber" className="block text-gray-700 font-medium">
+                    Table Number
+                  </label>
+                  <input
+                    type="text"
+                    id="tableNumber"
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    className="mt-2 p-2 border border-gray-300 rounded-md w-full"
+                    placeholder="Enter your table number"
+                  />
+                </div>
+              </div>
             </div>
-           
-          </div>
-          <div className="d-flex justify-center mt-3">
-           <button
-           onClick={handleCheckout}
-           className="bg-orange-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
-         >
-           Place Order
-         </button>
-         </div>
-         </>
+            <div className="d-flex justify-center mt-3">
+              <button
+                onClick={handleCheckout}
+                className="bg-orange-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+              >
+                Place Order
+              </button>
+            </div>
+          </>
         ) : (
           <div className="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
             No items in cart

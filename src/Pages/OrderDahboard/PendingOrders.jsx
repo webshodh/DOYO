@@ -8,7 +8,7 @@ const PendingOrders = ({ orders, onAccept, onReject, count }) => {
     return orders.map((order, index) => ({
       ...order,
       index: index + 1,
-      tableNo: order.checkoutData.tableNo,
+      tableNumber: order.checkoutData.tableNumber,
       name: order.checkoutData.name,
     }));
   };
