@@ -65,35 +65,26 @@ const HistoryCard = () => {
     {
       label: "Top 5",
       content: (
-        <div className="container mx-auto px-1 py-1">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            {sortedMenuDataArray
-              .slice(0, 5) // Show top 10 items
-              .map(({ menuName, menuCount, imageUrl }, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-start justify-between bg-white p-1 rounded-lg shadow-md hover:shadow-xl dark:bg-navy-800 dark:text-white transition-shadow duration-300"
-                >
-                  <div className=" items-center gap-3 mb-1">
-                    <div className="flex h-20 w-20 items-center justify-center">
-                      <img
-                        className="h-full w-full rounded-lg object-cover"
-                        src={imageUrl}
-                        alt={menuName}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h5 className="text-base font-semibold text-navy-700 dark:text-white">
-                        {menuName}
-                      </h5>
-                      <p className="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
-                        {menuCount}
-                      </p>
-                    </div>
-                  </div>
+        <div>
+          {sortedMenuDataArray
+            .slice(0, 5)
+            .map(({ menuName, menuCount, imageUrl }) => (
+              <div className="flex justify-center p-4">
+              <div className="relative w-24 h-24">
+                <img
+                  src={imageUrl || "/dish.png"}
+                  alt={menuName}
+                  className="w-full h-full object-cover rounded-lg shadow-md"
+                />
+                <span className="absolute bottom-0 left-0 w-full bg-orange-500 text-white text-xs font-bold py-1 px-2 text-center rounded-b-lg">
+                  {menuName}
+                </span>
+                <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 rounded-tr-lg">
+                  {menuCount}
                 </div>
-              ))}
-          </div>
+              </div>
+            </div>
+            ))}
         </div>
       ),
     },
@@ -105,25 +96,18 @@ const HistoryCard = () => {
             {sortedMenuDataArray
               .slice(0, 10) // Show top 10 items
               .map(({ menuName, menuCount, imageUrl }, index) => (
-                <div
-                key={index}
-                className="flex flex-col items-start justify-between bg-white p-1 rounded-lg shadow-md hover:shadow-xl dark:bg-navy-800 dark:text-white transition-shadow duration-300"
-              >
-                <div className=" items-center gap-3 mb-1">
-                  <div className="flex h-20 w-20 items-center justify-center">
-                    <img
-                      className="h-full w-full rounded-lg object-cover"
-                      src={imageUrl}
-                      alt={menuName}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <h5 className="text-base font-semibold text-navy-700 dark:text-white">
-                      {menuName}
-                    </h5>
-                    <p className="mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
-                      {menuCount}
-                    </p>
+                <div className="flex justify-center p-4">
+                <div className="relative w-24 h-24">
+                  <img
+                    src={imageUrl || "/dish.png"}
+                    alt={menuName}
+                    className="w-full h-full object-cover rounded-lg shadow-md"
+                  />
+                  <span className="absolute bottom-0 left-0 w-full bg-orange-500 text-white text-xs font-bold py-1 px-2 text-center rounded-b-lg">
+                    {menuName}
+                  </span>
+                  <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 rounded-tr-lg">
+                    {menuCount}
                   </div>
                 </div>
               </div>

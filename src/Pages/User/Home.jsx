@@ -338,18 +338,7 @@ function Home() {
         </div>
       </div>
 
-      {/* <MenuItemsContainer className="menu-items">
-        {selectedMainCategory &&
-          categorizedMenus[selectedMainCategory].map((item) => (
-            <MenuCard
-              key={item.uuid} // Add a unique key prop for better performance
-              item={item}
-              handleImageLoad={handleImageLoad}
-              addToCart={addToCart}
-              className="menu-card" // Apply the class to the MenuCard component
-            />
-          ))}
-      </MenuItemsContainer> */}
+      
      
       {/* Menu Items */}
       <div
