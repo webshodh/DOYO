@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Button from "react-bootstrap/Button";
 import MenuModal from "../MenuModal";
-import { BiSolidOffer } from "react-icons/bi";
-import { colors } from "../../theme/theme";
 
 const HorizontalMenuCard = ({
   item,
@@ -11,13 +9,11 @@ const HorizontalMenuCard = ({
   addToCart,
   onAddQuantity,
   onRemoveQuantity,
-  specialLabel,
 }) => {
   const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
   const [isAdded, setIsAdded] = useState(false);
   const [quantity, setQuantity] = useState(0);
-  const [isOffer, setIsOffer] = useState(true);
 
   const handleShow = (item) => {
     setModalData(item);
@@ -48,11 +44,9 @@ const HorizontalMenuCard = ({
       ? item.menuName.slice(0, 12) + "..."
       : item.menuName;
 
-  const discountPercentage = item.originalPrice
-    ? Math.round(
-        ((item.originalPrice - item.menuPrice) / item.originalPrice) * 100
-      )
-    : null;
+  // const discountedPrice = item.discount
+  //   ? Math.round((item.menuPrice * (100 - item.discount)) / 100)
+  //   : item.menuPrice;
 
   return (
     <div className="flex bg-white rounded-lg shadow-sm overflow-hidden m-1 cursor-pointer max-w-xs relative">
@@ -64,34 +58,48 @@ const HorizontalMenuCard = ({
           className="w-full h-full object-cover rounded-l-lg"
         />
         {/* Discount Badge */}
-        {/* {discountPercentage > 0 && ( */}
-        <span className="absolute bottom-0 left-0 w-24 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform  origin-bottom">
-          20{discountPercentage}% OFF
-        </span>
-        {/* )} */}
+        {item.discount > 0 && (
+          <span className="absolute bottom-0 left-0 w-24 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom">
+            {item.discount}% OFF
+          </span>
+        )}
         {/* Orange Strip */}
-        {/* {specialLabel && ( */}
-        <div className="absolute top-0 left-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform  origin-bottom">
-          {(specialLabel = "special")}
-        </div>
-        {/* )} */}
+        {item.mainCategory && (
+          <div className="absolute top-0 left-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom">
+            {item.mainCategory}
+          </div>
+        )}
       </div>
-      <div className="flex-1 p-2 flex flex-col justify-between">
+      <div className="flex-1 p-2 flex flex-col justify-between relative">
         <div>
           <div className="d-flex justify-between">
             <h4 className="text-lg font-semibold truncate">
               {truncatedContent}
             </h4>
-            {/* {isOffer && (
-              <BiSolidOffer style={{ color: colors.Red, fontSize: "24px" }} />
-            )} */}
+            {/* Menu Category */}
+            <span className="absolute top-0 right-0 bg-white text-gray-700 text-xs font-bold py-1 px-2 rounded-bl-lg">
+              {item.menuCategory === "Veg" ? (
+                <img src="/veglogo.jpeg" alt={item.menuCategory} width={"18px"} height={"18px"} />
+              ) : item.menuCategory === "Non Veg" ? (
+                <img src="/nonVeglogo.png" alt={item.menuCategory} width={"18px"} height={"18px"} />
+              ) : (
+                ""
+              )}
+            </span>
           </div>
           <div className="flex text-gray-600 mt-1 text-xs">
             <i className="bi bi-stopwatch-fill mr-1 text-orange-500"></i>
             <span>{item.menuCookingTime} min</span>
             <span className="mx-1">|</span>
             <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500"></i>
-            <span>{item.menuPrice}</span>
+            <span>
+              {item.discount && (
+                <span className="line-through mr-1 text-red-500">
+                  {Math.round(item.menuPrice)}
+                </span>
+              )}
+              {item.finalPrice}
+            </span>
           </div>
         </div>
         <div className="mt-2 flex justify-between items-center">

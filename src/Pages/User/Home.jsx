@@ -43,10 +43,11 @@ function Home() {
   const [menuCounts, setMenuCounts] = useState({});
   const [imageLoaded, setImageLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
+  const [activeMainCategory, setActiveMainCategory] = useState("");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
-  const [selectedMainCategory, setSelectedMainCategory] = useState(null);
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
 
@@ -159,6 +160,11 @@ function Home() {
     setActiveCategory(category);
   };
 
+  const handleMainCategoryFilter = (mainCategoryName) => {
+    setSelectedMainCategory(mainCategoryName);
+    setActiveMainCategory(mainCategoryName);
+  };
+
   const filterAndSortItems = () => {
     let filteredItems = filteredMenus.filter((menu) =>
       menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -171,9 +177,10 @@ function Home() {
       );
     }
 
-    if (selectedMainCategory !== null) {
+    if (selectedMainCategory !== "") {
       filteredItems = filteredItems.filter(
         (menu) =>
+          menu.mainCategory &&
           menu.mainCategory.toLowerCase() === selectedMainCategory.toLowerCase()
       );
     }
@@ -223,7 +230,7 @@ function Home() {
       state: { cartItems: cartItems },
     });
   };
-
+  console.log("cartItems", cartItems);
   const handleAddQuantity = (menuId) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
@@ -247,26 +254,7 @@ function Home() {
       }, [])
     );
   };
-  console.log("filteredAndSortedItems", filteredAndSortedItems);
-  const handleMainCategoryClick = (category) => {
-    navigate(`/viewMenu/${hotelName}/home/specialMenu`)
-  };
-  const handleMainCategoryCloseClick = () => {
-    setSelectedMainCategory(null);
-  };
-  // Group menus by mainCategory
-  const categorizedMenus = menus.reduce((acc, item) => {
-    if (item.mainCategory) {
-      if (!acc[item.mainCategory]) {
-        acc[item.mainCategory] = [];
-      }
-      acc[item.mainCategory].push(item);
-    }
-    return acc;
-  }, {});
 
-  console.log("categories", categories);
-  console.log("mainCategories", mainCategories);
   // Slider data
   const slides = [
     {
@@ -327,8 +315,8 @@ function Home() {
         <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2">
           {mainCategories.map((mainCategory) => (
             <button
-              key={mainCategory.categoryName}
-              onClick={handleMainCategoryClick}
+              key={mainCategory.mainCategoryName}
+              onClick={handleMainCategoryFilter}
               className="inline-block bg-white text-orange-500 px-4 py-2 rounded-full whitespace-nowrap shadow-md hover:bg-blue-600 transition duration-300 ease-in-out"
             >
               {mainCategory.categoryName} (
@@ -338,8 +326,6 @@ function Home() {
         </div>
       </div>
 
-      
-     
       {/* Menu Items */}
       <div
         className="flex flex-wrap justify-center gap-4"

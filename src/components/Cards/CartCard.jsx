@@ -61,6 +61,18 @@ const CartCard = ({
     <CardWrapper>
       <ImageSection>
         <Image src={item.imageUrl} alt={item.menuName} />
+         {/* Discount Badge */}
+         {item.discount > 0 && (
+          <span className="absolute bottom-0 left-0 w-24 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom">
+            {item.discount}% OFF
+          </span>
+        )}
+        {/* Orange Strip */}
+        {item.mainCategory && (
+          <div className="absolute top-0 left-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom">
+            {item.mainCategory}
+          </div>
+        )}
       </ImageSection>
       <TextSection>
         <div style={{ marginTop: "10px" }}>
@@ -99,7 +111,15 @@ const CartCard = ({
             </InfoText>
           )}
           <InfoText style={{ marginTop: "25px" }}>
-            <b>₹ {item.menuPrice}</b>
+            {/* <b> {item.menuPrice}</b> */}
+            <span>
+              {item.discount && (
+                <span className="line-through mr-1 text-red-500">
+                 ₹ {Math.round(item.menuPrice)}
+                </span>
+              )}
+             ₹ {item.finalPrice}
+            </span>
           </InfoText>
         </div>
       </TextSection>

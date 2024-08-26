@@ -73,7 +73,7 @@ function CartDetails() {
     }
 
     const totalAmount = cartItems.reduce(
-      (total, item) => total + item.menuPrice * item.quantity,
+      (total, item) => total + item.finalPrice * item.quantity,
       0
     );
 
@@ -170,7 +170,7 @@ function CartDetails() {
                 <p className="text-gray-700">Total Items: <b>{cartItems.length}</b></p>
                 <p className="text-gray-700">
                   Total Price: <b>₹ {cartItems.reduce(
-                    (total, item) => total + item.menuPrice * item.quantity,
+                    (total, item) => total + item.finalPrice * item.quantity,
                     0
                   )}</b>
                 </p>

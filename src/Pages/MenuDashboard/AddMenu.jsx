@@ -18,6 +18,8 @@ function AddMenu() {
   const [menuName, setMenuName] = useState("");
   const [menuCookingTime, setMenuCookingTime] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [finalPrice, setFinalPrice] = useState("");
   const [menuCategory, setMenuCategory] = useState("");
   const [menuContent, setMenuContent] = useState("");
   const [categories, setCategories] = useState([]);
@@ -46,7 +48,7 @@ function AddMenu() {
   }, [hotelName]);
 
   useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/maincategory/`), (snapshot) => {
+    onValue(ref(db, `/hotels/${hotelName}/Maincategories/`), (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setMainCategories(Object.values(data));
@@ -56,8 +58,8 @@ function AddMenu() {
     });
   }, [hotelName]);
 
-  console.log('maincategory', mainCategory)
-  console.log('maincategory2', mainCategories)
+  console.log("hotelName", hotelName);
+  console.log("maincategory2", mainCategories);
 
   const handleChange = (setter) => (e) => {
     setter(e.target.value);
@@ -70,27 +72,41 @@ function AddMenu() {
 
   const writeToDatabase = async () => {
     try {
-      const uuidSnapshot = await get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`));
+      const uuidSnapshot = await get(
+        ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)
+      );
       const adminHotelUuid = uuidSnapshot.val();
-
-      const generalUuidSnapshot = await get(ref(db, `hotels/${hotelName}/uuid`));
+  
+      const generalUuidSnapshot = await get(
+        ref(db, `hotels/${hotelName}/uuid`)
+      );
       const generalHotelUuid = generalUuidSnapshot.val();
-
+  
       if (adminHotelUuid === generalHotelUuid) {
         let imageUrl = "";
         if (file) {
           // Upload image to Firebase Storage
-          const imageRef = storageRef(storage, `images/${hotelName}/${file.name}`);
+          const imageRef = storageRef(
+            storage,
+            `images/${hotelName}/${file.name}`
+          );
           await uploadBytes(imageRef, file);
-
+  
           // Get the download URL of the uploaded image
           imageUrl = await getDownloadURL(imageRef);
         }
-
+  
+        // Calculate the final price based on the discount
+        const calculatedFinalPrice = discount
+          ? Math.round((menuPrice * (100 - discount)) / 100)
+          : menuPrice;
+  
         const menuData = {
           menuName,
           menuCookingTime,
           menuPrice,
+          discount,
+          finalPrice: calculatedFinalPrice || menuPrice, // Set the calculated final price here
           menuCategory,
           menuContent,
           availability,
@@ -98,10 +114,13 @@ function AddMenu() {
           uuid: editMode ? editedMenuId : uid(),
           imageUrl: imageUrl || "",
         };
-
+  
         if (editMode) {
           // Update existing menu with the image URL
-          await update(ref(db, `/hotels/${hotelName}/menu/${editedMenuId}`), menuData);
+          await update(
+            ref(db, `/hotels/${hotelName}/menu/${editedMenuId}`),
+            menuData
+          );
           setEditMode(false);
           setEditedMenuId(null);
           toast.success("Menu Updated Successfully!", {
@@ -109,26 +128,33 @@ function AddMenu() {
           });
         } else {
           // Add new menu with the image URL
-          await set(ref(db, `/hotels/${hotelName}/menu/${menuData.uuid}`), menuData);
+          await set(
+            ref(db, `/hotels/${hotelName}/menu/${menuData.uuid}`),
+            menuData
+          );
           toast.success("Menu Added Successfully!", {
             position: toast.POSITION.TOP_RIGHT,
           });
         }
-
+  
         // Clear form fields
         setMenuName("");
         setMenuCookingTime("");
         setMenuPrice("");
+        setDiscount("");
+        setFinalPrice("");
         setMenuCategory("");
         setMenuContent("");
         setAvailability("Available");
         setMainCategory("");
         setFile(null);
-
       } else {
-        toast.error("You do not have permission to manage menus for this hotel.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error(
+          "You do not have permission to manage menus for this hotel.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
       }
     } catch (error) {
       console.error("Error managing menu:", error);
@@ -137,14 +163,19 @@ function AddMenu() {
       });
     }
   };
-
+  
   return (
     <>
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
         <form className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="relative">
-              <label htmlFor="menuName" className="block text-sm font-medium text-gray-700">Menu Name</label>
+              <label
+                htmlFor="menuName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Menu Name
+              </label>
               <input
                 type="text"
                 id="menuName"
@@ -165,21 +196,33 @@ function AddMenu() {
                 </div>
               )}
               {!menuName && (
-                <p className="text-red-500 text-xs mt-1">Menu Name is required.</p>
+                <p className="text-red-500 text-xs mt-1">
+                  Menu Name is required.
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="menuCategory" className="block text-sm font-medium text-gray-700">Menu Category</label>
+              <label
+                htmlFor="menuCategory"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Menu Category
+              </label>
               <select
                 id="menuCategory"
                 value={menuCategory}
                 onChange={handleChange(setMenuCategory)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
               >
-                <option value="" disabled>Select Menu Category</option>
+                <option value="" disabled>
+                  Select Menu Category
+                </option>
                 {categories.map((category) => (
-                  <option key={category.categoryId} value={category.categoryName}>
+                  <option
+                    key={category.categoryId}
+                    value={category.categoryName}
+                  >
                     {category.categoryName}
                   </option>
                 ))}
@@ -187,22 +230,36 @@ function AddMenu() {
             </div>
 
             <div className="relative">
-              <label htmlFor="menuCookingTime" className="block text-sm font-medium text-gray-700">Cooking Time</label>
+              <label
+                htmlFor="menuCookingTime"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Cooking Time
+              </label>
               <select
                 id="menuCookingTime"
                 value={menuCookingTime}
                 onChange={handleChange(setMenuCookingTime)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
               >
-                <option value="" disabled>Select Cooking Time</option>
+                <option value="" disabled>
+                  Select Cooking Time
+                </option>
                 {[5, 10, 15, 20, 25, 30].map((time) => (
-                  <option key={time} value={time}>{time} min</option>
+                  <option key={time} value={time}>
+                    {time} min
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label htmlFor="menuPrice" className="block text-sm font-medium text-gray-700">Menu Price</label>
+              <label
+                htmlFor="menuPrice"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Menu Price
+              </label>
               <input
                 type="number"
                 id="menuPrice"
@@ -223,21 +280,33 @@ function AddMenu() {
                 </div>
               )}
               {!menuPrice && (
-                <p className="text-red-500 text-xs mt-1">Menu Price is required.</p>
+                <p className="text-red-500 text-xs mt-1">
+                  Menu Price is required.
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="mainCategory" className="block text-sm font-medium text-gray-700">Main Category</label>
+              <label
+                htmlFor="mainCategory"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Main Category
+              </label>
               <select
                 id="mainCategory"
                 value={mainCategory}
                 onChange={handleChange(setMainCategory)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
               >
-                <option value="" disabled>Select Main Category</option>
+                <option value="" disabled>
+                  Select Main Category
+                </option>
                 {mainCategories.map((category) => (
-                  <option key={category.categoryId} value={category.categoryName}>
+                  <option
+                    key={category.categoryId}
+                    value={category.categoryName}
+                  >
                     {category.categoryName}
                   </option>
                 ))}
@@ -245,7 +314,12 @@ function AddMenu() {
             </div>
 
             <div>
-              <label htmlFor="file" className="block text-sm font-medium text-gray-700">Upload Image</label>
+              <label
+                htmlFor="file"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Upload Image
+              </label>
               <input
                 type="file"
                 id="file"
@@ -255,7 +329,12 @@ function AddMenu() {
             </div>
 
             <div>
-              <label htmlFor="availability" className="block text-sm font-medium text-gray-700">Availability</label>
+              <label
+                htmlFor="availability"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Availability
+              </label>
               <select
                 id="availability"
                 value={availability}
@@ -267,8 +346,44 @@ function AddMenu() {
               </select>
             </div>
 
+            <div>
+              <label
+                htmlFor="discount"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Discount
+              </label>
+              <input
+                type="number"
+                id="discount"
+                value={discount}
+                onChange={handleChange(setDiscount)}
+                className={`mt-1 block w-full px-3 py-2 border ${
+                  discount ? "border-green-500" : "border-red-500"
+                } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                placeholder="Enter Discount in %"
+              />
+              {discount ? (
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                  <FaCheckCircle />
+                </div>
+              ) : (
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                  <FaExclamationCircle />
+                </div>
+              )}
+              {/* {!menuPrice && (
+                <p className="text-red-500 text-xs mt-1">Menu Price is required.</p>
+              )} */}
+            </div>
+
             <div className="col-span-2">
-              <label htmlFor="menuContent" className="block text-sm font-medium text-gray-700">Menu Content</label>
+              <label
+                htmlFor="menuContent"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Menu Content
+              </label>
               <textarea
                 id="menuContent"
                 value={menuContent}
