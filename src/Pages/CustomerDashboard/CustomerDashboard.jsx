@@ -12,20 +12,24 @@ const CustomersDashboard = () => {
   const { hotelName } = useHotelContext();
 
   const { completedOrders, loading, error } = useCompletedOrders(hotelName);
-  const { customerDataArray, customerCountData } =
-    useCustomerData(completedOrders);
+  const { customerDataArray, customerCountData } = useCustomerData(completedOrders);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  // Sorting logic
+  // Filter data based on searchTerm
+  const filteredData = customerDataArray.filter(customer =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Sort filtered data
   if (sortOrder !== "default") {
     if (sortOrder === "lowToHigh") {
-      customerDataArray.sort(
+      filteredData.sort(
         (a, b) => parseFloat(a.totalMenuPrice) - parseFloat(b.totalMenuPrice)
       );
     } else if (sortOrder === "highToLow") {
-      customerDataArray.sort(
+      filteredData.sort(
         (a, b) => parseFloat(b.totalMenuPrice) - parseFloat(a.totalMenuPrice)
       );
     }
@@ -40,14 +44,13 @@ const CustomersDashboard = () => {
   };
 
   const columns = customersColumns;
+
   return (
     <>
       <div style={{ marginTop: "70px" }}>
-        <PageTitle
-          pageTitle={`Customers (${customerCountData.totalCustomers})`}
-        />
+        <PageTitle pageTitle={`Customers (${filteredData.length})`} />
       </div>
-      <div className=" mt-2">
+      <div className="mt-2">
         <FilterSortSearch
           searchTerm={searchTerm}
           handleSearch={handleSearch}
@@ -57,7 +60,7 @@ const CustomersDashboard = () => {
           <div className="col-12">
             <DynamicTable
               columns={columns}
-              data={customerDataArray}
+              data={filteredData}
               onEdit={null}
               onDelete={null}
             />
