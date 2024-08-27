@@ -13,13 +13,9 @@ const PendingOrders = ({ orders, onAccept, onReject, count }) => {
     }));
   };
 
-  const columns = pendingOrdercolumns
+  const columns = pendingOrdercolumns;
 
-  const actions = [
-    { label: 'Accept', variant: 'success', handler: onAccept },
-    { label: 'Reject', variant: 'danger', handler: onReject }
-  ];
-
+  // Flatten and prepare the data
   const data = flattenOrderData(orders);
 
   return (
@@ -30,7 +26,8 @@ const PendingOrders = ({ orders, onAccept, onReject, count }) => {
         <DynamicTable
           columns={columns}
           data={data}
-          actions={actions}
+          onAccept={onAccept}
+          onReject={onReject}
         />
       )}
     </>

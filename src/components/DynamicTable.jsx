@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const DynamicTable = ({ columns, data, onEdit, onDelete, actions }) => {
+const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onMarkAsCompleted, actions }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [paginatedData, setPaginatedData] = useState([]);
@@ -30,7 +30,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, actions }) => {
                 {column.header}
               </th>
             ))}
-            {(onEdit || onDelete || actions) && (
+            {(onEdit || onDelete || onAccept || onReject || onMarkAsCompleted || actions) && (
               <th className="text-left px-6 py-3 text-sm font-medium tracking-wider">
                 Actions
               </th>
@@ -52,7 +52,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, actions }) => {
                     {item[column.accessor]}
                   </td>
                 ))}
-                {(onEdit || onDelete || actions) && (
+                {(onEdit || onDelete || onAccept || onReject || onMarkAsCompleted || actions) && (
                   <td className="px-6 py-4 text-sm text-gray-700 flex space-x-2">
                     {onEdit && (
                       <button
@@ -70,17 +70,31 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, actions }) => {
                         Delete
                       </button>
                     )}
-                    {actions &&
-                      actions.length > 0 &&
-                      actions.map((action, actionIndex) => (
-                        <button
-                          key={actionIndex}
-                          className={`text-${action.variant}-600 hover:text-${action.variant}-800 transition-colors`}
-                          onClick={() => action.handler(item)}
-                        >
-                          {action.label}
-                        </button>
-                      ))}
+                    {onAccept && (
+                      <button
+                        className="btn btn-success text-white hover:text-green-800 transition-colors"
+                        onClick={() => onAccept(item)}
+                      >
+                        Accept
+                      </button>
+                    )}
+                    {onReject && (
+                      <button
+                        className="btn btn-warning text-white hover:text-yellow-800 transition-colors"
+                        onClick={() => onReject(item)}
+                      >
+                        Reject
+                      </button>
+                    )}
+                    {onMarkAsCompleted && (
+                      <button
+                        className="btn btn-secondary text-white hover:text-gray-800 transition-colors"
+                        onClick={() => onMarkAsCompleted(item)}
+                      >
+                        Mark as Completed
+                      </button>
+                    )}
+                    
                   </td>
                 )}
               </tr>

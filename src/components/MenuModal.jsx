@@ -29,7 +29,14 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
         {modalData.menuCookingTime} min
         <br />
         <b>Price: </b>
-        {modalData.menuPrice} ₹
+        <span>
+              {modalData.discount && (
+                <span className="line-through mr-1 text-red-500">
+                  {Math.round(modalData.menuPrice)}₹
+                </span>
+              )}
+              {modalData.finalPrice}
+            </span> ₹
         <br />
         <b>Description: </b>
         {modalData.menuContent ? modalData.menuContent : modalData.menuName}

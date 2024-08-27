@@ -2,23 +2,26 @@ import React from 'react';
 import { Alert } from 'react-bootstrap';
 import DynamicTable from '../../components/DynamicTable';
 import { AcceptedOrderColumn } from '../../data/Columns';
+import PropTypes from 'prop-types';
+
+// Helper function to flatten order data
+const flattenOrderData = (orders) => {
+  return orders.map((order, index) => ({
+    ...order,
+    index: index + 1,
+    tableNo: order.checkoutData.tableNo,
+    name: order.checkoutData.name,
+  }));
+};
 
 const AcceptedOrders = ({ orders, onMarkAsCompleted, count }) => {
-  const flattenOrderData = (orders) => {
-    return orders.map((order, index) => ({
-      ...order,
-      index: index + 1,
-      tableNo: order.checkoutData.tableNo,
-      name: order.checkoutData.name,
-    }));
-  };
-
-  const columns = AcceptedOrderColumn
-
+  // Prepare columns and actions
+  const columns = AcceptedOrderColumn;
   const actions = [
     { label: 'Mark as Completed', variant: 'primary', handler: onMarkAsCompleted }
   ];
 
+  // Flatten and prepare the data
   const data = flattenOrderData(orders);
 
   return (
@@ -29,11 +32,13 @@ const AcceptedOrders = ({ orders, onMarkAsCompleted, count }) => {
         <DynamicTable
           columns={columns}
           data={data}
-          actions={actions}
+          onMarkAsCompleted={onMarkAsCompleted}
         />
       )}
     </>
   );
 };
+
+
 
 export default AcceptedOrders;
