@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import MenuTab from "./MenuTab"; // Adjust the path if necessary
-
+import '../styles/CategoryTabs.css'
 const CategoryTabs = ({ categories, menuCountsByCategory, handleCategoryFilter }) => {
+  const [activeTab, setActiveTab] = useState("All");
+
   const tabs = [
     {
       label: `All (${Object.values(menuCountsByCategory).reduce((a, b) => a + b, 0)})`,
@@ -24,16 +26,40 @@ const CategoryTabs = ({ categories, menuCountsByCategory, handleCategoryFilter }
   ];
 
   const handleSelect = (label) => {
-    const selectedCategory = label.startsWith("All") ? "" : label.split(" (")[0]; // Extract category name
-    handleCategoryFilter(selectedCategory); // Call the filter function with the selected category
+    const selectedCategory = label.startsWith("All") ? "All" : label.split(" (")[0]; // Extract category name
+    setActiveTab(selectedCategory); // Set active tab
+    handleCategoryFilter(selectedCategory === "All" ? "" : selectedCategory); // Call the filter function
   };
 
   return (
-    <MenuTab
-      tabs={tabs}
-      width="100%" // Set width to 100% for full-width tabs
-      onTabSelect={handleSelect} // Pass the function to handle tab selection
-    />
+    <div className="w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="flex overflow-x-auto border-b border-gray-200 custom-scrollbar">
+        {tabs.map((tab) => (
+          <button
+            key={tab.label}
+            className={`flex-1 px-4 py-2 text-sm font-medium text-gray-600 whitespace-nowrap transition duration-300 ease-in-out hover:bg-gray-100 hover:text-orange-500 
+              ${
+                activeTab === tab.label.split(" (")[0]
+                  ? "bg-orange-500 text-white border-b-2 border-orange-500"
+                  : ""
+              }
+            `}
+            onClick={() => handleSelect(tab.label)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {/* Tab Content Display */}
+      <div>
+        {tabs.map(
+          (tab) =>
+            activeTab === tab.label.split(" (")[0] && (
+              <div key={tab.label}>{tab.content}</div>
+            )
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useOrdersData from "../../data/useOrdersData";
 import { colors } from "../../theme/theme";
 import { UserContext } from "Context/UserContext";
+import TabButtons from "components/TabButtons";
 //import { UserAuthContext } from "../../Context/UserAuthContext";
 
 function TrackOrders() {
@@ -63,11 +64,116 @@ function TrackOrders() {
   const handleBack = () => {
     navigate(`/viewMenu/${hotelName}/home`);
   };
-  // if (!userInfo) {
-  //   return <div>User information is not available.</div>;
-  // }
-  console.log("filteredPendingOrders", filteredPendingOrders);
-  console.log("hotelNmae", hotelName);
+  const tabs = [
+    {
+      label: "Pending Orders",
+      content: (
+        <Row className="mb-4">
+          <h5 className="text-start">
+            My Pending Orders ({`${filteredPendingOrders.length}`})
+          </h5>
+          {ordersLoading ? (
+            <Spinner animation="border" style={{ color: colors.Orange }} />
+          ) : ordersError ? (
+            <Alert variant="danger" className="text-center">
+              Error loading orders: {ordersError.message}
+            </Alert>
+          ) : filteredPendingOrders.length === 0 ? (
+            <Alert variant="warning" className="text-center">
+              No pending orders.
+            </Alert>
+          ) : (
+            filteredPendingOrders.map((item) => (
+              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
+                <CartCard item={item} />
+              </Col>
+            ))
+          )}
+        </Row>
+      ),
+    },
+    {
+      label: "Accepted Orders",
+      content: (
+        <Row className="mb-4">
+          <h5 className="text-start">
+            My Accepted Orders ({`${filteredAcceptedOrders.length}`})
+          </h5>
+          {ordersLoading ? (
+            <Spinner animation="border" style={{ color: colors.Orange }} />
+          ) : ordersError ? (
+            <Alert variant="danger" className="text-center">
+              Error loading orders: {ordersError.message}
+            </Alert>
+          ) : filteredAcceptedOrders.length === 0 ? (
+            <Alert variant="warning" className="text-center">
+              No accepted orders.
+            </Alert>
+          ) : (
+            filteredAcceptedOrders.map((item) => (
+              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
+                <CartCard item={item} />
+              </Col>
+            ))
+          )}
+        </Row>
+      ),
+    },
+    {
+      label: "Completed Orders",
+      content: (
+        <Row className="mb-4">
+          <h5 className="text-start">
+            My Completed Orders ({`${filteredCompletedOrders.length}`})
+          </h5>
+          {ordersLoading ? (
+            <Spinner animation="border" style={{ color: colors.Orange }} />
+          ) : ordersError ? (
+            <Alert variant="danger" className="text-center">
+              Error loading orders: {ordersError.message}
+            </Alert>
+          ) : filteredCompletedOrders.length === 0 ? (
+            <Alert variant="warning" className="text-center">
+              No completed orders.
+            </Alert>
+          ) : (
+            filteredCompletedOrders.map((item) => (
+              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
+                <CartCard item={item} />
+              </Col>
+            ))
+          )}
+        </Row>
+      ),
+    },
+    {
+      label: "Cancelled Orders",
+      content: (
+        <Row className="mb-4">
+          <h5 className="text-start">
+            My Cancelled Orders ({`${filteredCancelledOrders.length}`})
+          </h5>
+          {ordersLoading ? (
+            <Spinner animation="border" style={{ color: colors.Orange }} />
+          ) : ordersError ? (
+            <Alert variant="danger" className="text-center">
+              Error loading orders: {ordersError.message}
+            </Alert>
+          ) : filteredCancelledOrders.length === 0 ? (
+            <Alert variant="warning" className="text-center">
+              No cancelled orders.
+            </Alert>
+          ) : (
+            filteredCancelledOrders.map((item) => (
+              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
+                <CartCard item={item} />
+              </Col>
+            ))
+          )}
+        </Row>
+      ),
+    },
+  ];
   return (
     <>
       <Navbar
@@ -95,98 +201,7 @@ function TrackOrders() {
             <span></span>
           </div>
         </Row>
-
-        <Row className="mb-4">
-          <h5 className="text-start">
-            My Pending Orders ({`${filteredPendingOrders.length}`})
-          </h5>
-          {ordersLoading ? (
-            <Spinner animation="border" style={{ color: colors.Orange }} />
-          ) : ordersError ? (
-            <Alert variant="danger" className="text-center">
-              Error loading orders: {ordersError.message}
-            </Alert>
-          ) : filteredPendingOrders.length === 0 ? (
-            <Alert variant="warning" className="text-center">
-              No pending orders.
-            </Alert>
-          ) : (
-            filteredPendingOrders.map((item) => (
-              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
-                <CartCard item={item} />
-              </Col>
-            ))
-          )}
-        </Row>
-
-        <Row className="mb-4">
-          <h5 className="text-start">
-            My Accepted Orders ({`${filteredAcceptedOrders.length}`})
-          </h5>
-          {ordersLoading ? (
-            <Spinner animation="border" style={{ color: colors.Orange }} />
-          ) : ordersError ? (
-            <Alert variant="danger" className="text-center">
-              Error loading orders: {ordersError.message}
-            </Alert>
-          ) : filteredAcceptedOrders.length === 0 ? (
-            <Alert variant="warning" className="text-center">
-              No accepted orders.
-            </Alert>
-          ) : (
-            filteredAcceptedOrders.map((item) => (
-              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
-                <CartCard item={item} />
-              </Col>
-            ))
-          )}
-        </Row>
-
-        <Row className="mb-4">
-          <h5 className="text-start">
-            My Completed Orders ({`${filteredCompletedOrders.length}`})
-          </h5>
-          {ordersLoading ? (
-            <Spinner animation="border" style={{ color: colors.Orange }} />
-          ) : ordersError ? (
-            <Alert variant="danger" className="text-center">
-              Error loading orders: {ordersError.message}
-            </Alert>
-          ) : filteredCompletedOrders.length === 0 ? (
-            <Alert variant="warning" className="text-center">
-              No completed orders.
-            </Alert>
-          ) : (
-            filteredCompletedOrders.map((item) => (
-              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
-                <CartCard item={item} />
-              </Col>
-            ))
-          )}
-        </Row>
-
-        <Row className="mb-4">
-          <h5 className="text-start">
-            My Cancelled Orders ({`${filteredCancelledOrders.length}`})
-          </h5>
-          {ordersLoading ? (
-            <Spinner animation="border" style={{ color: colors.Orange }} />
-          ) : ordersError ? (
-            <Alert variant="danger" className="text-center">
-              Error loading orders: {ordersError.message}
-            </Alert>
-          ) : filteredCancelledOrders.length === 0 ? (
-            <Alert variant="warning" className="text-center">
-              No cancelled orders.
-            </Alert>
-          ) : (
-            filteredCancelledOrders.map((item) => (
-              <Col xs={12} md={6} lg={4} key={item.orderId} className="mb-4">
-                <CartCard item={item} />
-              </Col>
-            ))
-          )}
-        </Row>
+        <TabButtons tabs={tabs} width="70vw" />
 
         <ToastContainer />
       </Container>

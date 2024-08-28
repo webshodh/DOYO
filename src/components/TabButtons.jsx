@@ -28,7 +28,7 @@ const TabButtons = ({ tabs, width }) => {
         ))}
       </div>
       {/* Tab Content */}
-      <div className="p-4 mt-4 border border-gray-200 rounded-lg shadow-md bg-white">
+      <div className="p-4 mt-4 ">
         {tabs.map((tab) => (activeTab === tab.label ? tab.content : null))}
       </div>
     </div>

@@ -711,6 +711,7 @@ import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { getAuth } from "firebase/auth";
 import { uid } from "uid";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useHotelContext } from "Context/HotelContext";
 
 
 // Styled components for the form
@@ -790,7 +791,7 @@ function AddStaff() {
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
-  const hotelName = "Atithi"; // Replace with your hotel name or use context
+  const {hotelName} = useHotelContext(); // Replace with your hotel name or use context
   const storage = getStorage();
   // Handle image file selection
   const handleFileChange = (e) => {

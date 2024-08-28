@@ -65,38 +65,11 @@ const HistoryCard = () => {
     {
       label: "Top 5",
       content: (
-        <div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {sortedMenuDataArray
             .slice(0, 5)
             .map(({ menuName, menuCount, imageUrl }) => (
               <div className="flex justify-center p-4">
-              <div className="relative w-24 h-24">
-                <img
-                  src={imageUrl || "/dish.png"}
-                  alt={menuName}
-                  className="w-full h-full object-cover rounded-lg shadow-md"
-                />
-                <span className="absolute bottom-0 left-0 w-full bg-orange-500 text-white text-xs font-bold py-1 px-2 text-center rounded-b-lg">
-                  {menuName}
-                </span>
-                <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 rounded-tr-lg">
-                  {menuCount}
-                </div>
-              </div>
-            </div>
-            ))}
-        </div>
-      ),
-    },
-    {
-      label: "Top 10",
-      content: (
-        <div className="container mx-auto px-1 py-1">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            {sortedMenuDataArray
-              .slice(0, 10) // Show top 10 items
-              .map(({ menuName, menuCount, imageUrl }, index) => (
-                <div className="flex justify-center p-4">
                 <div className="relative w-24 h-24">
                   <img
                     src={imageUrl || "/dish.png"}
@@ -111,8 +84,33 @@ const HistoryCard = () => {
                   </div>
                 </div>
               </div>
-              ))}
-          </div>
+            ))}
+        </div>
+      ),
+    },
+    {
+      label: "Top 10",
+      content: (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+          {sortedMenuDataArray
+            .slice(0, 10) // Show top 10 items
+            .map(({ menuName, menuCount, imageUrl }, index) => (
+              <div className="flex justify-center p-4">
+                <div className="relative w-24 h-24">
+                  <img
+                    src={imageUrl || "/dish.png"}
+                    alt={menuName}
+                    className="w-full h-full object-cover rounded-lg shadow-md"
+                  />
+                  <span className="absolute bottom-0 left-0 w-full bg-orange-500 text-white text-xs font-bold py-1 px-2 text-center rounded-b-lg">
+                    {menuName}
+                  </span>
+                  <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 rounded-tr-lg">
+                    {menuCount}
+                  </div>
+                </div>
+              </div>
+            ))}
         </div>
       ),
     },
@@ -157,7 +155,7 @@ const HistoryCard = () => {
       {/* HistoryCard Header */}
       <div className="flex items-center justify-between rounded-t-3xl p-3">
         <div className="text-lg font-bold text-navy-700 dark:text-white">
-          Top Ordered Menu
+          Top Selling Foods
         </div>
       </div>
 

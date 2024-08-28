@@ -16,7 +16,7 @@ const CustomersDashboard = () => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-
+console.log('customerDataArray', customerDataArray)
   // Filter data based on searchTerm
   const filteredData = customerDataArray.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())

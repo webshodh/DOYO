@@ -11,20 +11,14 @@ import {
 } from "chart.js";
 import { InfoCard } from "../../components";
 import TotalSpent from "srcV2/views/admin/default/components/TotalSpent";
+import { useHotelContext } from "Context/HotelContext";
+import { useCompletedOrders } from "data";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title);
 
-const dummyData = {
-  "2024-08-11": [{ orderData: { quantity: 3 } }],
-  "2024-08-12": [{ orderData: { quantity: 2 } }],
-  "2024-08-13": [{ orderData: { quantity: 5 } }],
-  "2024-08-14": [{ orderData: { quantity: 4 } }],
-  "2024-08-15": [{ orderData: { quantity: 6 } }],
-  "2024-08-16": [{ orderData: { quantity: 3 } }],
-  "2024-08-17": [{ orderData: { quantity: 7 } }],
-};
-
 const aggregateOrdersPerDay = (data) => {
+  if (!data || Object.keys(data).length === 0) return [];
+
   return Object.keys(data).map((date) => {
     const orders = data[date];
     return Math.round(
@@ -34,6 +28,8 @@ const aggregateOrdersPerDay = (data) => {
 };
 
 const predictOrders = async (ordersPerDay) => {
+  if (ordersPerDay.length === 0) return [];
+
   const maxOrders = Math.max(...ordersPerDay);
   const normalizedData = ordersPerDay.map((orders) => orders / maxOrders);
 
@@ -106,24 +102,53 @@ const calculateAccuracy = (actual, predicted) => {
   return accuracy;
 };
 
+const transformOrderData = (completedOrders) => {
+  const result = {};
+
+  completedOrders.forEach(order => {
+    const date = order.checkoutData.date.split('T')[0]; // Extract the date part
+    const quantity = order.quantity;
+
+    if (!result[date]) {
+      result[date] = [{ orderData: { quantity: 0 } }];
+    }
+
+    result[date][0].orderData.quantity += quantity;
+  });
+
+  return result;
+};
+
 const OrderForecasting = () => {
   const [forecast, setForecast] = useState([]);
   const [accuracy, setAccuracy] = useState(null);
+  const { hotelName } = useHotelContext();
+  const { completedOrders, loading, error } = useCompletedOrders(hotelName);
 
   useEffect(() => {
-    const ordersPerDay = aggregateOrdersPerDay(dummyData);
+    if (loading) return;
+    if (error) {
+      console.error("Error fetching completed orders:", error);
+      return;
+    }
+
+    const transformedData = transformOrderData(completedOrders);
+    const ordersPerDay = aggregateOrdersPerDay(transformedData);
+
     predictOrders(ordersPerDay).then((predictions) => {
-      // Ensure lengths match before calculating accuracy
       const adjustedPredictions = predictions.slice(0, ordersPerDay.length);
       setForecast(predictions);
       setAccuracy(calculateAccuracy(ordersPerDay, adjustedPredictions));
+    }).catch(error => {
+      console.error("Prediction error:", error);
     });
-  }, []);
+  }, [completedOrders, loading, error, hotelName]);
 
-  const ordersPerDay = aggregateOrdersPerDay(dummyData);
+  const transformedData = transformOrderData(completedOrders) || {};
+  const ordersPerDay = aggregateOrdersPerDay(transformedData);
 
   const chartData = {
-    labels: Object.keys(dummyData),
+    labels: Object.keys(transformedData),
     datasets: [
       {
         label: "Actual Orders",
@@ -190,7 +215,6 @@ const OrderForecasting = () => {
       <div className="background-card">
         <div style={{ width: "80%", height: "400px", margin: "0 auto" }}>
           <Line data={chartData} options={chartOptions} />
-          {/* <TotalSpent lineChartOptionsTotalSpent={chartOptions} lineChartDataTotalSpent={chartData}/> */}
         </div>
       </div>
     </>

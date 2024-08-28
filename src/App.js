@@ -43,6 +43,7 @@ import PredictionDashboard from "./Pages/AI Prediction/PredictionDashboard";
 import GoogleLogin from "./Pages/Login/GoogleLogin";
 import Dashboard from "Pages/Dashboard";
 import UserLogin from "Pages/Login/UserLogin";
+import AddStaff from "Pages/StaffDahboard/AddStaff";
 
 
 function App() {
@@ -111,6 +112,7 @@ function App() {
               <Route path="/:hotelName/admin/table/table-dashboard" element={<TableDashboard />} />
               <Route path="/:hotelName/admin/customers/customer-dashboard" element={<CustomerDashboard />} />
               <Route path="/:hotelName/admin/staff/staff-dashboard" element={<StaffDashboard />} />
+              <Route path="/:hotelName/admin/staff/staff-dashboard/add-staff" element={<AddStaff />} />
               <Route path="/:hotelName/admin/order/order-dashboard" element={<OrderDashboard />} />
               <Route path="/:hotelName/admin/forecasting/forecasting-dashboard" element={<PredictionDashboard />} />
             </Routes>

@@ -134,10 +134,7 @@ function AdminDashboard() {
   const { customerDataArray, customerCountData } = useCustomerData(
     filteredCompletedOrders
   );
-  console.log(
-    "filteredCompletedOrdersfilteredCompletedOrders",
-    filteredCompletedOrders
-  );
+  
   console.log("customerDataArraycustomerDataArray", customerDataArray);
   if (menuLoading || categoriesLoading || ordersLoading)
     return <div>Loading...</div>;
@@ -233,9 +230,10 @@ function AdminDashboard() {
           <Widget
             icon={<i className="bi bi-person-plus-fill"></i>}
             title={"Total Customers"}
-            subtitle={customerCountData.totalCustomers}
+            // subtitle={customerCountData.totalCustomers}
+            subtitle={customerDataArray.length}
           />
-          <Widget
+          {/* <Widget
             icon={<i className="bi bi-person-fill-check"></i>}
             title={"New Customers"}
             subtitle={customerCountData.newCustomers}
@@ -244,7 +242,7 @@ function AdminDashboard() {
             icon={<i className="bi bi-person-heart"></i>}
             title={"Loyal Customers"}
             subtitle={customerCountData.loyalCustomers}
-          />
+          /> */}
           <Widget
             icon={<i className="bi bi-currency-rupee"></i>}
             title={"Total Revenue"}

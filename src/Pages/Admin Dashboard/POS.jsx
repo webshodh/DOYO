@@ -244,26 +244,26 @@ const POS = () => {
           />
         </div>
 
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex justify-start items-center mt-4">
           {Object.keys(categorizedMenus).map((category) => (
             <PrimaryButton
               key={category}
               onClick={() => handleMainCategoryClick(category)}
-              btnText={`${hotelName} ${category}`}
+              btnText={`${category}`}
             />
           ))}
 
-          <span
+          {/* <span
             onClick={() => handleMainCategoryCloseClick()}
             className="text-red-500 cursor-pointer text-lg"
           >
             <i className="bi bi-x-lg"></i>
-          </span>
+          </span> */}
         </div>
 
         {/* Menu Items */}
         <div
-          className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 overflow-auto"
+          className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 overflow-auto"
           style={{ maxHeight: "calc(100vh - 240px)", overflowY: "auto" }}
         >
           {filteredAndSortedItems.map((item) => (
@@ -313,7 +313,7 @@ const POS = () => {
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
                             <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500"></i>
-                            {item.menuPrice}
+                            {item.finalPrice}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
                             <div className="flex items-center space-x-2">
@@ -353,6 +353,9 @@ const POS = () => {
                 0
               )}
             </span>
+          </div>
+          <div className="flex justify-between mt-4 font-bold">
+            Payment Method
           </div>
           <div className="mt-4">
             <PrimaryButton

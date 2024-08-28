@@ -26,14 +26,14 @@ function ViewStaff() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleCounts, setRoleCounts] = useState({});
 
-  const hotelName = "Atithi"; // Replace with dynamic value if needed
+  const {hotelName} = useHotelContext(); // Replace with dynamic value if needed
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const navigate = useNavigate(); // Initialize navigate function for redirection
 
   // Fetch staff data from database
   useEffect(() => {
-    const staffRef = ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/staff/`);
+    const staffRef = ref(db, `/hotels/${hotelName}/staff/`);
     const unsubscribe = onValue(staffRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -50,7 +50,7 @@ function ViewStaff() {
 
   // Fetch roles from database
   useEffect(() => {
-    const rolesRef = ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/roles/`);
+    const rolesRef = ref(db, `/hotels/${hotelName}/roles/`);
     const unsubscribe = onValue(rolesRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -83,7 +83,7 @@ function ViewStaff() {
     const confirmDelete = window.confirm("Are you sure you want to delete this staff member?");
     if (confirmDelete) {
       // Delete the staff member
-      remove(ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/staff/${staff.staffId}`));
+      remove(ref(db, `/hotels/${hotelName}/staff/${staff.staffId}`));
 
       toast.success("Staff Member Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -92,9 +92,15 @@ function ViewStaff() {
   };
 
   const handleEdit = (staffMember) => {
-    // Navigate to AddStaff page with staff details as state
-    navigate("/addstaff", { state: { staff: staffMember } });
+    // Exclude the 'Actions' field by creating a new object without it
+    const { Actions, ...serializableStaff } = staffMember;
+  
+    // Now navigate with the cleaned object
+    navigate(`${hotelName}/admin/staff/staff-dashboard/add-staff`, {
+      state: { staff: serializableStaff },
+    });
   };
+  
 
   const filterAndSortItems = () => {
     let filteredItems = staff.filter((member) => {

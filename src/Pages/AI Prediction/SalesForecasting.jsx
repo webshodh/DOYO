@@ -10,24 +10,21 @@ import {
   Title,
 } from "chart.js";
 import InfoCard from "../../components/Cards/InfoCard";
+import { useHotelContext } from "Context/HotelContext";
+import { useCompletedOrders } from "data";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title);
-
-const dummySalesData = {
-  "2024-08-11": 200,
-  "2024-08-12": 150,
-  "2024-08-13": 300,
-  "2024-08-14": 250,
-  "2024-08-15": 400,
-  "2024-08-16": 350,
-  "2024-08-17": 500,
-};
 
 const aggregateSalesPerDay = (data) => {
   return Object.keys(data).map((date) => Math.round(data[date]));
 };
 
 const predictSales = async (salesPerDay) => {
+  if (salesPerDay.length < 2) {
+    console.error("Insufficient data to train or predict");
+    return [];
+  }
+
   const maxSales = Math.max(...salesPerDay);
   const normalizedData = salesPerDay.map((sales) => sales / maxSales);
 
@@ -91,7 +88,6 @@ const calculateAccuracy = (actual, predicted) => {
   );
   const totalActual = actual.reduce((acc, val) => acc + val, 0);
 
-  // Prevent division by zero
   const accuracy =
     totalActual > 0 ? ((1 - totalError / totalActual) * 100).toFixed(0) : 0;
 
@@ -101,21 +97,46 @@ const calculateAccuracy = (actual, predicted) => {
 const SalesForecasting = () => {
   const [forecast, setForecast] = useState([]);
   const [accuracy, setAccuracy] = useState(null);
+  const { hotelName } = useHotelContext();
+  const { completedOrders, loading, error } = useCompletedOrders(hotelName);
 
+  const transformOrderDataToSales = (completedOrders) => {
+    return completedOrders.reduce((acc, order) => {
+      const date = order.checkoutData.date.split('T')[0]; // Extract the date part
+      const price = parseFloat(order.menuPrice) * order.quantity; // Calculate total price for this order
+  
+      if (acc[date]) {
+        acc[date] += price;
+      } else {
+        acc[date] = price;
+      }
+  
+      return acc;
+    }, {});
+  };
+  
+  const salesData = transformOrderDataToSales(completedOrders);
+  
   useEffect(() => {
-    const salesPerDay = aggregateSalesPerDay(dummySalesData);
+    const salesPerDay = aggregateSalesPerDay(salesData);
+    if (salesPerDay.length < 2) {
+      console.error("Insufficient data to make predictions");
+      setForecast([]); // Reset forecast in case of insufficient data
+      setAccuracy(0);
+      return;
+    }
+
     predictSales(salesPerDay).then((predictions) => {
-      // Ensure lengths match before calculating accuracy
       const adjustedPredictions = predictions.slice(0, salesPerDay.length);
       setForecast(predictions);
       setAccuracy(calculateAccuracy(salesPerDay, adjustedPredictions));
     });
-  }, []);
+  }, [completedOrders]);
 
-  const salesPerDay = aggregateSalesPerDay(dummySalesData);
+  const salesPerDay = aggregateSalesPerDay(salesData);
 
   const chartData = {
-    labels: Object.keys(dummySalesData),
+    labels: Object.keys(salesData),
     datasets: [
       {
         label: "Actual Sales",
@@ -157,7 +178,7 @@ const SalesForecasting = () => {
       y: {
         title: {
           display: true,
-          text: "Sales Revenue ($)",
+          text: "Sales Revenue (₹)",
         },
       },
     },
