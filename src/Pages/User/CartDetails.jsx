@@ -134,11 +134,11 @@ function CartDetails() {
 
   return (
     <>
-      <Navbar title={`${hotelName}`} />
-      <div className="px-4 py-6 bg-gray-100 min-h-screen">
+      {/* <Navbar title={`${hotelName}`} /> */}
+      <div className="px-4 py-6 bg-whit min-h-screen">
         <div className="flex items-center justify-between mb-6">
           <i
-            className="bi bi-arrow-left-square-fill text-orange-500 text-2xl cursor-pointer hover:text-orange-600 transition-colors"
+            className="bi bi-caret-left-fill text-orange-500 text-2xl cursor-pointer hover:text-orange-600 transition-colors"
             onClick={handleBack}
           ></i> 
           <h5 className="text-lg font-semibold text-gray-800">Cart Summary</h5>

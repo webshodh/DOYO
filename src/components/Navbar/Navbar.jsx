@@ -42,12 +42,15 @@ console.log("user", user)
   }
   return (
     <>
-      <div className="bg-orange-500 text-white p-2 flex justify-between items-center relative">
+      <div className="bg-white-500 text-orange-500 p-2 flex justify-between items-center relative">
         <FaBars
           onClick={toggleSidebar}
           className="cursor-pointer text-2xl"
         />
         <h3 className="text-lg font-semibold">{title}</h3>
+        <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+            {userProfile.initial}
+          </div>
       </div>
 
       <div

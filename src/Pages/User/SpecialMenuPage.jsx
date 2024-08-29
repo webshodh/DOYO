@@ -3,33 +3,13 @@ import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  Navbar,
-  FilterSortSearch,
-  HorizontalMenuCard,
-  MenuCard,
-} from "../../components";
+import { Navbar, FilterSortSearch, MenuCard } from "../../components";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
-import { getAuth } from "firebase/auth";
 import CategoryTabs from "../../components/CategoryTab";
-import { PageTitle, PrimaryButton } from "../../Atoms";
-import styled from "styled-components";
+import { PageTitle } from "../../Atoms";
 import AlertMessage from "Atoms/AlertMessage";
-import ImageSlider from "components/Slider/ImageSlider";
-
-const MenuItemsContainer = styled.div`
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
-  padding: 10px 0;
-
-  .menu-card {
-    flex: 0 0 auto;
-    margin-right: 10px;
-  }
-`;
 
 function SpecialMenuPage() {
   const [menus, setMenus] = useState([]);
@@ -38,109 +18,45 @@ function SpecialMenuPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
-  const [mainCategoryCounts, setMainCategoryCounts] = useState({});
   const [cartItems, setCartItems] = useState([]);
-  const [menuCounts, setMenuCounts] = useState({});
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
-  const [selectedMainCategory, setSelectedMainCategory] = useState(null);
-  const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
     const hotelNameFromPath = pathSegments[pathSegments.length - 3];
     setHotelName(hotelNameFromPath);
+    setIsAdmin(path.includes("admin"));
   }, []);
 
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path.includes("admin")) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
-      setMenus([]);
+    // Fetch menu data
+    const menuRef = ref(db, `/hotels/${hotelName}/menu/`);
+    onValue(menuRef, (snapshot) => {
       const data = snapshot.val();
-      if (data !== null) {
-        setMenus(Object.values(data));
-        setFilteredMenus(Object.values(data)); // Set the initial filtered menus
+      if (data) {
+        const menuArray = Object.values(data);
+        setMenus(menuArray);
+        setFilteredMenus(menuArray);
       }
     });
   }, [hotelName]);
 
   useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
-      setCategories([]);
+    // Fetch main categories data
+    const mainCategoryRef = ref(db, `/hotels/${hotelName}/Maincategories/`);
+    onValue(mainCategoryRef, (snapshot) => {
       const data = snapshot.val();
-      if (data !== null) {
-        const categoriesData = Object.values(data);
-        setCategories(categoriesData);
-        fetchMenuCounts(categoriesData);
-      }
-    });
-  }, [hotelName]);
-
-  useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/Maincategories/`), (snapshot) => {
-      setMainCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
+      if (data) {
         const mainCategoriesData = Object.values(data);
         setMainCategories(mainCategoriesData);
-        fetchMainCategoryCounts(mainCategoriesData);
       }
     });
   }, [hotelName]);
-
-  const fetchMenuCounts = (categoriesData) => {
-    const counts = {};
-    categoriesData.forEach((category) => {
-      const categoryMenus = menus.filter(
-        (menu) => menu.menuCategory === category.categoryName
-      );
-      counts[category.categoryName] = categoryMenus.length;
-    });
-    setMenuCounts(counts);
-  };
-
-  const fetchMainCategoryCounts = (mainCategoriesData) => {
-    const counts = {};
-    mainCategoriesData.forEach((mainCategory) => {
-      const mainCategoryMenus = menus.filter(
-        (menu) => menu.mainCategory === mainCategory.mainCategoryName
-      );
-      counts[mainCategory.mainCategoryName] = mainCategoryMenus.length;
-    });
-    setMainCategoryCounts(counts);
-  };
-
-  useEffect(() => {
-    const countsByMainCategory = {};
-    menus.forEach((menu) => {
-      const mainCategory = menu.mainCategory;
-      countsByMainCategory[mainCategory] =
-        (countsByMainCategory[mainCategory] || 0) + 1;
-    });
-    setMainCategoryCounts(countsByMainCategory);
-  }, [menus]);
-
-  useEffect(() => {
-    const countsByCategory = {};
-    menus.forEach((menu) => {
-      const category = menu.menuCategory;
-      countsByCategory[category] = (countsByCategory[category] || 0) + 1;
-    });
-    setMenuCountsByCategory(countsByCategory);
-  }, [menus]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -150,31 +66,20 @@ function SpecialMenuPage() {
     setSortOrder(order);
   };
 
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
-
   const handleCategoryFilter = (category) => {
     setSelectedCategory(category);
-    setActiveCategory(category);
   };
 
   const filterAndSortItems = () => {
+    // Filter and sort menus based on search, selected category, and sort order
     let filteredItems = filteredMenus.filter((menu) =>
       menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (selectedCategory !== "") {
+    if (selectedCategory) {
       filteredItems = filteredItems.filter(
         (menu) =>
           menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase()
-      );
-    }
-
-    if (selectedMainCategory !== null) {
-      filteredItems = filteredItems.filter(
-        (menu) =>
-          menu.mainCategory.toLowerCase() === selectedMainCategory.toLowerCase()
       );
     }
 
@@ -193,11 +98,9 @@ function SpecialMenuPage() {
 
   const filteredAndSortedItems = filterAndSortItems();
 
-  console.log("filteredAndSortedItems", filteredAndSortedItems);
-
   const addToCart = (menuId) => {
+    // Add item to cart and show success message
     const selectedItem = menus.find((menu) => menu.uuid === menuId);
-
     const existingItem = cartItems.find((item) => item.uuid === menuId);
 
     if (existingItem) {
@@ -220,10 +123,9 @@ function SpecialMenuPage() {
 
   const handleNext = () => {
     navigate(`/${hotelName}/cart/cart-details`, {
-      state: { cartItems: cartItems },
+      state: { cartItems },
     });
   };
-
   const handleAddQuantity = (menuId) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
@@ -247,41 +149,6 @@ function SpecialMenuPage() {
       }, [])
     );
   };
-  console.log("filteredAndSortedItems", filteredAndSortedItems);
-  const handleMainCategoryClick = (category) => {
-    setSelectedMainCategory(category);
-  };
-  const handleMainCategoryCloseClick = () => {
-    setSelectedMainCategory(null);
-  };
-  // Group menus by mainCategory
-  const categorizedMenus = menus.reduce((acc, item) => {
-    if (item.mainCategory) {
-      if (!acc[item.mainCategory]) {
-        acc[item.mainCategory] = [];
-      }
-      acc[item.mainCategory].push(item);
-    }
-    return acc;
-  }, {});
-
-  console.log("categories", categories);
-  console.log("mainCategories", mainCategories);
-  // Slider data
-  const slides = [
-    {
-      src: "/ads.png",
-      alt: "Slide 1",
-    },
-    {
-      src: "/ads2.jpg",
-      alt: "Slide 2",
-    },
-    {
-      src: "ads.png",
-      alt: "Slide 3",
-    },
-  ];
   return (
     <>
       {!isAdmin && (
@@ -290,8 +157,6 @@ function SpecialMenuPage() {
             title={`${hotelName}`}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
           />
-          {/* Image Slider */}
-          {/* <ImageSlider slides={slides} /> */}
           <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
@@ -317,6 +182,7 @@ function SpecialMenuPage() {
           style={{ position: "fixed", width: "100%", zIndex: 999 }}
         />
 
+        {/* Category Tabs */}
         <CategoryTabs
           categories={categories}
           menuCountsByCategory={menuCountsByCategory}
@@ -325,64 +191,43 @@ function SpecialMenuPage() {
         />
       </div>
 
-      <PageTitle pageTitle={"Atithi Special"} />
-      <div className="overflow-x-auto whitespace-nowrap py-4">
-        <div className="flex">
-          {filteredAndSortedItems.map((item) => (
-            <div
-              className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
-              key={item.id}
-            >
-              <MenuCard
-                item={item}
-                handleImageLoad={handleImageLoad}
-                addToCart={addToCart}
-                onAddQuantity={handleAddQuantity}
-                onRemoveQuantity={handleRemoveQuantity}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Menu Sections by Main Category */}
+      <div className="menu-container">
+        {mainCategories.map((mainCategory) => {
+          // Filter items that belong to the current main category
+          const itemsForMainCategory = filteredAndSortedItems.filter(
+            (item) => item.mainCategory === mainCategory.mainCategoryName
+          );
 
-      <PageTitle pageTitle={"Best Seller"} />
-      <div className="overflow-x-auto whitespace-nowrap py-4">
-        <div className="flex">
-          {filteredAndSortedItems.map((item) => (
-            <div
-              className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
-              key={item.id}
-            >
-              <MenuCard
-                item={item}
-                handleImageLoad={handleImageLoad}
-                addToCart={addToCart}
-                onAddQuantity={handleAddQuantity}
-                onRemoveQuantity={handleRemoveQuantity}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+          // Only render if there are items in the main category
+          if (itemsForMainCategory.length === 0) return null;
 
-      <PageTitle pageTitle={"Chef Special"} />
-      <div className="overflow-x-auto whitespace-nowrap py-4">
-        <div className="flex">
-          {filteredAndSortedItems.map((item) => (
-            <div
-              className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
-              key={item.id}
-            >
-              <MenuCard
-                item={item}
-                handleImageLoad={handleImageLoad}
-                addToCart={addToCart}
-                onAddQuantity={handleAddQuantity}
-                onRemoveQuantity={handleRemoveQuantity}
-              />
+          return (
+            <div key={mainCategory.mainCategoryName}>
+              {/* Display the PageTitle for the current main category */}
+              <PageTitle pageTitle={mainCategory.mainCategoryName} />
+
+              {/* Display the menu items for the current main category */}
+              <div className="overflow-x-auto whitespace-nowrap py-4">
+                <div className="flex">
+                  {menus.map((item) => (
+                    <div
+                      className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
+                      key={item.uuid}
+                    >
+                      <MenuCard
+                        item={item}
+                        addToCart={addToCart}
+                        onAddQuantity={handleAddQuantity}
+                        onRemoveQuantity={handleRemoveQuantity}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Cart Details */}
@@ -398,14 +243,11 @@ function SpecialMenuPage() {
               onClick={handleNext}
             >
               <span className="text-white text-lg font-semibold">Checkout</span>
-              <i className="bi bi-caret-right-fill text-2xl ml-2 text-white"></i>
+              <i className="bi bi-arrow-right-circle ml-2 text-white"></i>
             </div>
           </div>
         </div>
       )}
-
-      {/* Toast Notification */}
-      <ToastContainer />
     </>
   );
 }

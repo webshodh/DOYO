@@ -80,22 +80,21 @@ const CartCard = ({
           {!onRemoveFromCart && <InfoText>Qty : {item.quantity}</InfoText>}
           {onRemoveQuantity && onAddQuantity && (
             <QuantitySection>
-              <Button
-                variant="outline-danger"
-                size="sm"
+              <i
+                      className="bi bi-dash-circle text-orange-500 text-xl cursor-pointer"
                 onClick={() => onRemoveQuantity(item.uuid)}
               >
-                -
-              </Button>
+                
+              </i>
               <span style={{ margin: "0 10px" }}>{item.quantity}</span>
-              <Button
-                variant="outline-success"
-                size="sm"
+               <i
+                      className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
                 onClick={() => onAddQuantity(item.uuid)}
               >
-                +
-              </Button>
+                
+              </i>
             </QuantitySection>
+            
           )}
         </div>
 
@@ -106,7 +105,7 @@ const CartCard = ({
               <span style={{ color: `${colors.White}` }}>g</span>
               <i
                 class="bi bi-x-circle-fill"
-                style={{ color: `${colors.Red}`, fontSize: "24px" }}
+                style={{ color: `${colors.Orange}`, fontSize: "24px" }}
               ></i>
             </InfoText>
           )}
@@ -114,7 +113,7 @@ const CartCard = ({
             {/* <b> {item.menuPrice}</b> */}
             <span>
               {item.discount && (
-                <span className="line-through mr-1 text-red-500">
+                <span className="line-through mr-1 text-orange-500">
                  ₹ {Math.round(item.menuPrice)}
                 </span>
               )}

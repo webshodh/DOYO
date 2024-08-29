@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Button from "react-bootstrap/Button";
 import MenuModal from "../MenuModal";
+import { colors } from "theme/theme";
 
 const HorizontalMenuCard = ({
   item,
@@ -44,10 +45,6 @@ const HorizontalMenuCard = ({
       ? item.menuName.slice(0, 12) + "..."
       : item.menuName;
 
-  // const discountedPrice = item.discount
-  //   ? Math.round((item.menuPrice * (100 - item.discount)) / 100)
-  //   : item.menuPrice;
-
   return (
     <div className="flex bg-white rounded-lg shadow-sm overflow-hidden m-1 cursor-pointer max-w-xs relative">
       <div className="flex-shrink-0 w-24 h-24 overflow-hidden">
@@ -79,9 +76,19 @@ const HorizontalMenuCard = ({
             {/* Menu Category */}
             <span className="absolute top-0 right-0 bg-white text-gray-700 text-xs font-bold py-1 px-2 rounded-bl-lg">
               {item.menuCategory === "Veg" ? (
-                <img src="/veglogo.jpeg" alt={item.menuCategory} width={"18px"} height={"18px"} />
+                <img
+                  src="/veglogo.jpeg"
+                  alt={item.menuCategory}
+                  width={"18px"}
+                  height={"18px"}
+                />
               ) : item.menuCategory === "Non Veg" ? (
-                <img src="/nonVeglogo.png" alt={item.menuCategory} width={"18px"} height={"18px"} />
+                <img
+                  src="/nonVeglogo.png"
+                  alt={item.menuCategory}
+                  width={"18px"}
+                  height={"18px"}
+                />
               ) : (
                 ""
               )}
@@ -119,26 +126,21 @@ const HorizontalMenuCard = ({
               <div className="flex items-center space-x-1">
                 {quantity > 0 && (
                   <>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
+                    <i
+                      class="bi bi-dash-circle"
+                      className="bi bi-dash-circle text-orange-500 text-xl cursor-pointer"
                       onClick={handleDecreaseQuantity}
-                    >
-                      -
-                    </Button>
+                    ></i>
                     <span className="text-sm">{quantity}</span>
-                    <Button
-                      variant="outline-success"
-                      size="sm"
+                    <i
+                      className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
                       onClick={handleIncreaseQuantity}
-                    >
-                      +
-                    </Button>
+                    ></i>
                   </>
                 )}
                 {quantity === 0 && (
                   <i
-                    className="bi bi-plus-circle-fill text-orange-400 text-xl cursor-pointer"
+                    className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
                     onClick={handleAddToCart}
                   ></i>
                 )}

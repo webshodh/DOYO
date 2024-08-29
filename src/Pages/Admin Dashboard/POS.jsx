@@ -38,6 +38,7 @@ const POS = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState(null);
   const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
+  const [cardShow, setCardShow] = useState(false);
 
   useEffect(() => {
     const path = window.location.pathname;
@@ -209,6 +210,7 @@ const POS = () => {
   console.log("filteredAndSortedItems", filteredAndSortedItems);
   const handleMainCategoryClick = (category) => {
     setSelectedMainCategory(category);
+    setCardShow(true);
   };
   const handleMainCategoryCloseClick = () => {
     setSelectedMainCategory(null);
@@ -252,13 +254,6 @@ const POS = () => {
               btnText={`${category}`}
             />
           ))}
-
-          {/* <span
-            onClick={() => handleMainCategoryCloseClick()}
-            className="text-red-500 cursor-pointer text-lg"
-          >
-            <i className="bi bi-x-lg"></i>
-          </span> */}
         </div>
 
         {/* Menu Items */}
@@ -278,7 +273,22 @@ const POS = () => {
             </div>
           ))}
         </div>
+        {menus.map((item) => (
+        <div
+          className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
+          key={item.uuid}
+        >
+          <MenuCard
+            item={item}
+            addToCart={addToCart}
+            onAddQuantity={handleAddQuantity}
+            onRemoveQuantity={handleRemoveQuantity}
+          />
+        </div>
+      ))}
       </div>
+
+      
 
       {/* Right Column - 30% Width */}
       <div className="w-full lg:w-4/12 lg:sticky lg:top-0 mt-8 lg:mt-0 overflow-auto">
