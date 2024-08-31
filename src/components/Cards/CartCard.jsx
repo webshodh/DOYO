@@ -14,13 +14,13 @@ const CardWrapper = styled.div`
 `;
 
 const ImageSection = styled.div`
-  flex: 0 0 100px;
+  flex: 0 0 80px;
   overflow: hidden;
 `;
 
 const Image = styled.img`
   width: 100px;
-  height: 100px;
+  height: 80px;
   border-radius: 10px 0 0 10px;
 `;
 
@@ -61,12 +61,15 @@ const CartCard = ({
     <CardWrapper>
       <ImageSection>
         <Image src={item.imageUrl} alt={item.menuName} />
-         {/* Discount Badge */}
-         {item.discount > 0 && (
-          <span className="absolute bottom-0 left-0 w-24 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom">
+        {/* Discount Badge */}
+        {/* {item.discount > 0 && (
+          <span
+            className="absolute bottom-0 left-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom"
+            style={{ width: "101px" }}
+          >
             {item.discount}% OFF
           </span>
-        )}
+        )} */}
         {/* Orange Strip */}
         {item.mainCategory && (
           <div className="absolute top-0 left-0 bg-orange-500 text-white text-xs font-bold py-1 px-2 transform origin-bottom">
@@ -77,24 +80,28 @@ const CartCard = ({
       <TextSection>
         <div style={{ marginTop: "10px" }}>
           <InfoText>{truncatedContent}</InfoText>
+          {/* <span>
+              {item.discount && (
+                <span className="line-through mr-1 text-orange-500">
+                 ₹ {Math.round(item.menuPrice)}
+                </span>
+              )}
+             ₹ {item.finalPrice}
+            </span> */}
+
           {!onRemoveFromCart && <InfoText>Qty : {item.quantity}</InfoText>}
           {onRemoveQuantity && onAddQuantity && (
             <QuantitySection>
               <i
-                      className="bi bi-dash-circle text-orange-500 text-xl cursor-pointer"
+                className="bi bi-dash-circle text-orange-500 text-xl cursor-pointer"
                 onClick={() => onRemoveQuantity(item.uuid)}
-              >
-                
-              </i>
+              ></i>
               <span style={{ margin: "0 10px" }}>{item.quantity}</span>
-               <i
-                      className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
+              <i
+                className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
                 onClick={() => onAddQuantity(item.uuid)}
-              >
-                
-              </i>
+              ></i>
             </QuantitySection>
-            
           )}
         </div>
 
@@ -109,17 +116,7 @@ const CartCard = ({
               ></i>
             </InfoText>
           )}
-          <InfoText style={{ marginTop: "25px" }}>
-            {/* <b> {item.menuPrice}</b> */}
-            <span>
-              {item.discount && (
-                <span className="line-through mr-1 text-orange-500">
-                 ₹ {Math.round(item.menuPrice)}
-                </span>
-              )}
-             ₹ {item.finalPrice}
-            </span>
-          </InfoText>
+          ₹{item.finalPrice}
         </div>
       </TextSection>
     </CardWrapper>

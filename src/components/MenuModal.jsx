@@ -42,14 +42,14 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
         {modalData.menuContent ? modalData.menuContent : modalData.menuName}
       </Modal.Body>
       <Modal.Footer>
-        <AddToCartButton
+        {/* <AddToCartButton
           onClick={() => {
             addToCart(modalData.uuid);
             handleClose();
           }}
         >
           Add to Cart
-        </AddToCartButton>
+        </AddToCartButton> */}
         <Button variant="danger" onClick={handleClose}>
           Close
         </Button>

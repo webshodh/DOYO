@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { colors } from "theme/theme";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const handlePageChange = (page) => {
@@ -26,9 +27,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         {[...Array(totalPages).keys()].map((page) => (
           <li key={page + 1}>
             <button
+            style={{background:colors.Orange, borderColor:colors.Orange}}
               className={`px-3 py-2 leading-tight border ${
                 currentPage === page + 1
-                  ? "text-white bg-orange-500 border-orange-500"
+                  ? "text-white"
+                  
                   : "text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700 transition-colors duration-200"
               }`}
               onClick={() => handlePageChange(page + 1)}

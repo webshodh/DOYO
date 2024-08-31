@@ -41,18 +41,19 @@ const HorizontalMenuCard = ({
   };
 
   const truncatedContent =
-    item.menuName.length > 12
-      ? item.menuName.slice(0, 12) + "..."
+    item.menuName.length > 20
+      ? item.menuName.slice(0, 20) + "..."
       : item.menuName;
 
   return (
     <div className="flex bg-white rounded-lg shadow-sm overflow-hidden m-1 cursor-pointer max-w-xs relative">
-      <div className="flex-shrink-0 w-24 h-24 overflow-hidden">
+      <div className="flex-shrink-0 w-24  overflow-hidden">
         <img
           src={item.imageUrl || "/dish.png"}
           alt={item.menuName}
           onLoad={handleImageLoad}
           className="w-full h-full object-cover rounded-l-lg"
+          style={{height:'110px'}}
         />
         {/* Discount Badge */}
         {item.discount > 0 && (
@@ -69,10 +70,10 @@ const HorizontalMenuCard = ({
       </div>
       <div className="flex-1 p-2 flex flex-col justify-between relative">
         <div>
-          <div className="d-flex justify-between">
-            <h4 className="text-lg font-semibold truncate">
+          <div className="d-flex justify-between" >
+            <span className="text-lg font-semibold truncate">
               {truncatedContent}
-            </h4>
+            </span>
             {/* Menu Category */}
             <span className="absolute top-0 right-0 bg-white text-gray-700 text-xs font-bold py-1 px-2 rounded-bl-lg">
               {item.menuCategory === "Veg" ? (
@@ -94,19 +95,21 @@ const HorizontalMenuCard = ({
               )}
             </span>
           </div>
-          <div className="flex text-gray-600 mt-1 text-xs">
-            <i className="bi bi-stopwatch-fill mr-1 text-orange-500"></i>
+          <div className="flex text-gray-600 mt-1 text-xs" >
+            {/* <i className="bi bi-stopwatch-fill mr-1 text-orange-500"></i>
             <span>{item.menuCookingTime} min</span>
-            <span className="mx-1">|</span>
-            <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500"></i>
+            <span className="mx-1">|</span> */}
+            <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500 pt-2"></i>
             <span>
               {item.discount && (
-                <span className="line-through mr-1 text-red-500">
+                <span className="line-through mr-1 ">
                   {Math.round(item.menuPrice)}
                 </span>
               )}
-              {item.finalPrice}
+              <b><span className="text-black text-lg">
+              {item.finalPrice}</span></b>
             </span>
+            
           </div>
         </div>
         <div className="mt-2 flex justify-between items-center">
@@ -154,7 +157,7 @@ const HorizontalMenuCard = ({
         show={show}
         handleClose={handleClose}
         modalData={modalData}
-        addToCart={addToCart}
+        // addToCart={addToCart}
       />
     </div>
   );

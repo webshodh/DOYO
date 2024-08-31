@@ -15,10 +15,10 @@ const ImageSlider = ({ slides }) => {
   };
 
   return (
-    <div className="relative rounded-lg overflow-hidden" style={{height:'200px'}}>
+    <div className="relative  overflow-hidden">
       <Slider {...settings}>
         {slides.map((slide, index) => (
-          <div key={index} className="w-full h-full">
+          <div key={index} className="w-full h-24" style={{padding:'20px'}}>
             <img
               src={slide.src}
               alt={slide.alt || `Slide ${index + 1}`}

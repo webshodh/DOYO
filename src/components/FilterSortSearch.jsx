@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaSortAmountUp } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { colors } from "theme/theme";
 
 const FilterSortSearch = ({
   searchTerm,
@@ -18,12 +19,12 @@ const FilterSortSearch = ({
   };
 
   return (
-    <div className="flex flex-wrap items-center ml-2">
+    <div className="flex flex-wrap items-center ml-2" style={{background:colors.LightGrey}}>
       {/* Search */}
       <div className="flex-grow mb-2">
         <input
           type="text"
-          placeholder="Search by Menu Name"
+          placeholder="What are you looking for?"
           value={searchTerm}
           onChange={handleSearch}
           className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -41,7 +42,7 @@ const FilterSortSearch = ({
             <FaSortAmountUp />
           </button>
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-1000">
               <button
                 onClick={() => {
                   handleSort("lowToHigh");

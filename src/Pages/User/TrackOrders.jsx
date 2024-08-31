@@ -8,6 +8,7 @@ import useOrdersData from "../../data/useOrdersData";
 import { colors } from "../../theme/theme";
 import { UserContext } from "Context/UserContext";
 import TabButtons from "components/TabButtons";
+import Footer from "Atoms/Footer";
 //import { UserAuthContext } from "../../Context/UserAuthContext";
 
 function TrackOrders() {
@@ -177,7 +178,7 @@ function TrackOrders() {
   return (
     <>
       <Navbar
-        title={hotelName}
+        title={'Track Your Orders'}
         style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
       />
       <Container
@@ -185,24 +186,9 @@ function TrackOrders() {
         className="px-3 px-md-5 mt-3 bg-white"
         style={{ height: "100vh" }}
       >
-        <Row className="mb-4">
-          <div
-            className="d-flex mb-2"
-            style={{ justifyContent: "space-between" }}
-          >
-            <i
-              class="bi bi-arrow-left-square-fill"
-              onClick={handleBack}
-              style={{ color: `${colors.Orange}`, fontSize: "30px" }}
-            ></i>
-            <h5 style={{ marginLeft: "20px", marginTop: "10px" }}>
-              Track Your Orders
-            </h5>
-            <span></span>
-          </div>
-        </Row>
+        
         <TabButtons tabs={tabs} width="70vw" />
-
+        <Footer cartItemsCount={''} handleCart={''} />
         <ToastContainer />
       </Container>
     </>

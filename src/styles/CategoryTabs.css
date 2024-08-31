@@ -4,7 +4,7 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #d1d1d1; /* Background of the track */
+    background: var(--White); /* Background of the track */
     border-radius: 4px;
   }
   
@@ -15,6 +15,6 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1; /* Color on hover */
+    background: var(--White); /* Color on hover */
   }
   

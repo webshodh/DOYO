@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import OrderSearchForm from "./OrderSearchForm";
 import { useCompletedOrders, useOrdersData } from "../../data";
+import Footer from "Atoms/Footer";
 
 const OrderHistory = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
@@ -79,6 +80,7 @@ const OrderHistory = () => {
           ))}
         </div>
       ))}
+      
     </div>
   );
 };

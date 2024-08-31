@@ -10,6 +10,7 @@ import { colors } from "../../theme/theme";
 import CategoryTabs from "../../components/CategoryTab";
 import { PageTitle } from "../../Atoms";
 import AlertMessage from "Atoms/AlertMessage";
+import ImageSlider from "components/Slider/ImageSlider";
 
 function SpecialMenuPage() {
   const [menus, setMenus] = useState([]);
@@ -149,6 +150,21 @@ function SpecialMenuPage() {
       }, [])
     );
   };
+  // Slider data
+  const slides = [
+    {
+      src: "/ads.png",
+      alt: "Slide 1",
+    },
+    {
+      src: "/ads2.jpg",
+      alt: "Slide 2",
+    },
+    {
+      src: "ads.png",
+      alt: "Slide 3",
+    },
+  ];
   return (
     <>
       {!isAdmin && (
@@ -157,6 +173,7 @@ function SpecialMenuPage() {
             title={`${hotelName}`}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
           />
+            <ImageSlider slides={slides} />
           <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"

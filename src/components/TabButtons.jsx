@@ -14,7 +14,7 @@ const TabButtons = ({ tabs, width }) => {
           <button
             style={{ border: `1px solid ${colors.Orange}` }}
             key={tab.label}
-            className={`flex-shrink-0 px-6 py-2 mx-2 text-lg font-semibold transition-transform duration-300 transform 
+            className={`flex-shrink-0 px-6 py-2 mx-2 text-lg text-sm font-medium transition-transform duration-300 transform 
               ${
                 activeTab === tab.label
                   ? "text-white bg-orange-500 scale-105 shadow-lg"

@@ -10,6 +10,8 @@ import { colors } from "../../theme/theme";
 import { UserAuthContext } from "../../Context/UserAuthContext";
 import CheckoutForm from "components/Form/CheckoutForm";
 import { UserContext } from "Context/UserContext";
+import Footer from "Atoms/Footer";
+
 
 function CartDetails() {
   const location = useLocation();
@@ -134,23 +136,19 @@ function CartDetails() {
 
   return (
     <>
-      {/* <Navbar title={`${hotelName}`} /> */}
+      <Navbar
+        title={'Cart Summary'}
+        style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
+      />
       <div className="px-4 py-6 bg-whit min-h-screen">
-        <div className="flex items-center justify-between mb-6">
-          <i
-            className="bi bi-caret-left-fill text-orange-500 text-2xl cursor-pointer hover:text-orange-600 transition-colors"
-            onClick={handleBack}
-          ></i> 
-          <h5 className="text-lg font-semibold text-gray-800">Cart Summary</h5>
-          <span
-            className="text-orange-500 cursor-pointer hover:text-orange-600 transition-colors"
+      <span
+            className="text-orange-500 cursor-pointer hover:text-orange-600 transition-colors flex"
             onClick={clearCart}
           >
             Clear Cart
           </span>
-        </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 h-full overflow-y-auto">
           {cartItems.map((item) => (
             <CartCard
               key={item.uuid}
@@ -166,17 +164,28 @@ function CartDetails() {
           <>
             <div className="mt-6 space-y-6 md:space-y-0 md:space-x-6 flex flex-col md:flex-row md:justify-center">
               <div className="bg-white shadow-md rounded-lg p-6 flex flex-col space-y-4 md:w-1/2">
-                <h5 className="text-lg font-semibold text-gray-800">Order Summary</h5>
-                <p className="text-gray-700">Total Items: <b>{cartItems.length}</b></p>
+                <h5 className="text-lg font-semibold text-gray-800">
+                  Order Summary
+                </h5>
                 <p className="text-gray-700">
-                  Total Price: <b>₹ {cartItems.reduce(
-                    (total, item) => total + item.finalPrice * item.quantity,
-                    0
-                  )}</b>
+                  Total Items: <b>{cartItems.length}</b>
+                </p>
+                <p className="text-gray-700">
+                  Total Price:{" "}
+                  <b>
+                    ₹{" "}
+                    {cartItems.reduce(
+                      (total, item) => total + item.finalPrice * item.quantity,
+                      0
+                    )}
+                  </b>
                 </p>
                 {/* Table number input */}
                 <div className="mt-4">
-                  <label htmlFor="tableNumber" className="block text-gray-700 font-medium">
+                  <label
+                    htmlFor="tableNumber"
+                    className="block text-gray-700 font-medium"
+                  >
                     Table Number
                   </label>
                   <input
@@ -193,7 +202,7 @@ function CartDetails() {
             <div className="d-flex justify-center mt-3">
               <button
                 onClick={handleCheckout}
-                className="bg-orange-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+                className="bg-orange-500 text-white py-3 px-6 rounded-lg w-full shadow-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
               >
                 Place Order
               </button>
@@ -204,6 +213,7 @@ function CartDetails() {
             No items in cart
           </div>
         )}
+        {/* <Footer cartItemsCount={'cartItems.length'} handleCart={''} /> */}
         <ToastContainer />
       </div>
     </>

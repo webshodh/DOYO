@@ -44,6 +44,7 @@ import GoogleLogin from "./Pages/Login/GoogleLogin";
 import Dashboard from "Pages/Dashboard";
 import UserLogin from "Pages/Login/UserLogin";
 import AddStaff from "Pages/StaffDahboard/AddStaff";
+import Offers from "Pages/User/Offers";
 
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
             <Route path="/:hotelName/orders/captain-feedback" element={<CaptainFeedBack />} />
             <Route path="/:hotelName/orders/order-history" element={<OrderHistory />} />
             <Route path="/viewMenu/:hotelName/home/specialMenu" element={<SpecialMenuPage />} />
+            <Route path="/viewMenu/:hotelName/home/offers" element={<Offers />} />
           </Routes>
         
         {isAdmin && (
