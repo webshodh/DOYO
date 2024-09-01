@@ -154,7 +154,8 @@ function AddCategory() {
 
   return (
     <>
-      <div className="bg-white p-10 rounded-lg shadow-md">
+    <div className="d-flex justify-between"> 
+      <div className="bg-white p-10 rounded-lg shadow-md" style={{width:'30%', marginRight:'10px'}}>
         <PageTitle pageTitle={"Add Category"} />
         <input
           type="text"
@@ -186,12 +187,9 @@ function AddCategory() {
         <ToastContainer />
       </div>
 
-      <div className="bg-white p-10 rounded-lg shadow-md mt-10">
+      <div className="bg-white p-10 rounded-lg shadow-md" style={{width:'70%'}}>
         <PageTitle pageTitle={"View Categories"} />
         <div className="mb-6">
-          <label htmlFor="SearchByName" className="block font-semibold mb-2">
-            Search by Name
-          </label>
           <input
             type="text"
             value={searchTerm}
@@ -207,6 +205,7 @@ function AddCategory() {
           onEdit={handleUpdateCategory}
           onDelete={handleDeleteCategory}
         />
+      </div>
       </div>
     </>
   );

@@ -78,10 +78,13 @@ function AddRole() {
 
   const handleSubmitRoleChange = () => {
     if (window.confirm("Confirm update")) {
-      update(ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${tempRoleId}`), {
-        roleName,
-        roleId: tempRoleId,
-      });
+      update(
+        ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${tempRoleId}`),
+        {
+          roleName,
+          roleId: tempRoleId,
+        }
+      );
       toast.success("Role Updated Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -92,7 +95,9 @@ function AddRole() {
 
   const handleDeleteRole = (role) => {
     if (window.confirm("Confirm delete")) {
-      remove(ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${role.roleId}`));
+      remove(
+        ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${role.roleId}`)
+      );
       toast.error("Role Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -110,41 +115,48 @@ function AddRole() {
 
   return (
     <>
-      <div className="bg-white rounded shadow p-10">
-        <PageTitle pageTitle="Add Roles" />
-        <Input
-          value={roleName}
-          onChange={handleRoleNameChange}
-          placeholder="Enter Role Name"
-        />
-        {isEdit ? (
-          <>
-            <Button primary onClick={handleSubmitRoleChange}>
-              Submit Change
+      <div className="d-flex justify-between">
+        <div
+          className="bg-white rounded shadow p-10"
+          style={{ marginRight: "10px", width: "30%" }}
+        >
+          <PageTitle pageTitle="Add Roles" />
+          <Input
+            value={roleName}
+            onChange={handleRoleNameChange}
+            placeholder="Enter Role Name"
+          />
+          {isEdit ? (
+            <>
+              <Button primary onClick={handleSubmitRoleChange}>
+                Submit Change
+              </Button>
+              <Button onClick={() => setIsEdit(false) && setRoleName("")}>
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button primary onClick={addRoleToDatabase}>
+              Submit
             </Button>
-            <Button onClick={() => setIsEdit(false) && setRoleName("")}>
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <Button primary onClick={addRoleToDatabase}>Submit</Button>
-        )}
-        <ToastContainer />
-      </div>
+          )}
+          <ToastContainer />
+        </div>
 
-      <div className="bg-white rounded shadow p-10 mt-10">
-        <PageTitle pageTitle="View Roles" />
-        <Input
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search Roles"
-        />
-        <DynamicTable
-          columns={ViewRoleColumns}
-          data={rolesArray}
-          onEdit={handleUpdateRole}
-          onDelete={handleDeleteRole}
-        />
+        <div className="bg-white rounded shadow p-10" style={{ width: "70%" }}>
+          <PageTitle pageTitle="View Roles" />
+          <Input
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search Roles"
+          />
+          <DynamicTable
+            columns={ViewRoleColumns}
+            data={rolesArray}
+            onEdit={handleUpdateRole}
+            onDelete={handleDeleteRole}
+          />
+        </div>
       </div>
     </>
   );

@@ -13,6 +13,7 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { PageTitle } from "Atoms";
 
 function AddMenu() {
   const [menuName, setMenuName] = useState("");
@@ -29,7 +30,7 @@ function AddMenu() {
   const [file, setFile] = useState(null); // State for file upload
   const [editMode, setEditMode] = useState(false);
   const [editedMenuId, setEditedMenuId] = useState(null);
-
+ const [selectedCategory, setSelectedCategory] = useState("");
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
@@ -163,10 +164,13 @@ function AddMenu() {
       });
     }
   };
-  
+  const handleCategoryFilter = (category) => {
+    setSelectedCategory(category);
+  };
   return (
     <>
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+    <div className="d-flex">
+      <div className="bg-white p-6 rounded-lg shadow-lg" style={{width:'50%'}}>
         <form className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="relative">
@@ -405,6 +409,9 @@ function AddMenu() {
             </button>
           </div>
         </form>
+      </div>
+
+     
       </div>
       <ToastContainer />
     </>

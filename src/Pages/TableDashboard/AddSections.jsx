@@ -37,13 +37,21 @@ function AddSection() {
 
   const addCategoryToDatabase = () => {
     const sectionId = uid();
-    set(ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/sections/${sectionId}`), {
-      sectionName,
-      sectionId,
-    });
+    set(
+      ref(
+        db,
+        `/admins/${currentAdminId}/hotels/${hotelName}/sections/${sectionId}`
+      ),
+      {
+        sectionName,
+        sectionId,
+      }
+    );
 
     setSectionName("");
-    toast.success("Section Added Successfully!", { position: toast.POSITION.TOP_RIGHT });
+    toast.success("Section Added Successfully!", {
+      position: toast.POSITION.TOP_RIGHT,
+    });
   };
 
   const handleUpdateCategory = (category) => {
@@ -54,11 +62,19 @@ function AddSection() {
 
   const handleSubmitCategoryChange = () => {
     if (window.confirm("Confirm update?")) {
-      update(ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/sections/${tempSectionId}`), {
-        sectionName,
-        sectionId: tempSectionId,
+      update(
+        ref(
+          db,
+          `/admins/${currentAdminId}/hotels/${hotelName}/sections/${tempSectionId}`
+        ),
+        {
+          sectionName,
+          sectionId: tempSectionId,
+        }
+      );
+      toast.success("Section Updated Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
       });
-      toast.success("Section Updated Successfully!", { position: toast.POSITION.TOP_RIGHT });
     }
     setSectionName("");
     setIsEdit(false);
@@ -66,8 +82,15 @@ function AddSection() {
 
   const handleDeleteCategory = (category) => {
     if (window.confirm("Confirm delete?")) {
-      remove(ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/sections/${category.sectionId}`));
-      toast.error("Section Deleted Successfully!", { position: toast.POSITION.TOP_RIGHT });
+      remove(
+        ref(
+          db,
+          `/admins/${currentAdminId}/hotels/${hotelName}/sections/${category.sectionId}`
+        )
+      );
+      toast.error("Section Deleted Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
     }
   };
 
@@ -77,72 +100,79 @@ function AddSection() {
       srNo: index + 1,
       ...category,
     }))
-    .filter((section) => section.sectionName.toLowerCase().includes(searchTerm.toLowerCase()));
+    .filter((section) =>
+      section.sectionName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const columns = ViewSectionColumns;
 
   return (
     <>
-      <div className="p-10">
-        <PageTitle pageTitle="Add Sections" />
-        <input
-          type="text"
-          value={sectionName}
-          onChange={handleSectionNameChange}
-          placeholder="Enter Section Name"
-          className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {isEdit ? (
-          <>
-            <button
-              onClick={handleSubmitCategoryChange}
-              className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
-            >
-              Submit Change
-            </button>
-            <button
-              onClick={() => {
-                setIsEdit(false);
-                setSectionName("");
-              }}
-              className="px-4 py-2 text-white bg-red-600 rounded-md"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={addCategoryToDatabase}
-            className="px-4 py-2 text-white bg-green-600 rounded-md"
-          >
-            Submit
-          </button>
-        )}
-        <ToastContainer />
-      </div>
-
-      <div className="p-10 bg-white shadow rounded-lg">
-        <PageTitle pageTitle="View Sections" />
-        {/* Search Bar */}
-        <div className="relative mb-6">
-          <label htmlFor="SearchByName" className="block font-semibold mb-2">
-            Search by Name
-          </label>
+      <div className="d-flex justify-between">
+        <div className="bg-white rounded shadow p-10" style={{ width: "30%", marginRight: "10px" }}>
+          <PageTitle pageTitle="Add Sections" />
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            id="SearchByName"
-            className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search by Section Name"
+            value={sectionName}
+            onChange={handleSectionNameChange}
+            placeholder="Enter Section Name"
+            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {isEdit ? (
+            <>
+              <button
+                onClick={handleSubmitCategoryChange}
+                className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+              >
+                Submit Change
+              </button>
+              <button
+                onClick={() => {
+                  setIsEdit(false);
+                  setSectionName("");
+                }}
+                className="px-4 py-2 text-white bg-red-600 rounded-md"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={addCategoryToDatabase}
+              className="px-4 py-2 text-white bg-green-600 rounded-md"
+            >
+              Submit
+            </button>
+          )}
+          <ToastContainer />
+        </div>
+
+        <div
+          className="p-10 bg-white shadow rounded-lg"
+          style={{ width: "70%" }}
+        >
+          <PageTitle pageTitle="View Sections" />
+          {/* Search Bar */}
+          <div className="relative mb-6">
+            <label htmlFor="SearchByName" className="block font-semibold mb-2">
+              Search by Name
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              id="SearchByName"
+              className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search by Section Name"
+            />
+          </div>
+          <DynamicTable
+            columns={columns}
+            data={sectionsArray}
+            onEdit={handleUpdateCategory}
+            onDelete={handleDeleteCategory}
           />
         </div>
-        <DynamicTable
-          columns={columns}
-          data={sectionsArray}
-          onEdit={handleUpdateCategory}
-          onDelete={handleDeleteCategory}
-        />
       </div>
     </>
   );

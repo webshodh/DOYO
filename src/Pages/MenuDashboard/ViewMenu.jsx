@@ -192,7 +192,7 @@ function ViewMenu() {
       <>
         <button
           className="btn btn-primary btn-sm mr-2"
-          onClick={() => handleShow(item.uuid)}
+          onClick={() => handleUpdate(item.uuid)}
         >
           <img src="/update.png" width="20px" height="20px" alt="Update" />
         </button>

@@ -857,114 +857,154 @@ function AddStaff() {
 
   return (
     <>
-     <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
-      <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="relative">
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-            First Name
-          </label>
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            id="firstName"
-            className={`mt-1 block w-full px-3 py-2 border ${firstName ? 'border-green-500' : 'border-red-500'} rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-            placeholder="Enter First Name"
-          />
-          {firstName && (
-            <FaCheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-500" />
-          )}
-          {!firstName && (
-            <FaExclamationCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500" />
-          )}
-          {!firstName && <p className="text-red-500 text-xs mt-1">First Name is required.</p>}
-        </div>
+      <div className="d-flex justify-between">
+        <div
+          className="bg-white p-6 rounded-lg shadow-lg"
+          style={{ marginRight: "10px", width: "50%" }}
+        >
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                First Name
+              </label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                id="firstName"
+                className={`mt-1 block w-full px-3 py-2 border ${
+                  firstName ? "border-green-500" : "border-red-500"
+                } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                placeholder="Enter First Name"
+              />
+              {firstName && (
+                <FaCheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-500" />
+              )}
+              {!firstName && (
+                <FaExclamationCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500" />
+              )}
+              {!firstName && (
+                <p className="text-red-500 text-xs mt-1">
+                  First Name is required.
+                </p>
+              )}
+            </div>
 
-        <div className="relative">
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-            Last Name
-          </label>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            id="lastName"
-            className={`mt-1 block w-full px-3 py-2 border ${lastName ? 'border-green-500' : 'border-red-500'} rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-            placeholder="Enter Last Name"
-          />
-          {lastName && (
-            <FaCheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-500" />
-          )}
-          {!lastName && (
-            <FaExclamationCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500" />
-          )}
-          {!lastName && <p className="text-red-500 text-xs mt-1">Last Name is required.</p>}
-        </div>
+            <div className="relative">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Last Name
+              </label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                id="lastName"
+                className={`mt-1 block w-full px-3 py-2 border ${
+                  lastName ? "border-green-500" : "border-red-500"
+                } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                placeholder="Enter Last Name"
+              />
+              {lastName && (
+                <FaCheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-500" />
+              )}
+              {!lastName && (
+                <FaExclamationCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500" />
+              )}
+              {!lastName && (
+                <p className="text-red-500 text-xs mt-1">
+                  Last Name is required.
+                </p>
+              )}
+            </div>
 
-        <div className="relative">
-          <label htmlFor="upiId" className="block text-sm font-medium text-gray-700">
-            UPI ID
-          </label>
-          <input
-            type="text"
-            value={upiId}
-            onChange={(e) => setUpiId(e.target.value)}
-            id="upiId"
-            className={`mt-1 block w-full px-3 py-2 border ${upiId ? 'border-green-500' : 'border-red-500'} rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-            placeholder="Enter UPI ID"
-          />
-          {upiId && (
-            <FaCheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-500" />
-          )}
-          {!upiId && (
-            <FaExclamationCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500" />
-          )}
-          {!upiId && <p className="text-red-500 text-xs mt-1">UPI ID is required.</p>}
-        </div>
+            <div className="relative">
+              <label
+                htmlFor="upiId"
+                className="block text-sm font-medium text-gray-700"
+              >
+                UPI ID
+              </label>
+              <input
+                type="text"
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+                id="upiId"
+                className={`mt-1 block w-full px-3 py-2 border ${
+                  upiId ? "border-green-500" : "border-red-500"
+                } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                placeholder="Enter UPI ID"
+              />
+              {upiId && (
+                <FaCheckCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-500" />
+              )}
+              {!upiId && (
+                <FaExclamationCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500" />
+              )}
+              {!upiId && (
+                <p className="text-red-500 text-xs mt-1">UPI ID is required.</p>
+              )}
+            </div>
 
-        <div className="relative ">
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 bg-white">
-            Select Role
-          </label>
-          <select
-            id="role"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="" disabled>Select Role</option>
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {role}
-              </option>
-            ))}
-          </select>
-          {!role && <p className="text-red-500 text-xs mt-1">Role is required.</p>}
-        </div>
+            <div className="relative ">
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700 bg-white"
+              >
+                Select Role
+              </label>
+              <select
+                id="role"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="" disabled>
+                  Select Role
+                </option>
+                {roles.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+              {!role && (
+                <p className="text-red-500 text-xs mt-1">Role is required.</p>
+              )}
+            </div>
 
-        <div className="col-span-2">
-          <label htmlFor="file" className="block text-sm font-medium text-gray-700">
-            Profile Image
-          </label>
-          <input
-            type="file"
-            id="file"
-            className="mt-1 block w-full text-sm text-gray-500 border border-gray-300 rounded-md shadow-sm file:border-0 file:bg-gray-200 file:text-gray-700"
-            onChange={handleFileChange}
-          />
-        </div>
+            <div className="col-span-2">
+              <label
+                htmlFor="file"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Profile Image
+              </label>
+              <input
+                type="file"
+                id="file"
+                className="mt-1 block w-full text-sm text-gray-500 border border-gray-300 rounded-md shadow-sm file:border-0 file:bg-gray-200 file:text-gray-700"
+                onChange={handleFileChange}
+              />
+            </div>
 
-        <div className="col-span-2">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="w-full py-2 px-4 bg-orange-500 text-white font-semibold rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            Submit
-          </button>
+            <div className="col-span-2">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="w-full py-2 px-4 bg-orange-500 text-white font-semibold rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
+      </div>
     </>
   );
 }

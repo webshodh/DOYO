@@ -212,8 +212,9 @@ function AddTable() {
 
   return (
     <>
+    <div className="d-flex justify-between">
       {/* Form to add or edit tables */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-6 rounded-lg shadow-md" style={{width:'50%', marginRight:'10px'}}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Table Name Input */}
           <div className="relative">
@@ -339,7 +340,7 @@ function AddTable() {
           </button>
         </div>
       </div>
-
+<div style={{width:'50%', marginRight:'10px'}}>
       {/* Section Filter, Search Bar, and Sort Order Dropdown */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         {/* Search Bar */}
@@ -407,6 +408,8 @@ function AddTable() {
             No tables available. Please add some tables.
           </div>
         )}
+      </div>
+      </div>
       </div>
     </>
   );

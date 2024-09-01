@@ -158,7 +158,8 @@ function AddMainCategory() {
 
   return (
     <>
-      <div className="p-10 bg-white rounded-lg shadow-md">
+    <div className="d-flex justify-between">
+      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'30%', marginRight:'10px'}}>
         <PageTitle pageTitle={"Add Special Category"} />
         <input
           type="text"
@@ -199,13 +200,10 @@ function AddMainCategory() {
         )}
       </div>
 
-      <div className="p-10 mt-6 bg-white rounded-lg shadow-md">
+      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'70%'}}>
         <PageTitle pageTitle={"View Categories"} />
         {/* Search Bar */}
         <div className="mb-6">
-          <label htmlFor="SearchByName" className="block font-semibold mb-2">
-            Search by Name
-          </label>
           <input
             type="text"
             value={searchTerm}
@@ -221,6 +219,7 @@ function AddMainCategory() {
           onEdit={handleUpdateCategory}
           onDelete={handleDeleteCategory}
         />
+      </div>
       </div>
     </>
   );
