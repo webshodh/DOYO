@@ -15,9 +15,7 @@
 .body{
 	background-color: #f9f9f9;
 }
-.bg-orange-gradient {
-	background: linear-gradient(107deg, rgb(255, 67, 5) 11.1%, rgb(245, 135, 0) 95.3%);
-  }
+
 input.defaultCheckbox::before {
 	/* content: url(../src/assets/svg/checked.svg);  */
 	color: white;

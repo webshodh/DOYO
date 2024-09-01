@@ -326,13 +326,15 @@ function Home() {
               onClick={handleMainCategoryFilter}
               className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
                 rounded-full 
-                ${"bg-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white"}
+                ${" text-black hover:bg-orange-500 hover:text-white"}
               `}
+              style={{background:colors.White, border:'0.5px solid'}}
             >
               {mainCategory.categoryName} (
               {mainCategoryCounts[mainCategory.categoryName] || 0})
             </button>
           ))}
+          
         </div>
       </div>
 

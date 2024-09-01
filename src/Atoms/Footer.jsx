@@ -1,5 +1,12 @@
 import React from "react";
-import { FaHome, FaHistory, FaShoppingCart, FaHeart } from "react-icons/fa";
+import {
+  FaHome,
+  FaHistory,
+  FaShoppingCart,
+  FaHeart,
+  BiSolidDonateHeart,
+  RiMoneyRupeeCircleFill 
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { BiSolidDiscount } from "react-icons/bi";
 import { colors } from "theme/theme";
@@ -18,8 +25,16 @@ const Footer = ({ cartItemsCount, handleCart }) => {
     navigate(`/viewMenu/${hotelName}/home/offers`);
   };
 
+  const handleTip = () => {
+    navigate(`/${hotelName}/orders/captain-tip`);
+  };
+  
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 text-white flex justify-around items-center py-2 shadow-lg z-50" style={{background:colors.Orange}}>
+    <div
+      className="fixed bottom-0 left-0 right-0 text-white flex justify-around items-center py-2 shadow-lg z-50"
+      style={{ background: colors.Orange }}
+    >
       {/* Home */}
       <div className="flex flex-col items-center" onClick={handleHome}>
         <FaHome size={20} />
@@ -36,6 +51,12 @@ const Footer = ({ cartItemsCount, handleCart }) => {
       <div className="flex flex-col items-center" onClick={handleOffers}>
         <BiSolidDiscount size={20} />
         <span className="text-xs mt-1">Offers</span>
+      </div>
+
+      {/* Tip */}
+      <div className="flex flex-col items-center" onClick={handleTip}>
+        <FaHeart   size={20} />
+        <span className="text-xs mt-1">Tip</span>
       </div>
 
       {/* Add to Cart with Count */}

@@ -20,7 +20,7 @@ const Navbar = ({ title }) => {
   }, []);
 
   if (!user) {
-    return <div>Please log in</div>;
+    navigate(`/viewMenu/${hotelName}/login/user-login`);
   }
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -60,20 +60,20 @@ const Navbar = ({ title }) => {
   };
   return (
     <>
-      <div className="text-white p-2 flex justify-between items-center relative" style={{background:colors.Orange}}>
+      <div className="text-black p-2 flex justify-between items-center relative" style={{background:colors.White}}>
         {title === `${hotelName}` ? (
           <FaBars onClick={toggleSidebar} className="cursor-pointer text-2xl" />
         ) : (
           <i
             class="bi bi-arrow-left-square-fill"
             onClick={handleBack}
-            style={{ color: `${colors.White}`, fontSize: "30px" }}
+            style={{ color: `${colors.Orange}`, fontSize: "30px" }}
           ></i>
         )}
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-black">{title}</h3>
         <div
-          className="w-8 h-8 bg-orange-500 text-orange-500 rounded-full flex items-center justify-center mb-2"
-          style={{ fontSize: "15px" , background:colors.White}}
+          className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center mb-2"
+          style={{ fontSize: "15px" , background:colors.Orange}}
         >
           {userProfile.initial}
         </div>

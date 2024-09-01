@@ -111,7 +111,7 @@ const CartCard = ({
               {/* To adjust styling of cross button */}
               <span style={{ color: `${colors.White}` }}>g</span>
               <i
-                class="bi bi-x-circle-fill"
+                class="bi bi-x-circle-fill  text-orange-500 text-xl cursor-pointer"
                 style={{ color: `${colors.Orange}`, fontSize: "24px" }}
               ></i>
             </InfoText>
