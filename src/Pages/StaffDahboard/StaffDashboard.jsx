@@ -10,7 +10,7 @@ const StaffDashboard = () => {
   const tabs = [
     { label: "Add Role", content: <AddRole /> },
     { label: "Add Staff", content: <AddStaff /> },
-    { label: "View Staff", content: <ViewStaff /> },
+    // { label: "View Staff", content: <ViewStaff /> },
   ];
   return (
     <>

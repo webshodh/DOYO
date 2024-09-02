@@ -12,7 +12,7 @@ const MenuDashboard = () => {
     { label: "Add Category", content: <AddCategory /> },
     {label: "Add Special Category", content: <AddMainCategory />},
     { label: "Add Menu", content: <AddMenu /> },
-    { label: "View Menu", content: <ViewMenu /> },
+    // { label: "View Menu", content: <ViewMenu /> },
   ];
   return (
     <>

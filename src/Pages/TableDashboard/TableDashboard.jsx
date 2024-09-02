@@ -8,7 +8,7 @@ const TableDashboard = () => {
   const tabs = [
     { label: "Add Sections", content: <AddSection /> },
     { label: "Add Table", content: <AddTable /> },
-    { label: "View Table", content: <ViewTable /> },
+    // { label: "View Table", content: <ViewTable /> },
   ];
   return (
     <>

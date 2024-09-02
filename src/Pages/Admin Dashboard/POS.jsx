@@ -5,20 +5,13 @@ import { onValue, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
-  Navbar,
   FilterSortSearch,
   HorizontalMenuCard,
-  MenuCard,
-  Header,
-  Table,
 } from "../../components";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
-import { getAuth } from "firebase/auth";
 import CategoryTabs from "../../components/CategoryTab";
-import { PrimaryButton } from "../../Atoms";
-import styled from "styled-components";
 
 const POS = () => {
   const [menus, setMenus] = useState([]);
@@ -39,7 +32,16 @@ const POS = () => {
   const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
   const [cardShow, setCardShow] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("Cash");
+  const [mainCategories, setMainCategories] = useState([]);
+  // State for discount values
+  const [fixedDiscount, setFixedDiscount] = useState(0);
+  const [percentDiscount, setPercentDiscount] = useState(0);
+  const [mainCategoryCounts, setMainCategoryCounts] = useState({});
 
+  // State for GST rates (default to 2.5% each)
+  const [cgstRate, setCgstRate] = useState(2.5);
+  const [sgstRate, setSgstRate] = useState(2.5);
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
@@ -116,6 +118,12 @@ const POS = () => {
     setActiveCategory(category);
   };
 
+  const handleMainCategoryFilter = (mainCategoryName) => {
+    // setSelectedMainCategory(mainCategoryName);
+    // setActiveMainCategory(mainCategoryName);
+    navigate(`/viewMenu/${hotelName}/home/specialMenu`);
+  };
+
   const filterAndSortItems = () => {
     let filteredItems = filteredMenus.filter((menu) =>
       menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -143,12 +151,11 @@ const POS = () => {
 
   const filteredAndSortedItems = filterAndSortItems();
 
-  const showDetail = (id) => {
-    const menuData = filteredAndSortedItems.find((menu) => menu.uuid === id);
-    setModeldata(menuData);
-    setShow(true);
-  };
 
+
+  const handlePaymentMethodChange = (method) => {
+    setSelectedPaymentMethod(method);
+  };
   console.log("filteredAndSortedItems", filteredAndSortedItems);
 
   const addToCart = (menuId) => {
@@ -180,9 +187,6 @@ const POS = () => {
     });
   };
 
-  const handleBack = () => {
-    navigate(`/viewMenu/${hotelName}`);
-  };
 
   const handleAddQuantity = (menuId) => {
     setCartItems((prevItems) =>
@@ -190,6 +194,9 @@ const POS = () => {
         item.uuid === menuId ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
+    toast.success("Added to Cart Successfully!", {
+      position: toast.POSITION.TOP_RIGHT,
+    });
   };
 
   const handleRemoveQuantity = (menuId) => {
@@ -206,53 +213,77 @@ const POS = () => {
         }
       }, [])
     );
+    toast.success("Remove from Cart Successfully!", {
+      position: toast.POSITION.TOP_RIGHT,
+    });
   };
   console.log("filteredAndSortedItems", filteredAndSortedItems);
-  const handleMainCategoryClick = (category) => {
-    setSelectedMainCategory(category);
-    setCardShow(true);
+  
+
+  // Handlers for discount input changes
+  const handleFixedDiscountChange = (e) => {
+    setFixedDiscount(Number(e.target.value) || 0);
   };
-  const handleMainCategoryCloseClick = () => {
-    setSelectedMainCategory(null);
+
+  const handlePercentDiscountChange = (e) => {
+    setPercentDiscount(Number(e.target.value) || 0);
   };
-  // Group menus by mainCategory
-  const categorizedMenus = menus.reduce((acc, item) => {
-    if (item.mainCategory) {
-      if (!acc[item.mainCategory]) {
-        acc[item.mainCategory] = [];
-      }
-      acc[item.mainCategory].push(item);
-    }
-    return acc;
-  }, {});
+
+  // Calculate sub total
+  const subTotalAmount = cartItems.reduce(
+    (total, item) => total + item.finalPrice * item.quantity,
+    0
+  );
+
+  // Calculate discount
+  const discount = fixedDiscount + (subTotalAmount * percentDiscount) / 100;
+
+  // Calculate final price after discount
+  const discountedPrice = subTotalAmount - discount;
+
+  // Calculate GST amounts
+  const cgstAmount = (discountedPrice * cgstRate) / 100;
+  const sgstAmount = (discountedPrice * sgstRate) / 100;
+
+  // Calculate total price after adding GST
+  const totalAmount = discountedPrice + cgstAmount + sgstAmount;
+
   return (
-    <div className="flex flex-col lg:flex-row mt-5 bg-white">
+    <div className="flex flex-row justify-between" style={{ width: "100%" }}>
       {/* Left Column - 70% Width */}
-      <div className="w-full lg:w-8/12 px-4 lg:px-6">
+      <div className="" style={{ width: "60%", marginRight: "20px" }}>
         <div className="relative">
           {/* Search and Sort */}
           <FilterSortSearch
             searchTerm={searchTerm}
             handleSearch={handleSearch}
             handleSort={handleSort}
-            className="sticky top-0 z-50 bg-white py-2"
+            className="sticky top-0  py-2"
           />
 
           <CategoryTabs
             categories={categories}
             menuCountsByCategory={menuCountsByCategory}
             handleCategoryFilter={handleCategoryFilter}
-            className="sticky top-16 z-40 bg-white py-2 mt-4"
+            className="sticky top-16 z-40  py-2 mt-4"
           />
         </div>
 
-        <div className="flex justify-start items-center mt-4">
-          {Object.keys(categorizedMenus).map((category) => (
-            <PrimaryButton
-              key={category}
-              onClick={() => handleMainCategoryClick(category)}
-              btnText={`${category}`}
-            />
+        {/* Main Categories */}
+        <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2 px-4 custom-scrollbar">
+          {mainCategories.map((mainCategory) => (
+            <button
+              key={mainCategory.mainCategoryName}
+              onClick={handleMainCategoryFilter}
+              className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
+                rounded-full 
+                ${" text-black hover:bg-orange-500 hover:text-white"}
+              `}
+              style={{ background: colors.White, border: "0.5px solid" }}
+            >
+              {mainCategory.categoryName} (
+              {mainCategoryCounts[mainCategory.categoryName] || 0})
+            </button>
           ))}
         </div>
 
@@ -273,114 +304,174 @@ const POS = () => {
             </div>
           ))}
         </div>
-        {menus.map((item) => (
-        <div
-          className="inline-block w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-4"
-          key={item.uuid}
-        >
-          <MenuCard
-            item={item}
-            addToCart={addToCart}
-            onAddQuantity={handleAddQuantity}
-            onRemoveQuantity={handleRemoveQuantity}
-          />
-        </div>
-      ))}
       </div>
-
-      
 
       {/* Right Column - 30% Width */}
-      <div className="w-full lg:w-4/12 lg:sticky lg:top-0 mt-8 lg:mt-0 overflow-auto">
+      <div className="w-2/5 flex flex-col border border-gray-200 shadow-md">
+        {/* Header */}
+        <div className="flex justify-between p-2 bg-white border-b border-gray-200">
+          <div className="text-xl font-semibold">Cart</div>
+          <button
+            onClick={"handleClearCart"}
+            className="text-md font-semibold text-orange-500"
+          >
+            Clear Cart
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
         <div
-          className="bg-white p-4 border border-gray-200 shadow-md"
-          style={{ height: "calc(100vh - 20px)", overflowY: "auto" }}
+          className="flex-grow overflow-y-auto"
+          style={{ maxHeight: "50vh" }}
         >
-          <div className="text-xl font-semibold mb-4">Cart</div>
-          <div className="overflow-auto">
+          {cartItems.length > 0 ? (
             <div className="table-responsive">
-              {cartItems.length > 0 ? (
-                <table className="table table-striped table-bordered">
-                  <thead className="bg-orange-500 text-white">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">
-                        Item
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">
-                        Price
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">
-                        Quantity
-                      </th>
+              <table className="table table-striped table-bordered">
+                <thead className="bg-orange-500 text-white">
+                  <tr>
+                    <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider">
+                      Item
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider">
+                      Quantity
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  {cartItems.map((item) => (
+                    <tr key={item.uuid}>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        {item.menuName}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500"></i>
+                        {item.finalPrice}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => handleRemoveQuantity(item.uuid)}
+                            className="btn btn-outline-secondary"
+                          >
+                            -
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button
+                            onClick={() => handleAddQuantity(item.uuid)}
+                            className="btn btn-outline-secondary"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="bg-white">
-                    {cartItems.map((item) =>
-                      item ? (
-                        <tr key={item.uuid}>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            {item.menuName}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500"></i>
-                            {item.finalPrice}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleRemoveQuantity(item.uuid)}
-                                className="btn btn-outline-secondary"
-                              >
-                                -
-                              </button>
-                              <span>{item.quantity}</span>
-                              <button
-                                onClick={() => handleAddQuantity(item.uuid)}
-                                className="btn btn-outline-secondary"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : null
-                    )}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
-                  No items in cart
-                </div>
-              )}
+                  ))}
+                </tbody>
+              </table>
             </div>
+          ) : (
+            <div className="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+              No items in cart
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 bg-white border-t border-grey-200">
+          {/* Sub Total Price */}
+          <div className="flex justify-between font-bold mb-2">
+            <span>Sub Total:</span>
+            <span>₹{subTotalAmount.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between mt-4 font-bold">
-            <span>Total:</span>
-            <span>
-              ₹
-              {cartItems.reduce(
-                (total, item) => total + item.menuPrice * item.quantity,
-                0
-              )}
-            </span>
+
+          {/* Dotted line */}
+          <hr className="border-dotted border-black mb-4" />
+
+          {/* Discount Section */}
+          <div className="font-bold mb-2">Discount</div>
+          <div className="flex justify-between items-center mb-3">
+            <label htmlFor="fixedDiscount" className="mr-2">
+              Fixed Discount (₹):
+            </label>
+            <input
+              type="number"
+              id="fixedDiscount"
+              className="border p-1 w-1/6 rounded"
+              value={fixedDiscount}
+              onChange={handleFixedDiscountChange}
+              min="0"
+            />
           </div>
-          <div className="flex justify-between mt-4 font-bold">
-            Payment Method
+          <div className="flex justify-between items-center mb-4">
+            <label htmlFor="percentDiscount" className="mr-2">
+              Percentage Discount (%):
+            </label>
+            <input
+              type="number"
+              id="percentDiscount"
+              className="border p-1 w-1/6 rounded"
+              value={percentDiscount}
+              onChange={handlePercentDiscountChange}
+              min="0"
+            />
+          </div>
+
+          {/* Dotted line */}
+          <hr className="border-dotted border-black mb-4" />
+
+          {/* GST Details */}
+          <div className="flex justify-between font-bold">
+            <span>C-GST ({cgstRate}%):</span>
+            <span>₹{cgstAmount.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-bold mb-4">
+            <span>S-GST ({sgstRate}%):</span>
+            <span>₹{sgstAmount.toFixed(2)}</span>
+          </div>
+
+          {/* Dotted line */}
+          <hr className="border-dotted border-black mb-4" />
+
+          {/* Final Price */}
+          <div className="flex justify-between font-bold text-lg mb-2">
+            <span>Total Price:</span>
+            <span>₹{totalAmount.toFixed(2)}</span>
+          </div>
+
+          {/* Dotted line */}
+          <hr className="border-dotted border-black mb-4" />
+
+          {/* Payment Method and Buttons */}
+          <div className="font-bold mt-4 mb-2">Payment Method</div>
+          <div className="flex space-x-4">
+            {["Cash", "UPI", "Card"].map((method) => (
+              <button
+                key={method}
+                onClick={() => handlePaymentMethodChange(method)}
+                className={`px-4 py-2 border rounded transition-colors ${
+                  selectedPaymentMethod === method
+                    ? "bg-orange-500 text-white"
+                    : "bg-white text-black hover:bg-orange-500 hover:text-white"
+                }`}
+              >
+                {method}
+              </button>
+            ))}
           </div>
           <div className="mt-4">
-            <PrimaryButton
+            <button
               onClick={handleNext}
-              btnText="Checkout"
-              className="w-full"
-            />
-            <PrimaryButton
-              onClick={handleBack}
-              btnText="Back"
-              className="mt-2 w-full btn-secondary"
-            />
+              className="w-full bg-orange-500 text-white p-2 rounded-full"
+            >
+              Checkout
+            </button>
           </div>
         </div>
       </div>
+      <ToastContainer/>
     </div>
   );
 };

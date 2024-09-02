@@ -109,7 +109,10 @@ function AddSection() {
   return (
     <>
       <div className="d-flex justify-between">
-        <div className="bg-white rounded shadow p-10" style={{ width: "30%", marginRight: "10px" }}>
+        <div
+          className="bg-white rounded shadow p-10"
+          style={{ width: "30%", marginRight: "10px" }}
+        >
           <PageTitle pageTitle="Add Sections" />
           <input
             type="text"
@@ -154,9 +157,6 @@ function AddSection() {
           <PageTitle pageTitle="View Sections" />
           {/* Search Bar */}
           <div className="relative mb-6">
-            <label htmlFor="SearchByName" className="block font-semibold mb-2">
-              Search by Name
-            </label>
             <input
               type="text"
               value={searchTerm}

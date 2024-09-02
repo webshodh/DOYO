@@ -700,19 +700,25 @@
 // }
 
 // export default AddStaff;
-
 import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
-import { ref, set } from "firebase/database";
+import { ref, set, onValue, remove, update } from "firebase/database";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styled from "styled-components";
 import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { getAuth } from "firebase/auth";
 import { uid } from "uid";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 import { useHotelContext } from "Context/HotelContext";
-
+import { useNavigate } from "react-router-dom";
+import { ViewStaffColumns } from "../../data/Columns";
+import { DynamicTable, FilterSortSearch } from "components";
 
 // Styled components for the form
 const FormContainer = styled.div`
@@ -786,13 +792,20 @@ function AddStaff() {
   const [upiId, setUpiId] = useState("");
   const [role, setRole] = useState("");
   const [file, setFile] = useState(null); // State to hold the selected image file
-  const [roles] = useState(["Captain", "Manager", "Chef", "Cleaner"]); // Example roles
+  const [roles, setRoles] = useState([]); // Example roles
+  const [selectedRole, setSelectedRole] = useState("");
+  const [staff, setStaff] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleCounts, setRoleCounts] = useState({});
+  const [isEdit, setIsEdit] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate function for redirection
 
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
-  const {hotelName} = useHotelContext(); // Replace with your hotel name or use context
+  const { hotelName } = useHotelContext(); // Replace with your hotel name or use context
   const storage = getStorage();
+
   // Handle image file selection
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -805,21 +818,24 @@ function AddStaff() {
       });
       return;
     }
-  
+
     const newStaffId = uid(); // Generate a unique ID for the new staff member
-  
+
     try {
       let imageUrl = null;
-  
+
       if (file) {
         // Upload image to Firebase Storage
-        const imageRef = storageRef(storage, `staff_images/${hotelName}/${file.name}`);
+        const imageRef = storageRef(
+          storage,
+          `staff_images/${hotelName}/${file.name}`
+        );
         await uploadBytes(imageRef, file);
-  
+
         // Get the download URL of the uploaded image
         imageUrl = await getDownloadURL(imageRef);
       }
-  
+
       // Add new staff member under the admin's collection
       const staffData = {
         firstName,
@@ -829,18 +845,24 @@ function AddStaff() {
         imageUrl, // Store the image URL in the database
         uuid: newStaffId,
       };
-  
-      await set(ref(db, `/admins/${adminID}/hotels/${hotelName}/staff/${newStaffId}`), staffData);
-  
+
+      await set(
+        ref(db, `/admins/${adminID}/hotels/${hotelName}/staff/${newStaffId}`),
+        staffData
+      );
+
       // If the staff role is 'Captain', also store the data in the public hotel staff collection
       if (role === "Captain") {
-        await set(ref(db, `/hotels/${hotelName}/staff/${newStaffId}`), staffData);
+        await set(
+          ref(db, `/hotels/${hotelName}/staff/${newStaffId}`),
+          staffData
+        );
       }
-  
+
       toast.success("Staff Added Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
-  
+
       // Clear form fields
       setFirstName("");
       setLastName("");
@@ -853,16 +875,154 @@ function AddStaff() {
       });
     }
   };
-  
 
+  // Fetch staff data from database
+  useEffect(() => {
+    const staffRef = ref(db, `/hotels/${hotelName}/staff/`);
+    const unsubscribe = onValue(staffRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const staffArray = Object.values(data);
+        setStaff(staffArray);
+      } else {
+        setStaff([]); // Clear staff if none exist
+      }
+    });
+
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
+  }, [hotelName, currentAdminId]);
+
+  // Fetch roles from database
+  useEffect(() => {
+    const rolesRef = ref(db, `/hotels/${hotelName}/roles/`);
+    const unsubscribe = onValue(rolesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const rolesArray = Object.values(data);
+        setRoles(rolesArray);
+      } else {
+        setRoles([]); // Clear roles if none exist
+      }
+    });
+
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
+  }, [hotelName, currentAdminId]);
+
+  useEffect(() => {
+    const countsByRole = {};
+    staff.forEach((staffMember) => {
+      const role = staffMember.role;
+      countsByRole[role] = (countsByRole[role] || 0) + 1;
+    });
+
+    setRoleCounts(countsByRole);
+  }, [staff]);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleDelete = (staffMember) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this staff member?"
+    );
+    if (confirmDelete) {
+      // Delete the staff member
+      remove(ref(db, `/hotels/${hotelName}/staff/${staffMember.uuid}`));
+
+      toast.success("Staff Member Deleted Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
+  };
+
+  const handleEdit = (role) => {
+    setIsEdit(true);
+    setFirstName(role.FirstName);
+      setLastName(role.LastName);
+      setUpiId(role.upiId);
+      setRole(role.Role);
+      setFile(null);
+  };
+
+  const handleSubmitChange = (staffMember) => {
+    if (window.confirm("Confirm update")) {
+      update(
+        ref(db, `/hotels/${hotelName}/staff/${staffMember.uuid}`),
+        {
+          firstName,
+         lastName
+        }
+      );
+      toast.success("Role Updated Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      setFirstName(role.FirstName);
+      setLastName(role.LastName);
+      setUpiId(role.upiId);
+      setRole(role.Role);
+      setFile(null);
+      setIsEdit(false);
+    }
+  };
+  const filterAndSortItems = () => {
+    let filteredItems = staff.filter((member) => {
+      const memberName = member.firstName || ""; // Use empty string if name is undefined
+      return memberName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    if (selectedRole !== "") {
+      filteredItems = filteredItems.filter((member) => {
+        const memberRole = member.role || ""; // Use empty string if role is undefined
+        return memberRole.toLowerCase() === selectedRole.toLowerCase();
+      });
+    }
+
+    return filteredItems;
+  };
+
+  const filteredAndSortedItems = filterAndSortItems();
+
+  const handleRoleFilter = (role) => {
+    setSelectedRole(role);
+  };
+
+  // Prepare data for the table
+  const data = filteredAndSortedItems.map((item, index) => ({
+    "Sr.No": index + 1,
+    FirstName: item.firstName,
+    LastName: item.lastName,
+    upiId: item.upiId,
+    Role: item.role,
+    Actions: (
+      <>
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={() => handleEdit(item)}
+        >
+          Edit
+        </button>
+        <button
+          className="btn btn-danger btn-sm ml-2"
+          onClick={() => handleDelete(item)}
+        >
+          <img src="/delete.png" width="20px" height="20px" alt="Delete" />
+        </button>
+      </>
+    ),
+  }));
+
+  const columns = ViewStaffColumns;
   return (
     <>
-      <div className="d-flex justify-between">
+      <div className="d-flex justify-between" style={{width:'100%'}}>
         <div
           className="bg-white p-6 rounded-lg shadow-lg"
-          style={{ marginRight: "10px", width: "50%" }}
+          style={{ marginRight: "10px", width: "30%" }}
         >
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form className=" gap-6">
             <div className="relative">
               <label
                 htmlFor="firstName"
@@ -994,15 +1154,87 @@ function AddStaff() {
             </div>
 
             <div className="col-span-2">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="w-full py-2 px-4 bg-orange-500 text-white font-semibold rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                Submit
-              </button>
+            {isEdit ? (
+            <>
+              <Button primary onClick={handleSubmitChange}>
+                Submit Change
+              </Button>
+              <Button onClick={() => setIsEdit(false)}>
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button primary onClick={handleSubmit}>
+              Submit
+            </Button>
+          )}
             </div>
           </form>
+        </div>
+        <div className="background-card" style={{width:'70%'}}>
+          <div className="mt-2">
+            <div className="row">
+              <div className="col-12">
+                <div className="d-flex flex-wrap justify-content-start">
+                  <div
+                    className="d-flex flex-nowrap overflow-auto"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    <div
+                      className="p-2 mb-2 bg-light border cursor-pointer d-inline-block roleTab"
+                      onClick={() => handleRoleFilter("")}
+                      style={{ marginRight: "5px" }}
+                    >
+                      <div>
+                        All{" "}
+                        <span
+                          className="badge bg-danger badge-number"
+                          style={{ borderRadius: "50%", padding: "5px" }}
+                        >
+                          {Object.values(roleCounts).reduce((a, b) => a + b, 0)}
+                        </span>
+                      </div>
+                    </div>
+                    {roles
+                      .filter((role) => roleCounts[role.roleName] > 0) // Only include roles with non-zero counts
+                      .map((role) => (
+                        <div
+                          className="role p-2 mb-2 bg-light border cursor-pointer d-inline-block roleTab"
+                          key={role.id}
+                          onClick={() => handleRoleFilter(role.roleName)}
+                        >
+                          <div className="role-name">
+                            {role.roleName}{" "}
+                            <span
+                              className="badge bg-danger badge-number"
+                              style={{ borderRadius: "50%" }}
+                            >
+                              {roleCounts[role.roleName]}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-2">
+            <FilterSortSearch
+              searchTerm={searchTerm}
+              handleSearch={handleSearch}
+            />
+            {/* <BackgroundCard>
+          <PageTitle pageTitle={"View Staff"} /> */}
+            <DynamicTable
+              columns={columns}
+              data={data}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+            {/* </BackgroundCard> */}
+          </div>
         </div>
       </div>
     </>

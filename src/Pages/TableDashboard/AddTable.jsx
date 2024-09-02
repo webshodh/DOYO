@@ -123,12 +123,38 @@ function AddTable() {
 
   // Function to populate form fields when editing an existing table
   const handleEditTable = (tableId) => {
-    const selectedTable = tables.find((table) => table.uuid === tableId);
-    setTableName(selectedTable.tableName);
-    setTableCapacity(selectedTable.tableCapacity);
-    setTableSection(selectedTable.tableSection);
+    //const selectedTable = tables.find((table) => table.uuid === tableId);
+
+    setTableName(tableId.tableName);
+    setTableCapacity(tableId.tableCapacity);
+    setTableSection(tableId.tableSection);
     setEditMode(true); // Enter edit mode
     setEditedMenuId(tableId); // Store the ID of the table being edited
+  };
+
+  const handleSubmitChange = (table) => {
+    if (window.confirm("Confirm update")) {
+      update(
+        ref(
+          db,
+          `/admins/${adminID}/hotels/${hotelName}/tables/${table.tableId}`
+        ),
+        {
+          tableName,
+          tableCapacity,
+          tableSection,
+        }
+      );
+      toast.success("Role Updated Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+
+      setTableName(table.tableName);
+      setTableCapacity(table.tableCapacity);
+      setTableSection(table.tableSection);
+      setEditMode(false); // Enter edit mode
+      setEditedMenuId(table.tableId);
+    }
   };
 
   // Function to delete a table from Firebase
@@ -193,7 +219,7 @@ function AddTable() {
       <>
         <button
           className="btn btn-primary btn-sm mr-2"
-          onClick={() => handleEditTable(item.uuid)} // Edit button functionality
+          onClick={() => handleEditTable(index)} // Edit button functionality
         >
           <img src="/update.png" width="20" height="20" alt="Update" />
         </button>
@@ -212,204 +238,240 @@ function AddTable() {
 
   return (
     <>
-    <div className="d-flex justify-between">
-      {/* Form to add or edit tables */}
-      <div className="bg-white p-6 rounded-lg shadow-md" style={{width:'50%', marginRight:'10px'}}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Table Name Input */}
-          <div className="relative">
-            <label htmlFor="TableName" className="block font-semibold mb-2">
-              Table Name
-            </label>
-            <input
-              type="text"
-              value={tableName}
-              onChange={handleTableNameChange}
-              id="TableName"
-              className={`w-full p-3 border rounded-md ${
-                !tableName ? "border-red-500" : "border-gray-300"
-              } focus:outline-none focus:ring-2 ${
-                !tableName ? "focus:ring-red-500" : "focus:ring-blue-500"
-              }`}
-              placeholder="Enter Table Name"
-            />
-            {/* Validation icons */}
-            {tableName && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
-                <FaCheckCircle />
-              </div>
-            )}
-            {!tableName && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
-                <FaExclamationCircle />
-              </div>
-            )}
-            {/* Validation message */}
-            {!tableName && (
-              <p className="text-red-500 text-sm mt-1">
-                Table Name is required.
-              </p>
-            )}
+      <div className="d-flex justify-between">
+        {/* Form to add or edit tables */}
+        <div
+          className="bg-white p-6 rounded-lg shadow-md"
+          style={{ width: "30%", marginRight: "10px" }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            {/* Table Name Input */}
+            <div className="relative">
+              <label htmlFor="TableName" className="block font-semibold mb-2">
+                Table Name
+              </label>
+              <input
+                type="text"
+                value={tableName}
+                onChange={handleTableNameChange}
+                id="TableName"
+                className={`w-full p-3 border rounded-md ${
+                  !tableName ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 ${
+                  !tableName ? "focus:ring-red-500" : "focus:ring-blue-500"
+                }`}
+                placeholder="Enter Table Name"
+              />
+              {/* Validation icons */}
+              {tableName && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                  <FaCheckCircle />
+                </div>
+              )}
+              {!tableName && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+                  <FaExclamationCircle />
+                </div>
+              )}
+              {/* Validation message */}
+              {!tableName && (
+                <p className="text-red-500 text-sm mt-1">
+                  Table Name is required.
+                </p>
+              )}
+            </div>
+
+            {/* Table Capacity Input */}
+            <div className="relative">
+              <label
+                htmlFor="TableCapacity"
+                className="block font-semibold mb-2"
+              >
+                Table Capacity
+              </label>
+              <input
+                type="number"
+                value={tableCapacity}
+                onChange={handleTableCapacityChange}
+                id="TableCapacity"
+                className={`w-full p-3 border rounded-md ${
+                  !tableCapacity ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 ${
+                  !tableCapacity ? "focus:ring-red-500" : "focus:ring-blue-500"
+                }`}
+                placeholder="Enter Table Capacity"
+              />
+              {/* Validation icons */}
+              {tableCapacity && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                  <FaCheckCircle />
+                </div>
+              )}
+              {!tableCapacity && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+                  <FaExclamationCircle />
+                </div>
+              )}
+              {/* Validation message */}
+              {!tableCapacity && (
+                <p className="text-red-500 text-sm mt-1">
+                  Table Capacity is required.
+                </p>
+              )}
+            </div>
+
+            {/* Table Section Dropdown */}
+            <div className="relative">
+              <label
+                htmlFor="TableSection"
+                className="block font-semibold mb-2"
+              >
+                Table Section
+              </label>
+              <select
+                value={tableSection}
+                onChange={handleTableSectionChange}
+                id="TableSection"
+                className={`w-full p-3 border rounded-md ${
+                  !tableSection ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 ${
+                  !tableSection ? "focus:ring-red-500" : "focus:ring-blue-500"
+                }`}
+              >
+                <option value="">Select a Section</option>
+                {sections.map((section, index) => (
+                  <option key={index} value={section.sectionName}>
+                    {section.sectionName}
+                  </option>
+                ))}
+              </select>
+              {/* Validation icons */}
+              {tableSection && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                  <FaCheckCircle />
+                </div>
+              )}
+              {!tableSection && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+                  <FaExclamationCircle />
+                </div>
+              )}
+              {/* Validation message */}
+              {!tableSection && (
+                <p className="text-red-500 text-sm mt-1">
+                  Table Section is required.
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Table Capacity Input */}
-          <div className="relative">
-            <label htmlFor="TableCapacity" className="block font-semibold mb-2">
-              Table Capacity
-            </label>
-            <input
-              type="number"
-              value={tableCapacity}
-              onChange={handleTableCapacityChange}
-              id="TableCapacity"
-              className={`w-full p-3 border rounded-md ${
-                !tableCapacity ? "border-red-500" : "border-gray-300"
-              } focus:outline-none focus:ring-2 ${
-                !tableCapacity ? "focus:ring-red-500" : "focus:ring-blue-500"
-              }`}
-              placeholder="Enter Table Capacity"
-            />
-            {/* Validation icons */}
-            {tableCapacity && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
-                <FaCheckCircle />
-              </div>
-            )}
-            {!tableCapacity && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
-                <FaExclamationCircle />
-              </div>
-            )}
-            {/* Validation message */}
-            {!tableCapacity && (
-              <p className="text-red-500 text-sm mt-1">
-                Table Capacity is required.
-              </p>
-            )}
-          </div>
-
-          {/* Table Section Dropdown */}
-          <div className="relative">
-            <label htmlFor="TableSection" className="block font-semibold mb-2">
-              Table Section
-            </label>
-            <select
-              value={tableSection}
-              onChange={handleTableSectionChange}
-              id="TableSection"
-              className={`w-full p-3 border rounded-md ${
-                !tableSection ? "border-red-500" : "border-gray-300"
-              } focus:outline-none focus:ring-2 ${
-                !tableSection ? "focus:ring-red-500" : "focus:ring-blue-500"
-              }`}
-            >
-              <option value="">Select a Section</option>
-              {sections.map((section, index) => (
-                <option key={index} value={section.sectionName}>
-                  {section.sectionName}
-                </option>
-              ))}
-            </select>
-            {/* Validation icons */}
-            {tableSection && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
-                <FaCheckCircle />
-              </div>
-            )}
-            {!tableSection && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
-                <FaExclamationCircle />
-              </div>
-            )}
-            {/* Validation message */}
-            {!tableSection && (
-              <p className="text-red-500 text-sm mt-1">
-                Table Section is required.
-              </p>
+          {/* Add/Update Table Button */}
+          <div className="mt-6">
+            {editMode ? (
+              <>
+                <button
+                  primary
+                  onClick={handleSubmitChange}
+                  className="w-48 bg-green-500 text-white p-3 rounded-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                >
+                  Submit Change
+                </button>
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="w-48 bg-red-500 text-white p-3 rounded-md hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                primary
+                onClick={writeToDatabase}
+                className="w-full bg-orange-500 text-white p-3 rounded-md hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
+              >
+                Submit
+              </button>
             )}
           </div>
         </div>
+        <div style={{ width: "70%", marginRight: "10px" }}>
+          {/* Section Filter, Search Bar, and Sort Order Dropdown */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-lg shadow-md">
+            {/* Search Bar */}
+            <div className="relative">
+              <label
+                htmlFor="SearchByName"
+                className="block font-semibold mb-2"
+              >
+                Search by Name
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearch}
+                id="SearchByName"
+                className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Search by Table Name"
+              />
+            </div>
+            {/* Section Filter */}
+            <div className="relative">
+              <label
+                htmlFor="FilterBySection"
+                className="block font-semibold mb-2"
+              >
+                Filter by Section
+              </label>
+              <select
+                value={selectedSection}
+                onChange={(e) => handleCategoryFilter(e.target.value)}
+                id="FilterBySection"
+                className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Sections</option>
+                {sections.map((section, index) => (
+                  <option key={index} value={section.sectionName}>
+                    {section.sectionName} (
+                    {tableCountsBySection[section.sectionName] || 0})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Add/Update Table Button */}
-        <div className="mt-6">
-          <button
-            onClick={writeToDatabase}
-            className="w-full bg-orange-500 text-white p-3 rounded-md hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50"
-          >
-            {editMode ? "Update Table" : "Add Table"}
-          </button>
-        </div>
-      </div>
-<div style={{width:'50%', marginRight:'10px'}}>
-      {/* Section Filter, Search Bar, and Sort Order Dropdown */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        {/* Search Bar */}
-        <div className="relative">
-          <label htmlFor="SearchByName" className="block font-semibold mb-2">
-            Search by Name
-          </label>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearch}
-            id="SearchByName"
-            className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search by Table Name"
-          />
-        </div>
-        {/* Section Filter */}
-        <div className="relative">
-          <label htmlFor="FilterBySection" className="block font-semibold mb-2">
-            Filter by Section
-          </label>
-          <select
-            value={selectedSection}
-            onChange={(e) => handleCategoryFilter(e.target.value)}
-            id="FilterBySection"
-            className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Sections</option>
-            {sections.map((section, index) => (
-              <option key={index} value={section.sectionName}>
-                {section.sectionName} (
-                {tableCountsBySection[section.sectionName] || 0})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sort Order Dropdown */}
-        <div className="relative">
-          <label htmlFor="SortOrder" className="block font-semibold mb-2">
-            Sort by Capacity
-          </label>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            id="SortOrder"
-            className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="default">Default</option>
-            <option value="lowToHigh">Low to High</option>
-            <option value="highToLow">High to Low</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Table Display */}
-      <div className="mt-6">
-        {filteredAndSortedItems.length > 0 ? (
-          <DynamicTable columns={columns} data={data} 
-          onEdit={handleEditTable}
-          onDelete={handleDeleteTable}
-           />
-        ) : (
-          <div className="p-4 bg-yellow-100 text-yellow-700 rounded-md">
-            No tables available. Please add some tables.
+            {/* Sort Order Dropdown */}
+            <div className="relative">
+              <label htmlFor="SortOrder" className="block font-semibold mb-2">
+                Sort by Capacity
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                id="SortOrder"
+                className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="default">Default</option>
+                <option value="lowToHigh">Low to High</option>
+                <option value="highToLow">High to Low</option>
+              </select>
+            </div>
           </div>
-        )}
-      </div>
-      </div>
+
+          {/* Table Display */}
+          <div className="mt-6">
+            {filteredAndSortedItems.length > 0 ? (
+              <DynamicTable
+                columns={columns}
+                data={data}
+                onEdit={handleEditTable}
+                onDelete={handleDeleteTable}
+              />
+            ) : (
+              <div className="p-4 bg-yellow-100 text-yellow-700 rounded-md">
+                No tables available. Please add some tables.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );
