@@ -4,10 +4,7 @@ import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  FilterSortSearch,
-  HorizontalMenuCard,
-} from "../../components";
+import { FilterSortSearch, HorizontalMenuCard } from "../../components";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
@@ -29,6 +26,7 @@ const POS = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState(null);
+  const [activeMainCategory, setActiveMainCategory] = useState("");
   const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
   const [cardShow, setCardShow] = useState(false);
@@ -92,6 +90,40 @@ const POS = () => {
     setMenuCounts(counts);
   };
 
+  // Fetch Maincategories
+  useEffect(() => {
+    onValue(ref(db, `/hotels/${hotelName}/Maincategories/`), (snapshot) => {
+      setMainCategories([]);
+      const data = snapshot.val();
+      if (data !== null) {
+        const mainCategoriesData = Object.values(data);
+        setMainCategories(mainCategoriesData);
+        fetchMainCategoryCounts(mainCategoriesData);
+      }
+    });
+  }, [hotelName]);
+
+  const fetchMainCategoryCounts = (mainCategoriesData) => {
+    const counts = {};
+    mainCategoriesData.forEach((mainCategory) => {
+      const mainCategoryMenus = menus.filter(
+        (menu) => menu.mainCategory === mainCategory.mainCategoryName
+      );
+      counts[mainCategory.mainCategoryName] = mainCategoryMenus.length;
+    });
+    setMainCategoryCounts(counts);
+  };
+
+  useEffect(() => {
+    const countsByMainCategory = {};
+    menus.forEach((menu) => {
+      const mainCategory = menu.mainCategory;
+      countsByMainCategory[mainCategory] =
+        (countsByMainCategory[mainCategory] || 0) + 1;
+    });
+    setMainCategoryCounts(countsByMainCategory);
+  }, [menus]);
+
   useEffect(() => {
     const countsByCategory = {};
     menus.forEach((menu) => {
@@ -116,26 +148,60 @@ const POS = () => {
   const handleCategoryFilter = (category) => {
     setSelectedCategory(category);
     setActiveCategory(category);
+    setSelectedMainCategory("");
+    setActiveMainCategory("");
   };
 
-  const handleMainCategoryFilter = (mainCategoryName) => {
-    // setSelectedMainCategory(mainCategoryName);
-    // setActiveMainCategory(mainCategoryName);
-    navigate(`/viewMenu/${hotelName}/home/specialMenu`);
+  const handleMainCategoryFilter = (event) => {
+    // Using data-* attribute to get the category name
+    const categoryName = event.target.getAttribute("data-category");
+    if (categoryName === null) {
+      // Handle "All" button click
+      setSelectedMainCategory("");
+      setActiveMainCategory("");
+    }
+    setSelectedMainCategory(categoryName);
+    setActiveMainCategory(categoryName);
   };
 
   const filterAndSortItems = () => {
+    // Ensure search term is a string
+    const search = (searchTerm || "").toLowerCase();
+
+    // Filter by search term
     let filteredItems = filteredMenus.filter((menu) =>
-      menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
+      menu.menuName.toLowerCase().includes(search)
     );
 
-    if (selectedCategory !== "") {
+    // Filter by selected category
+    if (
+      selectedCategory &&
+      typeof selectedCategory === "string" &&
+      selectedCategory.trim() !== ""
+    ) {
       filteredItems = filteredItems.filter(
         (menu) =>
+          menu.menuCategory &&
           menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
+    // Filter by selected main category
+    if (
+      selectedMainCategory &&
+      typeof selectedMainCategory === "string" &&
+      selectedMainCategory.trim() !== ""
+    ) {
+      // If a main category is selected, filter items by that main category
+      filteredItems = filteredItems.filter(
+        (menu) =>
+          menu.mainCategory &&
+          menu.mainCategory.toLowerCase().trim() ===
+            selectedMainCategory.toLowerCase().trim()
+      );
+    }
+
+    // Sort by price
     if (sortOrder === "lowToHigh") {
       filteredItems.sort(
         (a, b) => parseFloat(a.menuPrice) - parseFloat(b.menuPrice)
@@ -150,8 +216,6 @@ const POS = () => {
   };
 
   const filteredAndSortedItems = filterAndSortItems();
-
-
 
   const handlePaymentMethodChange = (method) => {
     setSelectedPaymentMethod(method);
@@ -187,7 +251,6 @@ const POS = () => {
     });
   };
 
-
   const handleAddQuantity = (menuId) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
@@ -218,7 +281,6 @@ const POS = () => {
     });
   };
   console.log("filteredAndSortedItems", filteredAndSortedItems);
-  
 
   // Handlers for discount input changes
   const handleFixedDiscountChange = (e) => {
@@ -269,23 +331,37 @@ const POS = () => {
           />
         </div>
 
-        {/* Main Categories */}
-        <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2 px-4 custom-scrollbar">
-          {mainCategories.map((mainCategory) => (
-            <button
-              key={mainCategory.mainCategoryName}
-              onClick={handleMainCategoryFilter}
-              className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
-                rounded-full 
-                ${" text-black hover:bg-orange-500 hover:text-white"}
-              `}
-              style={{ background: colors.White, border: "0.5px solid" }}
-            >
-              {mainCategory.categoryName} (
-              {mainCategoryCounts[mainCategory.categoryName] || 0})
-            </button>
-          ))}
-        </div>
+       {/* Main Category Buttons */}
+       {mainCategories.map((mainCategory) => {
+          const categoryName = mainCategory.categoryName;
+          const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
+
+          // Only render the button if the category has at least one menu item
+          if (categoryCount > 0) {
+            return (
+              <button
+                key={mainCategory.mainCategoryName}
+                onClick={handleMainCategoryFilter}
+                className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
+          rounded-full mr-2
+          ${
+            activeMainCategory === categoryName
+              ? "bg-orange-500 text-white border-b-2 border-orange-500"
+              : "border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+          }
+        `}
+                style={{
+                  margin: "10px 5px",
+                }}
+                data-category={categoryName}
+              >
+                {categoryName} ({categoryCount})
+              </button>
+            );
+          }
+
+          return null; // Don't render the button if the category has no items
+        })}
 
         {/* Menu Items */}
         <div
@@ -471,7 +547,7 @@ const POS = () => {
           </div>
         </div>
       </div>
-      <ToastContainer/>
+      <ToastContainer />
     </div>
   );
 };

@@ -105,9 +105,7 @@ function Home() {
       }
     });
   }, [hotelName]);
-  console.log("menus", menus);
-  console.log("categories", categories);
-  console.log("Maincategories", mainCategories);
+
   const fetchMenuCounts = (categoriesData) => {
     const counts = {};
     categoriesData.forEach((category) => {
@@ -180,7 +178,6 @@ function Home() {
     setActiveMainCategory(categoryName);
   };
 
-  console.log("selectedMainCategory", selectedMainCategory);
   const filterAndSortItems = () => {
     // Ensure search term is a string
     const search = (searchTerm || "").toLowerCase();
@@ -334,40 +331,37 @@ function Home() {
           />
         </div>
 
-        {/* Main Categories with "All" Button */}
-        <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2 px-4 custom-scrollbar">
-          {/* "All" Button */}
+        {/* Main Category Buttons */}
+        {mainCategories.map((mainCategory) => {
+          const categoryName = mainCategory.categoryName;
+          const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
 
-          {/* Main Category Buttons */}
-          {mainCategories.map((mainCategory) => {
-            const categoryName = mainCategory.categoryName;
-            const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
+          // Only render the button if the category has at least one menu item
+          if (categoryCount > 0) {
+            return (
+              <button
+                key={mainCategory.mainCategoryName}
+                onClick={handleMainCategoryFilter}
+                className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
+          rounded-full mr-2
+          ${
+            activeMainCategory === categoryName
+              ? "bg-orange-500 text-white border-b-2 border-orange-500"
+              : "border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+          }
+        `}
+                style={{
+                  margin: "10px 5px",
+                }}
+                data-category={categoryName}
+              >
+                {categoryName} ({categoryCount})
+              </button>
+            );
+          }
 
-            // Only render the button if the category has at least one menu item
-            if (categoryCount > 0) {
-              return (
-                <button
-                  key={mainCategory.mainCategoryName}
-                  onClick={handleMainCategoryFilter}
-                  className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
-            rounded-full 
-            ${
-              activeMainCategory === categoryName
-                ? "bg-orange-500 text-white"
-                : "text-black hover:bg-orange-500 hover:text-white"
-            }
-          `}
-                  style={{ background: colors.White, border: "0.5px solid" }}
-                  data-category={categoryName}
-                >
-                  {categoryName} ({categoryCount})
-                </button>
-              );
-            }
-
-            return null; // Don't render the button if the category has no items
-          })}
-        </div>
+          return null; // Don't render the button if the category has no items
+        })}
       </div>
 
       {/* Menu Items */}
