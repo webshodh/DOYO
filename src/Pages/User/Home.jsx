@@ -68,6 +68,7 @@ function Home() {
     }
   }, []);
 
+  // Fetch Menu
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
       setMenus([]);
@@ -79,6 +80,7 @@ function Home() {
     });
   }, [hotelName]);
 
+  // Fetch categories
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
       setCategories([]);
@@ -91,6 +93,7 @@ function Home() {
     });
   }, [hotelName]);
 
+  // Fetch Maincategories
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/Maincategories/`), (snapshot) => {
       setMainCategories([]);
@@ -102,7 +105,9 @@ function Home() {
       }
     });
   }, [hotelName]);
-
+  console.log("menus", menus);
+  console.log("categories", categories);
+  console.log("Maincategories", mainCategories);
   const fetchMenuCounts = (categoriesData) => {
     const counts = {};
     categoriesData.forEach((category) => {
@@ -159,34 +164,61 @@ function Home() {
   const handleCategoryFilter = (category) => {
     setSelectedCategory(category);
     setActiveCategory(category);
+    setSelectedMainCategory("");
+    setActiveMainCategory("");
   };
 
-  const handleMainCategoryFilter = (mainCategoryName) => {
-    // setSelectedMainCategory(mainCategoryName);
-    // setActiveMainCategory(mainCategoryName);
-    navigate(`/viewMenu/${hotelName}/home/specialMenu`);
+  const handleMainCategoryFilter = (event) => {
+    // Using data-* attribute to get the category name
+    const categoryName = event.target.getAttribute("data-category");
+    if (categoryName === null) {
+      // Handle "All" button click
+      setSelectedMainCategory("");
+      setActiveMainCategory("");
+    }
+    setSelectedMainCategory(categoryName);
+    setActiveMainCategory(categoryName);
   };
 
+  console.log("selectedMainCategory", selectedMainCategory);
   const filterAndSortItems = () => {
+    // Ensure search term is a string
+    const search = (searchTerm || "").toLowerCase();
+
+    // Filter by search term
     let filteredItems = filteredMenus.filter((menu) =>
-      menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
+      menu.menuName.toLowerCase().includes(search)
     );
 
-    if (selectedCategory !== "") {
+    // Filter by selected category
+    if (
+      selectedCategory &&
+      typeof selectedCategory === "string" &&
+      selectedCategory.trim() !== ""
+    ) {
       filteredItems = filteredItems.filter(
         (menu) =>
+          menu.menuCategory &&
           menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
-    if (selectedMainCategory !== "") {
+    // Filter by selected main category
+    if (
+      selectedMainCategory &&
+      typeof selectedMainCategory === "string" &&
+      selectedMainCategory.trim() !== ""
+    ) {
+      // If a main category is selected, filter items by that main category
       filteredItems = filteredItems.filter(
         (menu) =>
           menu.mainCategory &&
-          menu.mainCategory.toLowerCase() === selectedMainCategory.toLowerCase()
+          menu.mainCategory.toLowerCase().trim() ===
+            selectedMainCategory.toLowerCase().trim()
       );
     }
 
+    // Sort by price
     if (sortOrder === "lowToHigh") {
       filteredItems.sort(
         (a, b) => parseFloat(a.menuPrice) - parseFloat(b.menuPrice)
@@ -257,32 +289,16 @@ function Home() {
     );
   };
 
-  // Slider data
-  const slides = [
-    {
-      src: "/ads.png",
-      alt: "Slide 1",
-    },
-    {
-      src: "/ads2.jpg",
-      alt: "Slide 2",
-    },
-    {
-      src: "ads.png",
-      alt: "Slide 3",
-    },
-  ];
   return (
     <>
       {!isAdmin && (
         <>
           <Navbar
             title={`${hotelName}`}
-            Fabar= {true}
+            Fabar={true}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
           />
-          {/* Image Slider */}
-          {/* <ImageSlider slides={slides} /> */}
+
           <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
@@ -318,23 +334,39 @@ function Home() {
           />
         </div>
 
-        {/* Main Categories */}
+        {/* Main Categories with "All" Button */}
         <div className="flex overflow-x-auto whitespace-nowrap space-x-4 py-2 px-4 custom-scrollbar">
-          {mainCategories.map((mainCategory) => (
-            <button
-              key={mainCategory.mainCategoryName}
-              onClick={handleMainCategoryFilter}
-              className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
-                rounded-full 
-                ${" text-black hover:bg-orange-500 hover:text-white"}
-              `}
-              style={{background:colors.White, border:'0.5px solid'}}
-            >
-              {mainCategory.categoryName} (
-              {mainCategoryCounts[mainCategory.categoryName] || 0})
-            </button>
-          ))}
-          
+          {/* "All" Button */}
+
+          {/* Main Category Buttons */}
+          {mainCategories.map((mainCategory) => {
+            const categoryName = mainCategory.categoryName;
+            const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
+
+            // Only render the button if the category has at least one menu item
+            if (categoryCount > 0) {
+              return (
+                <button
+                  key={mainCategory.mainCategoryName}
+                  onClick={handleMainCategoryFilter}
+                  className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
+            rounded-full 
+            ${
+              activeMainCategory === categoryName
+                ? "bg-orange-500 text-white"
+                : "text-black hover:bg-orange-500 hover:text-white"
+            }
+          `}
+                  style={{ background: colors.White, border: "0.5px solid" }}
+                  data-category={categoryName}
+                >
+                  {categoryName} ({categoryCount})
+                </button>
+              );
+            }
+
+            return null; // Don't render the button if the category has no items
+          })}
         </div>
       </div>
 
@@ -344,7 +376,7 @@ function Home() {
         style={{
           height: "calc(100vh - 240px)",
           overflowY: "auto",
-          background:colors.LightGrey
+          background: colors.LightGrey,
         }}
       >
         {filteredAndSortedItems.map((item) => (

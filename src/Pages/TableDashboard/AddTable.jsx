@@ -10,9 +10,7 @@ import { uid } from "uid";
 import { DynamicTable } from "../../components";
 import { ViewTableColumns } from "../../data/Columns";
 
-// Main AddTable component
 function AddTable() {
-  // State variables to handle table data, form inputs, and UI state
   const [tableName, setTableName] = useState("");
   const [tableCapacity, setTableCapacity] = useState("");
   const [tableSection, setTableSection] = useState("");
@@ -21,17 +19,18 @@ function AddTable() {
   const [editMode, setEditMode] = useState(false); // To toggle between add and edit mode
   const [editedMenuId, setEditedMenuId] = useState(null); // To store the ID of the table being edited
 
-  const auth = getAuth();
-  const currentAdminId = auth.currentUser?.uid;
-  const adminID = currentAdminId;
-
-  const { hotelName } = useHotelContext();
-
   // Additional state variables for filtering, searching, and sorting tables
   const [selectedSection, setSelectedSection] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
   const [tableCountsBySection, setTableCountsBySection] = useState({});
+
+  const auth = getAuth();
+  const currentAdminId = auth.currentUser?.uid;
+  const adminID = currentAdminId;
+  const { hotelName } = useHotelContext();
+
+  
 
   // Fetch table data from Firebase when the component mounts or when hotelName/adminID changes
   useEffect(() => {
