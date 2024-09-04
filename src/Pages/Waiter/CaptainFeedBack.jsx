@@ -79,6 +79,7 @@ const TipEntry = () => {
   return (
     <>
       <Navbar
+      isBack={true}
         title={`${hotelName}`}
         style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
       />
@@ -86,7 +87,7 @@ const TipEntry = () => {
         fluid
         className="d-flex align-items-center justify-content-center"
         style={{
-          backgroundColor: colors.Orange,
+          backgroundColor: colors.White,
           minHeight: "100vh"
         }}
       >
@@ -144,7 +145,7 @@ const TipEntry = () => {
                     <Form.Label>Tip Amount (₹)</Form.Label>
                     <Form.Control
                       type="number"
-                      placeholder="Enter tip amount"
+                      placeholder="Enter tip amount (Optional)"
                       value={tipAmount}
                       onChange={(e) => setTipAmount(e.target.value)}
                       style={{ borderRadius: "4px" }}
@@ -155,7 +156,7 @@ const TipEntry = () => {
                     className="w-100 py-3 rounded-full bg-orange-500 text-white text-lg font-semibold hover:bg-orange-600 transition-colors duration-200"
                     onClick={handlePay}
                   >
-                    Pay
+                    Submit
                   </button>
                 </Form>
               )}

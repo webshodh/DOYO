@@ -134,7 +134,7 @@ function AdminDashboard() {
   const { customerDataArray, customerCountData } = useCustomerData(
     filteredCompletedOrders
   );
-  
+
   console.log("customerDataArraycustomerDataArray", customerDataArray);
   if (menuLoading || categoriesLoading || ordersLoading)
     return <div>Loading...</div>;
@@ -265,41 +265,42 @@ function AdminDashboard() {
           />
         </div>
       </div>
-      <div className="mt-3 grid h-full grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
-        <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
-          <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
-            <DailyTraffic />
-            <PieChartCard donutChartData={OrdersByCategoryGraphData} />
-          </div>
-          <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-2">
-            <DailyOrders />
-            <PieChartCard donutChartData={OrdersByCategoryGraphData} />
-          </div>
-          <div className="mt-5">
-            <div>
-              <div className="background-card">
-                <PageTitle pageTitle="Orders and Revenue By Menu" />
-                <Table columns={Column1} data={menuDataArray} />
-              </div>
-            </div>
-            <div className="mt-5">
-              <div className="background-card">
-                <PageTitle pageTitle="Revenue By Category" />
-                <Table columns={columns2} data={categoryDataArray} />
-              </div>
-            </div>
-            <div className="mt-5">
-              <div className="background-card">
-                <PageTitle pageTitle="Orders and Revenue By Customer" />
-                <Table columns={column3} data={customerDataArray} />
-              </div>
-            </div>
-          </div>
+      <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-1">
+          <HistoryCard />
         </div>
+      <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
+        <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-3">
+          <DailyTraffic />
+          <DailyOrders />
+          <PieChartCard donutChartData={OrdersByCategoryGraphData} />
+        </div>
+        
+        <div className="mt-5">
+          <div
+            className="mt-5 d-flex justify-between"
+            style={{ width: "100%" }}
+          >
+            <div className="background-card" style={{ width: "50%" }}>
+              <div style={{ marginLeft: "25px", marginBottom: "-20px" }}>
+                <PageTitle pageTitle="Revenue By Category" />
+              </div>
 
-        <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-1">
-          <div className="h-full w-full">
-            <HistoryCard />
+              <Table columns={columns2} data={categoryDataArray} />
+            </div>
+            <div className="background-card" style={{ width: "50%" }}>
+              <div style={{ marginLeft: "25px", marginBottom: "-20px" }}>
+                <PageTitle pageTitle="Orders and Revenue By Customer" />
+              </div>
+              <Table columns={column3} data={customerDataArray} />
+            </div>
+          </div>
+          <div>
+            <div className="background-card">
+              <div style={{ marginLeft: "25px", marginBottom: "-20px" }}>
+                <PageTitle pageTitle="Orders and Revenue By Menu" />
+              </div>
+              <Table columns={Column1} data={menuDataArray} />
+            </div>
           </div>
         </div>
       </div>

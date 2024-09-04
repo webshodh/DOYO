@@ -42,7 +42,7 @@ const CaptainTip = () => {
 
   const handleNext = () => {
     if (selectedCaptain) {
-      navigate("/Atithi/orders/captain-feedback", {
+      navigate("/Atithi/captain-feedback", {
         state: { selectedCaptain },
       });
     } else {
@@ -57,12 +57,13 @@ const CaptainTip = () => {
   return (
     <div className="relative min-h-screen flex flex-col">
       <Navbar
+        isBack={true}
         title={`${hotelName}`}
         className="fixed top-0 w-full z-50 bg-white shadow-md"
       />
       <main className="flex-grow mt-16 mb-20 p-4">
         <div className="text-center w-full max-w-4xl mx-auto">
-          <div >
+          <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-4">
               Leave a Tip for Our Captain!
             </h1>

@@ -62,9 +62,6 @@ function TrackOrders() {
   const filteredCompletedOrders = filterOrdersByStatus(completedOrders);
   const filteredCancelledOrders = filterOrdersByStatus(cancelledOrders);
 
-  const handleBack = () => {
-    navigate(`/viewMenu/${hotelName}/home`);
-  };
   const tabs = [
     {
       label: "Pending Orders",
@@ -178,7 +175,8 @@ function TrackOrders() {
   return (
     <>
       <Navbar
-        title={'Track Your Orders'}
+        isBack={true}
+        title={"Track Your Orders"}
         style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
       />
       <Container
@@ -186,9 +184,8 @@ function TrackOrders() {
         className="px-3 px-md-5 mt-3 bg-white"
         style={{ height: "100vh" }}
       >
-        
         <TabButtons tabs={tabs} width="70vw" />
-        <Footer cartItemsCount={''} handleCart={''} />
+        <Footer cartItemsCount={""} handleCart={""} />
         <ToastContainer />
       </Container>
     </>

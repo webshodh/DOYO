@@ -87,15 +87,14 @@ function App() {
             {/* <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <Home />} /> */}
             <Route path="/viewMenu/:hotelName/home" element={ <Home />} />
             <Route path="/:hotelName/feedback" element={''} />
-            <Route path="/:hotelName/cart/cart-details" element={<CartDetails />} />
+            <Route path="/:hotelName/cart-details" element={<CartDetails />} />
             <Route path="/:hotelName/orders/payment/menu-bill" element={<OrderBill />} />
-            <Route path="/:hotelName/orders/details/thank-you" element={<ThankYouScreen />} />
-            <Route path="/:hotelName/orders/track-orders" element={<TrackOrders />} />
-            <Route path="/:hotelName/orders/captain-tip" element={<CaptainTip />} />
-            <Route path="/:hotelName/orders/captain-feedback" element={<CaptainFeedBack />} />
-            <Route path="/:hotelName/orders/order-history" element={<OrderHistory />} />
-            <Route path="/viewMenu/:hotelName/home/specialMenu" element={<SpecialMenuPage />} />
-            <Route path="/viewMenu/:hotelName/home/offers" element={<Offers />} />
+            <Route path="/:hotelName/thank-you" element={<ThankYouScreen />} />
+            <Route path="/:hotelName/track-orders" element={<TrackOrders />} />
+            <Route path="/:hotelName/captain-tip" element={<CaptainTip />} />
+            <Route path="/:hotelName/captain-feedback" element={<CaptainFeedBack />} />
+            <Route path="/:hotelName/order-history" element={<OrderHistory />} />
+            <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
           </Routes>
         
         {isAdmin && (

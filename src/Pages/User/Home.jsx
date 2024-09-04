@@ -308,9 +308,9 @@ function Home() {
       )}
 
       <div
-        className="container"
         style={{
           background: `${colors.LightGrey}`,
+          padding: "20px",
         }}
       >
         {/* Search and Sort */}
@@ -347,7 +347,7 @@ function Home() {
           ${
             activeMainCategory === categoryName
               ? "bg-orange-500 text-white border-b-2 border-orange-500"
-              : "border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+              : " bg-white border border-orange-500 text-orange-500 hover:bg-orange-500"
           }
         `}
                 style={{
@@ -389,28 +389,6 @@ function Home() {
         ))}
       </div>
 
-      {/* Cart Details */}
-      {/* {!isAdmin && cartItems.length > 0 ? (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white shadow-lg z-50">
-          <div className="flex justify-between items-center">
-            <div className="ml-4 text-black">
-              {cartItems.length}{" "}
-              {cartItems.length > 1 ? "Items Added" : "Item Added"}
-            </div>
-            <div
-              className="flex items-center mr-4 cursor-pointer"
-              onClick={handleNext}
-            >
-              <span className="text-orange-500 text-lg font-semibold">
-                Checkout
-              </span>
-              <i className="bi bi-caret-right-fill text-2xl ml-2 text-orange-500"></i>
-            </div>
-          </div>
-        </div>
-      ) : (
-        ""
-      )} */}
       <Footer cartItemsCount={cartItems.length} handleCart={handleNext} />
       {/* Toast Notification */}
       <ToastContainer />

@@ -34,7 +34,7 @@ const Offers = () => {
       {/* Fixed Navbar */}
       <Navbar
         title={`Offers`}
-        Fabar={true}
+        isBack={true}
         style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
       />
 

@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { colors } from "theme/theme";
 // import { UserAuthContext } from "../../Context/UserAuthContext";
 
-const Navbar = ({ title }) => {
+const Navbar = ({ title , isBack=false}) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hotelName, setHotelName] = useState('')
   // const { currentUser, loading } = useContext(UserAuthContext);
@@ -61,15 +61,13 @@ const Navbar = ({ title }) => {
   return (
     <>
       <div className="text-black p-2 flex justify-between items-center relative" style={{background:colors.White}}>
-        {title === `${hotelName}` ? (
+        {!isBack?(
           <FaBars onClick={toggleSidebar} className="cursor-pointer text-2xl" />
-        ) : (
-          <i
-            class="bi bi-arrow-left-square-fill"
-            onClick={handleBack}
-            style={{ color: `${colors.Orange}`, fontSize: "30px" }}
-          ></i>
-        )}
+        ):(<i
+          class="bi bi-arrow-left-square-fill"
+          onClick={handleBack}
+          style={{ color: `${colors.Orange}`, fontSize: "30px" }}
+        ></i>)}
         <h3 className="text-lg font-semibold text-black">{title}</h3>
         <div
           className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center mb-2"
@@ -130,7 +128,7 @@ const Navbar = ({ title }) => {
             <Link
               style={{ textDecoration: "none" }}
               className="flex p-2 items-center text-orange-500 hover:text-orange-700"
-              to={`/${hotelName}/orders/track-orders`}
+              to={`/${hotelName}/track-orders`}
             >
               <i className="bi bi-clock-history mr-2"></i>
               <span>My Orders</span>
@@ -140,7 +138,7 @@ const Navbar = ({ title }) => {
             <Link
               style={{ textDecoration: "none" }}
               className="flex p-2 items-center text-orange-500 hover:text-orange-700"
-              to={`/${hotelName}/orders/captain-tip`}
+              to={`/${hotelName}/captain-tip`}
             >
               <i className="bi bi-currency-rupee mr-2"></i>
               <span>Tip</span>

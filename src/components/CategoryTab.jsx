@@ -45,11 +45,11 @@ const CategoryTabs = ({
       <button
         key={tab.label}
         className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
-          rounded-full mr-2
+          rounded-full mr-2 
           ${
             activeTab === tab.label.split(" (")[0]
               ? "bg-orange-500 text-white border-b-2 border-orange-500"
-              : "border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+              : "bg-white border border-orange-500 text-orange-500 hover:bg-orange-500"
           }
         `}
         onClick={() => handleSelect(tab.label)}

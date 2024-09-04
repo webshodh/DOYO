@@ -65,7 +65,7 @@ const HistoryCard = () => {
     {
       label: "Top 5",
       content: (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+        <div className="d-flex justify-start">
           {sortedMenuDataArray
             .slice(0, 5)
             .map(({ menuName, menuCount, imageUrl }) => (
@@ -91,7 +91,7 @@ const HistoryCard = () => {
     {
       label: "Top 10",
       content: (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+        <div className="d-flex justify-start">
           {sortedMenuDataArray
             .slice(0, 10) // Show top 10 items
             .map(({ menuName, menuCount, imageUrl }, index) => (
@@ -119,46 +119,44 @@ const HistoryCard = () => {
   return (
     <Card extra={"mt-3 !z-5 overflow-hidden"}>
       {/* Filter Buttons */}
-      <div className="flex justify-end p-3">
-        <button
-          onClick={() => setFilterType("Daily")}
-          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
-            filterType === "Daily"
-              ? "text-orange-500 underline"
-              : "text-gray-700 hover:text-orange-500 hover:underline"
-          }`}
-        >
-          Daily
-        </button>
-        <button
-          onClick={() => setFilterType("Weekly")}
-          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
-            filterType === "Weekly"
-              ? "text-orange-500 underline"
-              : "text-gray-700 hover:text-orange-500 hover:underline"
-          }`}
-        >
-          Weekly
-        </button>
-        <button
-          onClick={() => setFilterType("Monthly")}
-          className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
-            filterType === "Monthly"
-              ? "text-orange-500 underline"
-              : "text-gray-700 hover:text-orange-500 hover:underline"
-          }`}
-        >
-          Monthly
-        </button>
-      </div>
-
-      {/* HistoryCard Header */}
-      <div className="flex items-center justify-between rounded-t-3xl p-3">
-        <div className="text-lg font-bold text-navy-700 dark:text-white">
+      <div className="d-flex  justify-between p-2">
+        {/* HistoryCard Header */}
+        <div className="text-lg font-bold text-navy-700 dark:text-white p-3">
           Top Selling Foods
         </div>
+        <div className="flex justify-end p-2">
+          <button
+            onClick={() => setFilterType("Daily")}
+            className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
+              filterType === "Daily"
+                ? "text-orange-500 underline"
+                : "text-gray-700 hover:text-orange-500 hover:underline"
+            }`}
+          >
+            Daily
+          </button>
+          <button
+            onClick={() => setFilterType("Weekly")}
+            className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
+              filterType === "Weekly"
+                ? "text-orange-500 underline"
+                : "text-gray-700 hover:text-orange-500 hover:underline"
+            }`}
+          >
+            Weekly
+          </button>
+          <button
+            onClick={() => setFilterType("Monthly")}
+            className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
+              filterType === "Monthly"
+                ? "text-orange-500 underline"
+                : "text-gray-700 hover:text-orange-500 hover:underline"
+            }`}
+          >
+            Monthly
+          </button>
+        </div>
       </div>
-
       {/* History Card Data */}
       <Tab tabs={tabs2} />
     </Card>

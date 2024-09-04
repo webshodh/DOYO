@@ -18,21 +18,21 @@ const Footer = ({ cartItemsCount, handleCart }) => {
   };
 
   const handleOrders = () => {
-    navigate(`/${hotelName}/orders/track-orders`);
+    navigate(`/${hotelName}/track-orders`);
   };
 
   const handleOffers = () => {
-    navigate(`/viewMenu/${hotelName}/home/offers`);
+    navigate(`/viewMenu/${hotelName}/offers`);
   };
 
   const handleTip = () => {
-    navigate(`/${hotelName}/orders/captain-tip`);
+    navigate(`/${hotelName}/captain-tip`);
   };
   
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 text-white flex justify-around items-center py-2 shadow-lg z-50"
+      className="fixed bottom-0 left-0 right-0 text-white flex justify-around items-center py-2 shadow-lg z-50 mt-5"
       style={{ background: colors.Orange }}
     >
       {/* Home */}
