@@ -46,10 +46,10 @@ export const ViewMenuColumns = [
 ];
 
 export const ViewTableColumns = [
-  { header: "Sr.No", accessor: "Sr.No" },
-  { header: "Section", accessor: "SectionName" },
-  { header: "Table Name", accessor: "TableName" },
-  { header: "Capacity", accessor: "Capacity" },
+  { header: "Sr.No", accessor: "srNo" },
+  { header: "Section", accessor: "tableSection" },
+  { header: "Table Name", accessor: "tableName" },
+  { header: "Capacity", accessor: "tableCapacity" },
 ];
 
 export const customersColumns = [

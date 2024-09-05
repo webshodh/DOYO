@@ -4,53 +4,13 @@ import { v4 as uuidv4 } from "uuid";
 import { set, ref } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Form } from "react-bootstrap";
+import { Form, Row, Col, Button} from "react-bootstrap";
 import styled from "styled-components";
 import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { getAuth } from "firebase/auth";
-// Container for the form
-export const FormContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin: 20px;
-`;
 
-// Wrapper for each input
-export const InputWrapper = styled.div`
-  flex: 1 1 calc(50% - 20px); // Adjusted layout for responsiveness
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-`;
-
-// Label styling
-export const Label = styled.label`
-  margin-bottom: 8px;
-  font-weight: bold;
-`;
-
-// Input field with conditional styling
-export const Input = styled.input`
-  padding: 10px;
-  border: 1px solid
-    ${(props) => (props.error ? "#dc3545" : props.success ? "#28a745" : "#ccc")};
-  border-radius: 4px;
-  outline: none;
-  box-shadow: ${(props) =>
-    props.error ? "0 0 0 1px rgba(220, 53, 69, 0.5)" : "none"};
-
-  &:focus {
-    border-color: ${(props) => (props.error ? "#dc3545" : "#80bdff")};
-    box-shadow: ${(props) =>
-      props.error
-        ? "0 0 0 1px rgba(220, 53, 69, 0.5)"
-        : "0 0 0 0.2rem rgba(38, 143, 255, 0.25)"};
-  }
-`;
-
-// Icon for error or success
-export const Icon = styled.div`
+// Custom styled components for icons
+const Icon = styled.div`
   position: absolute;
   right: 10px;
   top: 50%;
@@ -58,179 +18,26 @@ export const Icon = styled.div`
   color: ${(props) => (props.error ? "#dc3545" : "#28a745")};
 `;
 
-// Error message styling
-export const ErrorMessage = styled.p`
-  color: #dc3545;
-  font-size: 0.875rem;
-  margin: 5px 0 0;
-`;
-
-// Success message styling
-export const SuccessMessage = styled.p`
-  color: #28a745;
-  font-size: 0.875rem;
-  margin: 5px 0 0;
-`;
-
-// File upload section
-export const FileUpload = styled.div`
-  flex: 1 1 100%;
-`;
-
-// Button styling
-export const Button = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  background-color: ${(props) => (props.primary ? "#28a745" : "#dc3545")};
-  margin-top: 10px;
-
-  &:hover {
-    background-color: ${(props) => (props.primary ? "#218838" : "#c82333")};
-  }
-`;
-
-// Define additional constants for states and districts
-const statesInIndia = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chandigarh",
-  "Chhattisgarh",
-  "Dadra and Nagar Haveli",
-  "Daman and Diu",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Lakshadweep",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Puducherry",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-];
-
-const districtsInIndia = [
-  "Andaman and Nicobar Islands",
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chandigarh",
-  "Chhattisgarh",
-  "Dadra and Nagar Haveli",
-  "Daman and Diu",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Lakshadweep",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Puducherry",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-];
-
 function AddHotel() {
   const [hotelName, setHotelName] = useState("");
   const [stateName, setStateName] = useState("");
   const [districtName, setDistrictName] = useState("");
   const [hotelAddress, setHotelAddress] = useState("");
-  const [categories, setCategories] = useState([]); // Add your category options
-  const [pinCode, setPinCode] = useState("Available");
-  const [selectedImage, setSelectedImage] = useState(null); // For file upload
-  const [imageUrl, setImageUrl] = useState(""); // URL for uploaded image
-
-  const handleHotelNameChange = (e) => setHotelName(e.target.value);
-  const handleStateChange = (e) => setStateName(e.target.value);
-  const handleDistrictChange = (e) => setDistrictName(e.target.value);
-  const handleHotelAddressChange = (e) => setHotelAddress(e.target.value);
-  const handlePinCodeChange = (e) => setPinCode(e.target.value);
+  const [pinCode, setPinCode] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerContact, setOwnerContact] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
 
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
-  const handleFileChange = (e) => {
-    if (e.target.files.length) {
-      setSelectedImage(e.target.files[0]);
-    }
-  };
- 
 
-
-  // const writeToDatabase = async (adminID) => {
-  //   const uuid = uuidv4();
-  //     // Check if adminID is provided
-  // if (!adminID) {
-  //   console.error("Admin ID is undefined");
-  //   return;
-  // }
-  //   await set(ref(db, `hotels/${uuid}`), {
-  //     Hotelname: hotelName,
-  //     state: stateName,
-  //     district: districtName,
-  //     address: hotelAddress,
-  //     pinCode,
-  //     imageUrl,
-  //     adminID, // Store adminID in the hotel data
-  //   });
-
-  //   // Add hotel reference under the particular admin's collection
-  //   await set(ref(db, `admins/${adminID}/hotels/${uuid}`), true);
-
-  //   setHotelName("");
-  //   setStateName("");
-  //   setDistrictName("");
-  //   setHotelAddress("");
-  //   setPinCode("Available");
-  //   setSelectedImage(null);
-  //   setImageUrl("");
-
-  //   toast.success("Hotel Added Successfully!", {
-  //     position: toast.POSITION.TOP_RIGHT,
-  //   });
-  // };
-
-  const writeToDatabase = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     const uuid = uuidv4();
-    const adminID = currentAdminId; // Replace this with the actual admin ID
-  
+    const adminID = currentAdminId;
+
     if (!adminID) {
       console.error("Admin ID is undefined");
       toast.error("Error: Admin ID is undefined", {
@@ -238,7 +45,7 @@ function AddHotel() {
       });
       return;
     }
-  
+
     const hotelData = {
       hotelName,
       state: stateName,
@@ -247,22 +54,18 @@ function AddHotel() {
       pinCode,
       imageUrl,
       uuid,
+      ownerName,
+      ownerContact,
+      ownerEmail,
     };
-  
+
     try {
-      // Reference to the admin's hotels collection
       const adminHotelRef = ref(db, `admins/${adminID}/hotels/${hotelName}/`);
-  
-      // Reference to the general hotels collection
       const generalHotelRef = ref(db, `hotels/${hotelName}/`);
-  
-      // Store hotel data under the admin's collection
+
       await set(adminHotelRef, hotelData);
-  
-      // Store hotel name and UUID in the general hotels collection
       await set(generalHotelRef, { hotelName, uuid });
-  
-      // Clear form fields after successful submission
+
       setHotelName("");
       setStateName("");
       setDistrictName("");
@@ -270,7 +73,10 @@ function AddHotel() {
       setPinCode("");
       setSelectedImage(null);
       setImageUrl("");
-  
+      setOwnerName("");
+      setOwnerContact("");
+      setOwnerEmail("");
+
       toast.success("Hotel Added Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -281,141 +87,191 @@ function AddHotel() {
       });
     }
   };
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    await writeToDatabase();
-  };
 
   return (
     <>
-      <div className="background-card">
-        <FormContainer>
-          <InputWrapper>
-            <Label htmlFor="hotelName">Hotel Name</Label>
-            <div style={{ position: "relative" }}>
-              <Input
-                type="text"
-                value={hotelName}
-                onChange={handleHotelNameChange}
-                id="hotelName"
-                error={!hotelName}
-                success={hotelName}
-                placeholder="Enter Hotel Name"
-              />
-              {hotelName && (
-                <Icon success>
-                  <FaCheckCircle />
-                </Icon>
-              )}
-              {!hotelName && (
-                <Icon error>
-                  <FaExclamationCircle />
-                </Icon>
-              )}
-            </div>
-            {!hotelName && <ErrorMessage>Hotel Name is required.</ErrorMessage>}
-          </InputWrapper>
+      <div className="container mt-4">
+        <h2>Add Hotel</h2>
+        <Form onSubmit={handleSubmit}>
+          <h4 className="mt-4">Hotel Info</h4>
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="hotelName">
+                <Form.Label>Hotel Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={hotelName}
+                  onChange={(e) => setHotelName(e.target.value)}
+                  placeholder="Enter Hotel Name"
+                  isInvalid={!hotelName}
+                  isValid={hotelName}
+                />
+                {!hotelName && (
+                  <Form.Control.Feedback type="invalid">
+                    Hotel Name is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
 
-          <InputWrapper>
-            <Label htmlFor="stateName">State</Label>
-            <select
-              id="stateName"
-              className="form-select"
-              onChange={handleStateChange}
-              value={stateName}
-            >
-              <option value="" disabled>
-                Select State
-              </option>
-              {statesInIndia.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </InputWrapper>
+            <Col md={6}>
+              <Form.Group controlId="stateName">
+                <Form.Label>State</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={stateName}
+                  onChange={(e) => setStateName(e.target.value)}
+                  placeholder="Enter State"
+                  isInvalid={!stateName}
+                  isValid={stateName}
+                />
+                {!stateName && (
+                  <Form.Control.Feedback type="invalid">
+                    State is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
 
-          <InputWrapper>
-            <Label htmlFor="districtName">District</Label>
-            <select
-              id="districtName"
-              className="form-select"
-              onChange={handleDistrictChange}
-              value={districtName}
-            >
-              <option value="" disabled>
-                Select District
-              </option>
-              {districtsInIndia.map((district) => (
-                <option key={district} value={district}>
-                  {district}
-                </option>
-              ))}
-            </select>
-          </InputWrapper>
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="districtName">
+                <Form.Label>District</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={districtName}
+                  onChange={(e) => setDistrictName(e.target.value)}
+                  placeholder="Enter District"
+                  isInvalid={!districtName}
+                  isValid={districtName}
+                />
+                {!districtName && (
+                  <Form.Control.Feedback type="invalid">
+                    District is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
 
-          <InputWrapper>
-            <Label htmlFor="hotelAddress">Address</Label>
-            <textarea
-              id="hotelAddress"
-              className="form-control"
-              rows="3"
-              value={hotelAddress}
-              onChange={handleHotelAddressChange}
-              placeholder="Enter Hotel Address"
-            ></textarea>
-          </InputWrapper>
+            <Col md={6}>
+              <Form.Group controlId="hotelAddress">
+                <Form.Label>Address</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={hotelAddress}
+                  onChange={(e) => setHotelAddress(e.target.value)}
+                  placeholder="Enter Hotel Address"
+                  isInvalid={!hotelAddress}
+                  isValid={hotelAddress}
+                />
+                {!hotelAddress && (
+                  <Form.Control.Feedback type="invalid">
+                    Address is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
 
-          <InputWrapper>
-            <Label>Status</Label>
-            <div>
-              <input
-                type="radio"
-                id="availableRadio"
-                name="status"
-                value="Available"
-                checked={pinCode === "Available"}
-                onChange={() => setPinCode("Available")}
-                className="form-check-input"
-              />
-              <label
-                htmlFor="availableRadio"
-                className="form-check-label"
-                style={{ width: "100px" }}
-              >
-                Available
-              </label>
-              <input
-                type="radio"
-                id="notAvailableRadio"
-                name="status"
-                value="Not Available"
-                checked={pinCode === "Not Available"}
-                onChange={() => setPinCode("Not Available")}
-                className="form-check-input"
-              />
-              <label htmlFor="notAvailableRadio" className="form-check-label">
-                Not Available
-              </label>
-            </div>
-          </InputWrapper>
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="pinCode">
+                <Form.Label>Pin Code</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={pinCode}
+                  onChange={(e) => setPinCode(e.target.value)}
+                  placeholder="Enter Pin Code"
+                  isInvalid={!pinCode}
+                  isValid={pinCode}
+                />
+                {!pinCode && (
+                  <Form.Control.Feedback type="invalid">
+                    Pin Code is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
 
-          <FileUpload>
-            <Label htmlFor="formFile">Upload Image</Label>
-            <input
-              type="file"
-              id="formFile"
-              onChange={handleFileChange}
-              className="form-control"
-            />
-          </FileUpload>
+            <Col md={6}>
+              <Form.Group controlId="formFile">
+                <Form.Label>Upload Image</Form.Label>
+                <Form.Control
+                  type="file"
+                  onChange={(e) => setSelectedImage(e.target.files[0])}
+                />
+              </Form.Group>
+            </Col>
+          </Row>
 
-          <Button primary onClick={handleSubmit}>
+          <h4 className="mt-4">Owner Info</h4>
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="ownerName">
+                <Form.Label>Owner Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={ownerName}
+                  onChange={(e) => setOwnerName(e.target.value)}
+                  placeholder="Enter Owner Name"
+                  isInvalid={!ownerName}
+                  isValid={ownerName}
+                />
+                {!ownerName && (
+                  <Form.Control.Feedback type="invalid">
+                    Owner Name is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
+
+            <Col md={6}>
+              <Form.Group controlId="ownerContact">
+                <Form.Label>Owner Contact</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={ownerContact}
+                  onChange={(e) => setOwnerContact(e.target.value)}
+                  placeholder="Enter Owner Contact"
+                  isInvalid={!ownerContact}
+                  isValid={ownerContact}
+                />
+                {!ownerContact && (
+                  <Form.Control.Feedback type="invalid">
+                    Contact number is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="ownerEmail">
+                <Form.Label>Owner Email</Form.Label>
+                <Form.Control
+                  type="email"
+                  value={ownerEmail}
+                  onChange={(e) => setOwnerEmail(e.target.value)}
+                  placeholder="Enter Owner Email"
+                  isInvalid={!ownerEmail}
+                  isValid={ownerEmail}
+                />
+                {!ownerEmail && (
+                  <Form.Control.Feedback type="invalid">
+                    Valid email is required.
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Button className="btn btn-success mt-3" type="submit">
             Submit
           </Button>
-        </FormContainer>
+        </Form>
       </div>
       <ToastContainer />
     </>

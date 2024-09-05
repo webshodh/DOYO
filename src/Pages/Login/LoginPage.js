@@ -39,28 +39,38 @@ const LoginPage = () => {
       try {
         await signInWithEmailAndPassword(auth, email, password);
         toast.success("Logged in successfully!");
-
+  
+        // Check if the logged-in user is the superadmin
+        const superAdminEmail = "webshodhteam@gmail.com"; // Replace with the actual superadmin email
+        if (email === superAdminEmail) {
+          navigate("/super-admin/dashboard");
+           // Force a page refresh after a delay
+           setTimeout(() => {
+            window.location.reload();
+          }, 0);
+        }
+  
         // Fetch the hotels after login
         const db = getDatabase();
         const userUid = auth.currentUser.uid;
         const hotelsRef = ref(db, `admins/${userUid}/hotels`);
         const snapshot = await get(hotelsRef);
-
+  
         if (snapshot.exists()) {
           const hotelsData = snapshot.val();
           const hotelNames = Object.keys(hotelsData);
           const firstHotelName = hotelNames[0];
-
+  
           // Set the first hotel name in the context
           setHotelName(firstHotelName);
-
+  
           // Navigate to the dashboard with the first hotel name
           navigate(`/${firstHotelName}/admin/admin-dashboard`);
-
-            // Force a page refresh after a delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 0);
+  
+          // Force a page refresh after a delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 0);
         } else {
           toast.error("No hotels found for this admin.");
         }
@@ -69,6 +79,7 @@ const LoginPage = () => {
       }
     }
   };
+  
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">

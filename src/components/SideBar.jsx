@@ -1,23 +1,29 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useHotelContext } from "../Context/HotelContext";
 import FreeCard from "srcV2/components/sidebar/components/SidebarCard";
+import useAdminData from "data/useAdminData";
+import { useAuthContext } from "Context/AuthContext";
 
 function SideBar() {
   const { hotelName } = useHotelContext(); // Get hotelName from context
-  const [admin, setAdmin] = useState(true);
-  const handleClick = () => {
-    setAdmin(!admin);
-  };
+  const { currentAdminId } = useAuthContext();
+  const { data } = useAdminData(`/admins/${currentAdminId}`);
+  const adminData = data;
+
   const location = useLocation();
 
   return (
-    <aside className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg p-2 space-y-4 lg:w-72" style={{marginTop:'20px'}}>
+    <aside
+      className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg p-2 space-y-4 lg:w-72"
+      style={{ marginTop: "20px" }}
+    >
       <ul>
-        {admin ? (
+        {adminData?.role === "admin" ? (
           <>
-            <li style={{marginTop:'50px'}}>
-              <Link style={{textDecoration:'none'}}
+            <li style={{ marginTop: "50px" }}>
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes(`/viewMenu/${hotelName}`)
                     ? "bg-orange-500 text-white"
@@ -31,7 +37,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}} 
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/admin/admin-dashboard")
                     ? "bg-orange-500 text-white"
@@ -45,9 +52,12 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
-                  location.pathname.includes("/forecasting/forecasting-dashboard")
+                  location.pathname.includes(
+                    "/forecasting/forecasting-dashboard"
+                  )
                     ? "bg-orange-500 text-white"
                     : "text-gray-700 hover:bg-orange-500 hover:text-white"
                 }`}
@@ -59,7 +69,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/order/order-dashboard")
                     ? "bg-orange-500 text-white"
@@ -73,7 +84,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/menu/menu-dashboard")
                     ? "bg-orange-500 text-white"
@@ -87,7 +99,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/table/table-dashboard")
                     ? "bg-orange-500 text-white"
@@ -101,7 +114,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/staff/staff-dashboard")
                     ? "bg-orange-500 text-white"
@@ -115,7 +129,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/customers/customer-dashboard")
                     ? "bg-orange-500 text-white"
@@ -130,8 +145,9 @@ function SideBar() {
           </>
         ) : (
           <>
-            <li>
-              <Link style={{textDecoration:'none'}}
+            <li style={{ marginTop: "50px" }}>
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/dashboard")
                     ? "bg-orange-500 text-white"
@@ -145,7 +161,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/revenue")
                     ? "bg-orange-500 text-white"
@@ -159,7 +176,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/hotels/admin/add-hotel")
                     ? "bg-orange-500 text-white"
@@ -173,7 +191,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/cafes")
                     ? "bg-orange-500 text-white"
@@ -187,7 +206,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/order-dashboard")
                     ? "bg-orange-500 text-white"
@@ -201,7 +221,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/staff")
                     ? "bg-orange-500 text-white"
@@ -215,7 +236,8 @@ function SideBar() {
             </li>
 
             <li>
-              <Link style={{textDecoration:'none'}}
+              <Link
+                style={{ textDecoration: "none" }}
                 className={`flex items-center p-2 rounded-lg ${
                   location.pathname.includes("/super-admin/customers")
                     ? "bg-orange-500 text-white"
@@ -236,11 +258,8 @@ function SideBar() {
           {!admin ? "Admin" : "Super Admin"}
         </button> */}
 
-      <FreeCard/>
-     
-        
+        <FreeCard />
       </ul>
-      
     </aside>
   );
 }

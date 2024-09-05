@@ -6,6 +6,7 @@ import NavAvatar from "./NavAvatar";
 import HotelSelector from "../../Pages/Admin Dashboard/HotelSelector";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import useAdminData from "data/useAdminData";
 
 function Nav() {
   const auth = getAuth();
@@ -14,15 +15,22 @@ function Nav() {
   const handleHotelSelect = (selectedHotelName) => {
     setHotelName(selectedHotelName);
   };
+
+  const { data } = useAdminData(`/admins/${currentAdminId}`);
+  const adminData = data;
   return (
     <nav className="header-nav ms-auto">
       <ul className="d-flex align-items-center">
-        <div style={{marginRight:'10px'}}>
-        <HotelSelector
-          adminId={currentAdminId}
-          onHotelSelect={handleHotelSelect}
-        />
-        </div>
+        {adminData?.role === "admin" ? (
+          <div style={{ marginRight: "10px" }}>
+            <HotelSelector
+              adminId={currentAdminId}
+              onHotelSelect={handleHotelSelect}
+            />
+          </div>
+        ) : (
+          ""
+        )}
         <NavNotice />
         <NavMessage />
         <NavAvatar />

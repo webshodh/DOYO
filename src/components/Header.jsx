@@ -2,12 +2,16 @@ import React from "react";
 import { useHotelContext } from "../Context/HotelContext";
 import Nav from "./Navbar/Nav";
 import { colors } from "theme/theme";
+import { useAuthContext } from "Context/AuthContext";
+import useAdminData from "data/useAdminData";
 
 const Header = () => {
   const handleToggleSideBar = () => {
     document.body.classList.toggle("toggle-sidebar");
   };
-
+  const { currentAdminId } = useAuthContext();
+  const { data } = useAdminData(`/admins/${currentAdminId}`);
+  const adminData = data;
   const { hotelName } = useHotelContext();
 
   return (
@@ -27,7 +31,7 @@ const Header = () => {
               className="text-xl font-bold lg:text-2xl"
               style={{ color: colors.Orange }}
             >
-              {hotelName}
+              {adminData?.role ==="admin" ? `${hotelName}` :""}
             </span>
             
           </div>

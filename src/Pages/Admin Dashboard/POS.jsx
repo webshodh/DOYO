@@ -311,9 +311,9 @@ const POS = () => {
   const totalAmount = discountedPrice + cgstAmount + sgstAmount;
 
   return (
-    <div className="flex flex-row justify-between" style={{ width: "100%" }}>
+    <div className="flex flex-row justify-between" style={{ width: "100%"}}>
       {/* Left Column - 70% Width */}
-      <div className="" style={{ width: "60%", marginRight: "20px" }}>
+      <div className="" style={{ width: "70%", marginRight: "10px" }}>
         <div className="relative">
           {/* Search and Sort */}
           <FilterSortSearch
@@ -383,7 +383,7 @@ const POS = () => {
       </div>
 
       {/* Right Column - 30% Width */}
-      <div className="w-2/5 flex flex-col border border-gray-200 shadow-md">
+      <div className="w-2/5 flex flex-col border border-gray-200 shadow-md" style={{width:'30%'}}>
         {/* Header */}
         <div className="flex justify-between p-2 bg-white border-b border-gray-200">
           <div className="text-xl font-semibold">Cart</div>

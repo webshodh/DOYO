@@ -1,54 +1,9 @@
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
 import Header from "../components/Header";
 import Sidebar from "../components/SideBar";
-import { colors } from "../theme/theme";
 import Footer from "srcV2/components/footer/FooterAuthDefault";
 import { useLocation } from "react-router-dom";
-
-// Styled components
-const LayoutContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: ${colors.Grey};
-`;
-
-const LayoutContent = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-`;
-
-const SidebarContainer = styled.div`
-  height: 100%;
-  background: ${colors.Grey}; /* Optional: Adds a background color to the sidebar */
-  width: 300px; /* Default width for large screens */
-
-  @media (max-width: 1000px) {
-    width: 0px; /* Narrower width for smaller screens */
-    display: none; /* Hide sidebar on very small screens */
-  }
-
-  @media (max-width: 767.98px) {
-    width: 0px; /* Even narrower width for mobile screens */
-    display: none; /* Hide sidebar on very small screens */
-  }
-
-  @media (max-width: 575.98px) {
-    display: none; /* Hide sidebar on very small screens */
-  }
-`;
-
-const MainContent = styled.div`
-  flex: 1; /* Take up the remaining space */
-  padding: 20px; /* Add padding for content */
-  background: ${colors.Grey}; /* Optional: Adds a background color to the main content */
-
-  @media (max-width: 575.98px) {
-    padding: 10px; /* Adjust padding for smaller screens */
-  }
-`;
+import { colors } from "theme/theme";
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -60,6 +15,7 @@ const Layout = ({ children }) => {
     const hotelNameFromPath = pathSegments[pathSegments.length - 3];
     setHotelName(hotelNameFromPath);
   }, []);
+
   const excludeSidebarRoutes = [
     `/viewMenu/${hotelName}/admin/POS`, // Add the route you want to exclude the sidebar for
   ];
@@ -67,20 +23,20 @@ const Layout = ({ children }) => {
   const shouldRenderSidebar = !excludeSidebarRoutes.includes(location.pathname);
 
   return (
-    <LayoutContainer>
+    <div className="flex flex-col h-screen" style={{background:colors.LightGrey}}>
       <Header />
-      <LayoutContent>
-        {/* {shouldRenderSidebar && (
-          <SidebarContainer>
+      <div className="flex flex-1 flex-row">
+        {shouldRenderSidebar && (
+          <div className="hidden md:block w-64 lg:w-80" style={{background:colors.LightGrey}}>
             <Sidebar />
-          </SidebarContainer>
-        )} */}
-        <MainContent id="main">
+          </div>
+        )}
+        <div className="flex-1 p-4 md:p-6 lg:p-8" style={{background:colors.LightGrey}}>
           {children}
           <Footer />
-        </MainContent>
-      </LayoutContent>
-    </LayoutContainer>
+        </div>
+      </div>
+    </div>
   );
 };
 

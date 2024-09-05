@@ -84,7 +84,6 @@ function App() {
            
             <Route path="/viewMenu/:hotelName/welcome" element={<WelcomeScreen />} />
             <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <UserLogin />} />
-            {/* <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <Home />} /> */}
             <Route path="/viewMenu/:hotelName/home" element={ <Home />} />
             <Route path="/:hotelName/feedback" element={''} />
             <Route path="/:hotelName/cart-details" element={<CartDetails />} />
@@ -98,16 +97,16 @@ function App() {
           </Routes>
         
         {isAdmin && (
+          <>
           <Layout>
             <Routes>
               {/* Super Admin Routes */}
-              <Route path="/viewMenu/:hotelName/admin/POS" element={ <POS />} />
               <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
               <Route path="/super-admin/dashboard/admin-list" element={<AdminList />} />
               <Route path="/hotels/admin/add-hotel" element={<AddHotel />} />
 
               {/* Admin Routes */}
-              {/* <Route path="/admin/admin-dashboard" element={<Dashboard />} /> */}
+              <Route path="/viewMenu/:hotelName/admin/POS" element={ <POS />} />
               <Route path="/:hotelName/admin/admin-dashboard" element={<Dashboard />} />
               <Route path="/:hotelName/admin/menu/menu-dashboard" element={<MenuDashboard />} />
               <Route path="/:hotelName/admin/table/table-dashboard" element={<TableDashboard />} />
@@ -118,6 +117,7 @@ function App() {
               <Route path="/:hotelName/admin/forecasting/forecasting-dashboard" element={<PredictionDashboard />} />
             </Routes>
           </Layout>
+          </>
         )}
       </ErrorBoundary>
     </Router>
