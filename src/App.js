@@ -25,7 +25,6 @@ import {
   MenuDashboard,
   TableDashboard,
   OrderBill,
-  OrderHistory,
   TrackOrders,
   ThankYouScreen,
   CaptainTip,
@@ -92,7 +91,6 @@ function App() {
             <Route path="/:hotelName/track-orders" element={<TrackOrders />} />
             <Route path="/:hotelName/captain-tip" element={<CaptainTip />} />
             <Route path="/:hotelName/captain-feedback" element={<CaptainFeedBack />} />
-            <Route path="/:hotelName/order-history" element={<OrderHistory />} />
             <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
           </Routes>
         

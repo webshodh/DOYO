@@ -10,7 +10,14 @@ const CaptainTip = () => {
   const [staff, setStaff] = useState([]);
   const [selectedCaptain, setSelectedCaptain] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const hotelName = "Atithi";
+  const [hotelName, setHotelName] = useState("");
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const pathSegments = path.split("/");
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+    setHotelName(hotelNameFromPath);
+  }, []);
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const navigate = useNavigate();
@@ -42,7 +49,7 @@ const CaptainTip = () => {
 
   const handleNext = () => {
     if (selectedCaptain) {
-      navigate("/Atithi/captain-feedback", {
+      navigate(`/${hotelName}/captain-feedback`, {
         state: { selectedCaptain },
       });
     } else {

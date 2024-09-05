@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { colors } from "../../theme/theme";
 import { useLocation } from "react-router-dom";
@@ -49,6 +49,14 @@ const TipEntry = () => {
   const [tipAmount, setTipAmount] = useState("");
   const location = useLocation();
   const { selectedCaptain } = location.state;
+  const [hotelName, setHotelName] = useState("");
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const pathSegments = path.split("/");
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+    setHotelName(hotelNameFromPath);
+  }, []);
 
   const handleFeedbackChange = (e) => {
     const { value, checked } = e.target;
@@ -74,7 +82,6 @@ const TipEntry = () => {
     }
   };
 
-  const hotelName = "Atithi";
 
   return (
     <>

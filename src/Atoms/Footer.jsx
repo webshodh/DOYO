@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaHome,
   FaHistory,
@@ -12,7 +12,15 @@ import { BiSolidDiscount } from "react-icons/bi";
 import { colors } from "theme/theme";
 const Footer = ({ cartItemsCount, handleCart }) => {
   const navigate = useNavigate();
-  const hotelName = "Atithi";
+  const [hotelName, setHotelName] = useState("");
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const pathSegments = path.split("/");
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+    setHotelName(hotelNameFromPath);
+  }, []);
+  console.log('footerHotelName', hotelName)
   const handleHome = () => {
     navigate(`/viewMenu/${hotelName}/home`);
   };
@@ -54,10 +62,10 @@ const Footer = ({ cartItemsCount, handleCart }) => {
       </div>
 
       {/* Tip */}
-      <div className="flex flex-col items-center" onClick={handleTip}>
+      {/* <div className="flex flex-col items-center" onClick={handleTip}>
         <FaHeart   size={20} />
         <span className="text-xs mt-1">Tip</span>
-      </div>
+      </div> */}
 
       {/* Add to Cart with Count */}
       <div
