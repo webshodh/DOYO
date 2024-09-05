@@ -166,7 +166,7 @@ function AddCategory() {
         />
         {isEdit ? (
           <>
-            <button onClick={handleSubmitCategoryChange} className="bg-green-500 text-white p-3 rounded-md mr-2">
+            <button onClick={handleSubmitCategoryChange} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
               Submit Change
             </button>
             <button
@@ -174,13 +174,13 @@ function AddCategory() {
                 setIsEdit(false);
                 setCategoryName("");
               }}
-              className="bg-red-500 text-white p-3 rounded-md"
+              className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
             >
               Cancel
             </button>
           </>
         ) : (
-          <button onClick={addCategoryToDatabase} className="bg-green-500 text-white p-3 rounded-md">
+          <button onClick={addCategoryToDatabase} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
             Submit
           </button>
         )}

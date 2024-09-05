@@ -15,6 +15,7 @@ import { FaCheckCircle, FaExclamationCircle, FaSearch } from "react-icons/fa";
 import { DynamicTable } from "components";
 import { ViewMenuColumns } from "data/Columns";
 import Modal from "components/Modal";
+import CategoryTabs from "components/CategoryTab";
 
 function AddMenu() {
   const [menuName, setMenuName] = useState("");
@@ -38,6 +39,7 @@ function AddMenu() {
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [hotels, setHotels] = useState([]);
   const [show, setShow] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("");
 
   const { hotelName } = useHotelContext();
   const auth = getAuth();
@@ -251,7 +253,10 @@ function AddMenu() {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
   };
-
+  const handleCategoryFilter = (category) => {
+    setSelectedCategory(category);
+    setActiveCategory(category);
+  };
   // Prepare data for the table
   const data = filteredAndSortedItems.map((item, index) => ({
     "Sr.No": index + 1,
@@ -498,36 +503,14 @@ function AddMenu() {
           <div className="mt-4">
             <div className="overflow-x-auto">
               <div className="flex flex-wrap space-x-2 overflow-x-auto">
-                <div
-                  className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
-                  // onClick={() => handleCategoryFilter("")}
-                >
-                  <div className="flex items-center">
-                    All{" "}
-                    <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
-                      {Object.values(menuCountsByCategory).reduce(
-                        (a, b) => a + b,
-                        0
-                      )}
-                    </span>
-                  </div>
+                {/* Category Tabs */}
+                <div className="sticky top-24">
+                  <CategoryTabs
+                    categories={categories}
+                    menuCountsByCategory={menuCountsByCategory}
+                    handleCategoryFilter={handleCategoryFilter}
+                  />
                 </div>
-                {categories
-                  .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
-                  .map((item) => (
-                    <div
-                      className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
-                      key={item.id}
-                      //onClick={() => handleCategoryFilter(item.categoryName)}
-                    >
-                      <div className="flex items-center">
-                        {item.categoryName}{" "}
-                        <span className="ml-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded-full">
-                          {menuCountsByCategory[item.categoryName]}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
               </div>
             </div>
           </div>

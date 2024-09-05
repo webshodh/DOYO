@@ -172,7 +172,7 @@ function AddMainCategory() {
           <>
             <button
               onClick={handleSubmitCategoryChange}
-              className="px-5 py-2 text-white bg-green-500 rounded-md mr-2"
+              className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
             >
               Submit Change
             </button>
@@ -181,7 +181,7 @@ function AddMainCategory() {
                 setIsEdit(false);
                 setCategoryName("");
               }}
-              className="px-5 py-2 text-white bg-red-500 rounded-md"
+              className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
             >
               Cancel
             </button>
@@ -191,7 +191,7 @@ function AddMainCategory() {
           <>
             <button
               onClick={addCategoryToDatabase}
-              className="px-5 py-2 text-white bg-green-500 rounded-md"
+              className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
             >
               Submit
             </button>

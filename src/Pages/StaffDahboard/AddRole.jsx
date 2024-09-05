@@ -128,17 +128,17 @@ function AddRole() {
           />
           {isEdit ? (
             <>
-              <Button primary onClick={handleSubmitRoleChange}>
+              <button  onClick={handleSubmitRoleChange} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
                 Submit Change
-              </Button>
-              <Button onClick={() => setIsEdit(false) && setRoleName("")}>
+              </button>
+              <button onClick={() => setIsEdit(false) && setRoleName("")} className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md">
                 Cancel
-              </Button>
+              </button>
             </>
           ) : (
-            <Button primary onClick={addRoleToDatabase}>
+            <button onClick={addRoleToDatabase} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
               Submit
-            </Button>
+            </button>
           )}
           <ToastContainer />
         </div>
