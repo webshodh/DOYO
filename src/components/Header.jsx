@@ -9,6 +9,7 @@ const Header = () => {
   const handleToggleSideBar = () => {
     document.body.classList.toggle("toggle-sidebar");
   };
+
   const { currentAdminId } = useAuthContext();
   const { data } = useAdminData(`/admins/${currentAdminId}`);
   const adminData = data;
@@ -20,10 +21,11 @@ const Header = () => {
         <div className="flex items-center">
           <div className="flex items-center space-x-2">
             <button
-              className="text-2xl md:hidden"
+              className="text-2xl"
               onClick={handleToggleSideBar}
               aria-label="Toggle Sidebar"
             >
+              {/* Ensure you use proper icons (replace 'bi bi-list' with a working icon, e.g., from Font Awesome or similar) */}
               <i className="bi bi-list"></i>
             </button>
 
@@ -31,13 +33,12 @@ const Header = () => {
               className="text-xl font-bold lg:text-2xl"
               style={{ color: colors.Orange }}
             >
-              {adminData?.role ==="admin" ? `${hotelName}` :""}
+              {adminData?.role === "admin" ? `${hotelName}` : ""}
             </span>
-            
           </div>
         </div>
+        <Nav />
       </div>
-      <Nav />
     </header>
   );
 };

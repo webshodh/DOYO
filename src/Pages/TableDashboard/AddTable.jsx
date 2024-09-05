@@ -12,7 +12,7 @@ import { getAuth } from "firebase/auth";
 function AddTable() {
   const [tableName, setTableName] = useState("");
   const [tableCapacity, setTableCapacity] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
+  const [tableSection, setTableSection] = useState("");
   const [tables, setTables] = useState([]);
   const [sections, setSections] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
@@ -51,7 +51,7 @@ function AddTable() {
   }, [hotelName, currentAdminId]);
 
   const handleAddTable = () => {
-    if (!tableName || !tableCapacity || !selectedSection) {
+    if (!tableName || !tableCapacity || !tableSection) {
       toast.error("Please fill all fields!");
       return;
     }
@@ -63,13 +63,13 @@ function AddTable() {
         tableId,
         tableName,
         tableCapacity,
-        selectedSection,
-        sectionId: selectedSection,
+        tableSection,
+        //sectionId: tableSection,
       }
     ).then(() => {
       setTableName("");
       setTableCapacity("");
-      setSelectedSection("");
+      setTableSection("");
       toast.success("Table Added Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -85,7 +85,7 @@ function AddTable() {
     setTempTableId(table.tableId); // Ensure tempTableId is set for editing
     setTableName(table.tableName);
     setTableCapacity(table.tableCapacity);
-    setSelectedSection(table.sectionId);
+    setTableSection(table.sectionName);
   };
 
   const handleSubmitTableChange = () => {
@@ -104,8 +104,7 @@ function AddTable() {
           tableId: tempTableId,
           tableName,
           tableCapacity,
-          selectedSection,
-          sectionId: selectedSection,
+          tableSection,
         }
       )
         .then(() => {
@@ -115,7 +114,7 @@ function AddTable() {
           setIsEdit(false);
           setTableName("");
           setTableCapacity("");
-          setSelectedSection("");
+          setTableSection("");
           setTempTableId(""); // Reset tempTableId after editing
         })
         .catch((error) => {
@@ -151,7 +150,7 @@ function AddTable() {
   const filteredAndSortedTables = tables
     .filter((table) =>
       selectedFilterSection
-        ? table.sectionId === selectedFilterSection
+        ? table.sectionName === selectedFilterSection
         : true
     )
     .filter((table) =>
@@ -195,13 +194,13 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
             className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
-            value={selectedSection}
-            onChange={(e) => setSelectedSection(e.target.value)}
+            value={tableSection}
+            onChange={(e) => setTableSection(e.target.value)}
             className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select Section</option>
             {sections.map((section) => (
-              <option key={section.sectionId} value={section.sectionId}>
+              <option key={section.sectionId} value={section.sectionName}>
                 {section.sectionName}
               </option>
             ))}
@@ -219,7 +218,7 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
                   setIsEdit(false);
                   setTableName("");
                   setTableCapacity("");
-                  setSelectedSection("");
+                  setTableSection("");
                   setTempTableId(""); // Reset tempTableId when canceling
                 }}
                 className="px-4 py-2 text-white bg-red-600 rounded-md"
@@ -243,6 +242,15 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
           style={{ width: "70%" }}
         >
           <PageTitle pageTitle="View Tables" />
+          <div className="d-flex gap-5">
+            {/* Search Bar */}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by Table Name"
+            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
           {/* Filter by Section */}
           <select
             value={selectedFilterSection}
@@ -251,7 +259,7 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
           >
             <option value="">Filter by Section</option>
             {sections.map((section) => (
-              <option key={section.sectionId} value={section.sectionId}>
+              <option key={section.sectionId} value={section.sectionName}>
                 {section.sectionName}
               </option>
             ))}
@@ -268,15 +276,8 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
             <option value="desc">Descending</option>
           </select>
 
-          {/* Search Bar */}
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Table Name"
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
+          
+</div>
           {/* Display Table */}
           <DynamicTable
             columns={columns}

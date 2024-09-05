@@ -34,6 +34,15 @@
   background-color: #aab7cf;
 }
 
+/* Sidebar hidden by default on small screens */
+.sidebar-hidden {
+  display: none;
+}
+
+/* When the body has .toggle-sidebar class, show the sidebar */
+body.toggle-sidebar .sidebar-hidden {
+  display: block;
+}
 @media (min-width: 1200px) {
   #main,
   #footer {

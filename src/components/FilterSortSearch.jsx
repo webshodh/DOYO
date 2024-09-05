@@ -19,7 +19,7 @@ const FilterSortSearch = ({
   };
 
   return (
-    <div className="flex flex-wrap items-center ml-2" style={{background:colors.LightGrey}}>
+    <div className="flex flex-wrap items-center ml-2">
       {/* Search */}
       <div className="flex-grow mb-2">
         <input

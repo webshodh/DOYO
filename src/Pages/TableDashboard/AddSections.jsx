@@ -109,46 +109,48 @@ function AddSection() {
   return (
     <>
       <div className="d-flex justify-between">
-        <div
-          className="bg-white rounded shadow p-10"
-          style={{ width: "30%", marginRight: "10px" }}
-        >
-          <PageTitle pageTitle="Add Sections" />
-          <input
-            type="text"
-            value={sectionName}
-            onChange={handleSectionNameChange}
-            placeholder="Enter Section Name"
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {isEdit ? (
-            <>
+        
+          <div
+            className="bg-white rounded shadow p-10"
+            style={{ width: "30%", marginRight: "10px" }}
+          >
+            <PageTitle pageTitle="Add Sections" />
+            <input
+              type="text"
+              value={sectionName}
+              onChange={handleSectionNameChange}
+              placeholder="Enter Section Name"
+              className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {isEdit ? (
+              <>
+                <button
+                  onClick={handleSubmitCategoryChange}
+                  className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                >
+                  Submit Change
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEdit(false);
+                    setSectionName("");
+                  }}
+                  className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
               <button
-                onClick={handleSubmitCategoryChange}
-                className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                onClick={addCategoryToDatabase}
+                className="px-4 py-2 text-white bg-green-600 rounded-md"
               >
-                Submit Change
+                Submit
               </button>
-              <button
-                onClick={() => {
-                  setIsEdit(false);
-                  setSectionName("");
-                }}
-                className="px-4 py-2 text-white bg-red-600 rounded-md"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={addCategoryToDatabase}
-              className="px-4 py-2 text-white bg-green-600 rounded-md"
-            >
-              Submit
-            </button>
-          )}
-          <ToastContainer />
-        </div>
+            )}
+            <ToastContainer />
+          </div>
+        
 
         <div
           className="p-10 bg-white shadow rounded-lg"

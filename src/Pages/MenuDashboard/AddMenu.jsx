@@ -14,6 +14,7 @@ import {
 import { FaCheckCircle, FaExclamationCircle, FaSearch } from "react-icons/fa";
 import { DynamicTable } from "components";
 import { ViewMenuColumns } from "data/Columns";
+import Modal from "components/Modal";
 
 function AddMenu() {
   const [menuName, setMenuName] = useState("");
@@ -36,6 +37,7 @@ function AddMenu() {
   const [sortOrder, setSortOrder] = useState("default");
   const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [hotels, setHotels] = useState([]);
+  const [show, setShow] = useState(false);
 
   const { hotelName } = useHotelContext();
   const auth = getAuth();
@@ -63,6 +65,16 @@ function AddMenu() {
     return () => unsubscribe();
   }, [hotelName]);
 
+  // Fetch MainCategory data from the database
+  useEffect(() => {
+    const categoryRef = ref(db, `/hotels/${hotelName}/Maincategories/`);
+    const unsubscribe = onValue(categoryRef, (snapshot) => {
+      const data = snapshot.val();
+      setMainCategories(data ? Object.values(data) : []);
+    });
+    return () => unsubscribe();
+  }, [hotelName]);
+
   useEffect(() => {
     const countsByCategory = {};
     menus.forEach((menu) => {
@@ -72,11 +84,10 @@ function AddMenu() {
     setMenuCountsByCategory(countsByCategory);
   }, [menus]);
 
- 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
-  
+
   // Handle the editing of a menu
   const handleEdit = (menuId) => {
     const selectedMenu = menus.find((menu) => menu.uuid === menuId);
@@ -133,6 +144,13 @@ function AddMenu() {
     }
 
     return filteredItems;
+  };
+  const handleAdd = () => {
+    setShow(true);
+  };
+
+  const handleClose = () => {
+    setShow(false);
   };
 
   const filteredAndSortedItems = filterAndSortItems();
@@ -242,270 +260,241 @@ function AddMenu() {
     "Cooking Time": `${item.menuCookingTime} min`,
     Price: item.menuPrice,
     Availability: item.availability,
-    Actions: (
-      <>
-        <button
-          className="btn btn-primary btn-sm mr-2"
-          onClick={() => handleEdit(item.uuid)}
-        >
-          <img src="/update.png" width="20px" height="20px" alt="Update" />
-        </button>
-        <button
-          className="btn btn-danger btn-sm"
-          onClick={() => handleDelete(item.uuid)}
-        >
-          <img src="/delete.png" width="20px" height="20px" alt="Delete" />
-        </button>
-      </>
-    ),
   }));
   return (
     <>
       <div className="d-flex" style={{ width: "100%" }}>
-        <div
-          className="bg-white p-6 rounded-lg shadow-lg"
-          style={{ width: "30%", marginRight: "10px" }}
-        >
-          <form className="space-y-6">
-            <div className="gap-6">
-              <div className="relative">
-                <label
-                  htmlFor="menuName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Name
-                </label>
-                <input
-                  type="text"
-                  id="menuName"
-                  value={menuName}
-                  onChange={handleChange(setMenuName)}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    menuName ? "border-green-500" : "border-red-500"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter Menu Name"
-                />
-                {menuName ? (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
-                    <FaCheckCircle />
-                  </div>
-                ) : (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                    <FaExclamationCircle />
-                  </div>
-                )}
-                {!menuName && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Menu Name is required.
-                  </p>
-                )}
-              </div>
+        {/* Modal */}
+        {show && (
+          <Modal
+            title="Add Menu"
+            handleClose={handleClose}
+            children={
+              <>
+                <div className="bg-white p-6">
+                  <form className="space-y-6" style={{ width: "100%" }}>
+                    <div className="gap-6">
+                      <div className="d-flex">
+                        <div className="relative">
+                          <label
+                            htmlFor="menuName"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Menu Name
+                          </label>
+                          <input
+                            type="text"
+                            id="menuName"
+                            value={menuName}
+                            onChange={handleChange(setMenuName)}
+                            className={`mt-1 block w-full px-3 py-2 border ${
+                              menuName ? "border-green-500" : "border-red-500"
+                            } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                            placeholder="Enter Menu Name"
+                          />
+                          {menuName ? (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                              <FaCheckCircle />
+                            </div>
+                          ) : (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                              <FaExclamationCircle />
+                            </div>
+                          )}
+                          {!menuName && (
+                            <p className="text-red-500 text-xs mt-1">
+                              Menu Name is required.
+                            </p>
+                          )}
+                        </div>
 
-              <div>
-                <label
-                  htmlFor="menuCategory"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Category
-                </label>
-                <select
-                  id="menuCategory"
-                  value={menuCategory}
-                  onChange={handleChange(setMenuCategory)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                >
-                  <option value="" disabled>
-                    Select Menu Category
-                  </option>
-                  {categories.map((category) => (
-                    <option
-                      key={category.categoryId}
-                      value={category.categoryName}
-                    >
-                      {category.categoryName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                        <div>
+                          <label
+                            htmlFor="menuCategory"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Menu Category
+                          </label>
+                          <select
+                            id="menuCategory"
+                            value={menuCategory}
+                            onChange={handleChange(setMenuCategory)}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                          >
+                            <option value="" disabled>
+                              Select Menu Category
+                            </option>
+                            {categories.map((category) => (
+                              <option
+                                key={category.categoryId}
+                                value={category.categoryName}
+                              >
+                                {category.categoryName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="menuPrice"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Menu Price
+                          </label>
+                          <input
+                            type="number"
+                            id="menuPrice"
+                            value={menuPrice}
+                            onChange={handleChange(setMenuPrice)}
+                            className={`mt-1 block w-full px-3 py-2 border ${
+                              menuPrice ? "border-green-500" : "border-red-500"
+                            } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                            placeholder="Enter Menu Price"
+                          />
+                          {menuPrice ? (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                              <FaCheckCircle />
+                            </div>
+                          ) : (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                              <FaExclamationCircle />
+                            </div>
+                          )}
+                          {!menuPrice && (
+                            <p className="text-red-500 text-xs mt-1">
+                              Menu Price is required.
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
-              <div className="relative">
-                <label
-                  htmlFor="menuCookingTime"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Cooking Time
-                </label>
-                <select
-                  id="menuCookingTime"
-                  value={menuCookingTime}
-                  onChange={handleChange(setMenuCookingTime)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                >
-                  <option value="" disabled>
-                    Select Cooking Time
-                  </option>
-                  {[5, 10, 15, 20, 25, 30].map((time) => (
-                    <option key={time} value={time}>
-                      {time} min
-                    </option>
-                  ))}
-                </select>
-              </div>
+                      <div className="d-flex">
+                        <div>
+                          <label
+                            htmlFor="mainCategory"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Main Category
+                          </label>
+                          <select
+                            id="mainCategory"
+                            value={mainCategory}
+                            onChange={handleChange(setMainCategory)}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                          >
+                            <option value="" disabled>
+                              Select Main Category
+                            </option>
+                            {mainCategories.map((category) => (
+                              <option
+                                key={category.categoryId}
+                                value={category.categoryName}
+                              >
+                                {category.categoryName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="file"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Upload Image
+                          </label>
+                          <input
+                            type="file"
+                            id="file"
+                            onChange={handleFileChange}
+                            className="mt-1 block w-full text-sm text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                          />
+                        </div>
 
-              <div>
-                <label
-                  htmlFor="menuPrice"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Price
-                </label>
-                <input
-                  type="number"
-                  id="menuPrice"
-                  value={menuPrice}
-                  onChange={handleChange(setMenuPrice)}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    menuPrice ? "border-green-500" : "border-red-500"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter Menu Price"
-                />
-                {menuPrice ? (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
-                    <FaCheckCircle />
-                  </div>
-                ) : (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                    <FaExclamationCircle />
-                  </div>
-                )}
-                {!menuPrice && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Menu Price is required.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="mainCategory"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Main Category
-                </label>
-                <select
-                  id="mainCategory"
-                  value={mainCategory}
-                  onChange={handleChange(setMainCategory)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                >
-                  <option value="" disabled>
-                    Select Main Category
-                  </option>
-                  {mainCategories.map((category) => (
-                    <option
-                      key={category.categoryId}
-                      value={category.categoryName}
-                    >
-                      {category.categoryName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="file"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Upload Image
-                </label>
-                <input
-                  type="file"
-                  id="file"
-                  onChange={handleFileChange}
-                  className="mt-1 block w-full text-sm text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="availability"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Availability
-                </label>
-                <select
-                  id="availability"
-                  value={availability}
-                  onChange={handleChange(setAvailability)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                >
-                  <option value="Available">Available</option>
-                  <option value="Not Available">Not Available</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="discount"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Discount
-                </label>
-                <input
-                  type="number"
-                  id="discount"
-                  value={discount}
-                  onChange={handleChange(setDiscount)}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    discount ? "border-green-500" : "border-red-500"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter Discount in %"
-                />
-                {discount ? (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
-                    <FaCheckCircle />
-                  </div>
-                ) : (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                    <FaExclamationCircle />
-                  </div>
-                )}
-                {/* {!menuPrice && (
+                        <div>
+                          <label
+                            htmlFor="availability"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Availability
+                          </label>
+                          <select
+                            id="availability"
+                            value={availability}
+                            onChange={handleChange(setAvailability)}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                          >
+                            <option value="Available">Available</option>
+                            <option value="Not Available">Not Available</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="d-flex"></div>
+                      <div className="d-flex">
+                        <div>
+                          <label
+                            htmlFor="discount"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Discount
+                          </label>
+                          <input
+                            type="number"
+                            id="discount"
+                            value={discount}
+                            onChange={handleChange(setDiscount)}
+                            className={`mt-1 block w-full px-3 py-2 border ${
+                              discount ? "border-green-500" : "border-red-500"
+                            } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                            placeholder="Enter Discount in %"
+                          />
+                          {discount ? (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                              <FaCheckCircle />
+                            </div>
+                          ) : (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                              <FaExclamationCircle />
+                            </div>
+                          )}
+                          {/* {!menuPrice && (
                 <p className="text-red-500 text-xs mt-1">Menu Price is required.</p>
               )} */}
-              </div>
+                        </div>
 
-              <div className="col-span-2">
-                <label
-                  htmlFor="menuContent"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Content
-                </label>
-                <textarea
-                  id="menuContent"
-                  value={menuContent}
-                  onChange={handleChange(setMenuContent)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                  rows="4"
-                  placeholder="Enter Menu Content"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={writeToDatabase}
-                className="bg-green-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              >
-                {editMode ? "Update Menu" : "Add Menu"}
-              </button>
-            </div>
-          </form>
-        </div>
-        <div style={{ width: "70%" }}>
+                        <div className="col-span-2">
+                          <label
+                            htmlFor="menuContent"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Menu Content
+                          </label>
+                          <textarea
+                            id="menuContent"
+                            value={menuContent}
+                            onChange={handleChange(setMenuContent)}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            rows="4"
+                            placeholder="Enter Menu Content"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={writeToDatabase}
+                        className="bg-green-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      >
+                        {editMode ? "Update Menu" : "Add Menu"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </>
+            }
+          ></Modal>
+        )}
+        <div style={{ width: "100%" }}>
           <div className="mt-4">
             <div className="overflow-x-auto">
               <div className="flex flex-wrap space-x-2 overflow-x-auto">
@@ -544,17 +533,28 @@ function AddMenu() {
           </div>
 
           <div className="mt-4">
-            <div className="flex items-center space-x-4 mb-4">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearch}
-                placeholder="Search..."
-                className="w-full py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
-              />
-              <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <div className="d-flex items-center space-x-4 mb-4">
+              <div style={{ width: "80%" }}>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  placeholder="Search..."
+                  className="w-full py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                />
+              </div>
+
+              {/* <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
                 <FaSearch />
-              </button>
+              </button> */}
+              <div>
+                <button
+                  onClick={handleAdd}
+                  className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+                >
+                  Add Menu
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-2">

@@ -48,7 +48,7 @@ function AddRole() {
 
   useEffect(() => {
     onValue(
-      ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/`),
+      ref(db, `/hotels/${hotelName}/roles/`),
       (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -60,7 +60,7 @@ function AddRole() {
 
   const addRoleToDatabase = () => {
     const roleId = uid();
-    set(ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${roleId}`), {
+    set(ref(db, `/hotels/${hotelName}/roles/${roleId}`), {
       roleName,
       roleId,
     });
@@ -79,7 +79,7 @@ function AddRole() {
   const handleSubmitRoleChange = () => {
     if (window.confirm("Confirm update")) {
       update(
-        ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${tempRoleId}`),
+        ref(db, `/hotels/${hotelName}/roles/${tempRoleId}`),
         {
           roleName,
           roleId: tempRoleId,
@@ -96,7 +96,7 @@ function AddRole() {
   const handleDeleteRole = (role) => {
     if (window.confirm("Confirm delete")) {
       remove(
-        ref(db, `/admins/${adminID}/hotels/${hotelName}/roles/${role.roleId}`)
+        ref(db, `/hotels/${hotelName}/roles/${role.roleId}`)
       );
       toast.error("Role Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,

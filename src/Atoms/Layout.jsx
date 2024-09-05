@@ -26,11 +26,11 @@ const Layout = ({ children }) => {
     <div className="flex flex-col h-screen" style={{background:colors.LightGrey}}>
       <Header />
       <div className="flex flex-1 flex-row">
-        {shouldRenderSidebar && (
+        {/* {shouldRenderSidebar && (
           <div className="hidden md:block w-64 lg:w-80" style={{background:colors.LightGrey}}>
             <Sidebar />
           </div>
-        )}
+        )} */}
         <div className="flex-1 p-4 md:p-6 lg:p-8" style={{background:colors.LightGrey}}>
           {children}
           <Footer />

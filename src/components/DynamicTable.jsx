@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-
+import { FaEdit } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onMarkAsCompleted, actions }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -56,18 +57,18 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                   <td className="px-6 py-4 text-sm text-gray-700 flex space-x-2">
                     {onEdit && (
                       <button
-                        className="btn btn-info text-white hover:text-blue-800 transition-colors"
+                        className="px-2 py-2 mr-2 text-white bg-green-600 rounded-md"
                         onClick={() => onEdit(item)}
                       >
-                        Edit
+                        <FaEdit/>
                       </button>
                     )}
                     {onDelete && (
                       <button
-                        className="btn btn-danger text-white hover:text-red-800 transition-colors"
+                        className="px-2 py-2 mr-2 text-white bg-red-600 rounded-md"
                         onClick={() => onDelete(item)}
                       >
-                        Delete
+                        <MdDelete/>
                       </button>
                     )}
                     {onAccept && (

@@ -4,9 +4,9 @@ const Tabs = ({ tabs, width }) => {
   const [activeTab, setActiveTab] = useState(tabs[0].label);
 
   return (
-    <div className="w-full">
+    <div className="w-full custom-scrollbar">
       {/* Tabs Header */}
-      <div className={`flex overflow-x-auto border-b-2 border-gray-300 ${width ? `w-[${width}]` : 'w-full'}`}>
+      <div className={`flex custom-scrollbar overflow-x-auto border-b-2 border-gray-300 ${width ? `w-[${width}]` : 'w-full'}`}>
         {tabs.map((tab) => (
           <button
             key={tab.label}
