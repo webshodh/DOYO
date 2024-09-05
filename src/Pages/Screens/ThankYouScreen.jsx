@@ -13,12 +13,12 @@ const ThankYouPage = () => {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 4];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
     setHotelName(hotelNameFromPath);
   }, []);
 
   const handleNext = () => {
-    navigate(`/${hotelName}/orders/track-orders`, {
+    navigate(`/${hotelName}/track-orders`, {
       state: {
         checkoutData,
         totalAmount,

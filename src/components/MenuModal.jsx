@@ -30,13 +30,14 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
         <br />
         <b>Price: </b>
         <span>
-              {modalData.discount && (
-                <span className="line-through mr-1 text-red-500">
-                  {Math.round(modalData.menuPrice)}₹
-                </span>
-              )}
-              {modalData.finalPrice}
-            </span> ₹
+          {modalData.discount && modalData.discount > 0 && (
+            <span className="line-through mr-1 text-red-500">
+              {Math.round(modalData.menuPrice)}₹
+            </span>
+          )}
+          {modalData.finalPrice}
+        </span>{" "}
+        ₹
         <br />
         <b>Description: </b>
         {modalData.menuContent ? modalData.menuContent : modalData.menuName}
@@ -50,12 +51,14 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
         >
           Add to Cart
         </AddToCartButton> */}
-        <button className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md" onClick={handleClose}>
+        <button
+          className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md"
+          onClick={handleClose}
+        >
           Close
         </button>
       </Modal.Footer>
     </Modal>
-  
   );
 };
 

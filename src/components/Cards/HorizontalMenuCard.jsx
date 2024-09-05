@@ -101,7 +101,7 @@ const HorizontalMenuCard = ({
             <span className="mx-1">|</span> */}
             <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500 pt-2"></i>
             <span>
-              {item.discount && (
+              {item.discount && item.discount > 0 && (
                 <span className="line-through mr-1 ">
                   {Math.round(item.menuPrice)}
                 </span>

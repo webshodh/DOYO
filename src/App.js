@@ -81,8 +81,8 @@ function App() {
 
             {/* User Routes */}
            
-            <Route path="/viewMenu/:hotelName/welcome" element={<WelcomeScreen />} />
-            <Route path="/viewMenu/:hotelName" element={showWelcomeScreen ? <WelcomeScreen /> : <UserLogin />} />
+            <Route path="/viewMenu/:hotelName/login" element={<UserLogin />} />
+            <Route path="/viewMenu/:hotelName/welcome" element={<UserLogin />} />
             <Route path="/viewMenu/:hotelName/home" element={ <Home />} />
             <Route path="/:hotelName/feedback" element={''} />
             <Route path="/:hotelName/cart-details" element={<CartDetails />} />

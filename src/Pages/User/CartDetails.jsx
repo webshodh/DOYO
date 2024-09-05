@@ -30,7 +30,7 @@ function CartDetails() {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 3];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
     setHotelName(hotelNameFromPath);
   }, []);
 
@@ -79,7 +79,7 @@ function CartDetails() {
       0
     );
 
-    navigate(`/${hotelName}/orders/details/thank-you`, {
+    navigate(`/${hotelName}/thank-you`, {
       state: {
         checkoutData: {
           name: user.name || "Anonymous",
@@ -138,6 +138,7 @@ function CartDetails() {
     <>
       <Navbar
         title={'Cart Summary'}
+        isBack={true}
         style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
       />
       <div className="px-4 py-6 bg-whit min-h-screen">

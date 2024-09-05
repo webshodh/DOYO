@@ -9,6 +9,9 @@ import { useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 import CategoryTabs from "../../components/CategoryTab";
+import { IoMdAddCircle } from "react-icons/io";
+import { FaCircleMinus } from "react-icons/fa6";
+import { IoIosArrowUp } from "react-icons/io";
 
 const POS = () => {
   const [menus, setMenus] = useState([]);
@@ -36,6 +39,9 @@ const POS = () => {
   const [fixedDiscount, setFixedDiscount] = useState(0);
   const [percentDiscount, setPercentDiscount] = useState(0);
   const [mainCategoryCounts, setMainCategoryCounts] = useState({});
+
+  const [showDiscount, setShowDiscount] = useState(false);
+  const [showTax, setShowTax] = useState(false);
 
   // State for GST rates (default to 2.5% each)
   const [cgstRate, setCgstRate] = useState(2.5);
@@ -246,7 +252,7 @@ const POS = () => {
   };
 
   const handleNext = () => {
-    navigate(`/${hotelName}/cart/cart-details`, {
+    navigate(`/${hotelName}/cart-details`, {
       state: { cartItems: cartItems },
     });
   };
@@ -310,8 +316,29 @@ const POS = () => {
   // Calculate total price after adding GST
   const totalAmount = discountedPrice + cgstAmount + sgstAmount;
 
+  const handleClearCart = () => {
+    setCartItems([]);
+    handleRemoveQuantity();
+  };
+
+  const handleDiscount = () => {
+    setShowDiscount(true);
+  };
+
+  const handleCloseDiscount = () => {
+    setShowDiscount(false);
+  };
+
+  const handleTax = () => {
+    setShowTax(true);
+  };
+
+  const handleCloseTax = () => {
+    setShowTax(false);
+  };
+
   return (
-    <div className="flex flex-row justify-between" style={{ width: "100%"}}>
+    <div className="flex flex-row justify-between" style={{ width: "100%" }}>
       {/* Left Column - 70% Width */}
       <div className="" style={{ width: "70%", marginRight: "10px" }}>
         <div className="relative">
@@ -331,8 +358,8 @@ const POS = () => {
           />
         </div>
 
-       {/* Main Category Buttons */}
-       {mainCategories.map((mainCategory) => {
+        {/* Main Category Buttons */}
+        {mainCategories.map((mainCategory) => {
           const categoryName = mainCategory.categoryName;
           const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
 
@@ -383,12 +410,15 @@ const POS = () => {
       </div>
 
       {/* Right Column - 30% Width */}
-      <div className="w-2/5 flex flex-col border border-gray-200 shadow-md" style={{width:'30%'}}>
+      <div
+        className="w-2/5 flex flex-col border border-gray-200 shadow-md"
+        style={{ width: "30%" }}
+      >
         {/* Header */}
         <div className="flex justify-between p-2 bg-white border-b border-gray-200">
           <div className="text-xl font-semibold">Cart</div>
           <button
-            onClick={"handleClearCart"}
+            onClick={handleClearCart}
             className="text-md font-semibold text-orange-500"
           >
             Clear Cart
@@ -467,46 +497,108 @@ const POS = () => {
           <hr className="border-dotted border-black mb-4" />
 
           {/* Discount Section */}
-          <div className="font-bold mb-2">Discount</div>
-          <div className="flex justify-between items-center mb-3">
-            <label htmlFor="fixedDiscount" className="mr-2">
-              Fixed Discount (₹):
-            </label>
-            <input
-              type="number"
-              id="fixedDiscount"
-              className="border p-1 w-1/6 rounded"
-              value={fixedDiscount}
-              onChange={handleFixedDiscountChange}
-              min="0"
-            />
+          <div className="font-bold mb-2">
+            <span className="d-flex">
+              Add Discount
+              {!showDiscount ? (
+                <IoMdAddCircle
+                  style={{
+                    marginLeft: "10px",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: colors.Orange,
+                  }}
+                  onClick={handleDiscount}
+                />
+              ) : (
+                <IoIosArrowUp
+                  style={{
+                    marginLeft: "10px",
+                    fontSize: "24px",
+                    color: colors.Orange,
+                    cursor: "pointer",
+                  }}
+                  onClick={handleCloseDiscount}
+                />
+              )}
+            </span>
           </div>
-          <div className="flex justify-between items-center mb-4">
-            <label htmlFor="percentDiscount" className="mr-2">
-              Percentage Discount (%):
-            </label>
-            <input
-              type="number"
-              id="percentDiscount"
-              className="border p-1 w-1/6 rounded"
-              value={percentDiscount}
-              onChange={handlePercentDiscountChange}
-              min="0"
-            />
-          </div>
-
+          {showDiscount ? (
+            <>
+              <div className="flex justify-between items-center mb-3">
+                <label htmlFor="fixedDiscount" className="mr-2">
+                  Fixed Discount (₹):
+                </label>
+                <input
+                  type="number"
+                  id="fixedDiscount"
+                  className="border p-1 w-1/6 rounded"
+                  value={fixedDiscount}
+                  onChange={handleFixedDiscountChange}
+                  min="0"
+                />
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <label htmlFor="percentDiscount" className="mr-2">
+                  Percentage Discount (%):
+                </label>
+                <input
+                  type="number"
+                  id="percentDiscount"
+                  className="border p-1 w-1/6 rounded"
+                  value={percentDiscount}
+                  onChange={handlePercentDiscountChange}
+                  min="0"
+                />
+              </div>
+            </>
+          ) : (
+            ""
+          )}
           {/* Dotted line */}
           <hr className="border-dotted border-black mb-4" />
 
           {/* GST Details */}
-          <div className="flex justify-between font-bold">
-            <span>C-GST ({cgstRate}%):</span>
-            <span>₹{cgstAmount.toFixed(2)}</span>
+          <div className="font-bold mb-2">
+            <span className="d-flex">
+              Tax
+              {!showTax ? (
+                <IoMdAddCircle
+                  style={{
+                    marginLeft: "10px",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: colors.Orange,
+                  }}
+                  onClick={handleTax}
+                />
+              ) : (
+                <IoIosArrowUp
+                  style={{
+                    marginLeft: "10px",
+                    fontSize: "24px",
+                    color: colors.Orange,
+                    cursor: "pointer",
+                  }}
+                  onClick={handleCloseTax}
+                />
+              )}
+            </span>
           </div>
-          <div className="flex justify-between font-bold mb-4">
-            <span>S-GST ({sgstRate}%):</span>
-            <span>₹{sgstAmount.toFixed(2)}</span>
-          </div>
+          {showTax ? (
+            <>
+              <div className="flex justify-between font-bold">
+                <span>C-GST ({cgstRate}%):</span>
+                <span>₹{cgstAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold mb-4">
+                <span>S-GST ({sgstRate}%):</span>
+                <span>₹{sgstAmount.toFixed(2)}</span>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
 
           {/* Dotted line */}
           <hr className="border-dotted border-black mb-4" />

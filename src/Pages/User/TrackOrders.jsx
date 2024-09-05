@@ -31,7 +31,7 @@ function TrackOrders() {
   useEffect(() => {
     const path = window.location.pathname;
     const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 3];
+    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
     setHotelName(hotelNameFromPath);
   }, []);
 

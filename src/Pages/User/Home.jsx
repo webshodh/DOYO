@@ -257,7 +257,7 @@ function Home() {
   };
 
   const handleNext = () => {
-    navigate(`/${hotelName}/cart/cart-details`, {
+    navigate(`/${hotelName}/cart-details`, {
       state: { cartItems: cartItems },
     });
   };
@@ -371,6 +371,7 @@ function Home() {
           height: "calc(100vh - 240px)",
           overflowY: "auto",
           background: colors.LightGrey,
+          marginBottom:'50px'
         }}
       >
         {filteredAndSortedItems.map((item) => (

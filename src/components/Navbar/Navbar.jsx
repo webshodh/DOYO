@@ -5,9 +5,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { colors } from "theme/theme";
 // import { UserAuthContext } from "../../Context/UserAuthContext";
 
-const Navbar = ({ title , isBack=false}) => {
+const Navbar = ({ title, isBack = false }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [hotelName, setHotelName] = useState('')
+  const [hotelName, setHotelName] = useState("");
   // const { currentUser, loading } = useContext(UserAuthContext);
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -25,9 +25,6 @@ const Navbar = ({ title , isBack=false}) => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-
- 
-
 
   const getInitials = (name) => {
     if (!name) return "";
@@ -52,7 +49,7 @@ const Navbar = ({ title , isBack=false}) => {
   // }
 
   if (!user) {
-    return <div className="text-center">Please log in</div>;
+    navigate(`/viewMenu/${hotelName}/login`);
   }
 
   const handleBack = () => {
@@ -60,18 +57,23 @@ const Navbar = ({ title , isBack=false}) => {
   };
   return (
     <>
-      <div className="text-black p-2 flex justify-between items-center relative" style={{background:colors.White}}>
-        {!isBack?(
+      <div
+        className="text-black p-2 flex justify-between items-center relative"
+        style={{ background: colors.White }}
+      >
+        {!isBack ? (
           <FaBars onClick={toggleSidebar} className="cursor-pointer text-2xl" />
-        ):(<i
-          class="bi bi-arrow-left-square-fill"
-          onClick={handleBack}
-          style={{ color: `${colors.Orange}`, fontSize: "30px" }}
-        ></i>)}
+        ) : (
+          <i
+            class="bi bi-arrow-left-square-fill"
+            onClick={handleBack}
+            style={{ color: `${colors.Orange}`, fontSize: "30px" }}
+          ></i>
+        )}
         <h3 className="text-lg font-semibold text-black">{title}</h3>
         <div
           className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center mb-2"
-          style={{ fontSize: "15px" , background:colors.Orange}}
+          style={{ fontSize: "15px", background: colors.Orange }}
         >
           {userProfile.initial}
         </div>

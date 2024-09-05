@@ -20,17 +20,6 @@ const Input = ({ value, onChange, placeholder }) => (
   />
 );
 
-const Button = ({ primary, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`p-2 rounded text-white ${
-      primary ? "bg-green-500" : "bg-red-500"
-    } mr-2`}
-  >
-    {children}
-  </button>
-);
-
 function AddRole() {
   const [roleName, setRoleName] = useState("");
   const [roles, setRoles] = useState([]);
