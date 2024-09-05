@@ -26,7 +26,7 @@ const UserLogin = () => {
     }
 
     const userId = mobile;
-    const userRef = ref(db, `/hotels/users/${userId}`);
+    const userRef = ref(db, `/users/${userId}`);
     const currentDate = new Date().toISOString();
 
     try {
