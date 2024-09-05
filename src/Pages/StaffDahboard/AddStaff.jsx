@@ -387,7 +387,7 @@ function AddStaff() {
                           onClick={handleSubmitChange}
                           className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
                         >
-                          Submit Change
+                          Submit
                         </button>
                         {/* <button
                           onClick={() => setIsEdit(false) && setShow(false)}

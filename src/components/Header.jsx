@@ -21,7 +21,7 @@ const Header = () => {
         <div className="flex items-center">
           <div className="flex items-center space-x-2">
             <button
-              className="text-2xl"
+              className="text-2xl md:hidden"
               onClick={handleToggleSideBar}
               aria-label="Toggle Sidebar"
             >

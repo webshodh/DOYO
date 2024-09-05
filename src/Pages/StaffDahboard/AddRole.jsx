@@ -118,7 +118,7 @@ function AddRole() {
       <div className="d-flex justify-between">
         <div
           className="bg-white rounded shadow p-10"
-          style={{ marginRight: "10px", width: "30%" }}
+          style={{ marginRight: "10px", width: "40%" }}
         >
           <PageTitle pageTitle="Add Roles" />
           <Input
@@ -129,7 +129,7 @@ function AddRole() {
           {isEdit ? (
             <>
               <button  onClick={handleSubmitRoleChange} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
-                Submit Change
+                Submit
               </button>
               <button onClick={() => setIsEdit(false) && setRoleName("")} className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md">
                 Cancel
@@ -143,7 +143,7 @@ function AddRole() {
           <ToastContainer />
         </div>
 
-        <div className="bg-white rounded shadow p-10" style={{ width: "70%" }}>
+        <div className="bg-white rounded shadow p-10" style={{ width: "60%" }}>
           <PageTitle pageTitle="View Roles" />
           <Input
             value={searchTerm}

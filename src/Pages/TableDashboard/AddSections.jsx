@@ -112,7 +112,7 @@ function AddSection() {
         
           <div
             className="bg-white rounded shadow p-10"
-            style={{ width: "30%", marginRight: "10px" }}
+            style={{ width: "40%", marginRight: "10px" }}
           >
             <PageTitle pageTitle="Add Sections" />
             <input
@@ -128,7 +128,7 @@ function AddSection() {
                   onClick={handleSubmitCategoryChange}
                   className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
                 >
-                  Submit Change
+                  Submit
                 </button>
                 <button
                   onClick={() => {
@@ -154,7 +154,7 @@ function AddSection() {
 
         <div
           className="p-10 bg-white shadow rounded-lg"
-          style={{ width: "70%" }}
+          style={{ width: "60%" }}
         >
           <PageTitle pageTitle="View Sections" />
           {/* Search Bar */}

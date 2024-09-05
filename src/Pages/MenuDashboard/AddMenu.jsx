@@ -279,211 +279,206 @@ function AddMenu() {
                 <div className="bg-white p-6">
                   <form className="space-y-6" style={{ width: "100%" }}>
                     <div className="gap-6">
-                      <div className="d-flex">
-                        <div className="relative">
-                          <label
-                            htmlFor="menuName"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Menu Name
-                          </label>
-                          <input
-                            type="text"
-                            id="menuName"
-                            value={menuName}
-                            onChange={handleChange(setMenuName)}
-                            className={`mt-1 block w-full px-3 py-2 border ${
-                              menuName ? "border-green-500" : "border-red-500"
-                            } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                            placeholder="Enter Menu Name"
-                          />
-                          {menuName ? (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
-                              <FaCheckCircle />
-                            </div>
-                          ) : (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                              <FaExclamationCircle />
-                            </div>
-                          )}
-                          {!menuName && (
-                            <p className="text-red-500 text-xs mt-1">
-                              Menu Name is required.
-                            </p>
-                          )}
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="menuCategory"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Menu Category
-                          </label>
-                          <select
-                            id="menuCategory"
-                            value={menuCategory}
-                            onChange={handleChange(setMenuCategory)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                          >
-                            <option value="" disabled>
-                              Select Menu Category
-                            </option>
-                            {categories.map((category) => (
-                              <option
-                                key={category.categoryId}
-                                value={category.categoryName}
-                              >
-                                {category.categoryName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="menuPrice"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Menu Price
-                          </label>
-                          <input
-                            type="number"
-                            id="menuPrice"
-                            value={menuPrice}
-                            onChange={handleChange(setMenuPrice)}
-                            className={`mt-1 block w-full px-3 py-2 border ${
-                              menuPrice ? "border-green-500" : "border-red-500"
-                            } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                            placeholder="Enter Menu Price"
-                          />
-                          {menuPrice ? (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
-                              <FaCheckCircle />
-                            </div>
-                          ) : (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                              <FaExclamationCircle />
-                            </div>
-                          )}
-                          {!menuPrice && (
-                            <p className="text-red-500 text-xs mt-1">
-                              Menu Price is required.
-                            </p>
-                          )}
-                        </div>
+                      <div className="relative">
+                        <label
+                          htmlFor="menuName"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Menu Name
+                        </label>
+                        <input
+                          type="text"
+                          id="menuName"
+                          value={menuName}
+                          onChange={handleChange(setMenuName)}
+                          className={`mt-1 block w-full px-3 py-2 border ${
+                            menuName ? "border-green-500" : "border-red-500"
+                          } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                          placeholder="Enter Menu Name"
+                        />
+                        {menuName ? (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                            <FaCheckCircle />
+                          </div>
+                        ) : (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                            <FaExclamationCircle />
+                          </div>
+                        )}
+                        {!menuName && (
+                          <p className="text-red-500 text-xs mt-1">
+                            Menu Name is required.
+                          </p>
+                        )}
                       </div>
 
-                      <div className="d-flex">
-                        <div>
-                          <label
-                            htmlFor="mainCategory"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Main Category
-                          </label>
-                          <select
-                            id="mainCategory"
-                            value={mainCategory}
-                            onChange={handleChange(setMainCategory)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                          >
-                            <option value="" disabled>
-                              Select Main Category
+                      <div>
+                        <label
+                          htmlFor="menuCategory"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Menu Category
+                        </label>
+                        <select
+                          id="menuCategory"
+                          value={menuCategory}
+                          onChange={handleChange(setMenuCategory)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                        >
+                          <option value="" disabled>
+                            Select Menu Category
+                          </option>
+                          {categories.map((category) => (
+                            <option
+                              key={category.categoryId}
+                              value={category.categoryName}
+                            >
+                              {category.categoryName}
                             </option>
-                            {mainCategories.map((category) => (
-                              <option
-                                key={category.categoryId}
-                                value={category.categoryName}
-                              >
-                                {category.categoryName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="file"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Upload Image
-                          </label>
-                          <input
-                            type="file"
-                            id="file"
-                            onChange={handleFileChange}
-                            className="mt-1 block w-full text-sm text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="availability"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Availability
-                          </label>
-                          <select
-                            id="availability"
-                            value={availability}
-                            onChange={handleChange(setAvailability)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                          >
-                            <option value="Available">Available</option>
-                            <option value="Not Available">Not Available</option>
-                          </select>
-                        </div>
+                          ))}
+                        </select>
                       </div>
-                      <div className="d-flex"></div>
-                      <div className="d-flex">
-                        <div>
-                          <label
-                            htmlFor="discount"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Discount
-                          </label>
-                          <input
-                            type="number"
-                            id="discount"
-                            value={discount}
-                            onChange={handleChange(setDiscount)}
-                            className={`mt-1 block w-full px-3 py-2 border ${
-                              discount ? "border-green-500" : "border-red-500"
-                            } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                            placeholder="Enter Discount in %"
-                          />
-                          {discount ? (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
-                              <FaCheckCircle />
-                            </div>
-                          ) : (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                              <FaExclamationCircle />
-                            </div>
-                          )}
-                          {/* {!menuPrice && (
+                      <div>
+                        <label
+                          htmlFor="menuPrice"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Menu Price
+                        </label>
+                        <input
+                          type="number"
+                          id="menuPrice"
+                          value={menuPrice}
+                          onChange={handleChange(setMenuPrice)}
+                          className={`mt-1 block w-full px-3 py-2 border ${
+                            menuPrice ? "border-green-500" : "border-red-500"
+                          } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                          placeholder="Enter Menu Price"
+                        />
+                        {menuPrice ? (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                            <FaCheckCircle />
+                          </div>
+                        ) : (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                            <FaExclamationCircle />
+                          </div>
+                        )}
+                        {!menuPrice && (
+                          <p className="text-red-500 text-xs mt-1">
+                            Menu Price is required.
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="mainCategory"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Main Category
+                        </label>
+                        <select
+                          id="mainCategory"
+                          value={mainCategory}
+                          onChange={handleChange(setMainCategory)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                        >
+                          <option value="" disabled>
+                            Select Main Category
+                          </option>
+                          {mainCategories.map((category) => (
+                            <option
+                              key={category.categoryId}
+                              value={category.categoryName}
+                            >
+                              {category.categoryName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="file"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Upload Image
+                        </label>
+                        <input
+                          type="file"
+                          id="file"
+                          onChange={handleFileChange}
+                          className="mt-1 block w-full text-sm text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="availability"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Availability
+                        </label>
+                        <select
+                          id="availability"
+                          value={availability}
+                          onChange={handleChange(setAvailability)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                        >
+                          <option value="Available">Available</option>
+                          <option value="Not Available">Not Available</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="discount"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Discount
+                        </label>
+                        <input
+                          type="number"
+                          id="discount"
+                          value={discount}
+                          onChange={handleChange(setDiscount)}
+                          className={`mt-1 block w-full px-3 py-2 border ${
+                            discount ? "border-green-500" : "border-red-500"
+                          } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                          placeholder="Enter Discount in %"
+                        />
+                        {discount ? (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                            <FaCheckCircle />
+                          </div>
+                        ) : (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
+                            <FaExclamationCircle />
+                          </div>
+                        )}
+                        {/* {!menuPrice && (
                 <p className="text-red-500 text-xs mt-1">Menu Price is required.</p>
               )} */}
-                        </div>
+                      </div>
 
-                        <div className="col-span-2">
-                          <label
-                            htmlFor="menuContent"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Menu Content
-                          </label>
-                          <textarea
-                            id="menuContent"
-                            value={menuContent}
-                            onChange={handleChange(setMenuContent)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                            rows="4"
-                            placeholder="Enter Menu Content"
-                          />
-                        </div>
+                      <div className="col-span-2">
+                        <label
+                          htmlFor="menuContent"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Menu Content
+                        </label>
+                        <textarea
+                          id="menuContent"
+                          value={menuContent}
+                          onChange={handleChange(setMenuContent)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                          rows="4"
+                          placeholder="Enter Menu Content"
+                        />
                       </div>
                     </div>
+
                     <div className="flex items-center justify-end">
                       <button
                         type="button"
@@ -501,8 +496,10 @@ function AddMenu() {
         )}
         <div style={{ width: "100%" }}>
           <div className="mt-4">
-            <div className="overflow-x-auto">
-              <div className="flex flex-wrap space-x-2 overflow-x-auto">
+            {/* Wrapper to enable horizontal scrolling */}
+            <div className="overflow-x-auto no-scrollbar">
+              {/* Flex container for horizontal layout */}
+              <div className="flex flex-nowrap space-x-2">
                 {/* Category Tabs */}
                 <div className="sticky top-24">
                   <CategoryTabs

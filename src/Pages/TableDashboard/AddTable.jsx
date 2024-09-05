@@ -176,7 +176,7 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
       <div className="d-flex justify-between">
         <div
           className="bg-white rounded shadow p-10"
-          style={{ width: "30%", marginRight: "10px" }}
+          style={{ width: "40%", marginRight: "10px" }}
         >
           <PageTitle pageTitle="Add Table" />
           <input
@@ -211,7 +211,7 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
                 onClick={handleSubmitTableChange}
                 className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
               >
-                Submit Change
+                Submit
               </button>
               <button
                 onClick={() => {
@@ -239,7 +239,7 @@ console.log('filteredAndSortedTables', filteredAndSortedTables)
 
         <div
           className="p-10 bg-white shadow rounded-lg"
-          style={{ width: "70%" }}
+          style={{ width: "60%" }}
         >
           <PageTitle pageTitle="View Tables" />
           <div className="d-flex gap-5">

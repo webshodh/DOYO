@@ -159,7 +159,7 @@ function AddMainCategory() {
   return (
     <>
     <div className="d-flex justify-between">
-      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'30%', marginRight:'10px'}}>
+      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'40%', marginRight:'10px'}}>
         <PageTitle pageTitle={"Add Special Category"} />
         <input
           type="text"
@@ -174,7 +174,7 @@ function AddMainCategory() {
               onClick={handleSubmitCategoryChange}
               className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
             >
-              Submit Change
+              Submit
             </button>
             <button
               onClick={() => {
@@ -200,7 +200,7 @@ function AddMainCategory() {
         )}
       </div>
 
-      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'70%'}}>
+      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'60%'}}>
         <PageTitle pageTitle={"View Categories"} />
         {/* Search Bar */}
         <div className="mb-6">

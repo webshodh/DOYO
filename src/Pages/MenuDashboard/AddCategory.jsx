@@ -37,8 +37,12 @@ function AddCategory() {
     const categoryId = uid();
     try {
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then(
+          (snapshot) => snapshot.val()
+        ),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
+          snapshot.val()
+        ),
       ]);
 
       if (adminHotelUuid === generalHotelUuid) {
@@ -51,9 +55,12 @@ function AddCategory() {
           position: toast.POSITION.TOP_RIGHT,
         });
       } else {
-        toast.error("You do not have permission to add categories for this hotel.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error(
+          "You do not have permission to add categories for this hotel.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
       }
     } catch (error) {
       console.error("Error adding category:", error);
@@ -66,8 +73,12 @@ function AddCategory() {
   const handleUpdateCategory = async (category) => {
     try {
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then(
+          (snapshot) => snapshot.val()
+        ),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
+          snapshot.val()
+        ),
       ]);
 
       if (adminHotelUuid === generalHotelUuid) {
@@ -75,9 +86,12 @@ function AddCategory() {
         setTempCategoryId(category.categoryId);
         setCategoryName(category.categoryName);
       } else {
-        toast.error("You do not have permission to update categories for this hotel.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error(
+          "You do not have permission to update categories for this hotel.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
       }
     } catch (error) {
       console.error("Error preparing category update:", error);
@@ -87,16 +101,23 @@ function AddCategory() {
   const handleSubmitCategoryChange = async () => {
     try {
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then(
+          (snapshot) => snapshot.val()
+        ),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
+          snapshot.val()
+        ),
       ]);
 
       if (adminHotelUuid === generalHotelUuid) {
         if (window.confirm("Confirm update")) {
-          await update(ref(db, `/hotels/${hotelName}/categories/${tempCategoryId}`), {
-            categoryName,
-            categoryId: tempCategoryId,
-          });
+          await update(
+            ref(db, `/hotels/${hotelName}/categories/${tempCategoryId}`),
+            {
+              categoryName,
+              categoryId: tempCategoryId,
+            }
+          );
           toast.success("Category Updated Successfully!", {
             position: toast.POSITION.TOP_RIGHT,
           });
@@ -104,9 +125,12 @@ function AddCategory() {
         setCategoryName("");
         setIsEdit(false);
       } else {
-        toast.error("You do not have permission to update categories for this hotel.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error(
+          "You do not have permission to update categories for this hotel.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
       }
     } catch (error) {
       console.error("Error updating category:", error);
@@ -119,21 +143,30 @@ function AddCategory() {
   const handleDeleteCategory = async (category) => {
     try {
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) => snapshot.val()),
+        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then(
+          (snapshot) => snapshot.val()
+        ),
+        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
+          snapshot.val()
+        ),
       ]);
 
       if (adminHotelUuid === generalHotelUuid) {
         if (window.confirm("Confirm delete")) {
-          await remove(ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`));
+          await remove(
+            ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`)
+          );
           toast.error("Category Deleted Successfully!", {
             position: toast.POSITION.TOP_RIGHT,
           });
         }
       } else {
-        toast.error("You do not have permission to delete categories for this hotel.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error(
+          "You do not have permission to delete categories for this hotel.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
       }
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -144,7 +177,9 @@ function AddCategory() {
   };
 
   const filteredCategories = categories
-    .filter((category) => category.categoryName.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((category) =>
+      category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     .map((category, index) => ({
       srNo: index + 1, // Serial number (1-based index)
       ...category,
@@ -154,58 +189,70 @@ function AddCategory() {
 
   return (
     <>
-    <div className="d-flex justify-between"> 
-      <div className="bg-white p-10 rounded-lg shadow-md" style={{width:'30%', marginRight:'10px'}}>
-        <PageTitle pageTitle={"Add Category"} />
-        <input
-          type="text"
-          value={categoryName}
-          onChange={handleCategoryNameChange}
-          placeholder="Enter Category Name"
-          className="w-full p-3 border mb-4 rounded-md"
-        />
-        {isEdit ? (
-          <>
-            <button onClick={handleSubmitCategoryChange} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
-              Submit Change
-            </button>
-            <button
-              onClick={() => {
-                setIsEdit(false);
-                setCategoryName("");
-              }}
-              className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button onClick={addCategoryToDatabase} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
-            Submit
-          </button>
-        )}
-        <ToastContainer />
-      </div>
-
-      <div className="bg-white p-10 rounded-lg shadow-md" style={{width:'70%'}}>
-        <PageTitle pageTitle={"View Categories"} />
-        <div className="mb-6">
+      <div className="d-flex justify-between">
+        <div
+          className="bg-white p-10 rounded-lg shadow-md"
+          style={{ width: "40%", marginRight: "10px" }}
+        >
+          <PageTitle pageTitle={"Add Category"} />
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            id="SearchByName"
-            className="w-full p-3 border rounded-md"
-            placeholder="Search by Category Name"
+            value={categoryName}
+            onChange={handleCategoryNameChange}
+            placeholder="Enter Category Name"
+            className="w-full p-3 border mb-4 rounded-md"
+          />
+          {isEdit ? (
+            <>
+              <button
+                onClick={handleSubmitCategoryChange}
+                className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+              >
+                Submit
+              </button>
+              <button
+                onClick={() => {
+                  setIsEdit(false);
+                  setCategoryName("");
+                }}
+                className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={addCategoryToDatabase}
+              className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+            >
+              Submit
+            </button>
+          )}
+          <ToastContainer />
+        </div>
+
+        <div
+          className="bg-white p-10 rounded-lg shadow-md"
+          style={{ width: "60%" }}
+        >
+          <PageTitle pageTitle={"View Categories"} />
+          <div className="mb-6">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              id="SearchByName"
+              className="w-full p-3 border rounded-md"
+              placeholder="Search by Category Name"
+            />
+          </div>
+          <DynamicTable
+            columns={columns}
+            data={filteredCategories}
+            onEdit={handleUpdateCategory}
+            onDelete={handleDeleteCategory}
           />
         </div>
-        <DynamicTable
-          columns={columns}
-          data={filteredCategories}
-          onEdit={handleUpdateCategory}
-          onDelete={handleDeleteCategory}
-        />
-      </div>
       </div>
     </>
   );

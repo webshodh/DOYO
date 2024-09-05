@@ -50,9 +50,9 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
         >
           Add to Cart
         </AddToCartButton> */}
-        <Button variant="danger" onClick={handleClose}>
+        <button className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md" onClick={handleClose}>
           Close
-        </Button>
+        </button>
       </Modal.Footer>
     </Modal>
   

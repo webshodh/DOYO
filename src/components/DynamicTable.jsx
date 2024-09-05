@@ -73,7 +73,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                     )}
                     {onAccept && (
                       <button
-                        className="btn btn-success text-white hover:text-green-800 transition-colors"
+                        className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
                         onClick={() => onAccept(item)}
                       >
                         Accept
@@ -81,7 +81,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                     )}
                     {onReject && (
                       <button
-                        className="btn btn-warning text-white hover:text-yellow-800 transition-colors"
+                        className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md"
                         onClick={() => onReject(item)}
                       >
                         Reject
@@ -89,7 +89,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                     )}
                     {onMarkAsCompleted && (
                       <button
-                        className="btn btn-secondary text-white hover:text-gray-800 transition-colors"
+                        className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
                         onClick={() => onMarkAsCompleted(item)}
                       >
                         Mark as Completed
