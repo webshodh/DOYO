@@ -314,7 +314,7 @@ function Home() {
         }}
       >
         {/* Search and Sort */}
-        <div className="sticky top-16">
+        <div className=" top-16">
           <FilterSortSearch
             searchTerm={searchTerm}
             handleSearch={handleSearch}
@@ -323,7 +323,7 @@ function Home() {
         </div>
 
         {/* Category Tabs */}
-        <div className="sticky top-24">
+        <div className=" top-24">
           <CategoryTabs
             categories={categories}
             menuCountsByCategory={menuCountsByCategory}
@@ -347,7 +347,7 @@ function Home() {
           ${
             activeMainCategory === categoryName
               ? "bg-orange-500 text-white border-b-2 border-orange-500"
-              : " bg-white border border-orange-500 text-orange-500 hover:bg-orange-500"
+              : " bg-white border border-orange-500 text-black hover:bg-orange-500"
           }
         `}
                 style={{
@@ -366,7 +366,7 @@ function Home() {
 
       {/* Menu Items */}
       <div
-        className="flex flex-wrap justify-center gap-1 px-4"
+        className="flex flex-wrap justify-center gap-1 px-4 ml-2"
         style={{
           height: "calc(100vh - 240px)",
           overflowY: "auto",

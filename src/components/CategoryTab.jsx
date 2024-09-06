@@ -49,7 +49,7 @@ const CategoryTabs = ({
           ${
             activeTab === tab.label.split(" (")[0]
               ? "bg-orange-500 text-white border-b-2 border-orange-500"
-              : "bg-white border border-orange-500 text-orange-500 hover:bg-orange-500"
+              : "bg-white border border-orange-500 text-black hover:bg-orange-500"
           }
         `}
         onClick={() => handleSelect(tab.label)}

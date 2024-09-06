@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  FaHome,
-  FaHistory,
-  FaShoppingCart,
-  FaHeart,
-  BiSolidDonateHeart,
-  RiMoneyRupeeCircleFill 
-} from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { FaHome, FaHistory, FaShoppingCart } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BiSolidDiscount } from "react-icons/bi";
 import { colors } from "theme/theme";
+
 const Footer = ({ cartItemsCount, handleCart }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [hotelName, setHotelName] = useState("");
 
   useEffect(() => {
@@ -20,7 +15,7 @@ const Footer = ({ cartItemsCount, handleCart }) => {
     const hotelNameFromPath = pathSegments[pathSegments.length - 2];
     setHotelName(hotelNameFromPath);
   }, []);
-  console.log('footerHotelName', hotelName)
+
   const handleHome = () => {
     navigate(`/viewMenu/${hotelName}/home`);
   };
@@ -36,41 +31,54 @@ const Footer = ({ cartItemsCount, handleCart }) => {
   const handleTip = () => {
     navigate(`/${hotelName}/captain-tip`);
   };
-  
+
+  // Determine the active tab based on the current location
+  const getTabColor = (path) => {
+    return location.pathname.includes(path) ? colors.Orange : colors.Black;
+  };
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 text-white flex justify-around items-center py-2 shadow-lg z-50 mt-5"
-      style={{ background: colors.Orange }}
+      className="fixed bottom-0 left-0 right-0 flex justify-around items-center py-2 shadow-lg z-50 mt-5"
+      style={{ background: colors.White }}
     >
       {/* Home */}
-      <div className="flex flex-col items-center" onClick={handleHome}>
-        <FaHome size={20} />
+      <div
+        className="flex flex-col items-center cursor-pointer"
+        onClick={handleHome}
+        style={{  }}
+      >
+        {/* <FaHome size={20} /> */}
+        
+        <i class="bi bi-house-fill" style={{fontSize:'20px', color: getTabColor("/home")}}></i>
         <span className="text-xs mt-1">Home</span>
       </div>
 
       {/* Orders */}
-      <div className="flex flex-col items-center" onClick={handleOrders}>
+      <div
+        className="flex flex-col items-center cursor-pointer"
+        onClick={handleOrders}
+        style={{ color: getTabColor("/track-orders")}}
+      >
         <FaHistory size={20} />
         <span className="text-xs mt-1">Orders</span>
       </div>
 
-      {/* Coupons */}
-      <div className="flex flex-col items-center" onClick={handleOffers}>
+      {/* Offers */}
+      <div
+        className="flex flex-col items-center cursor-pointer"
+        onClick={handleOffers}
+        style={{ color: getTabColor("/offers") }}
+      >
         <BiSolidDiscount size={20} />
         <span className="text-xs mt-1">Offers</span>
       </div>
-
-      {/* Tip */}
-      {/* <div className="flex flex-col items-center" onClick={handleTip}>
-        <FaHeart   size={20} />
-        <span className="text-xs mt-1">Tip</span>
-      </div> */}
 
       {/* Add to Cart with Count */}
       <div
         className="relative flex flex-col items-center cursor-pointer"
         onClick={handleCart}
+        style={{ color: getTabColor("/cart") }}
       >
         {/* Cart Icon */}
         <FaShoppingCart size={20} />

@@ -28,6 +28,7 @@ function AddMenu() {
   const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
   const [availability, setAvailability] = useState("Available");
+  const [category, setCategory] = useState("");
   const [mainCategory, setMainCategory] = useState("");
   const [file, setFile] = useState(null); // State for file upload
   const [editMode, setEditMode] = useState(false);
@@ -262,10 +263,13 @@ function AddMenu() {
     "Sr.No": index + 1,
     "Menu Category": item.menuCategory || "Other",
     "Menu Name": item.menuName,
-    "Cooking Time": `${item.menuCookingTime} min`,
     Price: item.menuPrice,
+    "Discount": item.discount || '-',
+    "Final Price": item.finalPrice,
     Availability: item.availability,
   }));
+
+  console.log('data', data)
   return (
     <>
       <div className="d-flex" style={{ width: "100%" }}>
@@ -427,6 +431,24 @@ function AddMenu() {
                         >
                           <option value="Available">Available</option>
                           <option value="Not Available">Not Available</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="Category"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Category
+                        </label>
+                        <select
+                          id="Category"
+                          value={category}
+                          onChange={handleChange(setCategory)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                        >
+                          <option value="Available">Veg</option>
+                          <option value="Not Available">Non Veg</option>
                         </select>
                       </div>
 

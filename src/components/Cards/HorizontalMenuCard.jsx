@@ -41,8 +41,8 @@ const HorizontalMenuCard = ({
   };
 
   const truncatedContent =
-    item.menuName.length > 20
-      ? item.menuName.slice(0, 20) + "..."
+    item.menuName.length > 16
+      ? item.menuName.slice(0, 16) + "..."
       : item.menuName;
 
   return (
@@ -71,7 +71,7 @@ const HorizontalMenuCard = ({
       <div className="flex-1 p-2 flex flex-col justify-between relative">
         <div>
           <div className="d-flex justify-between" >
-            <span className="text-lg font-semibold truncate">
+            <span className="text-lg  truncate">
               {truncatedContent}
             </span>
             {/* Menu Category */}
@@ -102,11 +102,11 @@ const HorizontalMenuCard = ({
             <i className="bi bi-currency-rupee ml-1 mr-1 text-orange-500 pt-2"></i>
             <span>
               {item.discount && item.discount > 0 && (
-                <span className="line-through mr-1 ">
+                <span className="line-through mr-1 text-orange-500">
                   {Math.round(item.menuPrice)}
                 </span>
               )}
-              <b><span className="text-black text-lg">
+              <b><span className="text-black text-lg text-orange-500">
               {item.finalPrice}</span></b>
             </span>
             

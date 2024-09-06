@@ -16,9 +16,9 @@ const CustomersDashboard = () => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-console.log('customerDataArray', customerDataArray)
+
   // Filter data based on searchTerm
-  const filteredData = customerDataArray.filter(customer =>
+  const filteredData = customerDataArray.filter((customer) =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -47,24 +47,22 @@ console.log('customerDataArray', customerDataArray)
 
   return (
     <>
-      <div style={{ marginTop: "70px" }}>
+      <div className="mt-16">
         <PageTitle pageTitle={`Customers (${filteredData.length})`} />
       </div>
-      <div className="mt-2">
+      <div className="mt-4">
         <FilterSortSearch
           searchTerm={searchTerm}
           handleSearch={handleSearch}
           handleSort={handleSort}
         />
-        <div className="row mt-3">
-          <div className="col-12">
-            <DynamicTable
-              columns={columns}
-              data={filteredData}
-              onEdit={null}
-              onDelete={null}
-            />
-          </div>
+        <div className="mt-6">
+          <DynamicTable
+            columns={columns}
+            data={filteredData}
+            onEdit={null}
+            onDelete={null}
+          />
         </div>
       </div>
     </>

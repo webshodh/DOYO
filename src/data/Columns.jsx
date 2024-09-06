@@ -40,8 +40,9 @@ export const ViewMenuColumns = [
   { header: "Sr.No", accessor: "Sr.No" },
   { header: "Menu Category", accessor: "Menu Category" },
   { header: "Menu Name", accessor: "Menu Name" },
-  { header: "Cooking Time", accessor: "Cooking Time" },
   { header: "Price", accessor: "Price" },
+  { header: "Discount (%)", accessor: "Discount" },
+  { header: "Final Price", accessor: "Final Price" },
   { header: "Availability", accessor: "Availability" },
 ];
 

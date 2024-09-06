@@ -58,7 +58,7 @@ const Navbar = ({ title, isBack = false }) => {
   return (
     <>
       <div
-        className="text-black p-2 flex justify-between items-center relative"
+        className="text-black p-2 flex justify-between items-center sticky"
         style={{ background: colors.White }}
       >
         {!isBack ? (
@@ -67,7 +67,7 @@ const Navbar = ({ title, isBack = false }) => {
           <i
             class="bi bi-arrow-left-square-fill"
             onClick={handleBack}
-            style={{ color: `${colors.Orange}`, fontSize: "30px" }}
+            style={{ color: colors.Orange, fontSize: "30px" }}
           ></i>
         )}
         <h3 className="text-lg font-semibold text-black">{title}</h3>
