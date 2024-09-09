@@ -8,6 +8,7 @@ import { ViewRoleColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import Modal from "components/Modal";
 
 // Tailwind Input and Button components
 const Input = ({ value, onChange, placeholder }) => (
@@ -26,6 +27,7 @@ function AddRole() {
   const [isEdit, setIsEdit] = useState(false);
   const [tempRoleId, setTempRoleId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [show, setShow] = useState(false);
 
   const { hotelName } = useHotelContext();
   const auth = getAuth();
@@ -36,15 +38,12 @@ function AddRole() {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   useEffect(() => {
-    onValue(
-      ref(db, `/hotels/${hotelName}/roles/`),
-      (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setRoles(Object.values(data));
-        }
+    onValue(ref(db, `/hotels/${hotelName}/roles/`), (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setRoles(Object.values(data));
       }
-    );
+    });
   }, [hotelName, adminID]);
 
   const addRoleToDatabase = () => {
@@ -63,30 +62,27 @@ function AddRole() {
     setIsEdit(true);
     setTempRoleId(role.roleId);
     setRoleName(role.roleName);
+    setShow(true);
   };
 
   const handleSubmitRoleChange = () => {
     if (window.confirm("Confirm update")) {
-      update(
-        ref(db, `/hotels/${hotelName}/roles/${tempRoleId}`),
-        {
-          roleName,
-          roleId: tempRoleId,
-        }
-      );
+      update(ref(db, `/hotels/${hotelName}/roles/${tempRoleId}`), {
+        roleName,
+        roleId: tempRoleId,
+      });
       toast.success("Role Updated Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
       setRoleName("");
       setIsEdit(false);
+      setShow(false);
     }
   };
 
   const handleDeleteRole = (role) => {
     if (window.confirm("Confirm delete")) {
-      remove(
-        ref(db, `/hotels/${hotelName}/roles/${role.roleId}`)
-      );
+      remove(ref(db, `/hotels/${hotelName}/roles/${role.roleId}`));
       toast.error("Role Deleted Successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -101,44 +97,79 @@ function AddRole() {
     srNo: index + 1,
     ...role,
   }));
+  const handleAdd = () => {
+    setShow(true);
+  };
 
+  const handleClose = () => {
+    setShow(false);
+  };
   return (
     <>
       <div className="d-flex justify-between">
-        <div
-          className="bg-white rounded shadow p-10"
-          style={{ marginRight: "10px", width: "40%" }}
-        >
-          <PageTitle pageTitle="Add Roles" />
-          <Input
-            value={roleName}
-            onChange={handleRoleNameChange}
-            placeholder="Enter Role Name"
-          />
-          {isEdit ? (
-            <>
-              <button  onClick={handleSubmitRoleChange} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
-                Submit
-              </button>
-              <button onClick={() => setIsEdit(false) && setRoleName("")} className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md">
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button onClick={addRoleToDatabase} className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md">
-              Submit
-            </button>
-          )}
-          <ToastContainer />
-        </div>
-
-        <div className="bg-white rounded shadow p-10" style={{ width: "60%" }}>
+        {/* Modal */}
+        {show && (
+          <Modal
+            title="Add Role"
+            handleClose={handleClose}
+            children={
+              <div
+                className="bg-white p-10"
+                style={{ marginRight: "10px", width: "40%" }}
+              >
+                <PageTitle pageTitle="Add Roles" />
+                <Input
+                  value={roleName}
+                  onChange={handleRoleNameChange}
+                  placeholder="Enter Role Name"
+                />
+                {isEdit ? (
+                  <>
+                    <button
+                      onClick={handleSubmitRoleChange}
+                      className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => setIsEdit(false) && setRoleName("")}
+                      className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={addRoleToDatabase}
+                    className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                  >
+                    Submit
+                  </button>
+                )}
+                <ToastContainer />
+              </div>
+            }
+          ></Modal>
+        )}
+        <div className="bg-white rounded shadow p-10" style={{ width: "100%" }}>
           <PageTitle pageTitle="View Roles" />
-          <Input
+          <div className="d-flex" style={{width:'100%'}}>
+            <div style={{width:'85%', marginRight:'10px'}}>
+          <Input 
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Search Roles"
           />
+          </div>
+          <div>
+            <button
+              onClick={handleAdd}
+              className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+            >
+              Add Role
+            </button>
+          </div>
+          </div>
           <DynamicTable
             columns={ViewRoleColumns}
             data={rolesArray}

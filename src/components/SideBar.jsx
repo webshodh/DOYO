@@ -258,7 +258,7 @@ function SideBar() {
           {!admin ? "Admin" : "Super Admin"}
         </button> */}
 
-        <FreeCard />
+        {/* <FreeCard /> */}
       </ul>
     </aside>
   );

@@ -238,7 +238,8 @@ const OrderDashboard = () => {
 
   const tabs = [
     {
-      label: <div>Pending Orders ({filteredOrderCounts.pending})</div>,
+      // label: <div>Pending Orders ({filteredOrderCounts.pending})</div>,
+      label: <div>Pending Orders </div>,
       content: (
         <PendingOrders
           orders={filteredPendingOrders}

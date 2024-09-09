@@ -19,7 +19,7 @@ const Dashboard = () => {
   return (
     <>
     <div className='mt-5'>
-     <Tab tabs={tabs} width="70vw" />
+     {/* <Tab tabs={tabs} width="70vw" /> */}
      </div>
     </>
   )

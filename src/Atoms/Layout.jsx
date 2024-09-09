@@ -16,22 +16,32 @@ const Layout = ({ children }) => {
     setHotelName(hotelNameFromPath);
   }, []);
 
+  // Exclude sidebar for specific routes
   const excludeSidebarRoutes = [
-    `/viewMenu/${hotelName}/admin/POS`, // Add the route you want to exclude the sidebar for
+    `/viewMenu/${hotelName}/admin/POS`, // Update this as necessary
   ];
 
   const shouldRenderSidebar = !excludeSidebarRoutes.includes(location.pathname);
 
+  // Function to toggle the sidebar
+  const toggleSidebar = () => {
+    document.body.classList.toggle("toggle-sidebar");
+  };
+
   return (
-    <div className="flex flex-col h-screen" style={{background:colors.LightGrey}}>
+    <div className="flex flex-col " style={{ background: colors.LightGrey }}>
       <Header />
-      <div className="flex flex-1 flex-row">
-        {/* {shouldRenderSidebar && (
-          <div className="hidden md:block w-64 lg:w-80" style={{background:colors.LightGrey}}>
+      {/* Sidebar toggle button */}
+      
+      <div className="flex flex-1 flex-row h-screen">
+        {/* Sidebar: Only render if allowed by route and if screen width is medium or larger */}
+        
+          <div className="hidden md:block w-64 lg:w-80" style={{ background: colors.LightGrey }}>
             <Sidebar />
           </div>
-        )} */}
-        <div className="flex-1 p-4 md:p-6 lg:p-8" style={{background:colors.LightGrey}}>
+        
+        {/* Main content */}
+        <div className="flex-1 p-4 md:p-6 lg:p-8" style={{ background: colors.LightGrey }}>
           {children}
           <Footer />
         </div>

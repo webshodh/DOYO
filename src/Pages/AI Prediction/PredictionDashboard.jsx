@@ -18,7 +18,9 @@ const PredictionDashboard = () => {
   ];
   return (
     <>
+    <div style={{marginTop:'70px'}}>
       <TabButtons tabs={tabs} width='70vw'/>
+      </div>
     </>
   );
 };

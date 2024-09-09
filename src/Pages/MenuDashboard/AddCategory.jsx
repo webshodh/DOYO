@@ -9,6 +9,7 @@ import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import Modal from "components/Modal";
 
 function AddCategory() {
   const [categoryName, setCategoryName] = useState("");
@@ -16,6 +17,7 @@ function AddCategory() {
   const [isEdit, setIsEdit] = useState(false);
   const [tempCategoryId, setTempCategoryId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [show, setShow] = useState(false);
   const { hotelName } = useHotelContext();
   const auth = getAuth();
   const adminID = auth.currentUser?.uid;
@@ -186,65 +188,89 @@ function AddCategory() {
     }));
 
   const columns = ViewCategoryColumns;
+  const handleAdd = () => {
+    setShow(true);
+  };
 
+  const handleClose = () => {
+    setShow(false);
+  };
   return (
     <>
       <div className="d-flex justify-between">
+        {/* Modal */}
+        {show && (
+          <Modal
+            title="Add Category"
+            handleClose={handleClose}
+            children={
+              <div
+                className="bg-white p-10"
+                style={{ width: "40%", marginRight: "10px" }}
+              >
+                <PageTitle pageTitle={"Add Category"} />
+                <input
+                  type="text"
+                  value={categoryName}
+                  onChange={handleCategoryNameChange}
+                  placeholder="Enter Category Name"
+                  className="w-full p-3 border mb-4 rounded-md"
+                />
+                {isEdit ? (
+                  <>
+                    <button
+                      onClick={handleSubmitCategoryChange}
+                      className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEdit(false);
+                        setCategoryName("");
+                      }}
+                      className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={addCategoryToDatabase}
+                    className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                  >
+                    Submit
+                  </button>
+                )}
+                <ToastContainer />
+              </div>
+            }
+          ></Modal>
+        )}
         <div
           className="bg-white p-10 rounded-lg shadow-md"
-          style={{ width: "40%", marginRight: "10px" }}
-        >
-          <PageTitle pageTitle={"Add Category"} />
-          <input
-            type="text"
-            value={categoryName}
-            onChange={handleCategoryNameChange}
-            placeholder="Enter Category Name"
-            className="w-full p-3 border mb-4 rounded-md"
-          />
-          {isEdit ? (
-            <>
-              <button
-                onClick={handleSubmitCategoryChange}
-                className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
-              >
-                Submit
-              </button>
-              <button
-                onClick={() => {
-                  setIsEdit(false);
-                  setCategoryName("");
-                }}
-                className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={addCategoryToDatabase}
-              className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
-            >
-              Submit
-            </button>
-          )}
-          <ToastContainer />
-        </div>
-
-        <div
-          className="bg-white p-10 rounded-lg shadow-md"
-          style={{ width: "60%" }}
+          style={{ width: "100%" }}
         >
           <PageTitle pageTitle={"View Categories"} />
-          <div className="mb-6">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              id="SearchByName"
-              className="w-full p-3 border rounded-md"
-              placeholder="Search by Category Name"
-            />
+          <div className="mb-6 d-flex" style={{ width: "100%" }}>
+            <div style={{ width: "80%" }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                id="SearchByName"
+                className="w-full p-3 border rounded-md"
+                placeholder="Search by Category Name"
+              />
+            </div>
+            <div style={{ width: "20%" }}>
+              <button
+                onClick={handleAdd}
+                className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+              >
+                Add Role
+              </button>
+            </div>
           </div>
           <DynamicTable
             columns={columns}

@@ -338,9 +338,9 @@ const POS = () => {
   };
 
   return (
-    <div className="flex flex-row justify-between" style={{ width: "100%" }}>
+    <div className="flex flex-row justify-between" style={{ width: "75%", marginTop:'70px', marginLeft:'15%'}}>
       {/* Left Column - 70% Width */}
-      <div className="" style={{ width: "70%", marginRight: "10px" }}>
+      <div className="" style={{ width: "80%", marginRight: "20px" }}>
         <div className="relative">
           {/* Search and Sort */}
           <FilterSortSearch

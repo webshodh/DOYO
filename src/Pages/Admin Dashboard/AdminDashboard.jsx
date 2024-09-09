@@ -166,144 +166,108 @@ function AdminDashboard() {
 
   console.log("filteredCustomerDataArray", filteredCustomerDataArray);
   return (
-    <div>
-      <div className="d-flex justify-end mt-1 mb-1">
-        <div className="d-flex justify-between">
-          <div className="d-flex">
+    <div className="container mx-auto px-4">
+      {/* Filter Buttons */}
+      <div className="flex justify-end mt-5 mb-4" style={{width:'100%'}}>
+        <div className="flex space-x-4 border-b border-gray-300">
+          {["Daily", "Weekly", "Monthly"].map((type) => (
             <button
-              onClick={() => setFilterType("Daily")}
-              className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
-                filterType === "Daily"
-                  ? "text-orange-500 underline"
-                  : "text-gray-700 hover:text-orange-500 hover:underline"
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`px-4 py-2 text-lg font-medium rounded-t-lg transition-all duration-300 ${
+                filterType === type
+                  ? "text-orange-500 border-b-2 border-orange-500 bg-white shadow"
+                  : "text-gray-700 hover:text-orange-500 hover:border-b-2 hover:border-orange-500"
               }`}
             >
-              Daily
+              {type}
             </button>
-            <button
-              onClick={() => setFilterType("Weekly")}
-              className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
-                filterType === "Weekly"
-                  ? "text-orange-500 underline"
-                  : "text-gray-700 hover:text-orange-500 hover:underline"
-              }`}
-            >
-              Weekly
-            </button>
-            <button
-              onClick={() => setFilterType("Monthly")}
-              className={`px-2 py-2 text-lg font-medium transition-colors duration-300 ${
-                filterType === "Monthly"
-                  ? "text-orange-500 underline"
-                  : "text-gray-700 hover:text-orange-500 hover:underline"
-              }`}
-            >
-              Monthly
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
-      <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-3">
-        {/* <Banner1 /> */}
-        <div className="mt-5 grid grid-cols-2 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-6">
-          <Widget
-            icon={<i className="bi bi-exclamation-circle-fill"></i>}
-            title={"Pending Orders"}
-            subtitle={filteredOrderCounts.pending}
-          />
-          <Widget
-            icon={<i className="bi bi-check-circle-fill"></i>}
-            title={"Accepted Orders"}
-            subtitle={filteredOrderCounts.accepted}
-          />
-          <Widget
-            icon={<i className="bi bi-check-circle-fill"></i>}
-            title={"Completed Orders"}
-            subtitle={filteredOrderCounts.completed}
-          />
-          <Widget
-            icon={<i className="bi bi-x-circle-fill"></i>}
-            title={"Cancelled Orders"}
-            subtitle={filteredOrderCounts.cancelled}
-          />
-          <Widget
-            icon={<i className="bi bi-person-plus-fill"></i>}
-            title={"Total Customers"}
-            // subtitle={customerCountData.totalCustomers}
-            subtitle={customerDataArray.length}
-          />
-          {/* <Widget
-            icon={<i className="bi bi-person-fill-check"></i>}
-            title={"New Customers"}
-            subtitle={customerCountData.newCustomers}
-          />
-          <Widget
-            icon={<i className="bi bi-person-heart"></i>}
-            title={"Loyal Customers"}
-            subtitle={customerCountData.loyalCustomers}
-          /> */}
-          <Widget
-            icon={<i className="bi bi-currency-rupee"></i>}
-            title={"Total Revenue"}
-            subtitle={totalRevenue}
-          />
-          <Widget
-            icon={<IoMdHome className="h-6 w-6" />}
-            title={"Avg Revenue/Day"}
-            subtitle={totalRevenue}
-          />
-          <Widget
-            icon={<MdBarChart className="h-7 w-7" />}
-            title={"Total Menus"}
-            subtitle={totalMenus}
-          />
-          <Widget
-            icon={<IoMdHome className="h-6 w-6" />}
-            title={"Total Categories"}
-            subtitle={totalCategories}
-          />
-        </div>
+      {/* Widgets Section */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3">
+        <Widget
+          icon={<i className="bi bi-exclamation-circle-fill"></i>}
+          title={"Pending Orders"}
+          subtitle={filteredOrderCounts.pending}
+        />
+        <Widget
+          icon={<i className="bi bi-check-circle-fill"></i>}
+          title={"Accepted Orders"}
+          subtitle={filteredOrderCounts.accepted}
+        />
+        <Widget
+          icon={<i className="bi bi-check-circle-fill"></i>}
+          title={"Completed Orders"}
+          subtitle={filteredOrderCounts.completed}
+        />
+        <Widget
+          icon={<i className="bi bi-x-circle-fill"></i>}
+          title={"Cancelled Orders"}
+          subtitle={filteredOrderCounts.cancelled}
+        />
+        <Widget
+          icon={<i className="bi bi-person-plus-fill"></i>}
+          title={"Total Customers"}
+          subtitle={customerDataArray.length}
+        />
+        <Widget
+          icon={<i className="bi bi-currency-rupee"></i>}
+          title={"Total Revenue"}
+          subtitle={totalRevenue}
+        />
+        <Widget
+          icon={<IoMdHome className="h-6 w-6" />}
+          title={"Avg Revenue/Day"}
+          subtitle={totalRevenue}
+        />
+        <Widget
+          icon={<MdBarChart className="h-7 w-7" />}
+          title={"Total Menus"}
+          subtitle={totalMenus}
+        />
+        <Widget
+          icon={<IoMdHome className="h-6 w-6" />}
+          title={"Total Categories"}
+          subtitle={totalCategories}
+        />
       </div>
-      <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-1">
-          <HistoryCard />
-        </div>
-      <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
-        <div className="mt-5 grid grid-cols-1 gap-5 rounded-[20px] md:grid-cols-3">
+
+      {/* History and Charts Section */}
+      <div className="mt-6 grid grid-cols-1 gap-6">
+        <HistoryCard />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <DailyTraffic />
           <DailyOrders />
           <PieChartCard donutChartData={OrdersByCategoryGraphData} />
         </div>
-        
-        <div className="mt-5">
-          <div
-            className="mt-5 d-flex justify-between"
-            style={{ width: "100%" }}
-          >
-            <div className="background-card" style={{ width: "50%" }}>
-              <div style={{ marginLeft: "25px", marginBottom: "-20px" }}>
-                <PageTitle pageTitle="Revenue By Category" />
-              </div>
+      </div>
 
-              <Table columns={columns2} data={categoryDataArray} />
-            </div>
-            <div className="background-card" style={{ width: "50%" }}>
-              <div style={{ marginLeft: "25px", marginBottom: "-20px" }}>
-                <PageTitle pageTitle="Orders and Revenue By Customer" />
-              </div>
-              <Table columns={column3} data={customerDataArray} />
-            </div>
+      {/* Revenue and Orders Section */}
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="mb-4">
+            <PageTitle pageTitle="Revenue By Category" />
           </div>
-          <div>
-            <div className="background-card">
-              <div style={{ marginLeft: "25px", marginBottom: "-20px" }}>
-                <PageTitle pageTitle="Orders and Revenue By Menu" />
-              </div>
-              <Table columns={Column1} data={menuDataArray} />
-            </div>
+          <Table columns={columns2} data={categoryDataArray} />
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="mb-4">
+            <PageTitle pageTitle="Orders and Revenue By Customer" />
           </div>
+          <Table columns={column3} data={customerDataArray} />
         </div>
       </div>
+
+      <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+        <div className="mb-4">
+          <PageTitle pageTitle="Orders and Revenue By Menu" />
+        </div>
+        <Table columns={Column1} data={menuDataArray} />
+      </div>
+
       <ToastContainer />
     </div>
   );

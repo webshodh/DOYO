@@ -12,7 +12,7 @@ const TableDashboard = () => {
   ];
   return (
     <>
-      <TabButtons tabs={tabs} width="70vw" />
+      <div style={{marginTop:'70px'}}><TabButtons tabs={tabs} width="70vw" /></div>
     </>
   );
 };

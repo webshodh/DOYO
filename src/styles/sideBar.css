@@ -18,6 +18,7 @@
   background-color: var(--White);
 }
 
+/* Sidebar hidden by default on small screens */
 @media (max-width: 1199px) {
   .sidebar {
     left: -300px;
@@ -27,43 +28,36 @@
 .sidebar::-webkit-scrollbar {
   width: 5px;
   height: 8px;
-  background-color: var(--White);;
+  background-color: var(--White);
 }
 
 .sidebar::-webkit-scrollbar-thumb {
   background-color: #aab7cf;
 }
 
-/* Sidebar hidden by default on small screens */
-.sidebar-hidden {
-  display: none;
+/* Toggle Sidebar Visibility */
+body.toggle-sidebar .sidebar {
+  left: 0;
 }
 
-/* When the body has .toggle-sidebar class, show the sidebar */
-body.toggle-sidebar .sidebar-hidden {
-  display: block;
-}
 @media (min-width: 1200px) {
-  #main,
-  #footer {
-    /* margin-left: 300px; */
-  }
-}
-
-@media (max-width: 1199px) {
-  .toggle-sidebar .sidebar {
+  .sidebar {
     left: 0;
   }
-}
 
-@media (min-width: 1200px) {
-  .toggle-sidebar #main,
-  .toggle-sidebar #footer {
-    margin-left: 0;
+  body.toggle-sidebar .sidebar {
+    left: -300px;
   }
 
-  .toggle-sidebar .sidebar {
-    left: -300px;
+  #main,
+  #footer {
+    margin-left: 270px; /* Ensure main content shifts when sidebar is visible */
+    transition: margin-left 0.3s;
+  }
+
+  body.toggle-sidebar #main,
+  body.toggle-sidebar #footer {
+    margin-left: 0; /* Ensure main content shifts when sidebar is hidden */
   }
 }
 
@@ -73,6 +67,7 @@ body.toggle-sidebar .sidebar-hidden {
   list-style: none;
 }
 
+/* Sidebar Nav Styles */
 .sidebar-nav li {
   padding: 0;
   margin: 0;
@@ -97,9 +92,9 @@ body.toggle-sidebar .sidebar-hidden {
   font-size: 15px;
   font-weight: 600;
   color: var(--Black);
-  transition: 0.3;
   padding: 10px 15px;
   border-radius: 4px;
+  transition: 0.3s;
 }
 
 .sidebar-nav .nav-link i {
@@ -110,7 +105,7 @@ body.toggle-sidebar .sidebar-hidden {
 
 .sidebar-nav .nav-link.collapsed {
   color: var(--Black);
-  background: var(--White);;
+  background: var(--White);
 }
 
 .sidebar-nav .nav-link.collapsed i {
@@ -119,7 +114,7 @@ body.toggle-sidebar .sidebar-hidden {
 
 .sidebar-nav .nav-link:hover {
   color: var(--White);
-  background: var(--Orange);;
+  background: var(--Orange);
 }
 
 .sidebar-nav .nav-link:hover i {
@@ -128,13 +123,12 @@ body.toggle-sidebar .sidebar-hidden {
 
 .sidebar-nav .nav-link.active {
   color: var(--White);
-  background: var(--Orange);;
+  background: var(--Orange);
 }
 
 .sidebar-nav .nav-link.active i {
   color: var(--White);
 }
-
 
 .sidebar-nav .nav-link .bi-chevron-down {
   margin-right: 0;
@@ -157,7 +151,6 @@ body.toggle-sidebar .sidebar-hidden {
   font-size: 14px;
   font-weight: 600;
   color: var(--Blue);
-  transition: 0.3;
   padding: 10px 0 10px 40px;
   transition: 0.3s;
 }
@@ -178,12 +171,12 @@ body.toggle-sidebar .sidebar-hidden {
   background-color: var(--Blue);
 }
 
-.company-name{
+.company-name {
   color: red;
 }
-.bottom{
-  /* color: #4154f1; */
-  background: var(--Orange);;
+
+.bottom {
+  background: var(--Orange);
   padding: 20px 1px;
   margin-top: 300px;
 }

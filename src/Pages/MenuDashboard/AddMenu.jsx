@@ -523,7 +523,7 @@ function AddMenu() {
               {/* Flex container for horizontal layout */}
               <div className="flex flex-nowrap space-x-2">
                 {/* Category Tabs */}
-                <div className="sticky top-24">
+                <div className="sticky">
                   <CategoryTabs
                     categories={categories}
                     menuCountsByCategory={menuCountsByCategory}
@@ -546,9 +546,6 @@ function AddMenu() {
                 />
               </div>
 
-              {/* <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                <FaSearch />
-              </button> */}
               <div>
                 <button
                   onClick={handleAdd}

@@ -8,6 +8,7 @@ import { ViewSectionColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import Modal from "components/Modal";
 
 function AddSection() {
   const [sectionName, setSectionName] = useState("");
@@ -15,6 +16,7 @@ function AddSection() {
   const [isEdit, setIsEdit] = useState(false);
   const [tempSectionId, setTempSectionId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [show, setShow] = useState(false);
   const { hotelName } = useHotelContext();
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
@@ -56,6 +58,7 @@ function AddSection() {
 
   const handleUpdateCategory = (category) => {
     setIsEdit(true);
+    setShow(true)
     setTempSectionId(category.sectionId);
     setSectionName(category.sectionName);
   };
@@ -78,6 +81,7 @@ function AddSection() {
     }
     setSectionName("");
     setIsEdit(false);
+    setShow(false);
   };
 
   const handleDeleteCategory = (category) => {
@@ -104,14 +108,27 @@ function AddSection() {
       section.sectionName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleAdd = () => {
+      setShow(true);
+    };
+  
+    const handleClose = () => {
+      setShow(false);
+    };
+
   const columns = ViewSectionColumns;
 
   return (
     <>
       <div className="d-flex justify-between">
-        
+          {/* Modal */}
+          {show && (
+          <Modal
+            title="Add Role"
+            handleClose={handleClose}
+            children={
           <div
-            className="bg-white rounded shadow p-10"
+            className="bg-white p-10"
             style={{ width: "40%", marginRight: "10px" }}
           >
             <PageTitle pageTitle="Add Sections" />
@@ -151,14 +168,16 @@ function AddSection() {
             <ToastContainer />
           </div>
         
-
+          }></Modal>
+        )}
         <div
           className="p-10 bg-white shadow rounded-lg"
-          style={{ width: "60%" }}
+          style={{ width: "100%" }}
         >
           <PageTitle pageTitle="View Sections" />
+          <div className="d-flex" style={{width:'100%'}}>
           {/* Search Bar */}
-          <div className="relative mb-6">
+          <div className="relative mb-6" style={{width:'85%', marginRight:'10px'}}>
             <input
               type="text"
               value={searchTerm}
@@ -167,6 +186,15 @@ function AddSection() {
               className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Search by Section Name"
             />
+          </div>
+          <div>
+            <button
+              onClick={handleAdd}
+              className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+            >
+              Add Section
+            </button>
+          </div>
           </div>
           <DynamicTable
             columns={columns}

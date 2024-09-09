@@ -8,6 +8,7 @@ import { ViewTableColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import Modal from "components/Modal";
 
 function AddTable() {
   const [tableName, setTableName] = useState("");
@@ -21,6 +22,7 @@ function AddTable() {
   const [selectedFilterSection, setSelectedFilterSection] = useState(""); // For filtering by section
   const [sortByCapacity, setSortByCapacity] = useState(""); // For sorting
   const { hotelName } = useHotelContext();
+  const [show, setShow] = useState(false);
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
 
@@ -58,7 +60,10 @@ function AddTable() {
 
     const tableId = uid(); // Ensure the tableId is generated correctly
     set(
-      ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/tables/${tableId}`),
+      ref(
+        db,
+        `/admins/${currentAdminId}/hotels/${hotelName}/tables/${tableId}`
+      ),
       {
         tableId,
         tableName,
@@ -66,22 +71,25 @@ function AddTable() {
         tableSection,
         //sectionId: tableSection,
       }
-    ).then(() => {
-      setTableName("");
-      setTableCapacity("");
-      setTableSection("");
-      toast.success("Table Added Successfully!", {
-        position: toast.POSITION.TOP_RIGHT,
+    )
+      .then(() => {
+        setTableName("");
+        setTableCapacity("");
+        setTableSection("");
+        toast.success("Table Added Successfully!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      })
+      .catch((error) => {
+        toast.error("Failed to add the table. Please try again.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
       });
-    }).catch((error) => {
-      toast.error("Failed to add the table. Please try again.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    });
   };
 
   const handleUpdateTable = (table) => {
     setIsEdit(true);
+    setShow(true);
     setTempTableId(table.tableId); // Ensure tempTableId is set for editing
     setTableName(table.tableName);
     setTableCapacity(table.tableCapacity);
@@ -112,6 +120,7 @@ function AddTable() {
             position: toast.POSITION.TOP_RIGHT,
           });
           setIsEdit(false);
+          setShow(false);
           setTableName("");
           setTableCapacity("");
           setTableSection("");
@@ -149,9 +158,7 @@ function AddTable() {
   // Filter by section and sort by table capacity
   const filteredAndSortedTables = tables
     .filter((table) =>
-      selectedFilterSection
-        ? table.sectionName === selectedFilterSection
-        : true
+      selectedFilterSection ? table.sectionName === selectedFilterSection : true
     )
     .filter((table) =>
       table.tableName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -169,115 +176,139 @@ function AddTable() {
       ...table,
     }));
 
+  const handleAdd = () => {
+    setShow(true);
+  };
+
+  const handleClose = () => {
+    setShow(false);
+  };
+
   const columns = ViewTableColumns; // Define table columns separately
-console.log('filteredAndSortedTables', filteredAndSortedTables)
+  console.log("filteredAndSortedTables", filteredAndSortedTables);
   return (
     <>
       <div className="d-flex justify-between">
-        <div
-          className="bg-white rounded shadow p-10"
-          style={{ width: "40%", marginRight: "10px" }}
-        >
-          <PageTitle pageTitle="Add Table" />
-          <input
-            type="text"
-            value={tableName}
-            onChange={(e) => setTableName(e.target.value)}
-            placeholder="Enter Table Name"
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            type="number"
-            value={tableCapacity}
-            onChange={(e) => setTableCapacity(e.target.value)}
-            placeholder="Enter Table Capacity"
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            value={tableSection}
-            onChange={(e) => setTableSection(e.target.value)}
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select Section</option>
-            {sections.map((section) => (
-              <option key={section.sectionId} value={section.sectionName}>
-                {section.sectionName}
-              </option>
-            ))}
-          </select>
-          {isEdit ? (
-            <>
-              <button
-                onClick={handleSubmitTableChange}
-                className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+        {/* Modal */}
+        {show && (
+          <Modal
+            title="Add Role"
+            handleClose={handleClose}
+            children={
+              <div
+                className="bg-white p-10"
+                style={{ width: "40%", marginRight: "10px" }}
               >
-                Submit
-              </button>
-              <button
-                onClick={() => {
-                  setIsEdit(false);
-                  setTableName("");
-                  setTableCapacity("");
-                  setTableSection("");
-                  setTempTableId(""); // Reset tempTableId when canceling
-                }}
-                className="px-4 py-2 text-white bg-red-600 rounded-md"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={handleAddTable}
-              className="px-4 py-2 text-white bg-green-600 rounded-md"
-            >
-              Submit
-            </button>
-          )}
-          <ToastContainer />
-        </div>
-
+                <PageTitle pageTitle="Add Table" />
+                <input
+                  type="text"
+                  value={tableName}
+                  onChange={(e) => setTableName(e.target.value)}
+                  placeholder="Enter Table Name"
+                  className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="number"
+                  value={tableCapacity}
+                  onChange={(e) => setTableCapacity(e.target.value)}
+                  placeholder="Enter Table Capacity"
+                  className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={tableSection}
+                  onChange={(e) => setTableSection(e.target.value)}
+                  className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Section</option>
+                  {sections.map((section) => (
+                    <option key={section.sectionId} value={section.sectionName}>
+                      {section.sectionName}
+                    </option>
+                  ))}
+                </select>
+                {isEdit ? (
+                  <>
+                    <button
+                      onClick={handleSubmitTableChange}
+                      className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEdit(false);
+                        setTableName("");
+                        setTableCapacity("");
+                        setTableSection("");
+                        setTempTableId(""); // Reset tempTableId when canceling
+                      }}
+                      className="px-4 py-2 text-white bg-red-600 rounded-md"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleAddTable}
+                    className="px-4 py-2 text-white bg-green-600 rounded-md"
+                  >
+                    Submit
+                  </button>
+                )}
+                <ToastContainer />
+              </div>
+            }
+          ></Modal>
+        )}
         <div
           className="p-10 bg-white shadow rounded-lg"
-          style={{ width: "60%" }}
+          style={{ width: "100%" }}
         >
-          <PageTitle pageTitle="View Tables" />
+          <div className="d-flex justify-between mt-2">
+            <PageTitle pageTitle="View Tables" />
+            <div>
+              <button
+                onClick={handleAdd}
+                className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+              >
+                Add Section
+              </button>
+            </div>
+          </div>
           <div className="d-flex gap-5">
             {/* Search Bar */}
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Table Name"
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {/* Filter by Section */}
-          <select
-            value={selectedFilterSection}
-            onChange={(e) => setSelectedFilterSection(e.target.value)}
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Filter by Section</option>
-            {sections.map((section) => (
-              <option key={section.sectionId} value={section.sectionName}>
-                {section.sectionName}
-              </option>
-            ))}
-          </select>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by Table Name"
+              className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {/* Filter by Section */}
+            <select
+              value={selectedFilterSection}
+              onChange={(e) => setSelectedFilterSection(e.target.value)}
+              className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Filter by Section</option>
+              {sections.map((section) => (
+                <option key={section.sectionId} value={section.sectionName}>
+                  {section.sectionName}
+                </option>
+              ))}
+            </select>
 
-          {/* Sort by Capacity */}
-          <select
-            value={sortByCapacity}
-            onChange={(e) => setSortByCapacity(e.target.value)}
-            className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Sort by Capacity</option>
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-
-          
-</div>
+            {/* Sort by Capacity */}
+            <select
+              value={sortByCapacity}
+              onChange={(e) => setSortByCapacity(e.target.value)}
+              className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Sort by Capacity</option>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
           {/* Display Table */}
           <DynamicTable
             columns={columns}

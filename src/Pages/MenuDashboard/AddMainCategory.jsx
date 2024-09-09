@@ -8,6 +8,7 @@ import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
+import Modal from "components/Modal";
 
 function AddMainCategory() {
   const [categoryName, setCategoryName] = useState("");
@@ -15,6 +16,7 @@ function AddMainCategory() {
   const [isEdit, setIsEdit] = useState(false);
   const [tempCategoryId, setTempCategoryId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [show, setShow] = useState(false);
   const { hotelName } = useHotelContext();
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
@@ -155,10 +157,22 @@ function AddMainCategory() {
     );
 
   const columns = ViewCategoryColumns; // Ensure this matches the expected format
+  const handleAdd = () => {
+    setShow(true);
+  };
 
+  const handleClose = () => {
+    setShow(false);
+  };
   return (
     <>
     <div className="d-flex justify-between">
+      {/* Modal */}
+      {show && (
+          <Modal
+            title="Add Category"
+            handleClose={handleClose}
+            children={
       <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'40%', marginRight:'10px'}}>
         <PageTitle pageTitle={"Add Special Category"} />
         <input
@@ -199,11 +213,14 @@ function AddMainCategory() {
           </>
         )}
       </div>
-
-      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'60%'}}>
+ }
+ ></Modal>
+)}
+      <div className="p-10 bg-white rounded-lg shadow-md" style={{width:'100%'}}>
         <PageTitle pageTitle={"View Categories"} />
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="mb-6" style={{ width: "100%" }}>
+        <div style={{ width: "70%" }}>
           <input
             type="text"
             value={searchTerm}
@@ -212,6 +229,15 @@ function AddMainCategory() {
             className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Search by Category Name"
           />
+          </div>
+           <div style={{ width: "20%" }}>
+              <button
+                onClick={handleAdd}
+                className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+              >
+                Add Role
+              </button>
+            </div>
         </div>
         <DynamicTable
           columns={columns}

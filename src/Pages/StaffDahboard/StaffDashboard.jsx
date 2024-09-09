@@ -14,7 +14,8 @@ const StaffDashboard = () => {
   ];
   return (
     <>
-      <TabButtons tabs={tabs} />
+    <div style={{marginTop:'70px'}}><TabButtons tabs={tabs} /></div>
+      
     </>
   );
 };

@@ -105,7 +105,7 @@ function App() {
 
               {/* Admin Routes */}
               <Route path="/viewMenu/:hotelName/admin/POS" element={ <POS />} />
-              <Route path="/:hotelName/admin/admin-dashboard" element={<Dashboard />} />
+              <Route path="/:hotelName/admin/admin-dashboard" element={<AdminDashboard />} />
               <Route path="/:hotelName/admin/menu/menu-dashboard" element={<MenuDashboard />} />
               <Route path="/:hotelName/admin/table/table-dashboard" element={<TableDashboard />} />
               <Route path="/:hotelName/admin/customers/customer-dashboard" element={<CustomerDashboard />} />
