@@ -1,11 +1,12 @@
 import React from "react";
+import { colors } from "theme/theme";
 
 const InfoCard = ({ title, children }) => {
   return (
     <div
       className="rounded-3 bg-danger py-4 px-3 text-center"
       style={{
-        background: "linear-gradient(to top right, #f472b6, #ef4444, #f59e0b)", // Equivalent to Tailwind's gradient
+        background: colors.Orange,
         color: "white",
       }}
     >

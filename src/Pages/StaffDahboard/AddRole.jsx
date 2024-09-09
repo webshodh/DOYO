@@ -9,6 +9,7 @@ import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 import Modal from "components/Modal";
+import SearchWithButton from "components/SearchWithAddButton";
 
 // Tailwind Input and Button components
 const Input = ({ value, onChange, placeholder }) => (
@@ -156,26 +157,14 @@ function AddRole() {
             }
           ></Modal>
         )}
-        <div className="bg-white rounded shadow p-10" style={{ width: "100%" }}>
-          
-          <div className="d-flex" style={{width:'100%'}}>
-            <div style={{width:'85%', marginRight:'10px'}}>
-            <input
-          type="text"
-          placeholder="What are you looking for?"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-          </div>
-          <div>
-            <button
-              onClick={handleAdd}
-              className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md mt-2"
-            >
-              Add Role
-            </button>
-          </div>
+        <div  style={{ width: "100%" }}>
+          <div className="bg-white rounded shadow p-10">
+          <SearchWithButton
+            searchTerm={searchTerm}
+            onSearchChange={(e) => setSearchTerm(e.target.value)}
+            buttonText="Add Role"
+            onButtonClick={handleAdd}
+          />
           </div>
           <PageTitle pageTitle="View Roles" />
           <DynamicTable

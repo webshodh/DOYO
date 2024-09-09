@@ -3,6 +3,7 @@ import Card from "./CommonCard";
 import { useOrdersData, useProcessedMenuData } from "data";
 import { useHotelContext } from "Context/HotelContext";
 import { Tab } from "components";
+import FilterButtons from "Atoms/FilterButtons";
 
 // Filter functions
 const filterDataByDateRange = (data, startDate, endDate) => {
@@ -121,41 +122,11 @@ const HistoryCard = () => {
       {/* Filter Buttons */}
       <div className="d-flex  justify-between p-2">
         {/* HistoryCard Header */}
-        <div className="text-lg font-bold text-navy-700 dark:text-white p-3">
+        <div className="text-lg font-bold text-navy-700 dark:text-white p-3" style={{width:'50%'}}>
           Top Selling Foods
         </div>
-        <div className="flex justify-end p-2">
-          <button
-            onClick={() => setFilterType("Daily")}
-            className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
-              filterType === "Daily"
-                ? "text-orange-500 underline"
-                : "text-gray-700 hover:text-orange-500 hover:underline"
-            }`}
-          >
-            Daily
-          </button>
-          <button
-            onClick={() => setFilterType("Weekly")}
-            className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
-              filterType === "Weekly"
-                ? "text-orange-500 underline"
-                : "text-gray-700 hover:text-orange-500 hover:underline"
-            }`}
-          >
-            Weekly
-          </button>
-          <button
-            onClick={() => setFilterType("Monthly")}
-            className={`px-4 py-2 text-lg font-medium transition-colors duration-300 ${
-              filterType === "Monthly"
-                ? "text-orange-500 underline"
-                : "text-gray-700 hover:text-orange-500 hover:underline"
-            }`}
-          >
-            Monthly
-          </button>
-        </div>
+        {/* Filter Buttons */}
+      <FilterButtons filterType={filterType} setFilterType={setFilterType} />
       </div>
       {/* History Card Data */}
       <Tab tabs={tabs2} />

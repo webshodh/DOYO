@@ -10,6 +10,7 @@ import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 import Modal from "components/Modal";
+import SearchWithButton from "components/SearchWithAddButton";
 
 function AddCategory() {
   const [categoryName, setCategoryName] = useState("");
@@ -294,29 +295,14 @@ function AddCategory() {
             }
           ></Modal>
         )}
-        <div
-          className="bg-white p-10 rounded-lg shadow-md"
-          style={{ width: "100%" }}
-        >
-          <div className="d-flex items-center space-x-4 mb-4">
-            <div style={{ width: "80%" }}>
-              <input
-                type="text"
-                placeholder="What are you looking for?"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-
-            <div>
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
-              >
-                Add Category
-              </button>
-            </div>
+        <div style={{ width: "100%" }}>
+          <div className="bg-white p-10 rounded-lg shadow-md">
+            <SearchWithButton
+              searchTerm={searchTerm}
+              onSearchChange={(e) => setSearchTerm(e.target.value)}
+              buttonText="Add Category"
+              onButtonClick={handleAdd}
+            />
           </div>
           <PageTitle pageTitle={"View Categories"} />
           <DynamicTable

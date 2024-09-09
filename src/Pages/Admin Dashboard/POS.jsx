@@ -338,7 +338,10 @@ const POS = () => {
   };
 
   return (
-    <div className="flex flex-row justify-between" style={{ width: "75%", marginTop:'70px', marginLeft:'15%'}}>
+    <div
+      className="flex flex-row justify-between"
+      style={{ width: "75%", marginTop: "70px", marginLeft: "15%" }}
+    >
       {/* Left Column - 70% Width */}
       <div className="" style={{ width: "80%", marginRight: "20px" }}>
         <div className="relative">
@@ -392,7 +395,7 @@ const POS = () => {
 
         {/* Menu Items */}
         <div
-          className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 overflow-auto"
+          className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 overflow-auto"
           style={{ maxHeight: "calc(100vh - 240px)", overflowY: "auto" }}
         >
           {filteredAndSortedItems.map((item) => (

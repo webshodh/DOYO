@@ -223,7 +223,7 @@ function AdminDashboard() {
       {/* History and Charts Section */}
       <div className="mt-6 grid grid-cols-1 gap-6">
         <HistoryCard />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3">
           <DailyTraffic />
           <DailyOrders />
           <PieChartCard donutChartData={OrdersByCategoryGraphData} />
@@ -231,7 +231,7 @@ function AdminDashboard() {
       </div>
 
       {/* Revenue and Orders Section */}
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="mb-4">
             <PageTitle pageTitle="Revenue By Category" />

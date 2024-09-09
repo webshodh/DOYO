@@ -9,6 +9,7 @@ import { DynamicTable } from "../../components";
 import { useHotelContext } from "../../Context/HotelContext";
 import { getAuth } from "firebase/auth";
 import Modal from "components/Modal";
+import SearchWithButton from "components/SearchWithAddButton";
 
 function AddTable() {
   const [tableName, setTableName] = useState("");
@@ -260,30 +261,22 @@ function AddTable() {
             }
           ></Modal>
         )}
-        <div
-          className="p-10 bg-white shadow rounded-lg"
-          style={{ width: "100%" }}
-        >
-          <div className="d-flex justify-between mt-2">
-            <PageTitle pageTitle="View Tables" />
-            <div>
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
-              >
-                Add Table
-              </button>
-            </div>
-          </div>
-          <div className="d-flex gap-5">
-            {/* Search Bar */}
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by Table Name"
-              className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div style={{ width: "100%" }}>
+          <div className="bg-white p-10 rounded-lg shadow-md">
+            <SearchWithButton
+              searchTerm={searchTerm}
+              onSearchChange={(e) => setSearchTerm(e.target.value)}
+              buttonText="Add Table"
+              onButtonClick={handleAdd}
             />
+          </div>
+          <div
+            className="d-flex gap-5"
+            style={{ width: "100%", marginTop: "50px" }}
+          >
+            <div style={{ width: "30%" }}>
+              <PageTitle pageTitle="View Tables" />
+            </div>
             {/* Filter by Section */}
             <select
               value={selectedFilterSection}
@@ -309,6 +302,7 @@ function AddTable() {
               <option value="desc">Descending</option>
             </select>
           </div>
+
           {/* Display Table */}
           <DynamicTable
             columns={columns}

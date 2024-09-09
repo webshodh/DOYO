@@ -18,6 +18,7 @@ import { DynamicTable, FilterSortSearch } from "components";
 import Modal from "components/Modal";
 import { PageTitle } from "Atoms";
 import CategoryTabs from "components/CategoryTab";
+import SearchWithButton from "components/SearchWithAddButton";
 
 function AddStaff() {
   const [firstName, setFirstName] = useState("");
@@ -410,7 +411,7 @@ function AddStaff() {
             }
           />
         )}
-        <div className="bg-white rounded shadow p-10" style={{ width: "100%" }}>
+        <div style={{ width: "100%" }}>
           <div className="mt-4">
             {/* Wrapper to enable horizontal scrolling */}
             <div className="overflow-x-auto no-scrollbar">
@@ -428,23 +429,14 @@ function AddStaff() {
             </div>
           </div>
 
-          <div className="mt-2">
-            <div className="d-flex" style={{ width: "100%" }}>
-              <div style={{ width: "80%" , marginRight:'10px'}}>
-                <FilterSortSearch
-                  searchTerm={searchTerm}
-                  handleSearch={handleSearch}
-                />
-              </div>
-              <div style={{ width: "20%" }}>
-                <button
-                  onClick={handleAdd}
-                  className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md mt-2"
-                >
-                  Add Staff
-                </button>
-              </div>
-            </div>
+          <div className="mt-2 bg-white rounded shadow p-10">
+          <SearchWithButton
+            searchTerm={searchTerm}
+            onSearchChange={(e) => setSearchTerm(e.target.value)}
+            buttonText="Add Staff"
+            onButtonClick={handleAdd}
+          />
+          </div>
             {/* <BackgroundCard>
           <PageTitle pageTitle={"View Staff"} /> */}
             <PageTitle pageTitle="View Roles" />
@@ -457,7 +449,7 @@ function AddStaff() {
             {/* </BackgroundCard> */}
           </div>
         </div>
-      </div>
+      
     </>
   );
 }
