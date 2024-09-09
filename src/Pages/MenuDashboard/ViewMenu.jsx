@@ -210,15 +210,18 @@ function ViewMenu() {
   console.log("data", data);
   return (
     <>
-      <div>
+      <div style={{marginLeft:'300px'}}>
         <PageTitle />
-        <div className="">
+        <div className="container">
           <div className="mt-4">
             <div className="overflow-x-auto">
-              <div className="flex flex-wrap space-x-2 overflow-x-auto">
+              {/* Set nowrap on this flex container to prevent wrapping */}
+              <div className="flex flex-nowrap space-x-2">
+                {/* All Categories Option */}
                 <div
                   className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
                   onClick={() => handleCategoryFilter("")}
+                  style={{ flex: "0 0 auto" }} // Prevent this child from shrinking
                 >
                   <div className="flex items-center">
                     All{" "}
@@ -230,6 +233,8 @@ function ViewMenu() {
                     </span>
                   </div>
                 </div>
+
+                {/* Category Options */}
                 {categories
                   .filter((item) => menuCountsByCategory[item.categoryName] > 0) // Only include categories with non-zero counts
                   .map((item) => (
@@ -237,6 +242,7 @@ function ViewMenu() {
                       className="p-2 mb-2 bg-gray-200 border border-gray-300 rounded cursor-pointer hover:bg-gray-300"
                       key={item.id}
                       onClick={() => handleCategoryFilter(item.categoryName)}
+                      style={{ flex: "0 0 auto" }} // Prevent this child from shrinking
                     >
                       <div className="flex items-center">
                         {item.categoryName}{" "}

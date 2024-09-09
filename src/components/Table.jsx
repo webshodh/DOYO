@@ -84,25 +84,38 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
 
   return (
     <div className="mx-auto p-4">
-      {title && (
-        <CardTitle title={title} />
-      )}
+      {title && <CardTitle title={title} />}
       {/* Search Input and Filters */}
       <div className="flex  mb-4 gap-4">
         <div className="w-full md:w-1/2">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="form-input w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
+          <div style={{ width: "80%" }}>
+            <input
+              type="text"
+              placeholder="What are you looking for?"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
         </div>
         <div className="w-full md:w-1/2 flex flex-wrap gap-4">
           {columns.map((column, index) =>
-            !["srNo", "menuName", "menuPrice", "menuCategoryCount", "totalMenuPrice", "price", "menuCount", "name", "totalOrders"].includes(column.accessor) ? (
+            ![
+              "srNo",
+              "menuName",
+              "menuPrice",
+              "menuCategoryCount",
+              "totalMenuPrice",
+              "price",
+              "menuCount",
+              "name",
+              "totalOrders",
+            ].includes(column.accessor) ? (
               <div key={index} className="flex items-center gap-2">
-                <label htmlFor={`filter-${column.accessor}`} className="text-sm font-medium">
+                <label
+                  htmlFor={`filter-${column.accessor}`}
+                  className="text-sm font-medium"
+                >
                   {column.header}:
                 </label>
                 <select
@@ -131,7 +144,10 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
             <thead className="bg-orange-500 text-white">
               <tr>
                 {columns.map((column, index) => (
-                  <th key={index} className="px-6 py-3 text-left text-sm font-medium">
+                  <th
+                    key={index}
+                    className="px-6 py-3 text-left text-sm font-medium"
+                  >
                     {column.header}
                   </th>
                 ))}
@@ -139,9 +155,15 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
             </thead>
             <tbody>
               {currentData.map((row, rowIndex) => (
-                <tr key={rowIndex} className="even:bg-gray-50 hover:bg-gray-100">
+                <tr
+                  key={rowIndex}
+                  className="even:bg-gray-50 hover:bg-gray-100"
+                >
                   {columns.map((column, colIndex) => (
-                    <td key={colIndex} className="px-6 py-4 text-sm text-gray-700">
+                    <td
+                      key={colIndex}
+                      className="px-6 py-4 text-sm text-gray-700"
+                    >
                       {column.accessor === "actions" ? (
                         <div className="flex space-x-2">
                           <button
@@ -182,8 +204,8 @@ const Table = ({ title, columns, data, onEdit, onDelete }) => {
             onPageChange={setCurrentPage}
           />
         </div>
-         {/* Rows Per Page Selector */}
-         <div>
+        {/* Rows Per Page Selector */}
+        <div>
           <label htmlFor="rowsPerPage" className="text-sm text-gray-700">
             Rows per page:
           </label>

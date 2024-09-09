@@ -36,6 +36,26 @@ function AddCategory() {
   const handleCategoryNameChange = (e) => setCategoryName(e.target.value);
 
   const addCategoryToDatabase = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name cannot be empty.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
+
+    const normalizedCategoryName = categoryName.trim().toLowerCase();
+    const isDuplicate = categories.some(
+      (category) =>
+        category.categoryName.toLowerCase() === normalizedCategoryName
+    );
+
+    if (isDuplicate) {
+      toast.error("Category already exists.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
+
     const categoryId = uid();
     try {
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
@@ -49,13 +69,16 @@ function AddCategory() {
 
       if (adminHotelUuid === generalHotelUuid) {
         await set(ref(db, `/hotels/${hotelName}/categories/${categoryId}`), {
-          categoryName,
+          categoryName: categoryName.trim(),
           categoryId,
         });
         setCategoryName("");
         toast.success("Category Added Successfully!", {
           position: toast.POSITION.TOP_RIGHT,
         });
+        setTimeout(() => {
+          setShow(false);
+        }, 2000);
       } else {
         toast.error(
           "You do not have permission to add categories for this hotel.",
@@ -101,6 +124,27 @@ function AddCategory() {
   };
 
   const handleSubmitCategoryChange = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name cannot be empty.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
+
+    const normalizedCategoryName = categoryName.trim().toLowerCase();
+    const isDuplicate = categories.some(
+      (category) =>
+        category.categoryName.toLowerCase() === normalizedCategoryName &&
+        category.categoryId !== tempCategoryId
+    );
+
+    if (isDuplicate) {
+      toast.error("Category already exists.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
+
     try {
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
         get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then(
@@ -116,7 +160,7 @@ function AddCategory() {
           await update(
             ref(db, `/hotels/${hotelName}/categories/${tempCategoryId}`),
             {
-              categoryName,
+              categoryName: categoryName.trim(),
               categoryId: tempCategoryId,
             }
           );
@@ -126,6 +170,9 @@ function AddCategory() {
         }
         setCategoryName("");
         setIsEdit(false);
+        setTimeout(() => {
+          setShow(false);
+        }, 2000);
       } else {
         toast.error(
           "You do not have permission to update categories for this hotel.",
@@ -251,27 +298,27 @@ function AddCategory() {
           className="bg-white p-10 rounded-lg shadow-md"
           style={{ width: "100%" }}
         >
-          <PageTitle pageTitle={"View Categories"} />
-          <div className="mb-6 d-flex" style={{ width: "100%" }}>
+          <div className="d-flex items-center space-x-4 mb-4">
             <div style={{ width: "80%" }}>
               <input
                 type="text"
+                placeholder="What are you looking for?"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                id="SearchByName"
-                className="w-full p-3 border rounded-md"
-                placeholder="Search by Category Name"
+                className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
-            <div style={{ width: "20%" }}>
+
+            <div>
               <button
                 onClick={handleAdd}
                 className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
               >
-                Add Role
+                Add Category
               </button>
             </div>
           </div>
+          <PageTitle pageTitle={"View Categories"} />
           <DynamicTable
             columns={columns}
             data={filteredCategories}

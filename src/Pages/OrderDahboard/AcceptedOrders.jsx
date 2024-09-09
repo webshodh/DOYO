@@ -9,7 +9,7 @@ const flattenOrderData = (orders) => {
   return orders.map((order, index) => ({
     ...order,
     index: index + 1,
-    tableNo: order.checkoutData.tableNo,
+    tableNumber: order.checkoutData.tableNumber,
     name: order.checkoutData.name,
   }));
 };
@@ -23,7 +23,7 @@ const AcceptedOrders = ({ orders, onMarkAsCompleted, count }) => {
 
   // Flatten and prepare the data
   const data = flattenOrderData(orders);
-
+console.log("AcceptedOrders", data)
   return (
     <>
       {count === 0 ? (

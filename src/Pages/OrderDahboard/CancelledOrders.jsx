@@ -8,7 +8,7 @@ const CancelledOrders = ({ orders, count }) => {
     return orders.map((order, index) => ({
       ...order,
       index: index + 1,
-      tableNo: order.checkoutData.tableNo,
+      tableNumber: order.checkoutData.tableNumber,
       name: order.checkoutData.name,
       waiterName: order.waiterName, // Assuming waiterName is available in order
       rejectionReason: order.rejectionReason, // Assuming rejectionReason is available in order

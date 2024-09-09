@@ -16,6 +16,7 @@ import { DynamicTable } from "components";
 import { ViewMenuColumns } from "data/Columns";
 import Modal from "components/Modal";
 import CategoryTabs from "components/CategoryTab";
+import { PageTitle } from "Atoms";
 
 function AddMenu() {
   const [menuName, setMenuName] = useState("");
@@ -264,12 +265,12 @@ function AddMenu() {
     "Menu Category": item.menuCategory || "Other",
     "Menu Name": item.menuName,
     Price: item.menuPrice,
-    "Discount": item.discount || '-',
+    Discount: item.discount || "-",
     "Final Price": item.finalPrice,
     Availability: item.availability,
   }));
 
-  console.log('data', data)
+  console.log("data", data);
   return (
     <>
       <div className="d-flex" style={{ width: "100%" }}>
@@ -534,15 +535,15 @@ function AddMenu() {
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 bg-white rounded-lg shadow-md p-10">
             <div className="d-flex items-center space-x-4 mb-4">
               <div style={{ width: "80%" }}>
                 <input
                   type="text"
+                  placeholder="What are you looking for?"
                   value={searchTerm}
-                  onChange={handleSearch}
-                  placeholder="Search..."
-                  className="w-full py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
@@ -555,8 +556,9 @@ function AddMenu() {
                 </button>
               </div>
             </div>
-
-            <div className="bg-white rounded-lg shadow-md p-2">
+            
+            <div className="">
+            <PageTitle pageTitle={"View Menu"} />
               {/* DynamicTable and BackgroundCard are assumed to be custom components */}
               <DynamicTable
                 columns={columns}

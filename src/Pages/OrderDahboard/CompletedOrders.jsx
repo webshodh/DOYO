@@ -8,7 +8,7 @@ const CompletedOrders = ({ orders, count }) => {
     return orders.map((order, index) => ({
       ...order,
       index: index + 1,
-      tableNo: order.checkoutData.tableNo,
+      tableNumber: order.checkoutData.tableNumber,
       name: order.checkoutData.name,
       bill: order.quantity * order.menuPrice
     }));
@@ -17,7 +17,7 @@ const CompletedOrders = ({ orders, count }) => {
   const columns = completedOrderColumn
 
   const data = flattenOrderData(orders);
-  console.log("data", data);
+  console.log("completedOrderColumn", data);
   return (
     <>
       {count === 0 ? (

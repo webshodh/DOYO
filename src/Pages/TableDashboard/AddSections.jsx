@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, onValue, remove, update } from "firebase/database";
+import { set, ref, onValue, remove, update, get } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import { PageTitle } from "../../Atoms";
 import { ViewSectionColumns } from "../../data/Columns";
@@ -37,51 +37,116 @@ function AddSection() {
     );
   }, [hotelName]);
 
-  const addCategoryToDatabase = () => {
+  const addCategoryToDatabase = async () => {
     const sectionId = uid();
-    set(
-      ref(
-        db,
-        `/admins/${currentAdminId}/hotels/${hotelName}/sections/${sectionId}`
-      ),
-      {
-        sectionName,
-        sectionId,
-      }
-    );
+    const normalizedSectionName = sectionName.trim().toLowerCase(); // Normalize the section name
 
-    setSectionName("");
-    toast.success("Section Added Successfully!", {
-      position: toast.POSITION.TOP_RIGHT,
-    });
+    try {
+      // Check for duplicate section names
+      const existingSectionsSnapshot = await get(
+        ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/sections`)
+      );
+      const existingSections = existingSectionsSnapshot.val();
+
+      const isDuplicate = Object.values(existingSections || {}).some(
+        (section) =>
+          section.sectionName.trim().toLowerCase() === normalizedSectionName
+      );
+
+      if (isDuplicate) {
+        toast.error("Section with this name already exists.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return;
+      }
+
+      // Add new section to the database
+      await set(
+        ref(
+          db,
+          `/admins/${currentAdminId}/hotels/${hotelName}/sections/${sectionId}`
+        ),
+        {
+          sectionName,
+          sectionId,
+        }
+      );
+
+      setSectionName("");
+      toast.success("Section Added Successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      // Delay hiding the modal by 2 seconds
+      setTimeout(() => {
+        setShow(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Error adding section:", error);
+      toast.error("Error adding section. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
   };
 
   const handleUpdateCategory = (category) => {
     setIsEdit(true);
-    setShow(true)
+    setShow(true);
     setTempSectionId(category.sectionId);
     setSectionName(category.sectionName);
   };
 
-  const handleSubmitCategoryChange = () => {
-    if (window.confirm("Confirm update?")) {
-      update(
-        ref(
-          db,
-          `/admins/${currentAdminId}/hotels/${hotelName}/sections/${tempSectionId}`
-        ),
-        {
-          sectionName,
-          sectionId: tempSectionId,
-        }
+  const handleSubmitCategoryChange = async () => {
+    const normalizedSectionName = sectionName.trim().toLowerCase(); // Normalize the section name
+
+    try {
+      // Check for duplicate section names (excluding the current one being edited)
+      const existingSectionsSnapshot = await get(
+        ref(db, `/admins/${currentAdminId}/hotels/${hotelName}/sections`)
       );
-      toast.success("Section Updated Successfully!", {
+      const existingSections = existingSectionsSnapshot.val();
+
+      const isDuplicate = Object.values(existingSections || {}).some(
+        (section) =>
+          section.sectionId !== tempSectionId &&
+          section.sectionName.trim().toLowerCase() === normalizedSectionName
+      );
+
+      if (isDuplicate) {
+        toast.error("Section with this name already exists.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return;
+      }
+
+      if (window.confirm("Confirm update?")) {
+        // Update section in the database
+        await update(
+          ref(
+            db,
+            `/admins/${currentAdminId}/hotels/${hotelName}/sections/${tempSectionId}`
+          ),
+          {
+            sectionName,
+            sectionId: tempSectionId,
+          }
+        );
+
+        toast.success("Section Updated Successfully!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+
+      setSectionName("");
+      setIsEdit(false);
+      setTimeout(() => {
+        setShow(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Error updating section:", error);
+      toast.error("Error updating section. Please try again.", {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
-    setSectionName("");
-    setIsEdit(false);
-    setShow(false);
   };
 
   const handleDeleteCategory = (category) => {
@@ -108,94 +173,96 @@ function AddSection() {
       section.sectionName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleAdd = () => {
-      setShow(true);
-    };
-  
-    const handleClose = () => {
-      setShow(false);
-    };
+  const handleAdd = () => {
+    setShow(true);
+  };
+
+  const handleClose = () => {
+    setShow(false);
+  };
 
   const columns = ViewSectionColumns;
 
   return (
     <>
       <div className="d-flex justify-between">
-          {/* Modal */}
-          {show && (
+        {/* Modal */}
+        {show && (
           <Modal
             title="Add Role"
             handleClose={handleClose}
             children={
-          <div
-            className="bg-white p-10"
-            style={{ width: "40%", marginRight: "10px" }}
-          >
-            <PageTitle pageTitle="Add Sections" />
-            <input
-              type="text"
-              value={sectionName}
-              onChange={handleSectionNameChange}
-              placeholder="Enter Section Name"
-              className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {isEdit ? (
-              <>
-                <button
-                  onClick={handleSubmitCategoryChange}
-                  className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
-                >
-                  Submit
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEdit(false);
-                    setSectionName("");
-                  }}
-                  className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={addCategoryToDatabase}
-                className="px-4 py-2 text-white bg-green-600 rounded-md"
+              <div
+                className="bg-white p-10"
+                style={{ width: "40%", marginRight: "10px" }}
               >
-                Submit
-              </button>
-            )}
-            <ToastContainer />
-          </div>
-        
-          }></Modal>
+                <PageTitle pageTitle="Add Sections" />
+                <input
+                  type="text"
+                  value={sectionName}
+                  onChange={handleSectionNameChange}
+                  placeholder="Enter Section Name"
+                  className="w-full p-3 mb-4 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {isEdit ? (
+                  <>
+                    <button
+                      onClick={handleSubmitCategoryChange}
+                      className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEdit(false);
+                        setSectionName("");
+                      }}
+                      className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={addCategoryToDatabase}
+                    className="px-4 py-2 text-white bg-green-600 rounded-md"
+                  >
+                    Submit
+                  </button>
+                )}
+                <ToastContainer />
+              </div>
+            }
+          ></Modal>
         )}
         <div
           className="p-10 bg-white shadow rounded-lg"
           style={{ width: "100%" }}
         >
-          <PageTitle pageTitle="View Sections" />
-          <div className="d-flex" style={{width:'100%'}}>
-          {/* Search Bar */}
-          <div className="relative mb-6" style={{width:'85%', marginRight:'10px'}}>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              id="SearchByName"
-              className="w-full p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Search by Section Name"
-            />
-          </div>
-          <div>
-            <button
-              onClick={handleAdd}
-              className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+          <div className="d-flex" style={{ width: "100%" }}>
+            {/* Search Bar */}
+            <div
+              className="relative mb-6"
+              style={{ width: "85%", marginRight: "10px" }}
             >
-              Add Section
-            </button>
+              <input
+                type="text"
+                placeholder="What are you looking for?"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+            </div>
+            <div>
+              <button
+                onClick={handleAdd}
+                className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md mt-2"
+              >
+                Add Section
+              </button>
+            </div>
           </div>
-          </div>
+          <PageTitle pageTitle="View Sections" />
           <DynamicTable
             columns={columns}
             data={sectionsArray}

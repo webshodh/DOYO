@@ -271,7 +271,7 @@ function AddTable() {
                 onClick={handleAdd}
                 className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
               >
-                Add Section
+                Add Table
               </button>
             </div>
           </div>

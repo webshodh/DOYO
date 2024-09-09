@@ -16,6 +16,8 @@ import { useHotelContext } from "Context/HotelContext";
 import { ViewStaffColumns } from "../../data/Columns";
 import { DynamicTable, FilterSortSearch } from "components";
 import Modal from "components/Modal";
+import { PageTitle } from "Atoms";
+import CategoryTabs from "components/CategoryTab";
 
 function AddStaff() {
   const [firstName, setFirstName] = useState("");
@@ -220,12 +222,12 @@ function AddStaff() {
   }));
   const handleAdd = () => {
     setShow(true);
-      // Clear form fields
-      setFirstName("");
-      setLastName("");
-      setUpiId("");
-      setRole("");
-      setFile(null);
+    // Clear form fields
+    setFirstName("");
+    setLastName("");
+    setUpiId("");
+    setRole("");
+    setFile(null);
   };
   const handleClose = () => {
     setShow(false);
@@ -240,10 +242,7 @@ function AddStaff() {
             title="Add Menu"
             handleClose={handleClose}
             children={
-              <div
-                className="bg-white p-6"
-                style={{ width: "100%" }}
-              >
+              <div className="bg-white p-6" style={{ width: "100%" }}>
                 <form className=" gap-6">
                   <div className="relative">
                     <label
@@ -411,50 +410,19 @@ function AddStaff() {
             }
           />
         )}
-        <div className="background-card" style={{ width: "100%" }}>
-          <div className="mt-2">
-            <div className="row">
-              <div className="col-12">
-                <div className="d-flex flex-wrap justify-content-start">
-                  <div
-                    className="d-flex flex-nowrap overflow-auto"
-                    style={{ whiteSpace: "nowrap" }}
-                  >
-                    <div
-                      className="p-2 mb-2 bg-light border cursor-pointer d-inline-block roleTab"
-                      onClick={() => handleRoleFilter("")}
-                      style={{ marginRight: "5px" }}
-                    >
-                      <div>
-                        All{" "}
-                        <span
-                          className="badge bg-danger badge-number"
-                          style={{ borderRadius: "50%", padding: "5px" }}
-                        >
-                          {Object.values(roleCounts).reduce((a, b) => a + b, 0)}
-                        </span>
-                      </div>
-                    </div>
-                    {roles
-                      .filter((role) => roleCounts[role.roleName] > 0) // Only include roles with non-zero counts
-                      .map((role) => (
-                        <div
-                          className="role p-2 mb-2 bg-light border cursor-pointer d-inline-block roleTab"
-                          key={role.id}
-                          onClick={() => handleRoleFilter(role.roleName)}
-                        >
-                          <div className="role-name">
-                            {role.roleName}{" "}
-                            <span
-                              className="badge bg-danger badge-number"
-                              style={{ borderRadius: "50%" }}
-                            >
-                              {roleCounts[role.roleName]}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
+        <div className="bg-white rounded shadow p-10" style={{ width: "100%" }}>
+          <div className="mt-4">
+            {/* Wrapper to enable horizontal scrolling */}
+            <div className="overflow-x-auto no-scrollbar">
+              {/* Flex container for horizontal layout */}
+              <div className="flex flex-nowrap space-x-2">
+                {/* Category Tabs */}
+                <div className="sticky">
+                  <CategoryTabs
+                    categories={roles}
+                    menuCountsByCategory={roleCounts}
+                    handleCategoryFilter={handleRoleFilter}
+                  />
                 </div>
               </div>
             </div>
@@ -462,7 +430,7 @@ function AddStaff() {
 
           <div className="mt-2">
             <div className="d-flex" style={{ width: "100%" }}>
-              <div style={{ width: "80%" }}>
+              <div style={{ width: "80%" , marginRight:'10px'}}>
                 <FilterSortSearch
                   searchTerm={searchTerm}
                   handleSearch={handleSearch}
@@ -471,7 +439,7 @@ function AddStaff() {
               <div style={{ width: "20%" }}>
                 <button
                   onClick={handleAdd}
-                  className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md"
+                  className="px-4 py-2 mr-2 text-white bg-orange-500 rounded-md mt-2"
                 >
                   Add Staff
                 </button>
@@ -479,6 +447,7 @@ function AddStaff() {
             </div>
             {/* <BackgroundCard>
           <PageTitle pageTitle={"View Staff"} /> */}
+            <PageTitle pageTitle="View Roles" />
             <DynamicTable
               columns={columns}
               data={data}
