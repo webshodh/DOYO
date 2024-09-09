@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/SideBar";
-import Footer from "srcV2/components/footer/FooterAuthDefault";
+import Footer from "../components/Footer";
 import { useLocation } from "react-router-dom";
 import { colors } from "theme/theme";
 

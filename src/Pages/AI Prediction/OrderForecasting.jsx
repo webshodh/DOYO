@@ -10,7 +10,7 @@ import {
   Title,
 } from "chart.js";
 import { InfoCard } from "../../components";
-import TotalSpent from "srcV2/views/admin/default/components/TotalSpent";
+import TotalSpent from "../../components/Charts/TotalSpent";
 import { useHotelContext } from "Context/HotelContext";
 import { useCompletedOrders } from "data";
 

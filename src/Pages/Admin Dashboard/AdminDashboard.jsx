@@ -20,14 +20,14 @@ import {
 import { getAuth } from "firebase/auth";
 import { useHotelContext } from "../../Context/HotelContext";
 import { IoMdHome } from "react-icons/io";
-import Widget from "srcV2/components/widget/Widget";
+import Widget from "../../components/Cards/Widget";
 import { MdBarChart } from "react-icons/md";
-import HistoryCard from "srcV2/views/admin/marketplace/components/HistoryCard";
-import Banner1 from "srcV2/views/admin/marketplace/components/Banner";
-import DailyTraffic from "srcV2/views/admin/default/components/DailyTraffic";
-import PieChartCard from "srcV2/views/admin/default/components/PieChartCard";
-import TotalSpent from "srcV2/views/admin/default/components/TotalSpent";
-import DailyOrders from "srcV2/views/admin/default/components/DailyOrders";
+import HistoryCard from "../../components/Cards/HistoryCard";
+import BannerCard from "../../components/Cards/BannerCard";
+import DailyTraffic from "../../components/Charts/DailyTraffic";
+import PieChartCard from "../../components/Charts/PieChartCard";
+import TotalSpent from "../../components/Charts/LineChart";
+import DailyOrders from "../../components/Charts/DailyOrders";
 import FilterButtons from "Atoms/FilterButtons";
 
 // Filter functions

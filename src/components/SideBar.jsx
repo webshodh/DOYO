@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useHotelContext } from "../Context/HotelContext";
-import FreeCard from "srcV2/components/sidebar/components/SidebarCard";
+import FreeCard from "../components/Cards/FreeCard";
 import useAdminData from "data/useAdminData";
 import { useAuthContext } from "Context/AuthContext";
 
@@ -258,7 +258,7 @@ function SideBar() {
           {!admin ? "Admin" : "Super Admin"}
         </button> */}
 
-        {/* <FreeCard /> */}
+        <FreeCard />
       </ul>
     </aside>
   );
