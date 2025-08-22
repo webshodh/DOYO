@@ -1,15 +1,5 @@
 import React from "react";
-import { Modal, Button } from "react-bootstrap";
-import styled from "styled-components";
-
-const AddToCartButton = styled(Button)`
-  background-color: #28a745;
-  border: none;
-
-  &:hover {
-    background-color: #218838;
-  }
-`;
+import { Modal } from "react-bootstrap";
 
 const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
   if (!modalData) return null;
@@ -43,14 +33,6 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
         {modalData.menuContent ? modalData.menuContent : modalData.menuName}
       </Modal.Body>
       <Modal.Footer>
-        {/* <AddToCartButton
-          onClick={() => {
-            addToCart(modalData.uuid);
-            handleClose();
-          }}
-        >
-          Add to Cart
-        </AddToCartButton> */}
         <button
           className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md"
           onClick={handleClose}

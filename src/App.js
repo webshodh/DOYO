@@ -13,38 +13,25 @@ import {
   Home,
   AddHotel,
   SuperAdminDashboard,
-  CartDetails,
-  OrderDashboard,
   AdminDashboard,
-  StaffDashboard,
   LoginPage,
   SignupPage,
   ForgotPasswordPage,
   ResetPasswordPage,
   AdminList,
   MenuDashboard,
-  TableDashboard,
-  OrderBill,
-  TrackOrders,
   ThankYouScreen,
-  CaptainTip,
-  CustomerDashboard,
   WelcomeScreen,
-  CaptainFeedBack,
   POS,
-  SpecialMenuPage,
 } from "./Pages";
 
 // Importing other components
 import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
-import PredictionDashboard from "./Pages/AI Prediction/PredictionDashboard";
-import GoogleLogin from "./Pages/Login/GoogleLogin";
-import Dashboard from "Pages/Dashboard";
-import UserLogin from "Pages/Login/UserLogin";
-import AddStaff from "Pages/StaffDahboard/AddStaff";
-import Offers from "Pages/User/Offers";
 
+import UserLogin from "Pages/Login/UserLogin";
+
+import Offers from "Pages/User/Offers";
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -69,52 +56,58 @@ function App() {
   return (
     <Router>
       <ErrorBoundary>
-       
-          <Routes>
-            {/* Login Routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/viewMenu/:hotelName/login/user-login" element={<UserLogin />} />
-            <Route path="/" element={<Navigate to="/login" />} />
+        <Routes>
+          {/* Login Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route
+            path="/viewMenu/:hotelName/login/user-login"
+            element={<UserLogin />}
+          />
+          <Route path="/" element={<Navigate to="/login" />} />
 
-            {/* User Routes */}
-           
-            <Route path="/viewMenu/:hotelName/login" element={<UserLogin />} />
-            <Route path="/viewMenu/:hotelName/welcome" element={<UserLogin />} />
-            <Route path="/viewMenu/:hotelName/home" element={ <Home />} />
-            <Route path="/:hotelName/feedback" element={''} />
-            <Route path="/:hotelName/cart-details" element={<CartDetails />} />
-            <Route path="/:hotelName/orders/payment/menu-bill" element={<OrderBill />} />
-            <Route path="/:hotelName/thank-you" element={<ThankYouScreen />} />
-            <Route path="/:hotelName/track-orders" element={<TrackOrders />} />
-            <Route path="/:hotelName/captain-tip" element={<CaptainTip />} />
-            <Route path="/:hotelName/captain-feedback" element={<CaptainFeedBack />} />
-            <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
-          </Routes>
-        
+          {/* User Routes */}
+
+          <Route path="/viewMenu/:hotelName/login" element={<UserLogin />} />
+          <Route path="/viewMenu/:hotelName/welcome" element={<UserLogin />} />
+          <Route path="/viewMenu/:hotelName/home" element={<Home />} />
+          <Route path="/:hotelName/feedback" element={""} />
+          <Route path="/:hotelName/thank-you" element={<ThankYouScreen />} />
+          <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
+        </Routes>
+
         {isAdmin && (
           <>
-          <Layout>
-            <Routes>
-              {/* Super Admin Routes */}
-              <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
-              <Route path="/super-admin/dashboard/admin-list" element={<AdminList />} />
-              <Route path="/hotels/admin/add-hotel" element={<AddHotel />} />
+            <Layout>
+              <Routes>
+                {/* Super Admin Routes */}
+                <Route
+                  path="/super-admin/dashboard"
+                  element={<SuperAdminDashboard />}
+                />
+                <Route
+                  path="/super-admin/dashboard/admin-list"
+                  element={<AdminList />}
+                />
+                <Route path="/hotels/admin/add-hotel" element={<AddHotel />} />
 
-              {/* Admin Routes */}
-              <Route path="/viewMenu/:hotelName/admin/POS" element={ <POS />} />
-              <Route path="/:hotelName/admin/admin-dashboard" element={<AdminDashboard />} />
-              <Route path="/:hotelName/admin/menu/menu-dashboard" element={<MenuDashboard />} />
-              <Route path="/:hotelName/admin/table/table-dashboard" element={<TableDashboard />} />
-              <Route path="/:hotelName/admin/customers/customer-dashboard" element={<CustomerDashboard />} />
-              <Route path="/:hotelName/admin/staff/staff-dashboard" element={<StaffDashboard />} />
-              <Route path="/:hotelName/admin/staff/staff-dashboard/add-staff" element={<AddStaff />} />
-              <Route path="/:hotelName/admin/order/order-dashboard" element={<OrderDashboard />} />
-              <Route path="/:hotelName/admin/forecasting/forecasting-dashboard" element={<PredictionDashboard />} />
-            </Routes>
-          </Layout>
+                {/* Admin Routes */}
+                <Route
+                  path="/viewMenu/:hotelName/admin/POS"
+                  element={<POS />}
+                />
+                <Route
+                  path="/:hotelName/admin/admin-dashboard"
+                  element={<AdminDashboard />}
+                />
+                <Route
+                  path="/:hotelName/admin/menu/menu-dashboard"
+                  element={<MenuDashboard />}
+                />
+              </Routes>
+            </Layout>
           </>
         )}
       </ErrorBoundary>
