@@ -4,7 +4,7 @@ import { uid } from "uid";
 import { set, ref, onValue, update, get, remove } from "firebase/database";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useHotelContext } from "../../Context/HotelContext";
+import { useParams } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import {
   ref as storageRef,
@@ -30,9 +30,8 @@ function AddMenu() {
   const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
   const [availability, setAvailability] = useState("Available");
-  const [category, setCategory] = useState("");
   const [mainCategory, setMainCategory] = useState("");
-  const [file, setFile] = useState(null); // State for file upload
+  const [file, setFile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedMenuId, setEditedMenuId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -44,10 +43,10 @@ function AddMenu() {
   const [show, setShow] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
 
-  const { hotelName } = useHotelContext();
+  const { hotelName } = useParams();
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
-
+  console.log("hotelName", hotelName);
   // Fetch Menu data from the database
   useEffect(() => {
     const menuRef = ref(db, `/hotels/${hotelName}/menu`);
@@ -58,6 +57,7 @@ function AddMenu() {
         setMenus(Object.values(data));
       }
     });
+    console.log("menu", hotelName);
   }, [hotelName]);
 
   // Fetch Category data from the database
@@ -89,6 +89,18 @@ function AddMenu() {
     setMenuCountsByCategory(countsByCategory);
   }, [menus]);
 
+  // Calculate final price when price or discount changes
+  useEffect(() => {
+    if (menuPrice && discount) {
+      const calculatedFinalPrice = Math.round(
+        (menuPrice * (100 - discount)) / 100
+      );
+      setFinalPrice(calculatedFinalPrice.toString());
+    } else if (menuPrice) {
+      setFinalPrice(menuPrice);
+    }
+  }, [menuPrice, discount]);
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -100,15 +112,16 @@ function AddMenu() {
       setMenuName(selectedMenu.menuName);
       setMenuCookingTime(selectedMenu.menuCookingTime);
       setMenuPrice(selectedMenu.menuPrice);
-      setDiscount(selectedMenu.discount);
+      setDiscount(selectedMenu.discount || "");
       setFinalPrice(selectedMenu.finalPrice);
       setMenuCategory(selectedMenu.menuCategory);
       setMenuContent(selectedMenu.menuContent);
       setAvailability(selectedMenu.availability);
       setMainCategory(selectedMenu.mainCategory);
-      setFile(null); // Reset file upload
+      setFile(null);
       setEditMode(true);
       setEditedMenuId(menuId);
+      setShow(true); // Open modal for editing
     }
   };
 
@@ -150,18 +163,90 @@ function AddMenu() {
 
     return filteredItems;
   };
+
   const handleAdd = () => {
+    // Reset form for new entry
+    setMenuName("");
+    setMenuCookingTime("");
+    setMenuPrice("");
+    setDiscount("");
+    setFinalPrice("");
+    setMenuCategory("");
+    setMenuContent("");
+    setAvailability("Available");
+    setMainCategory("");
+    setFile(null);
+    setEditMode(false);
+    setEditedMenuId(null);
     setShow(true);
   };
 
   const handleClose = () => {
     setShow(false);
+    // Reset form
+    setMenuName("");
+    setMenuCookingTime("");
+    setMenuPrice("");
+    setDiscount("");
+    setFinalPrice("");
+    setMenuCategory("");
+    setMenuContent("");
+    setAvailability("Available");
+    setMainCategory("");
+    setFile(null);
+    setEditMode(false);
+    setEditedMenuId(null);
   };
 
   const filteredAndSortedItems = filterAndSortItems();
 
+  // Validation function
+  const validateForm = () => {
+    if (!menuName.trim()) {
+      toast.error("Menu Name is required!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+    if (!menuPrice) {
+      toast.error("Menu Price is required!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+    if (!menuCookingTime) {
+      toast.error("Cooking Time is required!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+    if (!menuCategory) {
+      toast.error("Menu Category is required!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+    if (!mainCategory) {
+      toast.error("Main Category is required!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+    if (!menuContent.trim()) {
+      toast.error("Menu Content is required!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+    return true;
+  };
+
   // Handle form submission for adding/updating menu
   const writeToDatabase = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       const uuidSnapshot = await get(
         ref(db, `admins/${currentAdminId}/hotels/${hotelName}/uuid`)
@@ -189,13 +274,13 @@ function AddMenu() {
           : menuPrice;
 
         const menuData = {
-          menuName,
+          menuName: menuName.trim(),
           menuCookingTime,
           menuPrice,
-          discount,
-          finalPrice: calculatedFinalPrice || menuPrice,
+          discount: discount || "0",
+          finalPrice: calculatedFinalPrice,
           menuCategory,
-          menuContent,
+          menuContent: menuContent.trim(),
           availability,
           mainCategory,
           uuid: editMode ? editedMenuId : uid(),
@@ -207,8 +292,6 @@ function AddMenu() {
             ref(db, `/hotels/${hotelName}/menu/${editedMenuId}`),
             menuData
           );
-          setEditMode(true);
-          setEditedMenuId(null);
           toast.success("Menu Updated Successfully!", {
             position: toast.POSITION.TOP_RIGHT,
           });
@@ -222,16 +305,7 @@ function AddMenu() {
           });
         }
 
-        setMenuName("");
-        setMenuCookingTime("");
-        setMenuPrice("");
-        setDiscount("");
-        setFinalPrice("");
-        setMenuCategory("");
-        setMenuContent("");
-        setAvailability("Available");
-        setMainCategory("");
-        setFile(null);
+        handleClose(); // Close modal and reset form
       } else {
         toast.error(
           "You do not have permission to manage menus for this hotel.",
@@ -251,15 +325,19 @@ function AddMenu() {
   const handleChange = (setter) => (e) => {
     setter(e.target.value);
   };
+
   const columns = ViewMenuColumns;
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
   };
+
   const handleCategoryFilter = (category) => {
     setSelectedCategory(category);
     setActiveCategory(category);
   };
+
   // Prepare data for the table
   const data = filteredAndSortedItems.map((item, index) => ({
     "Sr.No": index + 1,
@@ -269,28 +347,28 @@ function AddMenu() {
     Discount: item.discount || "-",
     "Final Price": item.finalPrice,
     Availability: item.availability,
+    uuid: item.uuid, // Add uuid for edit/delete operations
   }));
 
-  console.log("data", data);
   return (
     <>
       <div className="d-flex flex-wrap w-full">
         {/* Modal */}
         {show && (
           <Modal
-            title="Add Menu"
+            title={editMode ? "Edit Menu" : "Add Menu"}
             handleClose={handleClose}
             children={
-              <div className="bg-white p-6 w-full max-w-md mx-auto">
+              <div className="bg-white p-6 w-full max-w-2xl mx-auto">
                 <form className="space-y-6 w-full">
-                  <div className="gap-6 grid grid-cols-1 sm:grid-cols-2">
-                    {/* Menu Name Input */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Menu Name */}
                     <div className="relative col-span-2">
                       <label
                         htmlFor="menuName"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Menu Name
+                        Menu Name *
                       </label>
                       <input
                         type="text"
@@ -298,32 +376,233 @@ function AddMenu() {
                         value={menuName}
                         onChange={handleChange(setMenuName)}
                         className={`mt-1 block w-full px-3 py-2 border ${
-                          menuName ? "border-green-500" : "border-red-500"
+                          menuName ? "border-green-500" : "border-gray-300"
                         } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
                         placeholder="Enter Menu Name"
                       />
-                      {menuName ? (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                      {menuName && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500 top-6">
                           <FaCheckCircle />
                         </div>
-                      ) : (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-500">
-                          <FaExclamationCircle />
-                        </div>
-                      )}
-                      {!menuName && (
-                        <p className="text-red-500 text-xs mt-1">
-                          Menu Name is required.
-                        </p>
                       )}
                     </div>
 
-                    {/* Responsive Grid Items */}
-                    {/* Repeat similar input structure for other inputs like Menu Category, Menu Price, etc. */}
-                    {/* Ensure each input container uses responsive grid columns, and styling adjusts automatically */}
+                    {/* Menu Price */}
+                    <div className="relative">
+                      <label
+                        htmlFor="menuPrice"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Menu Price *
+                      </label>
+                      <input
+                        type="number"
+                        id="menuPrice"
+                        value={menuPrice}
+                        onChange={handleChange(setMenuPrice)}
+                        className={`mt-1 block w-full px-3 py-2 border ${
+                          menuPrice ? "border-green-500" : "border-gray-300"
+                        } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                        placeholder="Enter Price"
+                      />
+                      {menuPrice && (
+                        <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
+                      )}
+                    </div>
+
+                    {/* Cooking Time */}
+                    <div className="relative">
+                      <label
+                        htmlFor="cookingTime"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Cooking Time (mins) *
+                      </label>
+                      <input
+                        type="number"
+                        id="cookingTime"
+                        value={menuCookingTime}
+                        onChange={handleChange(setMenuCookingTime)}
+                        className={`mt-1 block w-full px-3 py-2 border ${
+                          menuCookingTime
+                            ? "border-green-500"
+                            : "border-gray-300"
+                        } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                        placeholder="Enter cooking time"
+                      />
+                      {menuCookingTime && (
+                        <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
+                      )}
+                    </div>
+
+                    {/* Discount */}
+                    <div className="relative">
+                      <label
+                        htmlFor="discount"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Discount (%)
+                      </label>
+                      <input
+                        type="number"
+                        id="discount"
+                        value={discount}
+                        onChange={handleChange(setDiscount)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                        placeholder="Enter discount percentage"
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+
+                    {/* Final Price */}
+                    <div className="relative">
+                      <label
+                        htmlFor="finalPrice"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Final Price
+                      </label>
+                      <input
+                        type="number"
+                        id="finalPrice"
+                        value={finalPrice}
+                        readOnly
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"
+                        placeholder="Auto-calculated"
+                      />
+                    </div>
+
+                    {/* Menu Category */}
+                    <div className="relative">
+                      <label
+                        htmlFor="menuCategory"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Menu Category *
+                      </label>
+                      <select
+                        id="menuCategory"
+                        value={menuCategory}
+                        onChange={handleChange(setMenuCategory)}
+                        className={`mt-1 block w-full px-3 py-2 border ${
+                          menuCategory ? "border-green-500" : "border-gray-300"
+                        } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                      >
+                        <option value="">Select category</option>
+                        {categories.map((cat, index) => (
+                          <option
+                            key={index}
+                            value={cat.categoryName || cat.name || cat}
+                          >
+                            {cat.categoryName || cat.name || cat}
+                          </option>
+                        ))}
+                      </select>
+                      {menuCategory && (
+                        <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
+                      )}
+                    </div>
+
+                    {/* Main Category */}
+                    <div className="relative">
+                      <label
+                        htmlFor="mainCategory"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Main Category *
+                      </label>
+                      <select
+                        id="mainCategory"
+                        value={mainCategory}
+                        onChange={handleChange(setMainCategory)}
+                        className={`mt-1 block w-full px-3 py-2 border ${
+                          mainCategory ? "border-green-500" : "border-gray-300"
+                        } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                      >
+                        <option value="">Select main category</option>
+                        {mainCategories.map((cat, index) => (
+                          <option
+                            key={index}
+                            value={cat.categoryName || cat.name || cat}
+                          >
+                            {cat.categoryName || cat.name || cat}
+                          </option>
+                        ))}
+                      </select>
+                      {mainCategory && (
+                        <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
+                      )}
+                    </div>
+
+                    {/* Availability */}
+                    <div className="relative">
+                      <label
+                        htmlFor="availability"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Availability
+                      </label>
+                      <select
+                        id="availability"
+                        value={availability}
+                        onChange={handleChange(setAvailability)}
+                        className="mt-1 block w-full px-3 py-2 border border-green-500 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                      >
+                        <option value="Available">Available</option>
+                        <option value="Not Available">Not Available</option>
+                      </select>
+                    </div>
+
+                    {/* File Upload */}
+                    <div className="relative">
+                      <label
+                        htmlFor="file"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Upload Image
+                      </label>
+                      <input
+                        type="file"
+                        id="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                      />
+                    </div>
+
+                    {/* Menu Content */}
+                    <div className="relative col-span-2">
+                      <label
+                        htmlFor="menuContent"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Menu Content *
+                      </label>
+                      <textarea
+                        id="menuContent"
+                        rows="3"
+                        value={menuContent}
+                        onChange={handleChange(setMenuContent)}
+                        className={`mt-1 block w-full px-3 py-2 border ${
+                          menuContent ? "border-green-500" : "border-gray-300"
+                        } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
+                        placeholder="Enter menu description"
+                      ></textarea>
+                      {menuContent && (
+                        <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
+                      )}
+                    </div>
 
                     {/* Submit Button */}
-                    <div className="col-span-2 flex items-center justify-end">
+                    <div className="col-span-2 flex items-center justify-end space-x-3">
+                      <button
+                        type="button"
+                        onClick={handleClose}
+                        className="bg-gray-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                      >
+                        Cancel
+                      </button>
                       <button
                         type="button"
                         onClick={writeToDatabase}
@@ -336,13 +615,12 @@ function AddMenu() {
                 </form>
               </div>
             }
-          ></Modal>
+          />
         )}
 
         {/* Categories and Search Section */}
         <div className="w-full px-4 mt-4">
           <div className="overflow-x-auto no-scrollbar">
-            {/* Horizontal Scroll for Tabs */}
             <div className="flex flex-nowrap space-x-2">
               <CategoryTabs
                 categories={categories}
@@ -352,8 +630,7 @@ function AddMenu() {
             </div>
           </div>
 
-          {/* Search Bar and Add Button */}
-          <div className="mt-4 bg-white rounded-lg shadow-md p-4">
+          <div>
             <SearchWithButton
               searchTerm={searchTerm}
               onSearchChange={(e) => setSearchTerm(e.target.value)}
@@ -362,7 +639,6 @@ function AddMenu() {
             />
           </div>
 
-          {/* Table for Menu Items */}
           <div className="mt-4">
             <PageTitle pageTitle={"View Menu"} />
             <div className="overflow-x-auto">

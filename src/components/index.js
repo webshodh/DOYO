@@ -17,8 +17,6 @@ export {default as InfoCard} from './Cards/InfoCard'
 // Navbar
 export {default as Nav} from './Navbar/Nav'
 export {default as NavAvatar} from './Navbar/NavAvatar'
-export {default as NavMessage} from './Navbar/NavMessage'
-export {default as NavNotice} from './Navbar/NavNotice'
 export {default as Navbar} from './Navbar/Navbar'
 export {default as Navbutton} from './Navbar/Navbutton'
 

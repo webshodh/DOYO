@@ -5,13 +5,13 @@ import { DynamicTable } from "../../components";
 import { adminsListColumn } from "../../data/Columns";
 import { db } from "../../data/firebase/firebaseConfig";
 import { ref, update, get } from "firebase/database";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for toast notifications
-import { useHotelContext } from "../../Context/HotelContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import the CSS for toast notifications
+import { useParams } from "react-router-dom";
 
 const AdminsList = () => {
   const { data, loading, error } = useData("/admins/");
-  const { hotelName } = useHotelContext();
+  const { hotelName } = useParams();
 
   // Convert data to an array and add serial numbers
   const adminsDataArray = Object.entries(data).map(([id, admin], index) => ({
@@ -45,7 +45,7 @@ const AdminsList = () => {
   };
 
   const actions = [
-    { label: 'Toggle Role', variant: 'primary', handler: onToggleRole }
+    { label: "Toggle Role", variant: "primary", handler: onToggleRole },
   ];
 
   const columns = adminsListColumn;

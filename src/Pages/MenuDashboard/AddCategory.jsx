@@ -7,7 +7,7 @@ import "../../styles/AddCategory.css";
 import { PageTitle } from "../../Atoms";
 import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
-import { useHotelContext } from "../../Context/HotelContext";
+import { useParams } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import Modal from "components/Modal";
 import SearchWithButton from "components/SearchWithAddButton";
@@ -19,10 +19,10 @@ function AddCategory() {
   const [tempCategoryId, setTempCategoryId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [show, setShow] = useState(false);
-  const { hotelName } = useHotelContext();
+  const { hotelName } = useParams();
   const auth = getAuth();
   const adminID = auth.currentUser?.uid;
-
+console.log("hotelName", hotelName)
   useEffect(() => {
     onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
       const data = snapshot.val();
@@ -296,7 +296,7 @@ function AddCategory() {
           ></Modal>
         )}
         <div style={{ width: "100%" }}>
-          <div className="bg-white p-10 rounded-lg shadow-md">
+          <div>
             <SearchWithButton
               searchTerm={searchTerm}
               onSearchChange={(e) => setSearchTerm(e.target.value)}
@@ -318,3 +318,222 @@ function AddCategory() {
 }
 
 export default AddCategory;
+
+
+// import React, { useState, useEffect } from "react";
+// import { ToastContainer } from "react-toastify";
+// import "../../styles/AddCategory.css";
+// import { PageTitle } from "../../Atoms";
+// import { ViewCategoryColumns } from "../../data/Columns";
+// import { DynamicTable } from "../../components";
+// import { useParams } from "react-router-dom";
+// import { getAuth } from "firebase/auth";
+// import Modal from "components/Modal";
+// import SearchWithButton from "components/SearchWithAddButton";
+// import {
+//   subscribeToCategories,
+//   addCategory,
+//   updateCategory,
+//   deleteCategory,
+//   filterAndMapCategories,
+// } from "../../services/categoryService";
+
+// function AddCategory() {
+//   const [categoryName, setCategoryName] = useState("");
+//   const [categories, setCategories] = useState([]);
+//   const [isEdit, setIsEdit] = useState(false);
+//   const [tempCategoryId, setTempCategoryId] = useState("");
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [show, setShow] = useState(false);
+//   const [loading, setLoading] = useState(false);
+
+//   const { hotelName } = useParams();
+//   const auth = getAuth();
+//   const adminID = auth.currentUser?.uid;
+
+//   // Subscribe to categories data
+//   useEffect(() => {
+//     if (!hotelName) return;
+
+//     const unsubscribe = subscribeToCategories(hotelName, setCategories);
+//     return () => unsubscribe();
+//   }, [hotelName]);
+
+//   // Reset form state
+//   const resetForm = () => {
+//     setCategoryName("");
+//     setIsEdit(false);
+//     setTempCategoryId("");
+//   };
+
+//   // Handle category name input change
+//   const handleCategoryNameChange = (e) => setCategoryName(e.target.value);
+
+//   // Handle adding new category
+//   const handleAddCategory = async () => {
+//     if (!adminID || !hotelName) return;
+
+//     setLoading(true);
+//     try {
+//       const result = await addCategory(adminID, hotelName, categoryName, categories);
+//       if (result.success) {
+//         resetForm();
+//         setTimeout(() => setShow(false), 2000);
+//       }
+//     } catch (error) {
+//       console.error("Error in handleAddCategory:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Handle updating existing category
+//   const handleUpdateCategory = async (category) => {
+//     if (!adminID || !hotelName) return;
+
+//     setIsEdit(true);
+//     setTempCategoryId(category.categoryId);
+//     setCategoryName(category.categoryName);
+//     setShow(true);
+//   };
+
+//   // Handle submitting category update
+//   const handleSubmitCategoryUpdate = async () => {
+//     if (!adminID || !hotelName || !tempCategoryId) return;
+
+//     if (!window.confirm("Confirm update")) return;
+
+//     setLoading(true);
+//     try {
+//       const result = await updateCategory(
+//         adminID,
+//         hotelName,
+//         tempCategoryId,
+//         categoryName,
+//         categories
+//       );
+//       if (result.success) {
+//         resetForm();
+//         setTimeout(() => setShow(false), 2000);
+//       }
+//     } catch (error) {
+//       console.error("Error in handleSubmitCategoryUpdate:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Handle deleting category
+//   const handleDeleteCategory = async (category) => {
+//     if (!adminID || !hotelName) return;
+
+//     if (!window.confirm("Confirm delete")) return;
+
+//     setLoading(true);
+//     try {
+//       await deleteCategory(adminID, hotelName, category);
+//     } catch (error) {
+//       console.error("Error in handleDeleteCategory:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Handle modal show
+//   const handleAdd = () => {
+//     resetForm();
+//     setShow(true);
+//   };
+
+//   // Handle modal close
+//   const handleClose = () => {
+//     resetForm();
+//     setShow(false);
+//   };
+
+//   // Handle cancel edit
+//   const handleCancelEdit = () => {
+//     resetForm();
+//   };
+
+//   // Filter and map categories with search term
+//   const filteredCategories = filterAndMapCategories(categories, searchTerm);
+//   const columns = ViewCategoryColumns;
+
+//   return (
+//     <>
+//       <div className="d-flex justify-between">
+//         {/* Modal */}
+//         {show && (
+//           <Modal
+//             title={isEdit ? "Update Category" : "Add Category"}
+//             handleClose={handleClose}
+//             children={
+//               <div
+//                 className="bg-white p-10"
+//                 style={{ width: "40%", marginRight: "10px" }}
+//               >
+//                 <PageTitle pageTitle={isEdit ? "Update Category" : "Add Category"} />
+//                 <input
+//                   type="text"
+//                   value={categoryName}
+//                   onChange={handleCategoryNameChange}
+//                   placeholder="Enter Category Name"
+//                   className="w-full p-3 border mb-4 rounded-md"
+//                   disabled={loading}
+//                 />
+//                 {isEdit ? (
+//                   <>
+//                     <button
+//                       onClick={handleSubmitCategoryUpdate}
+//                       className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+//                       disabled={loading}
+//                     >
+//                       {loading ? "Updating..." : "Update"}
+//                     </button>
+//                     <button
+//                       onClick={handleCancelEdit}
+//                       className="px-4 py-2 mr-2 text-white bg-red-600 rounded-md"
+//                       disabled={loading}
+//                     >
+//                       Cancel
+//                     </button>
+//                   </>
+//                 ) : (
+//                   <button
+//                     onClick={handleAddCategory}
+//                     className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+//                     disabled={loading}
+//                   >
+//                     {loading ? "Adding..." : "Add"}
+//                   </button>
+//                 )}
+//                 <ToastContainer />
+//               </div>
+//             }
+//           />
+//         )}
+        
+//         <div style={{ width: "100%" }}>
+//           <div>
+//             <SearchWithButton
+//               searchTerm={searchTerm}
+//               onSearchChange={(e) => setSearchTerm(e.target.value)}
+//               buttonText="Add Category"
+//               onButtonClick={handleAdd}
+//             />
+//           </div>
+//           <PageTitle pageTitle={"View Categories"} />
+//           <DynamicTable
+//             columns={columns}
+//             data={filteredCategories}
+//             onEdit={handleUpdateCategory}
+//             onDelete={handleDeleteCategory}
+//           />
+//         </div>
+//       </div>
+//     </>
+//   );
+// }
+
+// export default AddCategory;

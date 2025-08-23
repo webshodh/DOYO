@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Card from "./CommonCard";
 import { useOrdersData, useProcessedMenuData } from "data";
-import { useHotelContext } from "Context/HotelContext";
+import { useParams } from "react-router-dom";
 import { Tab } from "components";
 import FilterButtons from "Atoms/FilterButtons";
 
@@ -37,7 +37,7 @@ const filterMonthly = (data) => {
 
 const HistoryCard = () => {
   const [filterType, setFilterType] = useState("Daily");
-  const { hotelName } = useHotelContext();
+  const { hotelName } = useParams();
   const { completedOrders } = useOrdersData(hotelName);
 
   // Apply filter based on selected filter type
@@ -122,11 +122,14 @@ const HistoryCard = () => {
       {/* Filter Buttons */}
       <div className="d-flex  justify-between p-2">
         {/* HistoryCard Header */}
-        <div className="text-lg font-bold text-navy-700 dark:text-white p-3" style={{width:'50%'}}>
+        <div
+          className="text-lg font-bold text-navy-700 dark:text-white p-3"
+          style={{ width: "50%" }}
+        >
           Top Selling Foods
         </div>
         {/* Filter Buttons */}
-      <FilterButtons filterType={filterType} setFilterType={setFilterType} />
+        <FilterButtons filterType={filterType} setFilterType={setFilterType} />
       </div>
       {/* History Card Data */}
       <Tab tabs={tabs2} />

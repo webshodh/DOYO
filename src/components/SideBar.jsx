@@ -1,12 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useHotelContext } from "../Context/HotelContext";
+import { useParams } from "react-router-dom";
 import FreeCard from "../components/Cards/FreeCard";
 import useAdminData from "data/useAdminData";
 import { useAuthContext } from "Context/AuthContext";
 
 function SideBar() {
-  const { hotelName } = useHotelContext(); // Get hotelName from context
+  const { hotelName } = useParams(); // Get hotelName from context
   const { currentAdminId } = useAuthContext();
   const { data } = useAdminData(`/admins/${currentAdminId}`);
   const adminData = data;

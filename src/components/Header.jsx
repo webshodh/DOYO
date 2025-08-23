@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useHotelContext } from "../Context/HotelContext";
+import { useParams } from "react-router-dom";
 import Nav from "./Navbar/Nav";
 import { useAuthContext } from "Context/AuthContext";
 import useAdminData from "data/useAdminData";
@@ -13,7 +13,7 @@ const Header = () => {
   const { currentAdminId } = useAuthContext();
   const { data } = useAdminData(`/admins/${currentAdminId}`);
   const adminData = data;
-  const { hotelName } = useHotelContext();
+  const { hotelName } = useParams();
 
   const handleToggleSideBar = () => {
     setShowSidebar(!showSidebar); // Toggle sidebar visibility state
@@ -31,32 +31,32 @@ const Header = () => {
 
   // Inline styles for the sidebar
   const sidebarStyles = {
-    position: 'fixed',
+    position: "fixed",
     top: 0,
     left: 0,
-    height: '100vh',
-    width: '250px',
-    backgroundColor: '#fff',
-    boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)',
-    overflowY: 'auto',
-    transform: showSidebar ? 'translateX(0)' : 'translateX(-100%)', // Slide in/out
-    transition: 'transform 0.3s ease',
+    height: "100vh",
+    width: "250px",
+    backgroundColor: "#fff",
+    boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
+    overflowY: "auto",
+    transform: showSidebar ? "translateX(0)" : "translateX(-100%)", // Slide in/out
+    transition: "transform 0.3s ease",
     zIndex: 1000,
   };
 
   // Inline styles for the overlay
   const overlayStyles = {
-    content: '',
-    position: 'fixed',
+    content: "",
+    position: "fixed",
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 900,
-    transition: 'opacity 0.3s ease',
+    transition: "opacity 0.3s ease",
     opacity: showSidebar ? 1 : 0,
-    pointerEvents: showSidebar ? 'auto' : 'none',
+    pointerEvents: showSidebar ? "auto" : "none",
   };
 
   return (
@@ -64,11 +64,13 @@ const Header = () => {
       {/* Sidebar */}
       <div style={sidebarStyles}>
         {/* Add your sidebar content here */}
-        <SideBar/>
+        {/* <SideBar /> */}
       </div>
 
       {/* Overlay */}
-      {showSidebar && <div style={overlayStyles} onClick={handleToggleSideBar} />}
+      {showSidebar && (
+        <div style={overlayStyles} onClick={handleToggleSideBar} />
+      )}
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 shadow-md bg-white flex items-center px-4 md:px-8 lg:px-16">
