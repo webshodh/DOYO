@@ -1,36 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
-import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  Navbar,
-  FilterSortSearch,
-  HorizontalMenuCard,
-  MenuCard,
-} from "../../components";
-import { useNavigate } from "react-router-dom";
+import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../../components";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
-import { getAuth } from "firebase/auth";
+
 import CategoryTabs from "../../components/CategoryTab";
-import { PrimaryButton } from "../../Atoms";
-import styled from "styled-components";
-import AlertMessage from "Atoms/AlertMessage";
-import ImageSlider from "components/Slider/ImageSlider";
-import Footer from "Atoms/Footer";
-
-const MenuItemsContainer = styled.div`
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
-  padding: 10px 0;
-
-  .menu-card {
-    flex: 0 0 auto;
-    margin-right: 10px;
-  }
-`;
 
 function Home() {
   const [menus, setMenus] = useState([]);
@@ -40,7 +16,6 @@ function Home() {
   const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
   const [mainCategoryCounts, setMainCategoryCounts] = useState({});
-  const [cartItems, setCartItems] = useState([]);
   const [menuCounts, setMenuCounts] = useState({});
   const [imageLoaded, setImageLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
@@ -49,7 +24,6 @@ function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
-  const navigate = useNavigate();
   const [hotelName, setHotelName] = useState("");
 
   useEffect(() => {
@@ -233,59 +207,6 @@ function Home() {
 
   console.log("filteredAndSortedItems", filteredAndSortedItems);
 
-  const addToCart = (menuId) => {
-    const selectedItem = menus.find((menu) => menu.uuid === menuId);
-
-    const existingItem = cartItems.find((item) => item.uuid === menuId);
-
-    if (existingItem) {
-      setCartItems((prevItems) =>
-        prevItems.map((item) =>
-          item.uuid === menuId ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      );
-    } else {
-      setCartItems((prevItems) => [
-        ...prevItems,
-        { ...selectedItem, quantity: 1 },
-      ]);
-    }
-
-    toast.success("Added to Cart Successfully!", {
-      position: toast.POSITION.TOP_RIGHT,
-    });
-  };
-
-  const handleNext = () => {
-    navigate(`/${hotelName}/cart-details`, {
-      state: { cartItems: cartItems },
-    });
-  };
-  console.log("cartItems", cartItems);
-  const handleAddQuantity = (menuId) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.uuid === menuId ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  };
-
-  const handleRemoveQuantity = (menuId) => {
-    setCartItems((prevItems) =>
-      prevItems.reduce((updatedItems, item) => {
-        if (item.uuid === menuId) {
-          if (item.quantity === 1) {
-            return updatedItems;
-          } else {
-            return [...updatedItems, { ...item, quantity: item.quantity - 1 }];
-          }
-        } else {
-          return [...updatedItems, item];
-        }
-      }, [])
-    );
-  };
-
   return (
     <>
       {!isAdmin && (
@@ -295,7 +216,7 @@ function Home() {
             Fabar={true}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
           />
-
+          {/* 
           <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
@@ -304,6 +225,7 @@ function Home() {
             icon="bi-info-circle"
             linkUrl="www.google.com"
           />
+          */}
         </>
       )}
 
@@ -371,7 +293,7 @@ function Home() {
           height: "calc(100vh - 240px)",
           overflowY: "auto",
           background: colors.LightGrey,
-          marginBottom:'50px'
+          marginBottom: "50px",
         }}
       >
         {filteredAndSortedItems.map((item) => (
@@ -379,20 +301,10 @@ function Home() {
             className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-2"
             key={item.id}
           >
-            <HorizontalMenuCard
-              item={item}
-              handleImageLoad={handleImageLoad}
-              addToCart={addToCart}
-              onAddQuantity={handleAddQuantity}
-              onRemoveQuantity={handleRemoveQuantity}
-            />
+            <HorizontalMenuCard item={item} handleImageLoad={handleImageLoad} />
           </div>
         ))}
       </div>
-
-      <Footer cartItemsCount={cartItems.length} handleCart={handleNext} />
-      {/* Toast Notification */}
-      <ToastContainer />
     </>
   );
 }

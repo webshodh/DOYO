@@ -1,20 +1,15 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import Button from "react-bootstrap/Button";
 import MenuModal from "../MenuModal";
-import { colors } from "theme/theme";
 
 const HorizontalMenuCard = ({
   item,
   handleImageLoad,
-  addToCart,
-  onAddQuantity,
-  onRemoveQuantity,
+  
 }) => {
   const [show, setShow] = useState(false);
   const [modalData, setModalData] = useState(null);
-  const [isAdded, setIsAdded] = useState(false);
-  const [quantity, setQuantity] = useState(0);
+  
 
   const handleShow = (item) => {
     setModalData(item);
@@ -23,22 +18,7 @@ const HorizontalMenuCard = ({
 
   const handleClose = () => setShow(false);
 
-  const handleAddToCart = (e) => {
-    e.stopPropagation();
-    addToCart(item.uuid, quantity);
-    setIsAdded(true);
-    setQuantity(1);
-  };
-
-  const handleIncreaseQuantity = () => {
-    setQuantity((prevQuantity) => prevQuantity + 1);
-    onAddQuantity(item.uuid);
-  };
-
-  const handleDecreaseQuantity = () => {
-    setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 0));
-    onRemoveQuantity(item.uuid);
-  };
+ 
 
   const truncatedContent =
     item.menuName.length > 16
@@ -53,7 +33,7 @@ const HorizontalMenuCard = ({
           alt={item.menuName}
           onLoad={handleImageLoad}
           className="w-full h-full object-cover rounded-l-lg"
-          style={{height:'110px'}}
+          style={{ height: "110px" }}
         />
         {/* Discount Badge */}
         {item.discount > 0 && (
@@ -70,10 +50,8 @@ const HorizontalMenuCard = ({
       </div>
       <div className="flex-1 p-2 flex flex-col justify-between relative">
         <div>
-          <div className="d-flex justify-between" >
-            <span className="text-lg  truncate">
-              {truncatedContent}
-            </span>
+          <div className="d-flex justify-between">
+            <span className="text-lg  truncate">{truncatedContent}</span>
             {/* Menu Category */}
             <span className="absolute top-0 right-0 bg-white text-gray-700 text-xs font-bold py-1 px-2 rounded-bl-lg">
               {item.menuCategory === "Veg" ? (
@@ -95,7 +73,7 @@ const HorizontalMenuCard = ({
               )}
             </span>
           </div>
-          <div className="flex text-gray-600 mt-1 text-xs" >
+          <div className="flex text-gray-600 mt-1 text-xs">
             {/* <i className="bi bi-stopwatch-fill mr-1 text-orange-500"></i>
             <span>{item.menuCookingTime} min</span>
             <span className="mx-1">|</span> */}
@@ -106,10 +84,12 @@ const HorizontalMenuCard = ({
                   {Math.round(item.menuPrice)}
                 </span>
               )}
-              <b><span className="text-black text-lg text-orange-500">
-              {item.finalPrice}</span></b>
+              <b>
+                <span className="text-black text-lg text-orange-500">
+                  {item.finalPrice}
+                </span>
+              </b>
             </span>
-            
           </div>
         </div>
         <div className="mt-2 flex justify-between items-center">
@@ -119,37 +99,7 @@ const HorizontalMenuCard = ({
           >
             Read More
           </span>
-          <span>
-            {!isAdded ? (
-              <i
-                className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
-                onClick={handleAddToCart}
-              ></i>
-            ) : (
-              <div className="flex items-center space-x-1">
-                {quantity > 0 && (
-                  <>
-                    <i
-                      class="bi bi-dash-circle"
-                      className="bi bi-dash-circle text-orange-500 text-xl cursor-pointer"
-                      onClick={handleDecreaseQuantity}
-                    ></i>
-                    <span className="text-sm">{quantity}</span>
-                    <i
-                      className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
-                      onClick={handleIncreaseQuantity}
-                    ></i>
-                  </>
-                )}
-                {quantity === 0 && (
-                  <i
-                    className="bi bi-plus-circle-fill text-orange-500 text-xl cursor-pointer"
-                    onClick={handleAddToCart}
-                  ></i>
-                )}
-              </div>
-            )}
-          </span>
+          
         </div>
       </div>
 
@@ -157,7 +107,7 @@ const HorizontalMenuCard = ({
         show={show}
         handleClose={handleClose}
         modalData={modalData}
-        // addToCart={addToCart}
+        
       />
     </div>
   );
