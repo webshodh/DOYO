@@ -211,11 +211,11 @@ function Home() {
     <>
       {!isAdmin && (
         <>
-          <Navbar
+          {/* <Navbar
             title={`${hotelName}`}
             Fabar={true}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
-          />
+          /> */}
           {/* 
           <AlertMessage
             linkText={

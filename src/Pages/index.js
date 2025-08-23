@@ -1,7 +1,6 @@
 // Admin Dashboard
 export { default as AdminDashboard } from "./Admin Dashboard/AdminDashboard";
 export { default as HotelSelector } from "./Admin Dashboard/HotelSelector";
-export { default as POS } from "./Admin Dashboard/POS";
 
 // Login
 export { default as LoginPage } from "./Login/LoginPage";

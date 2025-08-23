@@ -4,11 +4,11 @@ import { MdArrowDropUp, MdArrowDropDown } from "react-icons/md";
 import Card from "../Cards/CommonCard";
 import { colors } from "theme/theme";
 import { useOrdersData } from "data";
-import { useHotelContext } from "Context/HotelContext";
+import { useParams } from "react-router-dom";
 import LineChart from "./LineChart";
 
 const DailyOrders = () => {
-  const { hotelName } = useHotelContext();
+  const { hotelName } = useParams();
   const { completedOrders } = useOrdersData(hotelName);
   const [timePeriod, setTimePeriod] = useState("daily"); // default to daily
 

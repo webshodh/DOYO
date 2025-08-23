@@ -3,25 +3,26 @@ import React, { useContext, useEffect, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { colors } from "theme/theme";
+import { useHotelContext } from "Context/HotelContext"; // Import the HotelContext hook
 // import { UserAuthContext } from "../../Context/UserAuthContext";
 
 const Navbar = ({ title, isBack = false }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [hotelName, setHotelName] = useState("");
   // const { currentUser, loading } = useContext(UserAuthContext);
   const { user } = useContext(UserContext);
+  const { hotelName } = useHotelContext(); // Use HotelContext to get hotel name
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const path = window.location.pathname;
-    const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
-    setHotelName(hotelNameFromPath);
-  }, []);
+  // Remove the useEffect that was manually extracting hotel name from URL
+  // since we're now using HotelContext
 
-  if (!user) {
-    navigate(`/viewMenu/${hotelName}/login/user-login`);
-  }
+  useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (!user && hotelName) {
+      navigate(`/viewMenu/${hotelName}/login/user-login`);
+    }
+  }, [user, hotelName, navigate]);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -37,24 +38,27 @@ const Navbar = ({ title, isBack = false }) => {
       nameParts[1].charAt(0).toUpperCase()
     ); // Return initials from first and last name
   };
+
   const userProfile = {
-    name: user.name || "User",
-    mobile: user.mobile || "No mobile provided",
+    name: user?.name || "User",
+    mobile: user?.mobile || "No mobile provided",
     totalOrders: 25,
-    initial: getInitials(user.name),
+    initial: getInitials(user?.name),
   };
 
   // if (loading) {
   //   return <div className="text-center">Loading...</div>;
   // }
 
+  // Early return if user is not authenticated
   if (!user) {
-    navigate(`/viewMenu/${hotelName}/login`);
+    return null; // or a loading spinner
   }
 
   const handleBack = () => {
     navigate(`/viewMenu/${hotelName}/home`);
   };
+
   return (
     <>
       <div
@@ -65,7 +69,7 @@ const Navbar = ({ title, isBack = false }) => {
           <FaBars onClick={toggleSidebar} className="cursor-pointer text-2xl" />
         ) : (
           <i
-            class="bi bi-arrow-left-square-fill"
+            className="bi bi-arrow-left-square-fill"
             onClick={handleBack}
             style={{ color: colors.Orange, fontSize: "30px" }}
           ></i>
@@ -78,10 +82,6 @@ const Navbar = ({ title, isBack = false }) => {
           {userProfile.initial}
         </div>
       </div>
-      {/* <div>
-        Hi, <span className="text-lg font-semibold">{userProfile.name}</span>
-        <p>What do you want to eat today?</p>
-        </div> */}
 
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-white text-black shadow-lg transform ${
@@ -120,12 +120,6 @@ const Navbar = ({ title, isBack = false }) => {
               <span>Home</span>
             </Link>
           </li>
-          {/* <li>
-            <Link style={{textDecoration:'none'}} className="flex p-2 items-center text-orange-500 hover:text-orange-700" to={`/${hotelName}/cart/cart-details`}>
-              <i className="bi bi-cart-check-fill mr-2"></i>
-              <span>My Cart</span>
-            </Link>
-          </li> */}
           <li>
             <Link
               style={{ textDecoration: "none" }}

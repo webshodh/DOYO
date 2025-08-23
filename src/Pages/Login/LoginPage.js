@@ -3,8 +3,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { useHotelContext } from "../../Context/HotelContext";
-import { getDatabase, ref, get, child } from "firebase/database"; // Import Firebase database functions
+import { useHotelContext } from "Context/HotelContext";
+import { getDatabase, ref, get } from "firebase/database";
 import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = () => {
@@ -12,10 +12,11 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const auth = getAuth();
   const navigate = useNavigate();
-  const { hotelName, setHotelName } = useHotelContext(); // Add setHotelName to update the context
+  const { hotelName, setHotelName } = useHotelContext();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -33,59 +34,119 @@ const LoginPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const checkUserRole = async (userUid) => {
+    const db = getDatabase();
+
+    try {
+      // First check if user exists in superadmin collection
+      const superAdminRef = ref(db, `superadmin/${userUid}`);
+      const superAdminSnapshot = await get(superAdminRef);
+
+      if (superAdminSnapshot.exists()) {
+        return { role: "super-admin", data: superAdminSnapshot.val() };
+      }
+
+      // Then check if user exists in admins collection
+      const adminRef = ref(db, `admins/${userUid}`);
+      const adminSnapshot = await get(adminRef);
+
+      if (adminSnapshot.exists()) {
+        return { role: "admin", data: adminSnapshot.val() };
+      }
+
+      // User not found in either collection
+      return { role: null, data: null };
+    } catch (error) {
+      console.error("Error checking user role:", error);
+      throw error;
+    }
+  };
+
+  const handleAdminLogin = async (userUid, adminData) => {
+    try {
+      const db = getDatabase();
+      const hotelsRef = ref(db, `admins/${userUid}/hotels`);
+      const snapshot = await get(hotelsRef);
+
+      if (snapshot.exists()) {
+        const hotelsData = snapshot.val();
+        const hotelNames = Object.keys(hotelsData);
+        const firstHotelName = hotelNames[0];
+
+        // Save hotel name in context
+        setHotelName(firstHotelName);
+
+        // Redirect to first hotel dashboard
+        navigate(`/${firstHotelName}/admin/admin-dashboard`);
+      } else {
+        // If no hotels found, redirect to general admin dashboard
+        navigate(`/admin/admin-dashboard`);
+      }
+    } catch (error) {
+      console.error("Error handling admin login:", error);
+      navigate(`/admin/admin-dashboard`); // Fallback navigation
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateFields()) {
+      setLoading(true);
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast.success("Logged in successfully!");
-  
-        // Check if the logged-in user is the superadmin
-        const superAdminEmail = "webshodhteam@gmail.com"; // Replace with the actual superadmin email
-        if (email === superAdminEmail) {
-          navigate("/super-admin/dashboard");
-           // Force a page refresh after a delay
-           setTimeout(() => {
-            window.location.reload();
-          }, 0);
+        // Authenticate user
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+
+        // Check user role in database
+        const { role, data } = await checkUserRole(user.uid);
+
+        if (!role) {
+          toast.error(
+            "User not found in system records. Please contact administrator."
+          );
+          await auth.signOut(); // Sign out the user
+          return;
         }
-  
-        // Fetch the hotels after login
-        const db = getDatabase();
-        const userUid = auth.currentUser.uid;
-        const hotelsRef = ref(db, `admins/${userUid}/hotels`);
-        const snapshot = await get(hotelsRef);
-  
-        if (snapshot.exists()) {
-          const hotelsData = snapshot.val();
-          const hotelNames = Object.keys(hotelsData);
-          const firstHotelName = hotelNames[0];
-  
-          // Set the first hotel name in the context
-          setHotelName(firstHotelName);
-  
-          // Navigate to the dashboard with the first hotel name
-          navigate(`/${firstHotelName}/admin/admin-dashboard`);
-  
-          // Force a page refresh after a delay
-          setTimeout(() => {
-            window.location.reload();
-          }, 0);
-        } else {
-          toast.error("No hotels found for this admin.");
+
+        toast.success("Logged in successfully!");
+
+        // Route based on role
+        if (role === "super-admin") {
+          navigate("/superadmin/dashboard");
+        } else if (role === "admin") {
+          await handleAdminLogin(user.uid, data);
         }
       } catch (error) {
-        toast.error("Error logging in: " + error.message);
+        if (error.code === "auth/user-not-found") {
+          toast.error("No account found with this email address.");
+        } else if (error.code === "auth/wrong-password") {
+          toast.error("Incorrect password. Please try again.");
+        } else if (error.code === "auth/invalid-email") {
+          toast.error("Invalid email address format.");
+        } else if (error.code === "auth/user-disabled") {
+          toast.error(
+            "This account has been disabled. Please contact support."
+          );
+        } else {
+          toast.error("Error logging in: " + error.message);
+        }
+        console.error("Login error:", error);
+      } finally {
+        setLoading(false);
       }
     }
   };
-  
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
+      <ToastContainer />
+
       {/* Left Column - 60% width */}
       <div className="md:w-3/5 w-full bg-gray-200 p-4 flex items-center justify-center">
-        {/* Left column content here */}
         <div className="w-full max-w-md bg-white p-8 shadow-lg rounded-lg dark:bg-gray-800">
           <h3 className="text-4xl font-extrabold text-center text-orange-600 dark:text-orange-400 mb-2">
             Welcome Back!
@@ -93,6 +154,7 @@ const LoginPage = () => {
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">
             Log in to your account to continue.
           </p>
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
@@ -110,12 +172,13 @@ const LoginPage = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onBlur={validateFields}
+                disabled={loading}
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-2">{errors.email}</p>
               )}
             </div>
+
             <div className="mb-4 relative">
               <label
                 htmlFor="password"
@@ -127,17 +190,18 @@ const LoginPage = () => {
                 type={passwordVisible ? "text" : "password"}
                 className={`w-full p-3 mt-2 text-gray-900 bg-gray-100 border ${
                   errors.password ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white`}
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white pr-10`}
                 id="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onBlur={validateFields}
+                disabled={loading}
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                className="absolute right-3 top-11 text-gray-500 hover:text-gray-700"
                 onClick={togglePasswordVisibility}
+                disabled={loading}
               >
                 {passwordVisible ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -145,12 +209,45 @@ const LoginPage = () => {
                 <p className="text-red-500 text-sm mt-2">{errors.password}</p>
               )}
             </div>
+
             <button
               type="submit"
-              className="w-full py-3 mt-4 bg-orange-500 text-white rounded-lg shadow-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
+              disabled={loading}
+              className={`w-full py-3 mt-4 text-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75 transition-colors duration-200 ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
             >
-              Login
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                "Login"
+              )}
             </button>
+
             <div className="mt-4 text-center">
               <a
                 href="/forgot-password"
@@ -159,6 +256,7 @@ const LoginPage = () => {
                 Forgot Password?
               </a>
             </div>
+
             <div className="mt-4 text-center">
               <a
                 href="/signup"
@@ -173,7 +271,6 @@ const LoginPage = () => {
 
       {/* Right Column - 40% width */}
       <div className="md:w-2/5 w-full bg-gray-200 p-4 flex items-center justify-center">
-        {/* Right column content here */}
         <img src="/logo.png" alt="App Logo" className="max-w-full h-auto" />
       </div>
     </div>
