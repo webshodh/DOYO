@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 import Modal from "components/Modal";
-import { calculateFinalPrice } from "../Validation/menuValidation";
+import { calculateFinalPrice } from "../../Validation/menuValidation";
 
 const MenuFormModal = ({
   show,

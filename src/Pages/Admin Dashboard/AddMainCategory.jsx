@@ -6,7 +6,7 @@ import PageTitle  from "../../Atoms/PageTitle";
 import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import SearchWithButton from "../../components/SearchWithAddButton";
-import CategoryFormModal from "../../components/CategoryFormModals";
+import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
 import { useCategoryManager } from "../../customHooks/mainCategory";
 
 const CategoryManager = () => {
@@ -84,7 +84,7 @@ const CategoryManager = () => {
 
   return (
     <>
-      <div className="d-flex justify-between">
+      <div className="d-flex justify-between" style={{marginTop:'100px'}}>
         <CategoryFormModal
           show={showModal}
           onClose={handleCloseModal}

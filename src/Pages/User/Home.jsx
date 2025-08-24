@@ -7,6 +7,7 @@ import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 
 import CategoryTabs from "../../components/CategoryTab";
+import AlertMessage from "Atoms/AlertMessage";
 
 function Home() {
   const [menus, setMenus] = useState([]);
@@ -211,12 +212,12 @@ function Home() {
     <>
       {!isAdmin && (
         <>
-          {/* <Navbar
+          <Navbar
             title={`${hotelName}`}
             Fabar={true}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
-          /> */}
-          {/* 
+          />
+          
           <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
@@ -225,7 +226,7 @@ function Home() {
             icon="bi-info-circle"
             linkUrl="www.google.com"
           />
-          */}
+         
         </>
       )}
 

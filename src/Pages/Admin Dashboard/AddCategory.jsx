@@ -6,7 +6,7 @@ import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import { useParams } from "react-router-dom";
 import SearchWithButton from "components/SearchWithAddButton";
-import CategoryFormModal from "../../components/CategoryFormModals";
+import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
 import { useCategory } from "../../customHooks/useCategory";
 
 function AddCategory() {
@@ -83,7 +83,7 @@ function AddCategory() {
 
   return (
     <>
-      <div className="d-flex justify-between">
+      <div className="d-flex justify-between" style={{marginTop:'100px'}}>
         {/* Category Form Modal */}
         <CategoryFormModal
           show={showModal}

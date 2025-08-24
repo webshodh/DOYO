@@ -11,7 +11,6 @@ export {default as ImgCard} from './Cards/ImgCard'
 export {default as CardSlider} from './Cards/CardSlider'
 export {default as MenuCard} from './Cards/MenuCard'
 export {default as HorizontalMenuCard} from './Cards/HorizontalMenuCard'
-export {default as CaptainCard} from './Cards/CaptainCard'
 export {default as InfoCard} from './Cards/InfoCard'
 
 // Navbar
@@ -24,6 +23,3 @@ export {default as Navbutton} from './Navbar/Navbutton'
 export {default as Header} from '../components/Header'
 export {default as SideBar} from './SideBar'
 export {default as Tab} from './Tabs'
-
-// Charts
-export {default as DonutChart} from './Charts/DonutChart'

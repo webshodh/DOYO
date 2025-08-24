@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Modal from "./Modal";
-import { PageTitle } from "../Atoms";
-import { validateCategoryName } from "../Validation/categoryValidation";
+import Modal from "../Modal";
+import  PageTitle  from "../../Atoms/PageTitle";
+import { validateCategoryName } from "../../Validation/categoryValidation";
 
 const CategoryFormModal = ({
   show,

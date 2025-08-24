@@ -474,7 +474,7 @@
 import React from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import HotelFormModal from "../../components/HotelFormModal";
+import HotelFormModal from "../../components/FormModals/HotelFormModal";
 import { useHotel } from "../../customHooks/useHotel";
 
 function AddHotelWithAdmins() {

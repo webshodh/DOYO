@@ -36,9 +36,9 @@ const Layout = ({ children }) => {
       <div className="flex flex-1 flex-row h-screen">
         {/* Sidebar: Only render if allowed by route and if screen width is medium or larger */}
         
-          {/* <div className="hidden md:block w-64 lg:w-80" style={{ background: colors.LightGrey }}>
+          <div className="hidden md:block w-64 lg:w-80" style={{ background: colors.LightGrey }}>
             <Sidebar />
-          </div> */}
+          </div>
         
         {/* Main content */}
         <div className="flex-1 p-4 md:p-6 lg:p-8" style={{ background: colors.LightGrey }}>

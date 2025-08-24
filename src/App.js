@@ -29,6 +29,9 @@ import { Layout } from "./Atoms";
 import { ErrorBoundary } from "./components";
 
 import Offers from "Pages/User/Offers";
+import AddCategory from "Pages/Admin Dashboard/AddCategory";
+import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";
+import AddMenu from "Pages/Admin Dashboard/AddMenu";
 
 // Protected Route Components
 const ProtectedRoute = ({ children, allowedRoles, userRole }) => {
@@ -76,6 +79,9 @@ function App() {
 
           {/* Protected Admin Routes */}
           <Route path="/:hotelName/admin/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
+<Route path="/:hotelName/admin/add-category" element={<Layout><AddCategory /></Layout>} />
+<Route path="/:hotelName/admin/add-special-category" element={<Layout><CategoryManager /></Layout>} />
+<Route path="/:hotelName/admin/add-menu" element={<Layout><AddMenu /></Layout>} />
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/admin/login" replace />} />

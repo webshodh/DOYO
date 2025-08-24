@@ -38,7 +38,7 @@ export const ViewRoleColumns = [
 
 export const ViewMenuColumns = [
   { header: "Sr.No", accessor: "Sr.No" },
-  { header: "Img", accessor: "Img" },
+  // { header: "Img", accessor: "Img" },
   { header: "Menu Category", accessor: "Menu Category" },
   { header: "Menu Name", accessor: "Menu Name" },
   { header: "Price", accessor: "Price" },

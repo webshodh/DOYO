@@ -6,7 +6,7 @@ import {
   validateEmail,
   validateContact,
   validatePassword,
-} from "../Validation/hotelValidation";
+} from "../../Validation/hotelValidation";
 
 const AdminCard = styled(Card)`
   margin-bottom: 15px;
