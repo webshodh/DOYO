@@ -2,20 +2,20 @@ import { useState, useEffect } from 'react';
 import { db } from './firebase/firebaseConfig';
 import { onValue, ref } from 'firebase/database';
 import { getAuth } from "firebase/auth";
-const useCategoriesData = (hotelName) => {
-  const [categoriesData, setCategoriesData] = useState([]);
+const useMainCategoriesData = (hotelName) => {
+  const [mainCategoriesData, setMainCategoriesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   useEffect(() => {
-    const categoriesRef = ref(db, `/hotels/${hotelName}/categories/`);
+    const categoriesRef = ref(db, `/hotels/${hotelName}/Maincategories/`);
     const unsubscribe = onValue(categoriesRef, (snapshot) => {
       try {
         const data = snapshot.val();
         const categoriesArray = data ? Object.values(data) : [];
-        setCategoriesData(categoriesArray);
+        setMainCategoriesData(categoriesArray);
       } catch (err) {
         setError(err);
       } finally {
@@ -25,9 +25,9 @@ const useCategoriesData = (hotelName) => {
 
     return () => unsubscribe();
   }, [hotelName]);
-  console.log("categoriesData", categoriesData)
-  const totalCategories = categoriesData.length;
-  return { categoriesData, totalCategories, loading, error };
+  console.log("MaincategoriesData", mainCategoriesData)
+  const totalMainCategories = mainCategoriesData.length;
+  return { mainCategoriesData, totalMainCategories, loading, error };
 };
 
-export default useCategoriesData;
+export default useMainCategoriesData;

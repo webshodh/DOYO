@@ -10,6 +10,7 @@ import { IoMdHome } from "react-icons/io";
 import Widget from "../../components/Cards/Widget";
 import { MdBarChart } from "react-icons/md";
 import { MenuDashboard } from "Pages";
+import useMainCategoriesData from "data/useMainCategoriesData";
 
 function AdminDashboard() {
   const [filterType, setFilterType] = useState("Daily");
@@ -33,6 +34,13 @@ function AdminDashboard() {
     error: categoriesError,
   } = useCategoriesData(hotelName);
 
+  const {
+    mainCategoriesData,
+    totalMainCategories,
+    // loading: categoriesLoading,
+    // error: categoriesError,
+  } = useMainCategoriesData(hotelName);
+
   if (menuLoading || categoriesLoading) return <div>Loading...</div>;
   if (menuError || categoriesError)
     return <div>Error: {menuError?.message || categoriesError?.message}</div>;
@@ -50,6 +58,11 @@ function AdminDashboard() {
           icon={<IoMdHome className="h-6 w-6" />}
           title={"Total Categories"}
           subtitle={totalCategories}
+        />
+         <Widget
+          icon={<IoMdHome className="h-6 w-6" />}
+          title={"Total Special Categories"}
+          subtitle={totalMainCategories}
         />
       </div>
       <MenuDashboard />

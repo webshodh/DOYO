@@ -26,10 +26,10 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <HotelProvider>
-      <UserAuthProvider>
-      <UserProvider>
-        <App />
-        </UserProvider>
+        <UserAuthProvider>
+          <UserProvider>
+            <App />
+          </UserProvider>
         </UserAuthProvider>
       </HotelProvider>
     </AuthProvider>

@@ -57,7 +57,7 @@ const CategoryFormModal = ({
   return (
     <Modal title={title} handleClose={handleCancel}>
       <div className="p-10 bg-white rounded-lg shadow-md" style={{ width: "40%", marginRight: "10px" }}>
-        <PageTitle pageTitle={isEditMode ? "Edit Category" : "Add Special Category"} />
+        <PageTitle pageTitle={isEditMode ? "Edit Category" : "Add Category"} />
         
         <form onSubmit={handleSubmit}>
           <input

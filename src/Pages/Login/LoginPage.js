@@ -41,7 +41,7 @@ const LoginPage = () => {
       // First check if user exists in superadmin collection
       const superAdminRef = ref(db, `superadmin/${userUid}`);
       const superAdminSnapshot = await get(superAdminRef);
-
+console.log("superAdminRef",superAdminRef)
       if (superAdminSnapshot.exists()) {
         return { role: "super-admin", data: superAdminSnapshot.val() };
       }
@@ -116,7 +116,7 @@ const LoginPage = () => {
 
         // Route based on role
         if (role === "super-admin") {
-          navigate("/superadmin/dashboard");
+          navigate("/super-admin/dashboard");
         } else if (role === "admin") {
           await handleAdminLogin(user.uid, data);
         }

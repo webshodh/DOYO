@@ -9,7 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Import the CSS for toast notifications
 import { useParams } from "react-router-dom";
 
-const AdminsList = () => {
+const AdminList = () => {
   const { data, loading, error } = useData("/admins/");
   const { hotelName } = useParams();
 
@@ -67,4 +67,4 @@ const AdminsList = () => {
   );
 };
 
-export default AdminsList;
+export default AdminList;
