@@ -13,8 +13,6 @@ import { MenuDashboard } from "Pages";
 import useMainCategoriesData from "data/useMainCategoriesData";
 
 function AdminDashboard() {
-  const [filterType, setFilterType] = useState("Daily");
-
   const auth = getAuth();
   const currentAdminId = auth.currentUser?.uid;
 
@@ -59,7 +57,7 @@ function AdminDashboard() {
           title={"Total Categories"}
           subtitle={totalCategories}
         />
-         <Widget
+        <Widget
           icon={<IoMdHome className="h-6 w-6" />}
           title={"Total Special Categories"}
           subtitle={totalMainCategories}

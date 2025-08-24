@@ -6,7 +6,7 @@ import PageTitle  from "../../Atoms/PageTitle";
 import { ViewCategoryColumns } from "../../data/Columns";
 import { DynamicTable } from "../../components";
 import SearchWithButton from "../../components/SearchWithAddButton";
-import CategoryFormModal from "../../components/CategoryFormModal";
+import CategoryFormModal from "../../components/CategoryFormModals";
 import { useCategoryManager } from "../../customHooks/mainCategory";
 
 const CategoryManager = () => {

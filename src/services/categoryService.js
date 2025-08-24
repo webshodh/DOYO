@@ -1,46 +1,30 @@
-// services/CategoryService.js
 import { db } from "../data/firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
+import {
+  validateCategoryForm,
+  sanitizeCategoryName,
+} from "../Validation/categoryValidation";
 
-class CategoryService {
-  constructor() {
-    this.auth = getAuth();
-  }
-
+export const categoryServices = {
   // Get current admin ID
-  getAdminID() {
-    return this.auth.currentUser?.uid;
-  }
-
-  // Subscribe to categories changes
-  subscribeToCategories(hotelName, callback) {
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/categories/`),
-      (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          callback(Object.values(data));
-        } else {
-          callback([]);
-        }
-      }
-    );
-    return unsubscribe;
-  }
+  getCurrentAdminId: () => {
+    const auth = getAuth();
+    return auth.currentUser?.uid;
+  },
 
   // Check if admin has permission for the hotel
-  async checkPermission(hotelName) {
+  checkAdminPermission: async (hotelName) => {
     try {
-      const adminID = this.getAdminID();
-      if (!adminID) {
+      const adminId = categoryServices.getCurrentAdminId();
+      if (!adminId) {
         throw new Error("Admin not authenticated");
       }
 
       const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminID}/hotels/${hotelName}/uuid`)).then(
+        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
           (snapshot) => snapshot.val()
         ),
         get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
@@ -53,39 +37,58 @@ class CategoryService {
       console.error("Error checking permission:", error);
       return false;
     }
-  }
+  },
 
-  // Check if category name already exists
-  isDuplicateCategory(categories, categoryName, excludeCategoryId = null) {
-    const normalizedCategoryName = categoryName.trim().toLowerCase();
-    return categories.some(
-      (category) =>
-        category.categoryName.toLowerCase() === normalizedCategoryName &&
-        category.categoryId !== excludeCategoryId
+  // Subscribe to categories changes with real-time updates
+  subscribeToCategories: (hotelName, callback) => {
+    if (!hotelName) {
+      callback([]);
+      return () => {};
+    }
+
+    const unsubscribe = onValue(
+      ref(db, `/hotels/${hotelName}/categories/`),
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const categoriesArray = Object.values(data).map(
+            (category, index) => ({
+              ...category,
+              srNo: index + 1,
+            })
+          );
+          callback(categoriesArray);
+        } else {
+          callback([]);
+        }
+      },
+      (error) => {
+        console.error("Error fetching categories:", error);
+        toast.error("Error loading categories", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        callback([]);
+      }
     );
-  }
+
+    return unsubscribe;
+  },
 
   // Add new category
-  async addCategory(hotelName, categoryName, categories) {
-    if (!categoryName.trim()) {
-      toast.error("Category name cannot be empty.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      return false;
-    }
-
-    if (this.isDuplicateCategory(categories, categoryName)) {
-      toast.error("Category already exists.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      return false;
-    }
-
+  addCategory: async (hotelName, categoryName, existingCategories = []) => {
     try {
-      const hasPermission = await this.checkPermission(hotelName);
+      // Validate category name and check for duplicates
+      if (!validateCategoryForm(categoryName, existingCategories)) {
+        return false;
+      }
+
+      // Check permissions
+      const hasPermission = await categoryServices.checkAdminPermission(
+        hotelName
+      );
       if (!hasPermission) {
         toast.error(
-          "You do not have permission to add categories for this hotel.",
+          "You do not have permission to add categories for this hotel",
           {
             position: toast.POSITION.TOP_RIGHT,
           }
@@ -93,15 +96,26 @@ class CategoryService {
         return false;
       }
 
+      // Sanitize and prepare category data
+      const sanitizedName = sanitizeCategoryName(categoryName);
       const categoryId = uid();
-      await set(ref(db, `/hotels/${hotelName}/categories/${categoryId}`), {
-        categoryName: categoryName.trim(),
+      const categoryData = {
+        categoryName: sanitizedName,
         categoryId,
-      });
+        createdAt: new Date().toISOString(),
+        createdBy: categoryServices.getCurrentAdminId(),
+      };
 
-      toast.success("Category Added Successfully!", {
+      // Save to database
+      await set(
+        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+        categoryData
+      );
+
+      toast.success("Category added successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
+
       return true;
     } catch (error) {
       console.error("Error adding category:", error);
@@ -110,29 +124,28 @@ class CategoryService {
       });
       return false;
     }
-  }
+  },
 
   // Update existing category
-  async updateCategory(hotelName, categoryId, categoryName, categories) {
-    if (!categoryName.trim()) {
-      toast.error("Category name cannot be empty.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      return false;
-    }
-
-    if (this.isDuplicateCategory(categories, categoryName, categoryId)) {
-      toast.error("Category already exists.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      return false;
-    }
-
+  updateCategory: async (
+    hotelName,
+    categoryId,
+    categoryName,
+    existingCategories = []
+  ) => {
     try {
-      const hasPermission = await this.checkPermission(hotelName);
+      // Validate category name and check for duplicates (excluding current category)
+      if (!validateCategoryForm(categoryName, existingCategories, categoryId)) {
+        return false;
+      }
+
+      // Check permissions
+      const hasPermission = await categoryServices.checkAdminPermission(
+        hotelName
+      );
       if (!hasPermission) {
         toast.error(
-          "You do not have permission to update categories for this hotel.",
+          "You do not have permission to update categories for this hotel",
           {
             position: toast.POSITION.TOP_RIGHT,
           }
@@ -140,18 +153,33 @@ class CategoryService {
         return false;
       }
 
-      if (!window.confirm("Confirm update")) {
+      // Confirm update
+      const confirmUpdate = window.confirm(
+        "Are you sure you want to update this category?"
+      );
+      if (!confirmUpdate) {
         return false;
       }
 
-      await update(ref(db, `/hotels/${hotelName}/categories/${categoryId}`), {
-        categoryName: categoryName.trim(),
+      // Sanitize and prepare updated data
+      const sanitizedName = sanitizeCategoryName(categoryName);
+      const updateData = {
+        categoryName: sanitizedName,
         categoryId,
-      });
+        updatedAt: new Date().toISOString(),
+        updatedBy: categoryServices.getCurrentAdminId(),
+      };
 
-      toast.success("Category Updated Successfully!", {
+      // Update in database
+      await update(
+        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+        updateData
+      );
+
+      toast.success("Category updated successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
+
       return true;
     } catch (error) {
       console.error("Error updating category:", error);
@@ -160,15 +188,18 @@ class CategoryService {
       });
       return false;
     }
-  }
+  },
 
   // Delete category
-  async deleteCategory(hotelName, category) {
+  deleteCategory: async (hotelName, category) => {
     try {
-      const hasPermission = await this.checkPermission(hotelName);
+      // Check permissions
+      const hasPermission = await categoryServices.checkAdminPermission(
+        hotelName
+      );
       if (!hasPermission) {
         toast.error(
-          "You do not have permission to delete categories for this hotel.",
+          "You do not have permission to delete categories for this hotel",
           {
             position: toast.POSITION.TOP_RIGHT,
           }
@@ -176,17 +207,37 @@ class CategoryService {
         return false;
       }
 
-      if (!window.confirm("Confirm delete")) {
+      // Confirm deletion
+      const confirmDelete = window.confirm(
+        `Are you sure you want to delete the category "${category.categoryName}"? This action cannot be undone.`
+      );
+      if (!confirmDelete) {
         return false;
       }
 
+      // Check if category is being used by any menus (optional check)
+      const isInUse = await categoryServices.checkCategoryUsage(
+        hotelName,
+        category.categoryName
+      );
+      if (isInUse) {
+        const forceDelete = window.confirm(
+          "This category is being used by some menu items. Deleting it may affect those items. Do you still want to continue?"
+        );
+        if (!forceDelete) {
+          return false;
+        }
+      }
+
+      // Delete from database
       await remove(
         ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`)
       );
 
-      toast.error("Category Deleted Successfully!", {
+      toast.success("Category deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
+
       return true;
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -195,15 +246,36 @@ class CategoryService {
       });
       return false;
     }
-  }
+  },
 
-  // Prepare category for editing
-  async prepareEdit(hotelName, category) {
+  // Check if category is being used by menus (optional utility)
+  checkCategoryUsage: async (hotelName, categoryName) => {
     try {
-      const hasPermission = await this.checkPermission(hotelName);
+      const menuSnapshot = await get(ref(db, `/hotels/${hotelName}/menu`));
+      if (menuSnapshot.exists()) {
+        const menus = Object.values(menuSnapshot.val());
+        return menus.some(
+          (menu) =>
+            menu.menuCategory === categoryName ||
+            menu.mainCategory === categoryName
+        );
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking category usage:", error);
+      return false;
+    }
+  },
+
+  // Prepare category for editing (with permission check)
+  prepareForEdit: async (hotelName, category) => {
+    try {
+      const hasPermission = await categoryServices.checkAdminPermission(
+        hotelName
+      );
       if (!hasPermission) {
         toast.error(
-          "You do not have permission to update categories for this hotel.",
+          "You do not have permission to edit categories for this hotel",
           {
             position: toast.POSITION.TOP_RIGHT,
           }
@@ -212,24 +284,64 @@ class CategoryService {
       }
       return category;
     } catch (error) {
-      console.error("Error preparing category update:", error);
+      console.error("Error preparing category for edit:", error);
+      toast.error("Error preparing category for editing", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
       return null;
     }
-  }
+  },
 
   // Filter categories based on search term
-  filterCategories(categories, searchTerm) {
+  filterCategories: (categories, searchTerm) => {
+    if (!searchTerm.trim()) {
+      return categories.map((category, index) => ({
+        ...category,
+        srNo: index + 1,
+      }));
+    }
+
     return categories
       .filter((category) =>
         category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .map((category, index) => ({
-        srNo: index + 1,
         ...category,
+        srNo: index + 1,
       }));
-  }
-}
+  },
 
-// Create and export a singleton instance
-const categoryService = new CategoryService();
-export default categoryService;
+  // Get category statistics (optional utility)
+  getCategoryStats: async (hotelName) => {
+    try {
+      const [categorySnapshot, menuSnapshot] = await Promise.all([
+        get(ref(db, `/hotels/${hotelName}/categories`)),
+        get(ref(db, `/hotels/${hotelName}/menu`)),
+      ]);
+
+      const totalCategories = categorySnapshot.exists()
+        ? Object.keys(categorySnapshot.val()).length
+        : 0;
+
+      let categoryUsage = {};
+      if (menuSnapshot.exists()) {
+        const menus = Object.values(menuSnapshot.val());
+        menus.forEach((menu) => {
+          if (menu.menuCategory) {
+            categoryUsage[menu.menuCategory] =
+              (categoryUsage[menu.menuCategory] || 0) + 1;
+          }
+        });
+      }
+
+      return {
+        totalCategories,
+        categoryUsage,
+        unusedCategories: totalCategories - Object.keys(categoryUsage).length,
+      };
+    } catch (error) {
+      console.error("Error getting category stats:", error);
+      return null;
+    }
+  },
+};
