@@ -4,7 +4,7 @@ import Sidebar from "../components/SideBar";
 import Footer from "../components/Footer";
 import { useLocation } from "react-router-dom";
 import { colors } from "theme/theme";
-
+import NavBarComponent from "../components/NavBarComponent"
 const Layout = ({ children }) => {
   const location = useLocation();
   const [hotelName, setHotelName] = useState("");
@@ -30,9 +30,9 @@ const Layout = ({ children }) => {
 
   return (
     <div className="flex flex-col " style={{ background: colors.LightGrey }}>
-      <Header />
+      {/* <Header /> */}
       {/* Sidebar toggle button */}
-      
+      <NavBarComponent/>
       <div className="flex flex-1 flex-row h-screen">
         {/* Sidebar: Only render if allowed by route and if screen width is medium or larger */}
         

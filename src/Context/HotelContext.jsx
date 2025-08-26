@@ -1,41 +1,40 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
 const HotelContext = createContext();
 
 export const useHotelContext = () => {
   const context = useContext(HotelContext);
   if (!context) {
-    throw new Error('useHotelContext must be used within a HotelProvider');
+    throw new Error("useHotelContext must be used within a HotelProvider");
   }
   return context;
 };
 
 export const HotelProvider = ({ children }) => {
-  const [hotelName, setHotelName] = useState('');
-  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [hotels, setHotels] = useState([]); // list of hotels for admin
+  const [selectedHotel, setSelectedHotel] = useState(null); // currently active hotel
 
-  const updateSelectedHotel = (hotelName, hotelData) => {
-    setHotelName(hotelName);
-    setSelectedHotel(hotelData);
+  // Set hotels list + default selection (first hotel)
+  const updateHotels = (hotelList) => {
+    setHotels(hotelList);
+    if (hotelList.length > 0) {
+      setSelectedHotel(hotelList[0]);
+    }
   };
 
   const clearSelection = () => {
-    setHotelName('');
+    setHotels([]);
     setSelectedHotel(null);
   };
 
   const value = {
-    hotelName,
-    setHotelName,
+    hotels,
+    setHotels,
     selectedHotel,
     setSelectedHotel,
-    updateSelectedHotel,
-    clearSelection
+    updateHotels,
+    clearSelection,
   };
 
-  return (
-    <HotelContext.Provider value={value}>
-      {children}
-    </HotelContext.Provider>
-  );
+  return <HotelContext.Provider value={value}>{children}</HotelContext.Provider>;
 };
