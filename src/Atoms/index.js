@@ -1,9 +1,6 @@
-export {default as TextInput} from './TextInput'
-export {default as SelectInput} from './SelectInput'
-export {default as HotelRow} from './HotelRow'
-export {default as Layout} from './Layout'
-export {default as BackToTop} from './BackToTop'
-export {default as PageTitle} from './PageTitle'
-export {default as Spinner} from './Spinner'
-export {default as PrimaryButton} from './PrimaryButton'
-export {default as Footer} from './Footer'
+export { default as BackToTop } from "./BackToTop";
+export { default as PageTitle } from "./PageTitle";
+export { default as Spinner } from "./Spinner";
+export { default as AlertMessage } from "./AlertMessage";
+export { default as CardTitle } from "./CardTitle";
+// export { default as Spinner } from "./Spinner";

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import MenuTab from "./MenuTab"; // Adjust the path if necessary
 import "../styles/CategoryTabs.css";
 import { colors } from "theme/theme";
 

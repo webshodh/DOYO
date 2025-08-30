@@ -2,7 +2,7 @@ import React from "react";
 import useData from "../../data/useData";
 import { PageTitle } from "../../Atoms";
 import { DynamicTable } from "../../components";
-import { adminsListColumn } from "../../data/Columns";
+import { adminsListColumn } from "../../Constants/Columns";
 import { db } from "../../data/firebase/firebaseConfig";
 import { ref, update, get } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";

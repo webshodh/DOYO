@@ -2,7 +2,7 @@ import React from "react";
 import { Star } from "lucide-react"; // Star icon for reviews
 import { colors } from "theme/theme";
 
-const Navbar = ({ title, hotelPlaceId, hotelName }) => {
+const NavBar = ({ title, hotelPlaceId, hotelName }) => {
   // Function to handle Google review redirection
   const handleReviewClick = () => {
     let reviewUrl;
@@ -61,4 +61,4 @@ const Navbar = ({ title, hotelPlaceId, hotelName }) => {
   );
 };
 
-export default Navbar;
+export default NavBar;

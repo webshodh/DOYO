@@ -2,8 +2,8 @@
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import PageTitle  from "../../Atoms/PageTitle";
-import { ViewCategoryColumns } from "../../data/Columns";
+import PageTitle from "../../Atoms/PageTitle";
+import { ViewCategoryColumns } from "../../Constants/Columns";
 import { DynamicTable } from "../../components";
 import SearchWithButton from "../../components/SearchWithAddButton";
 import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
@@ -13,9 +13,9 @@ const CategoryManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editCategory, setEditCategory] = useState(null);
-  
+
   const { hotelName } = useParams();
-  
+
   const {
     categories,
     loading,
@@ -28,7 +28,7 @@ const CategoryManager = () => {
   // Filter and format categories for table
   const categoriesData = useMemo(() => {
     return categories
-      .filter(category =>
+      .filter((category) =>
         category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .map((category, index) => ({
@@ -84,7 +84,7 @@ const CategoryManager = () => {
 
   return (
     <>
-      <div  style={{margin:'20px'}}>
+      <div style={{ margin: "20px" }}>
         <PageTitle pageTitle="View Special Categories" />
         <CategoryFormModal
           show={showModal}
@@ -93,7 +93,6 @@ const CategoryManager = () => {
           editCategory={editCategory}
           title={editCategory ? "Edit Category" : "Add Category"}
           type="specialcategory"
-
         />
 
         <div style={{ width: "100%" }}>
@@ -103,9 +102,7 @@ const CategoryManager = () => {
             buttonText="Add Special Category"
             onButtonClick={handleAdd}
           />
-          
-          
-          
+
           <DynamicTable
             columns={ViewCategoryColumns}
             data={categoriesData}
@@ -114,7 +111,7 @@ const CategoryManager = () => {
           />
         </div>
       </div>
-      
+
       <ToastContainer />
     </>
   );

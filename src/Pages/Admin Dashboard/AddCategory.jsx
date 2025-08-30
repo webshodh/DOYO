@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "../../styles/AddCategory.css";
 import { PageTitle } from "../../Atoms";
-import { ViewCategoryColumns } from "../../data/Columns";
+import { ViewCategoryColumns } from "../../Constants/Columns";
 import { DynamicTable } from "../../components";
 import { useParams } from "react-router-dom";
 import SearchWithButton from "components/SearchWithAddButton";

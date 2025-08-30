@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
 import { DynamicTable } from "components";
-import { ViewMenuColumns } from "data/Columns";
+import { ViewMenuColumns } from "Constants/Columns";
 import CategoryTabs from "components/CategoryTab";
 import { PageTitle } from "Atoms";
 import SearchWithButton from "components/SearchWithAddButton";
