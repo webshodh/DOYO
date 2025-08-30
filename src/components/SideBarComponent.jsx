@@ -3,13 +3,13 @@ import { NavLink, useParams } from "react-router-dom";
 import { useHotelSelection } from "../Context/HotelSelectionContext";
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const { hotelId } = useParams();
+  const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
 
   const menuItems = [
     {
       name: "Dashboard",
-      path: `/${hotelId}/admin/dashboard`,
+      path: `/${hotelName}/admin/dashboard`,
       icon: (
         <svg
           className="w-5 h-5"
@@ -34,7 +34,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
     {
       name: "Add Category",
-      path: `/${hotelId}/admin/add-category`,
+      path: `/${hotelName}/admin/add-category`,
       icon: (
         <svg
           className="w-5 h-5"
@@ -53,7 +53,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
     {
       name: "Add Special Category",
-      path: `/${hotelId}/admin/add-special-category`,
+      path: `/${hotelName}/admin/add-special-category`,
       icon: (
         <svg
           className="w-5 h-5"
@@ -72,7 +72,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
     {
       name: "Add Menu",
-      path: `/${hotelId}/admin/add-menu`,
+      path: `/${hotelName}/admin/add-menu`,
       icon: (
         <svg
           className="w-5 h-5"
@@ -89,9 +89,34 @@ const Sidebar = ({ isOpen, onClose }) => {
         </svg>
       ),
     },
+     {
+      name: "Preview",
+      path: `/viewMenu/${hotelName}/home`,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4H8V5z"
+          />
+        </svg>
+      ),
+    },
     {
       name: "Settings",
-      path: `/${hotelId}/admin/settings`,
+      path: `/${hotelName}/admin/settings`,
       icon: (
         <svg
           className="w-5 h-5"
@@ -152,10 +177,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </svg>
               </div>
               <div>
-                <h2 className="font-semibold text-gray-800">Admin Panel</h2>
-                <p className="text-xs text-gray-500 truncate max-w-32">
+                <h3 className="font-semibold text-gray-800">Admin Panel</h3>
+                <h4 className="text-xs text-gray-500 truncate max-w-32">
                   {selectedHotel?.name || "Hotel Management"}
-                </p>
+                </h4>
               </div>
             </div>
 

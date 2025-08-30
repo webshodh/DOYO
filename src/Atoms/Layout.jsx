@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
-import Sidebar from "../components/SideBar";
+import Sidebar from "../components/SideBarComponent";
 import Footer from "../components/Footer";
 import { useLocation } from "react-router-dom";
 import { colors } from "theme/theme";

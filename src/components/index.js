@@ -19,7 +19,4 @@ export {default as NavAvatar} from './Navbar/NavAvatar'
 export {default as Navbar} from './Navbar/Navbar'
 export {default as Navbutton} from './Navbar/Navbutton'
 
-// Header & Sidebar
-export {default as Header} from '../components/Header'
-export {default as SideBar} from './SideBar'
-export {default as Tab} from './Tabs'
+

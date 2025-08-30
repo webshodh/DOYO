@@ -217,16 +217,15 @@ function Home() {
             Fabar={true}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
           />
-          
-          <AlertMessage
+
+          {/* <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
             }
             type="info"
             icon="bi-info-circle"
             linkUrl="www.google.com"
-          />
-         
+          /> */}
         </>
       )}
 
@@ -294,7 +293,7 @@ function Home() {
           height: "calc(100vh - 240px)",
           overflowY: "auto",
           background: colors.LightGrey,
-          marginBottom: "50px",
+          // marginBottom: "50px",
         }}
       >
         {filteredAndSortedItems.map((item) => (

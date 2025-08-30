@@ -5,34 +5,52 @@ import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import { validateHotelForm } from "../Validation/hotelValidation";
 
+// Hotel Services - Updated to support single admin per hotel with multiple hotel assignments
 export const hotelServices = {
-  // Check if admin exists by email
-  checkExistingAdmin: async (email) => {
+  // Search for admin by email
+  searchAdminByEmail: async (email) => {
     try {
       const adminsRef = ref(db, "admins");
       const snapshot = await get(adminsRef);
 
       if (snapshot.exists()) {
         const allAdmins = snapshot.val();
-        for (const [existingAdminId, adminData] of Object.entries(allAdmins)) {
+        for (const [adminId, adminData] of Object.entries(allAdmins)) {
           if (adminData.email === email) {
+            // Get hotel names from admin's hotels object
+            const hotelNames = adminData.hotels ? Object.keys(adminData.hotels) : [];
+            
             return {
               exists: true,
-              adminId: existingAdminId,
+              adminId: adminId,
               adminData: {
                 name: adminData.name,
                 contact: adminData.contact,
                 email: adminData.email,
                 role: adminData.role || "admin",
+                hotels: hotelNames,
               },
             };
           }
         }
       }
-      return { exists: false };
+      
+      return { exists: false, adminId: null, adminData: null };
     } catch (error) {
-      console.error("Error checking existing admin:", error);
-      throw new Error("Failed to check existing admin");
+      console.error('Error searching admin:', error);
+      throw new Error('Failed to search admin');
+    }
+  },
+
+  // Check if hotel exists
+  checkHotelExists: async (hotelName) => {
+    try {
+      const hotelRef = ref(db, `/hotels/${hotelName}`);
+      const snapshot = await get(hotelRef);
+      return snapshot.exists();
+    } catch (error) {
+      console.error("Error checking hotel existence:", error);
+      return false;
     }
   },
 
@@ -109,63 +127,48 @@ export const hotelServices = {
     }
   },
 
-  // Process admins (create new or link existing)
-  processAdmins: async (admins, hotelName, hotelUuid) => {
-    const processedAdmins = [];
-
-    for (const admin of admins) {
-      try {
-        let adminId;
-
-        if (admin.isExisting) {
-          adminId = admin.existingAdminId;
-        } else {
-          // Create new admin account
-          adminId = await hotelServices.createAdminAccount(admin);
-
-          // Save new admin data
-          await hotelServices.saveAdminData(adminId, admin);
-        }
-
-        // Update admin's hotel list
-        await hotelServices.updateAdminHotelList(adminId, hotelName, hotelUuid);
-
-        // Add to processed admins list
-        processedAdmins.push({
-          adminId,
-          name: admin.name,
-          email: admin.email,
-          contact: admin.contact,
-          role: admin.role || "admin",
-          assignedAt: new Date().toISOString(),
-        });
-      } catch (error) {
-        console.error(`Error processing admin ${admin.email}:`, error);
-        throw new Error(
-          `Failed to process admin ${admin.email}: ${error.message}`
-        );
-      }
-    }
-
-    return processedAdmins;
-  },
-
-  // Main function to create hotel with admins
-  createHotelWithAdmins: async (hotelName, admins) => {
+  // Create hotel with admin (existing or new)
+  createHotelWithAdmin: async (hotelName, admin) => {
     try {
-      // Validate form data
-      if (!validateHotelForm(hotelName, admins)) {
-        return { success: false, error: "Validation failed" };
+      // Validate basic requirements
+      if (!hotelName.trim()) {
+        return { success: false, message: "Hotel name is required" };
+      }
+
+      if (!admin.email.trim() || !admin.name.trim() || !admin.contact.trim()) {
+        return { success: false, message: "All admin fields are required" };
+      }
+
+      // Check if hotel already exists
+      const hotelExists = await hotelServices.checkHotelExists(hotelName);
+      if (hotelExists) {
+        return { success: false, message: "Hotel with this name already exists" };
       }
 
       const hotelUuid = uuidv4();
+      let adminId;
+      let isNewAdmin = false;
 
-      // Process all admins
-      const processedAdmins = await hotelServices.processAdmins(
-        admins,
-        hotelName,
-        hotelUuid
-      );
+      if (admin.isExisting) {
+        // Use existing admin
+        adminId = admin.existingAdminId;
+      } else {
+        // Create new admin account
+        if (!admin.password.trim()) {
+          return { success: false, message: "Password is required for new admin" };
+        }
+
+        try {
+          adminId = await hotelServices.createAdminAccount(admin);
+          await hotelServices.saveAdminData(adminId, admin);
+          isNewAdmin = true;
+        } catch (error) {
+          return { success: false, message: error.message };
+        }
+      }
+
+      // Update admin's hotel list
+      await hotelServices.updateAdminHotelList(adminId, hotelName, hotelUuid);
 
       // Prepare hotel data
       const hotelData = {
@@ -173,38 +176,164 @@ export const hotelServices = {
         hotelName,
         createdAt: new Date().toISOString(),
         status: "active",
-        admins: processedAdmins.reduce((acc, admin) => {
-          acc[admin.adminId] = admin;
-          return acc;
-        }, {}),
+        admin: {
+          adminId,
+          name: admin.name,
+          email: admin.email,
+          contact: admin.contact,
+          role: admin.role || "admin",
+          assignedAt: new Date().toISOString(),
+        },
       };
 
       // Save hotel data
       await hotelServices.saveHotelData(hotelName, hotelData);
 
-      toast.success("Hotel and Admin(s) added successfully!", {
+      const message = isNewAdmin 
+        ? `Hotel "${hotelName}" created with new admin "${admin.name}"`
+        : `Hotel "${hotelName}" assigned to existing admin "${admin.name}"`;
+
+      toast.success(message, {
         position: toast.POSITION.TOP_RIGHT,
       });
 
-      return { success: true, hotelUuid };
+      return {
+        success: true,
+        hotelId: hotelUuid,
+        adminId: adminId,
+        message: message,
+        isNewAdmin: isNewAdmin,
+      };
     } catch (error) {
-      console.error("Error creating hotel with admins:", error);
-      toast.error(`Error: ${error.message}`, {
+      console.error('Error creating hotel with admin:', error);
+      const errorMessage = error.message || 'Failed to create hotel with admin';
+      
+      toast.error(`Error: ${errorMessage}`, {
         position: toast.POSITION.TOP_RIGHT,
       });
-      return { success: false, error: error.message };
+
+      return {
+        success: false,
+        message: errorMessage,
+      };
     }
   },
 
-  // Check if hotel name already exists
-  checkHotelExists: async (hotelName) => {
+  // Get admin details with associated hotels
+  getAdminWithHotels: async (adminId) => {
     try {
-      const hotelRef = ref(db, `/hotels/${hotelName}`);
-      const snapshot = await get(hotelRef);
-      return snapshot.exists();
+      const adminRef = ref(db, `admins/${adminId}`);
+      const snapshot = await get(adminRef);
+
+      if (snapshot.exists()) {
+        const adminData = snapshot.val();
+        const hotels = adminData.hotels ? Object.values(adminData.hotels) : [];
+        
+        return {
+          admin: {
+            id: adminId,
+            name: adminData.name,
+            email: adminData.email,
+            contact: adminData.contact,
+            role: adminData.role || "admin",
+            createdAt: adminData.createdAt,
+          },
+          hotels: hotels,
+        };
+      } else {
+        throw new Error('Admin not found');
+      }
     } catch (error) {
-      console.error("Error checking hotel existence:", error);
-      return false;
+      console.error('Error getting admin with hotels:', error);
+      throw new Error('Failed to get admin details');
+    }
+  },
+
+  // Get all hotels for a specific admin by email
+  getHotelsByAdmin: async (adminEmail) => {
+    try {
+      const adminData = await hotelServices.searchAdminByEmail(adminEmail);
+      
+      if (adminData.exists) {
+        const adminDetails = await hotelServices.getAdminWithHotels(adminData.adminId);
+        return adminDetails.hotels;
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error getting hotels by admin:', error);
+      throw new Error('Failed to get hotels for admin');
+    }
+  },
+
+  // Assign existing hotel to existing admin
+  assignHotelToAdmin: async (hotelName, adminId) => {
+    try {
+      // Get hotel data
+      const hotelRef = ref(db, `/hotels/${hotelName}/info`);
+      const hotelSnapshot = await get(hotelRef);
+      
+      if (!hotelSnapshot.exists()) {
+        return { success: false, message: 'Hotel not found' };
+      }
+
+      const hotelData = hotelSnapshot.val();
+      
+      // Get admin data
+      const adminRef = ref(db, `admins/${adminId}`);
+      const adminSnapshot = await get(adminRef);
+      
+      if (!adminSnapshot.exists()) {
+        return { success: false, message: 'Admin not found' };
+      }
+
+      const adminData = adminSnapshot.val();
+
+      // Update hotel's admin
+      await set(ref(db, `/hotels/${hotelName}/info/admin`), {
+        adminId,
+        name: adminData.name,
+        email: adminData.email,
+        contact: adminData.contact,
+        role: adminData.role || "admin",
+        assignedAt: new Date().toISOString(),
+      });
+
+      // Update admin's hotel list
+      await hotelServices.updateAdminHotelList(adminId, hotelName, hotelData.uuid);
+
+      return {
+        success: true,
+        message: `Hotel "${hotelName}" successfully assigned to admin "${adminData.name}"`,
+      };
+    } catch (error) {
+      console.error('Error assigning hotel to admin:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to assign hotel to admin',
+      };
+    }
+  },
+
+  // Remove admin from hotel
+  removeAdminFromHotel: async (hotelName, adminId) => {
+    try {
+      // Remove hotel from admin's hotel list
+      await set(ref(db, `admins/${adminId}/hotels/${hotelName}`), null);
+
+      // Remove admin from hotel (set to null or remove admin field)
+      await set(ref(db, `/hotels/${hotelName}/info/admin`), null);
+
+      return {
+        success: true,
+        message: 'Admin successfully removed from hotel',
+      };
+    } catch (error) {
+      console.error('Error removing admin from hotel:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to remove admin from hotel',
+      };
     }
   },
 
@@ -222,5 +351,20 @@ export const hotelServices = {
       console.error("Error fetching hotels:", error);
       throw new Error("Failed to fetch hotels");
     }
+  },
+
+  // Legacy function - kept for backward compatibility but simplified
+  createHotelWithAdmins: async (hotelName, admins) => {
+    // For backward compatibility, take the first admin
+    if (admins && admins.length > 0) {
+      return await hotelServices.createHotelWithAdmin(hotelName, admins[0]);
+    } else {
+      return { success: false, message: "At least one admin is required" };
+    }
+  },
+
+  // Legacy function - kept for backward compatibility
+  checkExistingAdmin: async (email) => {
+    return await hotelServices.searchAdminByEmail(email);
   },
 };

@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Row, Col, Button, Card } from "react-bootstrap";
-import { FaPlus, FaTrash, FaCheckCircle } from "react-icons/fa";
+import { FaSearch, FaCheckCircle, FaUserPlus } from "react-icons/fa";
 import styled from "styled-components";
 import {
   validateEmail,
@@ -15,18 +15,17 @@ const AdminCard = styled(Card)`
 
 const HotelFormModal = ({
   hotelName,
-  admins,
+  admin,
   onHotelNameChange,
-  onAddAdmin,
-  onRemoveAdmin,
   onUpdateAdmin,
-  onCheckExistingAdmin,
+  onSearchAdmin,
+  onCreateNewAdmin,
   onSubmit,
   onReset,
-  canAddMoreAdmins,
-  canRemoveAdmin,
   submitting,
+  searching,
   getAdminValidationStatus,
+  adminExists,
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -66,44 +65,118 @@ const HotelFormModal = ({
           </Card.Body>
         </Card>
 
-        {/* Admin Management */}
+        {/* Admin Search and Management */}
         <Card className="mb-4">
-          <Card.Header className="d-flex justify-content-between align-items-center">
+          <Card.Header>
             <h4>Admin Management</h4>
-            <Button
-              variant="outline-primary"
-              size="sm"
-              onClick={onAddAdmin}
-              disabled={!canAddMoreAdmins || submitting}
-            >
-              <FaPlus /> Add Admin
-            </Button>
           </Card.Header>
           <Card.Body>
-            {admins.map((admin, index) => (
-              <AdminCard
-                key={admin.id}
-                isValid={getAdminValidationStatus(admin)}
-              >
+            {/* Admin Email Search */}
+            <Row className="mb-4">
+              <Col md={8}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Search Admin by Email *</Form.Label>
+                  <div className="d-flex">
+                    <Form.Control
+                      type="email"
+                      value={admin.email}
+                      onChange={(e) =>
+                        onUpdateAdmin("email", e.target.value)
+                      }
+                      placeholder="Enter admin email to search"
+                      disabled={submitting}
+                      isInvalid={
+                        admin.email.trim() && !validateEmail(admin.email)
+                      }
+                      isValid={
+                        admin.email.trim() && validateEmail(admin.email)
+                      }
+                    />
+                    <Button
+                      variant="outline-primary"
+                      className="ms-2"
+                      onClick={onSearchAdmin}
+                      disabled={
+                        !admin.email.trim() ||
+                        !validateEmail(admin.email) ||
+                        searching ||
+                        submitting
+                      }
+                    >
+                      {searching ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-1" />
+                          Searching...
+                        </>
+                      ) : (
+                        <>
+                          <FaSearch className="me-1" />
+                          Search
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Form.Control.Feedback type="invalid">
+                    Valid email is required
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            {/* Admin Details */}
+            {admin.email.trim() && validateEmail(admin.email) && (
+              <AdminCard isValid={getAdminValidationStatus()}>
                 <Card.Header className="d-flex justify-content-between align-items-center">
                   <h6>
-                    Admin {index + 1}
+                    Admin Details
                     {admin.isExisting && (
-                      <span className="badge bg-info ms-2">Existing</span>
+                      <span className="badge bg-success ms-2">
+                        <FaCheckCircle className="me-1" />
+                        Existing Admin Found
+                      </span>
+                    )}
+                    {!admin.isExisting && admin.searched && (
+                      <span className="badge bg-warning ms-2">
+                        <FaUserPlus className="me-1" />
+                        New Admin (Will be created)
+                      </span>
                     )}
                   </h6>
-                  {canRemoveAdmin && (
+                  {!admin.isExisting && admin.searched && (
                     <Button
-                      variant="outline-danger"
+                      variant="outline-success"
                       size="sm"
-                      onClick={() => onRemoveAdmin(admin.id)}
+                      onClick={onCreateNewAdmin}
                       disabled={submitting}
                     >
-                      <FaTrash />
+                      <FaUserPlus className="me-1" />
+                      Create New Admin
                     </Button>
                   )}
                 </Card.Header>
                 <Card.Body>
+                  {admin.isExisting && (
+                    <div className="alert alert-info mb-3">
+                      <FaCheckCircle className="me-2" />
+                      This admin already exists and will be assigned to this hotel.
+                      {admin.existingHotels && admin.existingHotels.length > 0 && (
+                        <div className="mt-2">
+                          <small>
+                            <strong>Currently managing hotels:</strong>{" "}
+                            {admin.existingHotels.join(", ")}
+                          </small>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!admin.isExisting && admin.searched && (
+                    <div className="alert alert-warning mb-3">
+                      <FaUserPlus className="me-2" />
+                      Admin with this email doesn't exist. Please fill in the details below to create a new admin.
+                    </div>
+                  )}
+
                   <Row>
                     <Col md={6}>
                       <Form.Group className="mb-3">
@@ -112,7 +185,7 @@ const HotelFormModal = ({
                           type="text"
                           value={admin.name}
                           onChange={(e) =>
-                            onUpdateAdmin(admin.id, "name", e.target.value)
+                            onUpdateAdmin("name", e.target.value)
                           }
                           placeholder="Enter admin name"
                           disabled={admin.isExisting || submitting}
@@ -127,47 +200,12 @@ const HotelFormModal = ({
 
                     <Col md={6}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Admin Email *</Form.Label>
-                        <Form.Control
-                          type="email"
-                          value={admin.email}
-                          onChange={(e) =>
-                            onUpdateAdmin(admin.id, "email", e.target.value)
-                          }
-                          onBlur={() =>
-                            onCheckExistingAdmin(admin.email, admin.id)
-                          }
-                          placeholder="Enter admin email"
-                          disabled={submitting}
-                          isInvalid={
-                            !admin.email.trim() || !validateEmail(admin.email)
-                          }
-                          isValid={
-                            admin.email.trim() && validateEmail(admin.email)
-                          }
-                        />
-                        {admin.isExisting && (
-                          <Form.Text className="text-info">
-                            <FaCheckCircle className="me-1" />
-                            Existing admin found - will be linked to this hotel
-                          </Form.Text>
-                        )}
-                        <Form.Control.Feedback type="invalid">
-                          Valid email is required
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
                         <Form.Label>Contact Number *</Form.Label>
                         <Form.Control
                           type="tel"
                           value={admin.contact}
                           onChange={(e) =>
-                            onUpdateAdmin(admin.id, "contact", e.target.value)
+                            onUpdateAdmin("contact", e.target.value)
                           }
                           placeholder="Enter 10-digit contact"
                           maxLength="10"
@@ -186,7 +224,9 @@ const HotelFormModal = ({
                         </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
+                  </Row>
 
+                  <Row>
                     <Col md={6}>
                       <Form.Group className="mb-3">
                         <Form.Label>
@@ -199,7 +239,7 @@ const HotelFormModal = ({
                           type="password"
                           value={admin.password}
                           onChange={(e) =>
-                            onUpdateAdmin(admin.id, "password", e.target.value)
+                            onUpdateAdmin("password", e.target.value)
                           }
                           placeholder="Enter password (min 6 characters)"
                           disabled={admin.isExisting || submitting}
@@ -227,7 +267,7 @@ const HotelFormModal = ({
                   </Row>
                 </Card.Body>
               </AdminCard>
-            ))}
+            )}
           </Card.Body>
         </Card>
 
@@ -237,9 +277,9 @@ const HotelFormModal = ({
             variant="success"
             type="submit"
             size="lg"
-            disabled={submitting}
+            disabled={submitting || !getAdminValidationStatus() || !hotelName.trim()}
           >
-            {submitting ? "Creating..." : "Create Hotel with Admin(s)"}
+            {submitting ? "Creating..." : "Create Hotel with Admin"}
           </Button>
           <Button
             variant="outline-secondary"

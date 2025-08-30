@@ -1,114 +1,128 @@
 import { useState, useCallback } from "react";
 import { hotelServices } from "../services/hotelServices";
 import { toast } from "react-toastify";
+import {
+  validateEmail,
+  validateContact,
+  validatePassword,
+} from "../Validation/hotelValidation";
 
 export const useHotel = () => {
   const [hotelName, setHotelName] = useState("");
-  const [admins, setAdmins] = useState([
-    {
-      id: 1,
-      name: "",
-      email: "",
-      password: "",
-      contact: "",
-      role: "admin",
-      isExisting: false,
-      existingAdminId: "",
-    },
-  ]);
+  const [admin, setAdmin] = useState({
+    name: "",
+    email: "",
+    password: "",
+    contact: "",
+    role: "admin",
+    isExisting: false,
+    existingAdminId: "",
+    existingHotels: [],
+    searched: false,
+  });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // Generate unique ID for new admin
-  const generateAdminId = useCallback(() => {
-    return Math.max(...admins.map((admin) => admin.id), 0) + 1;
-  }, [admins]);
-
-  // Add new admin form
-  const addNewAdmin = useCallback(() => {
-    if (admins.length < 2) {
-      const newAdmin = {
-        id: generateAdminId(),
-        name: "",
-        email: "",
-        password: "",
-        contact: "",
-        role: "admin",
-        isExisting: false,
-        existingAdminId: "",
-      };
-      setAdmins((prev) => [...prev, newAdmin]);
-    } else {
-      toast.warning("Maximum 2 admins allowed per hotel", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    }
-  }, [admins.length, generateAdminId]);
-
-  // Remove admin
-  const removeAdmin = useCallback(
-    (adminId) => {
-      if (admins.length > 1) {
-        setAdmins((prev) => prev.filter((admin) => admin.id !== adminId));
-      } else {
-        toast.warning("At least one admin is required", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      }
-    },
-    [admins.length]
-  );
+  const [searching, setSearching] = useState(false);
 
   // Update admin field
-  const updateAdmin = useCallback((adminId, field, value) => {
-    setAdmins((prev) =>
-      prev.map((admin) =>
-        admin.id === adminId ? { ...admin, [field]: value } : admin
-      )
-    );
+  const updateAdmin = useCallback((field, value) => {
+    setAdmin((prev) => ({
+      ...prev,
+      [field]: value,
+      // Reset search status when email changes
+      ...(field === "email" && {
+        isExisting: false,
+        existingAdminId: "",
+        existingHotels: [],
+        searched: false,
+        name: "",
+        contact: "",
+        password: "",
+      }),
+    }));
   }, []);
 
-  // Check if existing admin exists
-  const checkExistingAdmin = useCallback(
-    async (email, adminId) => {
-      if (!email.trim()) return false;
+  // Search for existing admin
+  const searchAdmin = useCallback(async () => {
+    if (!admin.email.trim() || !validateEmail(admin.email)) {
+      toast.error("Please enter a valid email address", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return;
+    }
 
-      try {
-        setLoading(true);
-        const result = await hotelServices.checkExistingAdmin(email);
+    try {
+      setSearching(true);
+      const result = await hotelServices.searchAdminByEmail(admin.email);
 
-        if (result.exists) {
-          updateAdmin(adminId, "isExisting", true);
-          updateAdmin(adminId, "existingAdminId", result.adminId);
-          updateAdmin(adminId, "name", result.adminData.name);
-          updateAdmin(adminId, "contact", result.adminData.contact);
+      if (result.exists) {
+        setAdmin((prev) => ({
+          ...prev,
+          isExisting: true,
+          existingAdminId: result.adminId,
+          name: result.adminData.name,
+          contact: result.adminData.contact,
+          existingHotels: result.adminData.hotels || [],
+          searched: true,
+        }));
 
-          toast.info(`Found existing admin: ${result.adminData.name}`, {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          return true;
-        } else {
-          updateAdmin(adminId, "isExisting", false);
-          updateAdmin(adminId, "existingAdminId", "");
-          return false;
-        }
-      } catch (error) {
-        console.error("Error checking existing admin:", error);
-        toast.error("Error checking existing admin", {
+        toast.success(`Found existing admin: ${result.adminData.name}`, {
           position: toast.POSITION.TOP_RIGHT,
         });
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [updateAdmin]
-  );
+      } else {
+        setAdmin((prev) => ({
+          ...prev,
+          isExisting: false,
+          existingAdminId: "",
+          name: "",
+          contact: "",
+          password: "",
+          existingHotels: [],
+          searched: true,
+        }));
 
-  // Submit hotel and admins
-  const submitHotelWithAdmins = useCallback(async () => {
+        toast.info(
+          "Admin not found. Please fill in details to create new admin.",
+          {
+            position: toast.POSITION.TOP_RIGHT,
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Error searching admin:", error);
+      toast.error("Error searching for admin. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      setAdmin((prev) => ({
+        ...prev,
+        searched: false,
+      }));
+    } finally {
+      setSearching(false);
+    }
+  }, [admin.email]);
+
+  // Create new admin (optional - can be triggered by button click)
+  const createNewAdmin = useCallback(() => {
+    if (!admin.searched || admin.isExisting) return;
+
+    toast.info("Please fill in all required details to create the new admin.", {
+      position: toast.POSITION.TOP_RIGHT,
+    });
+  }, [admin.searched, admin.isExisting]);
+
+  // Submit hotel with admin
+  const submitHotelWithAdmin = useCallback(async () => {
     try {
       setSubmitting(true);
+
+      // Validate hotel name
+      if (!hotelName.trim()) {
+        toast.error("Hotel name is required", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return { success: false };
+      }
 
       // Check if hotel already exists
       const hotelExists = await hotelServices.checkHotelExists(hotelName);
@@ -119,13 +133,44 @@ export const useHotel = () => {
         return { success: false };
       }
 
-      const result = await hotelServices.createHotelWithAdmins(
-        hotelName,
-        admins
-      );
+      // Validate admin details
+      if (!admin.searched) {
+        toast.error("Please search for admin by email first", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return { success: false };
+      }
+
+      if (!getAdminValidationStatus()) {
+        toast.error("Please fill in all required admin details", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return { success: false };
+      }
+
+      const result = await hotelServices.createHotelWithAdmin(hotelName, admin);
 
       if (result.success) {
+        if (admin.isExisting) {
+          toast.success(
+            `Hotel "${hotelName}" created and assigned to existing admin "${admin.name}"`,
+            {
+              position: toast.POSITION.TOP_RIGHT,
+            }
+          );
+        } else {
+          toast.success(
+            `Hotel "${hotelName}" created with new admin "${admin.name}"`,
+            {
+              position: toast.POSITION.TOP_RIGHT,
+            }
+          );
+        }
         resetForm();
+      } else {
+        toast.error(result.message || "Failed to create hotel", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
       }
 
       return result;
@@ -138,63 +183,65 @@ export const useHotel = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [hotelName, admins]);
+  }, [hotelName, admin]);
 
   // Reset form to initial state
   const resetForm = useCallback(() => {
     setHotelName("");
-    setAdmins([
-      {
-        id: 1,
-        name: "",
-        email: "",
-        password: "",
-        contact: "",
-        role: "admin",
-        isExisting: false,
-        existingAdminId: "",
-      },
-    ]);
+    setAdmin({
+      name: "",
+      email: "",
+      password: "",
+      contact: "",
+      role: "admin",
+      isExisting: false,
+      existingAdminId: "",
+      existingHotels: [],
+      searched: false,
+    });
   }, []);
 
   // Get admin validation status
-  const getAdminValidationStatus = useCallback((admin) => {
-    const hasName = admin.name.trim();
-    const hasValidEmail = admin.email.trim();
-    const hasValidContact = admin.contact.trim();
-    const hasValidPassword = admin.isExisting || admin.password.trim();
+  const getAdminValidationStatus = useCallback(() => {
+    if (!admin.searched) return false;
 
-    return hasName && hasValidEmail && hasValidContact && hasValidPassword;
-  }, []);
+    const hasValidEmail = admin.email.trim() && validateEmail(admin.email);
+    const hasName = admin.name.trim();
+    const hasValidContact =
+      admin.contact.trim() && validateContact(admin.contact);
+    const hasValidPassword =
+      admin.isExisting ||
+      (admin.password.trim() && validatePassword(admin.password));
+
+    return hasValidEmail && hasName && hasValidContact && hasValidPassword;
+  }, [admin]);
 
   // Get form validation status
   const getFormValidationStatus = useCallback(() => {
     const hotelValid = hotelName.trim();
-    const adminsValid = admins.every((admin) =>
-      getAdminValidationStatus(admin)
-    );
+    const adminValid = getAdminValidationStatus();
 
     return {
       hotelValid,
-      adminsValid,
-      isFormValid: hotelValid && adminsValid && admins.length > 0,
+      adminValid,
+      isFormValid: hotelValid && adminValid,
     };
-  }, [hotelName, admins, getAdminValidationStatus]);
+  }, [hotelName, getAdminValidationStatus]);
 
   return {
     // State
     hotelName,
-    admins,
+    admin,
     loading,
     submitting,
+    searching,
 
     // Actions
     setHotelName,
-    addNewAdmin,
-    removeAdmin,
     updateAdmin,
-    checkExistingAdmin,
-    submitHotelWithAdmins,
+    searchAdmin,
+    createNewAdmin,
+    submitHotelWithAdmin,
     resetForm,
 
     // Computed values
@@ -202,7 +249,6 @@ export const useHotel = () => {
     getFormValidationStatus,
 
     // Utilities
-    canAddMoreAdmins: admins.length < 2,
-    canRemoveAdmin: admins.length > 1,
+    adminExists: admin.isExisting,
   };
 };

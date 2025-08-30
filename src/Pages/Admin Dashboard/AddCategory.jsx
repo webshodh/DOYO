@@ -83,7 +83,7 @@ function AddCategory() {
 
   return (
     <>
-      <div className="d-flex justify-between" style={{marginTop:'100px'}}>
+      <div style={{ margin: "20px" }}>
         {/* Category Form Modal */}
         <CategoryFormModal
           show={showModal}
@@ -95,18 +95,6 @@ function AddCategory() {
         />
 
         <div style={{ width: "100%" }}>
-          {/* Search and Add Button */}
-          <div className="mb-4">
-            <SearchWithButton
-              searchTerm={searchTerm}
-              onSearchChange={(e) => handleSearchChange(e.target.value)}
-              buttonText="Add Category"
-              onButtonClick={handleAddClick}
-              disabled={submitting}
-              placeholder="Search categories..."
-            />
-          </div>
-
           {/* Page Title with Stats */}
           <div className="d-flex justify-between align-items-center mb-3">
             <PageTitle pageTitle="View Categories" />
@@ -117,6 +105,17 @@ function AddCategory() {
                   : `Total: ${categoryCount} categories`}
               </div>
             )}
+          </div>
+          {/* Search and Add Button */}
+          <div className="mb-4">
+            <SearchWithButton
+              searchTerm={searchTerm}
+              onSearchChange={(e) => handleSearchChange(e.target.value)}
+              buttonText="Add Category"
+              onButtonClick={handleAddClick}
+              disabled={submitting}
+              placeholder="Search categories..."
+            />
           </div>
 
           {/* Categories Table */}

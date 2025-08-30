@@ -8,8 +8,7 @@ export { default as SignupPage } from "./Login/SignupPage";
 export { default as ResetPasswordPage } from "./Login/ResetPasswordPage";
 export { default as ForgotPasswordPage } from "./Login/ForgotPasswordPage";
 
-// MenuDashboard
-export { default as MenuDashboard } from "./Admin Dashboard/MenuDashboard";
+
 
 // Screen
 export { default as WelcomeScreen } from "./Screens/WelcomeScreen";

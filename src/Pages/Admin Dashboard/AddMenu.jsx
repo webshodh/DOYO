@@ -41,32 +41,111 @@ function AddMenu() {
     setShow(true);
   };
 
-  // Handle editing existing menu
-  const handleEdit = (menuId) => {
-    const selectedMenu = filteredAndSortedMenus.find(
-      (menu) => menu.uuid === menuId
-    );
+  // Handle editing existing menu - receives the full row object
+  const handleEdit = (rowData) => {
+    console.log("=== EDIT DEBUG ===");
+    console.log("Received rowData:", rowData);
+
+    // Extract the menu ID from the row data
+    const menuId = rowData.uuid || rowData.id || rowData._id;
+    console.log("Extracted menuId:", menuId);
+
+    if (!menuId) {
+      console.error("No valid ID found in row data:", rowData);
+      alert("Error: Menu ID not found. Please refresh and try again.");
+      return;
+    }
+
+    // Find the original menu data from filteredAndSortedMenus
+    const selectedMenu = filteredAndSortedMenus.find((menu) => {
+      const matches =
+        menu.uuid === menuId ||
+        menu.id === menuId ||
+        menu._id === menuId ||
+        String(menu.uuid) === String(menuId) ||
+        String(menu.id) === String(menuId) ||
+        String(menu._id) === String(menuId);
+      return matches;
+    });
+
     if (selectedMenu) {
+      console.log("Found original menu data:", selectedMenu);
       setEditedMenuData(selectedMenu);
       setEditedMenuId(menuId);
       setEditMode(true);
       setShow(true);
+    } else {
+      console.error("Original menu not found for ID:", menuId);
+      console.error("Available menus:", filteredAndSortedMenus);
+      alert("Menu not found. Please refresh the page and try again.");
     }
   };
 
-  // Handle deleting menu
-  const handleDelete = async (menuId) => {
-    await deleteMenu(menuId);
+  // Handle deleting menu - receives the full row object
+  const handleDelete = async (rowData) => {
+    console.log("=== DELETE DEBUG ===");
+    console.log("Received rowData for deletion:", rowData);
+
+    // Extract the menu ID from the row data
+    const menuId = rowData.uuid || rowData.id || rowData._id;
+    console.log("Extracted menuId for deletion:", menuId);
+
+    if (!menuId) {
+      console.error("No valid ID found in row data:", rowData);
+      alert("Error: Menu ID not found. Please refresh and try again.");
+      return;
+    }
+
+    // Get the menu name for confirmation
+    const menuName =
+      rowData["Menu Name"] || rowData.menuName || "this menu item";
+
+    // Add confirmation dialog
+    if (window.confirm(`Are you sure you want to delete "${menuName}"?`)) {
+      try {
+        console.log("Calling deleteMenu with ID:", menuId);
+        const success = await deleteMenu(menuId);
+        console.log("Delete operation result:", success);
+
+        if (success) {
+          console.log("Menu deleted successfully");
+          // The useMenu hook should automatically update the list
+        } else {
+          console.error("Failed to delete menu - deleteMenu returned false");
+          alert("Failed to delete menu. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error deleting menu:", error);
+        alert("An error occurred while deleting the menu. Please try again.");
+      }
+    }
   };
 
   // Handle form submission
   const handleFormSubmit = async (formData) => {
+    console.log("=== FORM SUBMIT DEBUG ===");
+    console.log("Form submitted with data:", formData);
+    console.log("Edit mode:", editMode, "Menu ID:", editedMenuId);
+
     let success = false;
 
-    if (editMode && editedMenuId) {
-      success = await updateMenu(formData, editedMenuId);
-    } else {
-      success = await addMenu(formData);
+    try {
+      if (editMode && editedMenuId) {
+        console.log("Updating menu with ID:", editedMenuId);
+        success = await updateMenu(formData, editedMenuId);
+        console.log("Update result:", success);
+      } else {
+        console.log("Adding new menu");
+        success = await addMenu(formData);
+        console.log("Add result:", success);
+      }
+
+      if (success) {
+        handleClose(); // Close modal on success
+      }
+    } catch (error) {
+      console.error("Error in form submission:", error);
+      alert("An error occurred while saving the menu. Please try again.");
     }
 
     return success;
@@ -81,17 +160,24 @@ function AddMenu() {
   };
 
   // Prepare data for the table
-  const tableData = filteredAndSortedMenus.map((item, index) => ({
-    "Sr.No": index + 1,
-    Img: item.imageUrl || item.file,
-    "Menu Category": item.menuCategory || "Other",
-    "Menu Name": item.menuName,
-    Price: item.menuPrice,
-    Discount: item.discount || "-",
-    "Final Price": item.finalPrice,
-    Availability: item.availability,
-    uuid: item.uuid, // Add uuid for edit/delete operations
-  }));
+  const tableData = filteredAndSortedMenus.map((item, index) => {
+    return {
+      "Sr.No": index + 1,
+      Img: item.imageUrl || item.file,
+      "Menu Category": item.menuCategory || "Other",
+      "Menu Name": item.menuName,
+      Price: item.menuPrice,
+      Discount: item.discount || "-",
+      "Final Price": item.finalPrice,
+      Availability: item.availability,
+      // Ensure we include the ID fields that the handlers will look for
+      uuid: item.uuid,
+      id: item.id,
+      _id: item._id,
+    };
+  });
+
+  console.log("Table data prepared:", tableData.length, "items");
 
   if (loading) {
     return (
@@ -103,7 +189,7 @@ function AddMenu() {
 
   return (
     <>
-      <div className="d-flex flex-wrap w-full" style={{ marginTop: "100px" }}>
+      <div style={{ margin: "20px" }}>
         {/* Menu Form Modal */}
         <MenuFormModal
           show={show}
@@ -114,9 +200,19 @@ function AddMenu() {
           editMode={editMode}
           initialData={editedMenuData}
         />
-
+        <PageTitle pageTitle="View Menu" />
         {/* Main Content */}
-        <div className="w-full px-4 mt-4">
+        <div className="w-full px-4 mt-2">
+          {/* Search and Add Button */}
+          <div className="mt-1 mb-3">
+            <SearchWithButton
+              searchTerm={searchTerm}
+              onSearchChange={(e) => handleSearchChange(e.target.value)}
+              buttonText="Add Menu"
+              onButtonClick={handleAdd}
+            />
+          </div>
+
           {/* Categories Section */}
           <div className="overflow-x-auto no-scrollbar">
             <div className="flex flex-nowrap space-x-2">
@@ -129,19 +225,8 @@ function AddMenu() {
             </div>
           </div>
 
-          {/* Search and Add Button */}
-          <div className="mt-4">
-            <SearchWithButton
-              searchTerm={searchTerm}
-              onSearchChange={(e) => handleSearchChange(e.target.value)}
-              buttonText="Add Menu"
-              onButtonClick={handleAdd}
-            />
-          </div>
-
           {/* Menu Table */}
           <div className="mt-4">
-            <PageTitle pageTitle="View Menu" />
             <div className="overflow-x-auto">
               {tableData.length > 0 ? (
                 <DynamicTable

@@ -84,7 +84,8 @@ const CategoryManager = () => {
 
   return (
     <>
-      <div className="d-flex justify-between" style={{marginTop:'100px'}}>
+      <div  style={{margin:'20px'}}>
+        <PageTitle pageTitle="View Special Categories" />
         <CategoryFormModal
           show={showModal}
           onClose={handleCloseModal}
@@ -103,7 +104,7 @@ const CategoryManager = () => {
             onButtonClick={handleAdd}
           />
           
-          <PageTitle pageTitle="View Special Categories" />
+          
           
           <DynamicTable
             columns={ViewCategoryColumns}
