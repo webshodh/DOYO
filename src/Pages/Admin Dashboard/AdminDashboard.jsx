@@ -59,7 +59,7 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Navbar */}
-        <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} admin={true}/>
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6">
