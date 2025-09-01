@@ -1,6 +1,8 @@
+// DynamicTable.jsx
 import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+
 const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onMarkAsCompleted, actions }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -42,7 +44,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
           {paginatedData.length > 0 ? (
             paginatedData.map((item, index) => (
               <tr
-                key={index}
+                key={item.uuid || item.id || item._id || index}
                 className="even:bg-gray-50 hover:bg-gray-100 transition-colors"
               >
                 {columns.map((column, colIndex) => (
@@ -50,30 +52,49 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                     key={colIndex}
                     className="px-6 py-4 text-sm text-gray-700"
                   >
-                    {item[column.accessor]}
+                    {column.accessor === 'Img' ? (
+                      item[column.accessor] ? (
+                        <img 
+                          src={item[column.accessor]} 
+                          alt="Menu Item" 
+                          className="w-12 h-12 object-cover rounded"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-xs text-gray-500">No Image</span>
+                        </div>
+                      )
+                    ) : (
+                      item[column.accessor]
+                    )}
                   </td>
                 ))}
                 {(onEdit || onDelete || onAccept || onReject || onMarkAsCompleted || actions) && (
                   <td className="px-6 py-4 text-sm text-gray-700 flex space-x-2">
                     {onEdit && (
                       <button
-                        className="px-2 py-2 mr-2 text-white bg-green-600 rounded-md"
+                        className="px-2 py-2 mr-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
                         onClick={() => onEdit(item)}
+                        title="Edit Menu"
                       >
                         <FaEdit/>
                       </button>
                     )}
                     {onDelete && (
                       <button
-                        className="px-2 py-2 mr-2 text-white bg-red-600 rounded-md"
+                        className="px-2 py-2 mr-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
                         onClick={() => onDelete(item)}
+                        title="Delete Menu"
                       >
                         <MdDelete/>
                       </button>
                     )}
                     {onAccept && (
                       <button
-                        className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                        className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
                         onClick={() => onAccept(item)}
                       >
                         Accept
@@ -81,7 +102,7 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                     )}
                     {onReject && (
                       <button
-                        className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md"
+                        className="px-4 py-2 mr-2 text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors"
                         onClick={() => onReject(item)}
                       >
                         Reject
@@ -89,13 +110,12 @@ const DynamicTable = ({ columns, data, onEdit, onDelete, onAccept, onReject, onM
                     )}
                     {onMarkAsCompleted && (
                       <button
-                        className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md"
+                        className="px-4 py-2 mr-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
                         onClick={() => onMarkAsCompleted(item)}
                       >
                         Mark as Completed
                       </button>
                     )}
-                    
                   </td>
                 )}
               </tr>

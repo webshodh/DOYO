@@ -1,71 +1,74 @@
+// HotelSelector.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; 
-import useHotelsData from "../../data/useHotelsData"; 
-import { Navbar, Form, FormControl } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import useAdminData from "../../data/useAdminData";
 
-const HotelSelector = ({ adminId, onHotelSelect }) => {
-  const { hotelsData, loading, error } = useHotelsData(adminId);
-  const [selectedHotelId, setSelectedHotelId] = useState("");
+const HotelSelector = ({ adminId, selectedHotelName, onHotelSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hotels, setHotels] = useState([]);
   const navigate = useNavigate();
 
+  const {
+    data: hotelsData,
+    loading,
+    error,
+  } = useAdminData(`/admins/${adminId}/hotels`);
+console.log("selectedHotelName", selectedHotelName)
   useEffect(() => {
-    if (!loading && hotelsData.length > 0 && !selectedHotelId) {
-      const firstHotel = hotelsData[0];
-      setSelectedHotelId(firstHotel?.uuid || "");
-      onHotelSelect(firstHotel?.hotelName || "");
-      // Only navigate if you want to automatically load the first hotel
-      // navigate(`/${firstHotel?.hotelName}/admin/admin-dashboard`);
+    if (hotelsData) {
+      setHotels(
+        Array.isArray(hotelsData) ? hotelsData : Object.values(hotelsData)
+      );
     }
-  }, [hotelsData, loading, selectedHotelId, onHotelSelect]);
+  }, [hotelsData]);
 
-  const handleHotelChange = (e) => {
-    const selectedId = e.target.value;
-    setSelectedHotelId(selectedId);
-
-    const selectedHotel = hotelsData.find((hotel) => hotel.uuid === selectedId);
-    if (selectedHotel) {
-      onHotelSelect(selectedHotel.hotelName);
-      navigate(`/${selectedHotel.hotelName}/admin/admin-dashboard`);
-    }
+  const handleHotelClick = (hotel) => {
+    onHotelSelect(hotel.name, hotel); // pass hotel up to context or navbar
+    setIsOpen(false);
+    navigate(`/admin/hotel/${hotel.id}/dashboard`, {
+      state: { hotelData: hotel },
+    });
   };
 
+  if (loading)
+    return <span className="text-sm text-gray-300">Loading hotels...</span>;
+  if (error)
+    return <span className="text-sm text-red-400">Error loading hotels</span>;
+
   return (
-    <Navbar expand="lg" className="justify-content-between">
-      <Form className="ml-auto d-flex align-items-center">
-        {loading && (
-          <FormControl as="span" className="text-muted mr-3">
-            Loading hotels...
-          </FormControl>
-        )}
-        {error && (
-          <FormControl as="span" className="text-danger mr-3">
-            Error: {error.message}
-          </FormControl>
-        )}
-        {!loading && !error && (
-          <FormControl
-            as="select"
-            onChange={handleHotelChange}
-            value={selectedHotelId}
-            className="custom-select mr-sm-2"
-            style={{ minWidth: "200px" }}
-          >
-            <option value="" disabled>
-              Select a hotel
-            </option>
-            {hotelsData.length === 0 ? (
-              <option value="">No hotels available</option>
-            ) : (
-              hotelsData.map((hotel) => (
-                <option key={hotel?.uuid} value={hotel?.uuid}>
-                  {hotel?.hotelName}
-                </option>
-              ))
-            )}
-          </FormControl>
-        )}
-      </Form>
-    </Navbar>
+    <div className="relative hotel-selector">
+      <div
+        className="px-3 py-1 bg-orange-600 rounded-md cursor-pointer flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{selectedHotelName || "Select Hotel"}</span>
+        <span
+          className={`ml-2 transform transition ${isOpen ? "rotate-180" : ""}`}
+        >
+          ▼
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="absolute mt-1 bg-white text-black rounded-md shadow-lg w-48 z-50">
+          {hotels.length > 0 ? (
+            hotels.map((hotel) => (
+              <div
+                key={hotel.id || hotel.name}
+                className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                  selectedHotelName === hotel.name ? "bg-gray-200" : ""
+                }`}
+                onClick={() => handleHotelClick(hotel)}
+              >
+                {hotel.name}
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-gray-500 italic">No hotels</div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

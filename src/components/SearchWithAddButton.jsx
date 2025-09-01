@@ -6,7 +6,7 @@ const SearchWithButton = ({
   buttonText,
   onButtonClick,
   placeholder = "What are you looking for?",
-  inputWidth = "70%",
+  inputWidth = "80%",
   buttonColor = "bg-orange-500",
 }) => {
   return (
