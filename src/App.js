@@ -1,301 +1,275 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
-  Route,
   Routes,
+  Route,
   Navigate,
 } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "react-toastify/dist/ReactToastify.css";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useState, useEffect } from "react";
+import { ToastContainer } from "react-toastify";
 
-// Importing all required components from the "./Pages" directory
-import {
-  Home,
-  AddHotel,
-  SuperAdminDashboard,
-  AdminDashboard,
-  LoginPage,
-  SignupPage,
-  ForgotPasswordPage,
-  ResetPasswordPage,
-  AdminList,
-  MenuDashboard,
-  ThankYouScreen,
-  WelcomeScreen,
-} from "./Pages";
+// Context Providers
+import { HotelProvider } from "./Context/HotelContext"; // Your existing context
+import { HotelSelectionProvider } from "./Context/HotelSelectionContext";
 
-// Importing other components
-import { Layout } from "./Atoms";
-import { ErrorBoundary } from "./components";
-
-
-
+// Components
+import LoginPage from "./Pages/Login/LoginPage";
+import HotelSplashScreen from "./Pages/SplashScreen";
+import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
+import Profile from "./components/ProfileComponent";
+import Sidebar from "./components/SideBarComponent";
+import Navbar from "./components/NavBarComponent";
+import AddCategory from "Pages/Admin Dashboard/AddCategory";
+import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";
+import AddMenu from "Pages/Admin Dashboard/AddMenu";
+import { AddHotel, AdminList, Home, SuperAdminDashboard } from "Pages";
+import AddOffers from "Pages/Admin Dashboard/AddOffers";
 import Offers from "Pages/User/Offers";
 
-function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
+// Protected Route Component
+const ProtectedRoute = ({
+  children,
+  requiresAuth = true,
+  redirectTo = "/admin/login",
+}) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const auth = getAuth();
 
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path.includes("admin")) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowWelcomeScreen(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    return unsubscribe;
+  }, [auth]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (requiresAuth && !user) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  if (!requiresAuth && user) {
+    return <Navigate to="/admin/hotel-select" replace />;
+  }
+
+  return children;
+};
+
+const SettingsPage = () => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+    <p className="text-gray-600 mt-2">Manage your hotel settings here.</p>
+  </div>
+);
+
+// Dashboard Layout Component
+const DashboardLayout = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
 
   return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      <div className="flex-1 flex flex-col lg:ml-0">
+        <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
     <Router>
-      <ErrorBoundary>
-        <Routes>
-          {/* Login Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          
-          <Route path="/" element={<Navigate to="/login" />} />
+      <HotelProvider>
+        <div className="App">
+          <Routes>
+            {/* Public Routes - No HotelSelectionProvider needed */}
+            <Route
+              path="/admin/login"
+              element={
+                <ProtectedRoute requiresAuth={false}>
+                  <LoginPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/viewMenu/:hotelName/home" element={<Home />} />
+            <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
+            {/* Admin Routes - Wrapped with HotelSelectionProvider */}
+            <Route
+              path="/admin/hotel-select"
+              element={
+                <ProtectedRoute>
+                  <HotelSelectionProvider>
+                    <HotelSplashScreen />
+                  </HotelSelectionProvider>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* User Routes */}
+            {/* Super Admin Routes - No HotelSelectionProvider needed */}
+            <Route
+              path="/super-admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <HotelSelectionProvider>
+                    <SuperAdminDashboard />
+                  </HotelSelectionProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/super-admin/*"
+              element={
+                <ProtectedRoute>
+                  <HotelSelectionProvider>
+                    <Routes>
+                      <Route
+                        path="dashboard"
+                        element={<SuperAdminDashboard />}
+                      />
+                      <Route path="profile" element={<Profile />} />
+                      <Route
+                        path="add-hotel"
+                        element={
+                          <DashboardLayout>
+                            <AddHotel />
+                          </DashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="view-admin"
+                        element={
+                          <DashboardLayout>
+                            <AdminList />
+                          </DashboardLayout>
+                        }
+                      />
 
-          
-          <Route path="/viewMenu/:hotelName/home" element={<Home />} />
-          <Route path="/:hotelName/feedback" element={""} />
-          <Route path="/:hotelName/thank-you" element={<ThankYouScreen />} />
-          <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
-        </Routes>
+                      <Route
+                        path="settings"
+                        element={
+                          <DashboardLayout>
+                            <SettingsPage />
+                          </DashboardLayout>
+                        }
+                      />
+                      {/* Redirect to dashboard if no specific route matches */}
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </HotelSelectionProvider>
+                </ProtectedRoute>
+              }
+            />
 
-        {/* {isAdmin && (
-          <>
-            <Layout> */}
-              <Routes>
-                {/* Super Admin Routes */}
-                <Route
-                  path="/superadmin/dashboard"
-                  element={<SuperAdminDashboard />}
-                />
-                <Route
-                  path="/super-admin/dashboard/admin-list"
-                  element={<AdminList />}
-                />
-                <Route path="/hotels/admin/add-hotel" element={<AddHotel />} />
+            {/* Hotel-specific Admin Routes - All wrapped with HotelSelectionProvider */}
+            <Route
+              path="/:hotelName/admin/*"
+              element={
+                <ProtectedRoute>
+                  <HotelSelectionProvider>
+                    <Routes>
+                      <Route path="dashboard" element={<AdminDashboard />} />
+                      <Route path="profile" element={<Profile />} />
+                      <Route
+                        path="add-category"
+                        element={
+                          <DashboardLayout>
+                            <AddCategory />
+                          </DashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-special-category"
+                        element={
+                          <DashboardLayout>
+                            <CategoryManager />
+                          </DashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-menu"
+                        element={
+                          <DashboardLayout>
+                            <AddMenu />
+                          </DashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-offers"
+                        element={
+                          <DashboardLayout>
+                            <AddOffers />
+                          </DashboardLayout>
+                        }
+                      />
 
-                {/* Admin Routes */}
+                      <Route
+                        path="settings"
+                        element={
+                          <DashboardLayout>
+                            <SettingsPage />
+                          </DashboardLayout>
+                        }
+                      />
+                      {/* Redirect to dashboard if no specific route matches */}
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </HotelSelectionProvider>
+                </ProtectedRoute>
+              }
+            />
 
-                <Route
-                  path="/:hotelName/admin/admin-dashboard"
-                  element={<AdminDashboard />}
-                />
-                <Route
-                  path="/:hotelName/admin/menu/menu-dashboard"
-                  element={<MenuDashboard />}
-                />
-              </Routes>
-            {/* </Layout>
-          </> 
-        )}*/}
-      </ErrorBoundary>
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/admin/login" replace />} />
+
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/admin/login" replace />} />
+          </Routes>
+
+          {/* Toast Container */}
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
+        </div>
+      </HotelProvider>
     </Router>
   );
 }
 
 export default App;
-
-// import React, { useState, useEffect } from "react";
-// import {
-//   BrowserRouter as Router,
-//   Route,
-//   Routes,
-//   Navigate,
-// } from "react-router-dom";
-// import "bootstrap/dist/css/bootstrap.min.css";
-// import "react-toastify/dist/ReactToastify.css";
-
-// // Importing all required components from the "./Pages" directory
-// import {
-//   Home,
-//   AddHotel,
-//   SuperAdminDashboard,
-//   AdminDashboard,
-//   LoginPage,
-//   SignupPage,
-//   ForgotPasswordPage,
-//   ResetPasswordPage,
-//   AdminList,
-//   MenuDashboard,
-//   ThankYouScreen,
-//   WelcomeScreen,
-// } from "./Pages";
-
-// // Importing other components
-// import { Layout } from "./Atoms";
-// import { ErrorBoundary } from "./components";
-// import { AuthProvider, useAuthContext } from "./Context/AuthContext";
-
-// import UserLogin from "Pages/Login/UserLogin";
-// import Offers from "Pages/User/Offers";
-
-// // Protected Route Component
-// const ProtectedRoute = ({ children, requiredRole, hotelId }) => {
-//   const { userRole, isSuperAdmin, isAdmin, canAccessHotel, loading } = useAuthContext();
-  
-//   if (loading) {
-//     return <div className="d-flex justify-content-center align-items-center" style={{height: '100vh'}}>
-//       <div className="spinner-border" role="status">
-//         <span className="visually-hidden">Loading...</span>
-//       </div>
-//     </div>;
-//   }
-
-//   // Check super admin access
-//   if (requiredRole === "superadmin" && !isSuperAdmin()) {
-//     return <Navigate to="/login" replace />;
-//   }
-  
-//   // Check admin access
-//   if (requiredRole === "admin" && !isAdmin()) {
-//     return <Navigate to="/login" replace />;
-//   }
-  
-//   // Check hotel-specific access for admins
-//   if (requiredRole === "admin" && hotelId && !canAccessHotel(hotelId)) {
-//     return <Navigate to="/login" replace />;
-//   }
-  
-//   return children;
-// };
-
-// const AppContent = () => {
-//   const { currentUser, userRole, isSuperAdmin, isAdmin, loading } = useAuthContext();
-//   const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
-
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setShowWelcomeScreen(false);
-//     }, 3000);
-//     return () => clearTimeout(timer);
-//   }, []);
-
-//   if (loading) {
-//     return (
-//       <div className="d-flex justify-content-center align-items-center" style={{height: '100vh'}}>
-//         <div className="spinner-border" role="status">
-//           <span className="visually-hidden">Loading...</span>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <Router>
-//       <ErrorBoundary>
-//         <Routes>
-//           {/* Public Routes */}
-//           <Route path="/login" element={<LoginPage />} />
-//           <Route path="/signup" element={<SignupPage />} />
-//           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-//           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          
-//           {/* User Login Routes */}
-//           {/* <Route
-//             path="/viewMenu/:hotelName/login/user-login"
-//             element={<UserLogin />}
-//           />
-//           <Route path="/viewMenu/:hotelName/login" element={<UserLogin />} />
-//           <Route path="/viewMenu/:hotelName/welcome" element={<UserLogin />} /> */}
-          
-//           {/* User Routes (No authentication required for customers) */}
-//           <Route path="/viewMenu/:hotelName/home" element={<Home />} />
-//           <Route path="/:hotelName/feedback" element={""} />
-//           <Route path="/:hotelName/thank-you" element={<ThankYouScreen />} />
-//           <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
-          
-//           {/* Default redirect based on user role */}
-//           <Route path="/" element={
-//             currentUser ? (
-//               isSuperAdmin() ? <Navigate to="/super-admin/dashboard" /> :
-//               isAdmin() ? <Navigate to="/admin/admin-dashboard" /> :
-//               <Navigate to="/login" />
-//             ) : (
-//               <Navigate to="/login" />
-//             )
-//           } />
-//         </Routes>
-
-//         {/* Admin Routes - Only visible to authenticated admins and super admins */}
-//         {currentUser && isAdmin() && (
-//           <Layout>
-//             <Routes>
-//               {/* Super Admin Routes */}
-//               <Route
-//                 path="/super-admin/dashboard"
-//                 element={
-//                   <ProtectedRoute requiredRole="superadmin">
-//                     <SuperAdminDashboard />
-//                   </ProtectedRoute>
-//                 }
-//               />
-//               <Route
-//                 path="/super-admin/dashboard/admin-list"
-//                 element={
-//                   <ProtectedRoute requiredRole="superadmin">
-//                     <AdminList />
-//                   </ProtectedRoute>
-//                 }
-//               />
-//               <Route
-//                 path="/hotels/admin/add-hotel"
-//                 element={
-//                   <ProtectedRoute requiredRole="superadmin">
-//                     <AddHotel />
-//                   </ProtectedRoute>
-//                 }
-//               />
-
-//               {/* Admin Routes */}
-//               <Route
-//                 path="/admin/admin-dashboard"
-//                 element={
-//                   <ProtectedRoute requiredRole="admin">
-//                     <AdminDashboard />
-//                   </ProtectedRoute>
-//                 }
-//               />
-              
-//               {/* Hotel-specific admin routes */}
-//               <Route
-//                 path="/:hotelName/admin/menu/menu-dashboard"
-//                 element={
-//                   <ProtectedRoute 
-//                     requiredRole="admin" 
-//                     hotelId={window.location.pathname.split('/')[1]}
-//                   >
-//                     <MenuDashboard />
-//                   </ProtectedRoute>
-//                 }
-//               />
-//             </Routes>
-//           </Layout>
-//         )}
-//       </ErrorBoundary>
-//     </Router>
-//   );
-// };
-
-// function App() {
-//   return (
-//     <AuthProvider>
-//       <AppContent />
-//     </AuthProvider>
-//   );
-// }
-
-// export default App;

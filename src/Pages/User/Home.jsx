@@ -7,7 +7,8 @@ import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 
 import CategoryTabs from "../../components/CategoryTab";
-
+import AlertMessage from "Atoms/AlertMessage";
+import { useParams } from "react-router-dom";
 function Home() {
   const [menus, setMenus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,14 +25,14 @@ function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
-  const [hotelName, setHotelName] = useState("");
-
-  useEffect(() => {
-    const path = window.location.pathname;
-    const pathSegments = path.split("/");
-    const hotelNameFromPath = pathSegments[pathSegments.length - 2];
-    setHotelName(hotelNameFromPath);
-  }, []);
+  // const [hotelName, setHotelName] = useState("");
+  const { hotelName } = useParams();
+  // useEffect(() => {
+  //   const path = window.location.pathname;
+  //   const pathSegments = path.split("/");
+  //   const hotelNameFromPath = pathSegments[pathSegments.length - 2];
+  //   setHotelName(hotelNameFromPath);
+  // }, []);
 
   useEffect(() => {
     const path = window.location.pathname;
@@ -205,27 +206,28 @@ function Home() {
 
   const filteredAndSortedItems = filterAndSortItems();
 
-  console.log("filteredAndSortedItems", filteredAndSortedItems);
+  console.log("hotelNamehotelNamehotelName", hotelName);
 
   return (
     <>
       {!isAdmin && (
         <>
-          {/* <Navbar
+          <Navbar
+            hotelName={`${hotelName}`}
             title={`${hotelName}`}
             Fabar={true}
             style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
-          /> */}
-          {/* 
-          <AlertMessage
+            offers={true}
+          />
+
+          {/* <AlertMessage
             linkText={
               "Looking to upgrade your hotel with a Digital Menu? Click here to learn more!"
             }
             type="info"
             icon="bi-info-circle"
             linkUrl="www.google.com"
-          />
-          */}
+          /> */}
         </>
       )}
 
@@ -293,7 +295,7 @@ function Home() {
           height: "calc(100vh - 240px)",
           overflowY: "auto",
           background: colors.LightGrey,
-          marginBottom: "50px",
+          // marginBottom: "50px",
         }}
       >
         {filteredAndSortedItems.map((item) => (

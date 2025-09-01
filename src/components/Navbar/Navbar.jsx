@@ -1,62 +1,36 @@
-import { UserContext } from "Context/UserContext";
-import React, { useContext, useEffect, useState } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Star } from "lucide-react"; // Star icon for reviews
 import { colors } from "theme/theme";
-import { useHotelContext } from "Context/HotelContext"; // Import the HotelContext hook
-// import { UserAuthContext } from "../../Context/UserAuthContext";
+import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ title, isBack = false }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // const { currentUser, loading } = useContext(UserAuthContext);
-  const { user } = useContext(UserContext);
-  const { hotelName } = useHotelContext(); // Use HotelContext to get hotel name
+const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
   const navigate = useNavigate();
 
-  // Remove the useEffect that was manually extracting hotel name from URL
-  // since we're now using HotelContext
-
-  useEffect(() => {
-    // Redirect to login if user is not authenticated
-    if (!user && hotelName) {
-      navigate(`/viewMenu/${hotelName}/login/user-login`);
-    }
-  }, [user, hotelName, navigate]);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const handleOfferClick = () => {
+    navigate(`/viewMenu/${hotelName}/offers`);
   };
 
-  const getInitials = (name) => {
-    if (!name) return "";
-    const nameParts = name.split(" ");
-    if (nameParts.length === 1) {
-      return nameParts[0].charAt(0).toUpperCase(); // Return the first initial if only one name part
-    }
-    return (
-      nameParts[0].charAt(0).toUpperCase() +
-      nameParts[1].charAt(0).toUpperCase()
-    ); // Return initials from first and last name
-  };
-
-  const userProfile = {
-    name: user?.name || "User",
-    mobile: user?.mobile || "No mobile provided",
-    totalOrders: 25,
-    initial: getInitials(user?.name),
-  };
-
-  // if (loading) {
-  //   return <div className="text-center">Loading...</div>;
-  // }
-
-  // Early return if user is not authenticated
-  if (!user) {
-    return null; // or a loading spinner
-  }
-
-  const handleBack = () => {
+  const handleHomeClick = () => {
     navigate(`/viewMenu/${hotelName}/home`);
+  };
+  // Function to handle Google review redirection
+  const handleReviewClick = () => {
+    let reviewUrl;
+
+    if (hotelPlaceId) {
+      // If you have Google Place ID (most accurate)
+      reviewUrl = `https://search.google.com/local/writereview?placeid=${hotelPlaceId}`;
+    } else if (hotelName) {
+      // If you only have hotel name, search for it
+      const encodedHotelName = encodeURIComponent(`${hotelName} reviews`);
+      reviewUrl = `https://www.google.com/search?q=${encodedHotelName}`;
+    } else {
+      // Fallback to generic Google reviews
+      reviewUrl = `https://www.google.com/search?q=hotel+reviews`;
+    }
+
+    // Open in new tab
+    window.open(reviewUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -65,95 +39,78 @@ const Navbar = ({ title, isBack = false }) => {
         className="text-black p-2 flex justify-between items-center sticky"
         style={{ background: colors.White }}
       >
-        {!isBack ? (
-          <FaBars onClick={toggleSidebar} className="cursor-pointer text-2xl" />
-        ) : (
-          <i
-            className="bi bi-arrow-left-square-fill"
-            onClick={handleBack}
-            style={{ color: colors.Orange, fontSize: "30px" }}
-          ></i>
-        )}
-        <h3 className="text-lg font-semibold text-black">{title}</h3>
-        <div
-          className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center mb-2"
-          style={{ fontSize: "15px", background: colors.Orange }}
+        <h2
+          className="font-semibold text-black mt-2"
+          style={{ marginLeft: "10px" }}
         >
-          {userProfile.initial}
-        </div>
-      </div>
+          {title}
+        </h2>
 
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white text-black shadow-lg transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out p-4 z-50`}
-      >
-        <button
-          onClick={toggleSidebar}
-          className="absolute top-4 right-4 text-2xl text-gray-600"
-        >
-          <FaTimes />
-        </button>
-
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl mb-2">
-            {userProfile.initial}
-          </div>
-          <h4 className="text-lg font-semibold">{userProfile.name}</h4>
-          <p className="text-gray-600 text-sm">{userProfile.mobile}</p>
-          <p className="text-gray-600 text-sm">
-            Total Orders: {userProfile.totalOrders}
-          </p>
-          <button className="bg-orange-500 text-white px-4 py-2 rounded mt-4">
-            Update Profile
+        <div className="flex items-center gap-4">
+          {/* Offer Button */}
+          {offers && (
+            <button
+              onClick={handleOfferClick}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
+              style={{
+                backgroundColor: colors.LightGrey || "#f8f9fa",
+                color: "#f59e0b", // yellow-500
+              }}
+              title="View Offers"
+            >
+              <Star
+                size={20}
+                fill="#f59e0b"
+                stroke="#f59e0b"
+                className="animate-pulse"
+              />
+              <span className="text-sm font-medium text-yellow-600">
+                Offers
+              </span>
+            </button>
+          )}
+          {/* Home Button */}
+          {home && (
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
+              style={{
+                backgroundColor: colors.LightGrey || "#f8f9fa",
+                color: "#f59e0b", // yellow-500
+              }}
+              title="View Menu"
+            >
+              <Star
+                size={20}
+                fill="#f59e0b"
+                stroke="#f59e0b"
+                className="animate-pulse"
+              />
+              <span className="text-sm font-medium text-yellow-600">Menu</span>
+            </button>
+          )}
+          {/* Review Icon Button */}
+          <button
+            onClick={handleReviewClick}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
+            style={{
+              backgroundColor: colors.LightGrey || "#f8f9fa",
+              color: "#f59e0b", // yellow-500
+            }}
+            title="Write a Review"
+          >
+            <Star
+              size={20}
+              fill="#f59e0b"
+              stroke="#f59e0b"
+              className="animate-pulse"
+            />
+            <span className="text-sm font-medium text-yellow-600">Review</span>
           </button>
         </div>
-
-        <ul className="space-y-2">
-          <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              className="flex items-center p-2 text-orange-500 hover:text-orange-700"
-              to={`/viewMenu/${hotelName}/home`}
-            >
-              <i className="bi bi-house mr-2"></i>
-              <span>Home</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              className="flex p-2 items-center text-orange-500 hover:text-orange-700"
-              to={`/${hotelName}/track-orders`}
-            >
-              <i className="bi bi-clock-history mr-2"></i>
-              <span>My Orders</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              className="flex p-2 items-center text-orange-500 hover:text-orange-700"
-              to={`/${hotelName}/captain-tip`}
-            >
-              <i className="bi bi-currency-rupee mr-2"></i>
-              <span>Tip</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              className="flex p-2 items-center text-orange-500 hover:text-orange-700"
-              to={`/${hotelName}/feedback`}
-            >
-              <i className="bi bi-house mr-2"></i>
-              <span>Feedback</span>
-            </Link>
-          </li>
-        </ul>
       </div>
     </>
   );
 };
 
-export default Navbar;
+export default NavBar;
