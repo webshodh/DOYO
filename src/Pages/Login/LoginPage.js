@@ -356,7 +356,7 @@ const LoginPage = () => {
 
         // Check user role in database
         const { role, data } = await checkUserRole(user.uid);
-console.log("role", role)
+        console.log("role", role);
         if (!role) {
           toast.error(
             "User not found in system records. Please contact administrator."
