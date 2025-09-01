@@ -7,7 +7,10 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { toast } from "react-toastify";
-import { validateMenuForm, calculateFinalPrice } from "../Validation/menuValidation";
+import {
+  validateMenuForm,
+  calculateFinalPrice,
+} from "../Validation/menuValidation";
 
 export const menuServices = {
   // Check if user has permission to manage hotel menus
@@ -91,6 +94,18 @@ export const menuServices = {
         availability: menuData.availability,
         mainCategory: menuData.mainCategory,
         categoryType: menuData.categoryType,
+        servingSize: menuData.servingSize,
+        spiceLevel: menuData.spiceLevel,
+        calories: menuData.calories,
+        preparationMethod: menuData.preparationMethod,
+        chefSpecial: menuData.chefSpecial,
+        isVegan: menuData.isVegan,
+        isGlutenFree: menuData.isGlutenFree,
+        ingredients: menuData.ingredients,
+        portionSize: menuData.portionSize,
+        mealType: menuData.mealType,
+        difficulty: menuData.difficulty,
+        isPopular: menuData.isPopular,
         uuid: uid(),
         imageUrl: imageUrl,
       };
@@ -162,8 +177,21 @@ export const menuServices = {
         availability: menuData.availability,
         mainCategory: menuData.mainCategory,
         categoryType: menuData.categoryType,
+        servingSize: menuData.servingSize,
+        spiceLevel: menuData.spiceLevel,
+        calories: menuData.calories,
+        preparationMethod: menuData.preparationMethod,
+        chefSpecial: menuData.chefSpecial,
+        isVegan: menuData.isVegan,
+        isGlutenFree: menuData.isGlutenFree,
+        ingredients: menuData.ingredients,
+        portionSize: menuData.portionSize,
+        mealType: menuData.mealType,
+        difficulty: menuData.difficulty,
+        isPopular: menuData.isPopular,
         uuid: menuId,
         imageUrl: imageUrl,
+
       };
 
       // Update in database

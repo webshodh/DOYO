@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50" style={{margin:'20px'}}>
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} admin={true} />
 
