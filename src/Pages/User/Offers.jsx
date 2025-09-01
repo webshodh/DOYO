@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import useOffersData from "../../data/useOffersData";
 import CategoryTabs from "../../components/CategoryTab";
 import NavBar from "components/Navbar/Navbar";
+import { Spinner } from "Atoms";
+import ErrorMessage from "Atoms/ErrorMessage";
 
 const Offers = () => {
   const { hotelName } = useParams();
@@ -55,24 +57,11 @@ const Offers = () => {
   }));
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    <Spinner />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">
-            Error Loading Offers
-          </h2>
-          <p className="text-gray-600">{error.message}</p>
-        </div>
-      </div>
-    );
+    return <ErrorMessage message={error.message} />;
   }
 
   // const handleBack = () => {

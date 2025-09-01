@@ -2,13 +2,21 @@ import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../../components";
+import {
+  Navbar,
+  FilterSortSearch,
+  HorizontalMenuCard,
+  MenuCard,
+} from "../../components";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 
 import CategoryTabs from "../../components/CategoryTab";
 import AlertMessage from "Atoms/AlertMessage";
 import { useParams } from "react-router-dom";
+import VerticalMenuCard from "components/Cards/VerticalMenuCard";
+import MenuViewToggle from "./MenuViewToggle";
+
 function Home() {
   const [menus, setMenus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,14 +33,7 @@ function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
-  // const [hotelName, setHotelName] = useState("");
   const { hotelName } = useParams();
-  // useEffect(() => {
-  //   const path = window.location.pathname;
-  //   const pathSegments = path.split("/");
-  //   const hotelNameFromPath = pathSegments[pathSegments.length - 2];
-  //   setHotelName(hotelNameFromPath);
-  // }, []);
 
   useEffect(() => {
     const path = window.location.pathname;
@@ -230,43 +231,43 @@ function Home() {
           /> */}
         </>
       )}
+      <div>
+        <div
+          style={{
+            background: `${colors.LightGrey}`,
+            padding: "20px",
+          }}
+        >
+          {/* Search and Sort */}
+          <div className=" top-16">
+            <FilterSortSearch
+              searchTerm={searchTerm}
+              handleSearch={handleSearch}
+              handleSort={handleSort}
+            />
+          </div>
 
-      <div
-        style={{
-          background: `${colors.LightGrey}`,
-          padding: "20px",
-        }}
-      >
-        {/* Search and Sort */}
-        <div className=" top-16">
-          <FilterSortSearch
-            searchTerm={searchTerm}
-            handleSearch={handleSearch}
-            handleSort={handleSort}
-          />
-        </div>
+          {/* Category Tabs */}
+          <div className=" top-24">
+            <CategoryTabs
+              categories={categories}
+              menuCountsByCategory={menuCountsByCategory}
+              handleCategoryFilter={handleCategoryFilter}
+            />
+          </div>
 
-        {/* Category Tabs */}
-        <div className=" top-24">
-          <CategoryTabs
-            categories={categories}
-            menuCountsByCategory={menuCountsByCategory}
-            handleCategoryFilter={handleCategoryFilter}
-          />
-        </div>
+          {/* Main Category Buttons */}
+          {mainCategories.map((mainCategory) => {
+            const categoryName = mainCategory.categoryName;
+            const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
 
-        {/* Main Category Buttons */}
-        {mainCategories.map((mainCategory) => {
-          const categoryName = mainCategory.categoryName;
-          const categoryCount = mainCategoryCounts[categoryName] || 0; // Get the count for the category
-
-          // Only render the button if the category has at least one menu item
-          if (categoryCount > 0) {
-            return (
-              <button
-                key={mainCategory.mainCategoryName}
-                onClick={handleMainCategoryFilter}
-                className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
+            // Only render the button if the category has at least one menu item
+            if (categoryCount > 0) {
+              return (
+                <button
+                  key={mainCategory.mainCategoryName}
+                  onClick={handleMainCategoryFilter}
+                  className={`flex-1 px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out 
           rounded-full mr-2
           ${
             activeMainCategory === categoryName
@@ -274,38 +275,27 @@ function Home() {
               : " bg-white border border-orange-500 text-black hover:bg-orange-500"
           }
         `}
-                style={{
-                  margin: "10px 5px",
-                }}
-                data-category={categoryName}
-              >
-                {categoryName} ({categoryCount})
-              </button>
-            );
-          }
+                  style={{
+                    margin: "10px 5px",
+                  }}
+                  data-category={categoryName}
+                >
+                  {categoryName} ({categoryCount})
+                </button>
+              );
+            }
 
-          return null; // Don't render the button if the category has no items
-        })}
-      </div>
-
-      {/* Menu Items */}
-      <div
-        className="flex flex-wrap justify-center gap-1 px-4 ml-2"
-        style={{
-          height: "calc(100vh - 240px)",
-          overflowY: "auto",
-          background: colors.LightGrey,
-          // marginBottom: "50px",
-        }}
-      >
-        {filteredAndSortedItems.map((item) => (
-          <div
-            className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-2"
-            key={item.id}
-          >
-            <HorizontalMenuCard item={item} handleImageLoad={handleImageLoad} />
-          </div>
-        ))}
+            return null; // Don't render the button if the category has no items
+          })}
+        </div>
+        <div>
+          {/* Menu Items */}
+          <MenuViewToggle
+            filteredAndSortedItems={filteredAndSortedItems}
+            handleImageLoad={handleImageLoad}
+            colors={colors}
+          />
+        </div>
       </div>
     </>
   );

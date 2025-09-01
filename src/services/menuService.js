@@ -90,6 +90,7 @@ export const menuServices = {
         menuContent: menuData.menuContent.trim(),
         availability: menuData.availability,
         mainCategory: menuData.mainCategory,
+        categoryType: menuData.categoryType,
         uuid: uid(),
         imageUrl: imageUrl,
       };
@@ -160,6 +161,7 @@ export const menuServices = {
         menuContent: menuData.menuContent.trim(),
         availability: menuData.availability,
         mainCategory: menuData.mainCategory,
+        categoryType: menuData.categoryType,
         uuid: menuId,
         imageUrl: imageUrl,
       };

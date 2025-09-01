@@ -264,7 +264,7 @@ const AdminEditForm = ({ admin, onClose, onSuccess }) => {
               }}
             >
               <option value="admin">Admin</option>
-              <option value="Super Admin">Super Admin</option>
+              {/* <option value="Super Admin">Super Admin</option> */}
             </select>
           </div>
 

@@ -10,6 +10,7 @@ const CategoryTabs = ({
   mainCategories = [], // New prop for main categories
   menuCountsBySpecialCategory = {}, // New prop for special category counts
   menuCountsByMainCategory = {}, // New prop for main category counts
+  hideAllTab = false, // New prop to hide the "All" tab
 }) => {
   const [activeTab, setActiveTab] = useState("All");
 
@@ -19,14 +20,15 @@ const CategoryTabs = ({
     Object.values(menuCountsBySpecialCategory).reduce((a, b) => a + b, 0) +
     Object.values(menuCountsByMainCategory).reduce((a, b) => a + b, 0);
 
-  const tabs = [
-    {
+  const tabs = [ 
+    // Only include "All" tab if hideAllTab is false
+    ...(hideAllTab ? [] : [{
       label: `All (${totalCount})`,
       content: (
         <div>{/* Content for 'All' category can be displayed here */}</div>
       ),
       type: "all",
-    },
+    }]),
     // Main categories first (if provided)
     ...mainCategories
       .filter((item) => menuCountsByMainCategory[item.categoryName] > 0)

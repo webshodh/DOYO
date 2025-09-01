@@ -18,14 +18,16 @@ import LoginPage from "./Pages/Login/LoginPage";
 import HotelSplashScreen from "./Pages/SplashScreen";
 import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
 import Profile from "./components/ProfileComponent";
-import Sidebar from "./components/SideBarComponent";
-import Navbar from "./components/NavBarComponent";
 import AddCategory from "Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "Pages/Admin Dashboard/AddMenu";
-import { AddHotel, AdminList, Home, SuperAdminDashboard } from "Pages";
+import { AddHotel, AdminList, Home, NotAuthorized, NotFound, SignupPage, SuperAdminDashboard } from "Pages";
 import AddOffers from "Pages/Admin Dashboard/AddOffers";
 import Offers from "Pages/User/Offers";
+import { Spinner } from "Atoms";
+import SettingsPage from "Pages/Admin Dashboard/Setting";
+import AdminDashboardLayout from "./Pages/AdminDashboardLayout";
+import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -47,14 +49,7 @@ const ProtectedRoute = ({
   }, [auth]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    <Spinner />;
   }
 
   if (requiresAuth && !user) {
@@ -66,36 +61,6 @@ const ProtectedRoute = ({
   }
 
   return children;
-};
-
-const SettingsPage = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-    <p className="text-gray-600 mt-2">Manage your hotel settings here.</p>
-  </div>
-);
-
-// Dashboard Layout Component
-const DashboardLayout = ({ children }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-  };
-
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-      <div className="flex-1 flex flex-col lg:ml-0">
-        <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <main className="flex-1 overflow-y-auto">{children}</main>
-      </div>
-    </div>
-  );
 };
 
 function App() {
@@ -110,6 +75,14 @@ function App() {
               element={
                 <ProtectedRoute requiresAuth={false}>
                   <LoginPage />
+                </ProtectedRoute>
+              }
+            />
+             <Route
+              path="/super-admin/sign-up"
+              element={
+                <ProtectedRoute requiresAuth={false}>
+                  <SignupPage />
                 </ProtectedRoute>
               }
             />
@@ -142,7 +115,7 @@ function App() {
               path="/super-admin/*"
               element={
                 <ProtectedRoute>
-                  <HotelSelectionProvider>
+                  {/* <HotelSelectionProvider> */}
                     <Routes>
                       <Route
                         path="dashboard"
@@ -152,26 +125,26 @@ function App() {
                       <Route
                         path="add-hotel"
                         element={
-                          <DashboardLayout>
+                          <SuperAdminDashboardLayout>
                             <AddHotel />
-                          </DashboardLayout>
+                          </SuperAdminDashboardLayout>
                         }
                       />
                       <Route
                         path="view-admin"
                         element={
-                          <DashboardLayout>
+                          <SuperAdminDashboardLayout>
                             <AdminList />
-                          </DashboardLayout>
+                          </SuperAdminDashboardLayout>
                         }
                       />
 
                       <Route
                         path="settings"
                         element={
-                          <DashboardLayout>
+                          <SuperAdminDashboardLayout>
                             <SettingsPage />
-                          </DashboardLayout>
+                          </SuperAdminDashboardLayout>
                         }
                       />
                       {/* Redirect to dashboard if no specific route matches */}
@@ -180,7 +153,7 @@ function App() {
                         element={<Navigate to="dashboard" replace />}
                       />
                     </Routes>
-                  </HotelSelectionProvider>
+                  {/* </HotelSelectionProvider> */}
                 </ProtectedRoute>
               }
             />
@@ -197,42 +170,42 @@ function App() {
                       <Route
                         path="add-category"
                         element={
-                          <DashboardLayout>
+                          <AdminDashboardLayout>
                             <AddCategory />
-                          </DashboardLayout>
+                          </AdminDashboardLayout>
                         }
                       />
                       <Route
                         path="add-special-category"
                         element={
-                          <DashboardLayout>
+                          <AdminDashboardLayout>
                             <CategoryManager />
-                          </DashboardLayout>
+                          </AdminDashboardLayout>
                         }
                       />
                       <Route
                         path="add-menu"
                         element={
-                          <DashboardLayout>
+                          <AdminDashboardLayout>
                             <AddMenu />
-                          </DashboardLayout>
+                          </AdminDashboardLayout>
                         }
                       />
                       <Route
                         path="add-offers"
                         element={
-                          <DashboardLayout>
+                          <AdminDashboardLayout>
                             <AddOffers />
-                          </DashboardLayout>
+                          </AdminDashboardLayout>
                         }
                       />
 
                       <Route
                         path="settings"
                         element={
-                          <DashboardLayout>
+                          <AdminDashboardLayout>
                             <SettingsPage />
-                          </DashboardLayout>
+                          </AdminDashboardLayout>
                         }
                       />
                       {/* Redirect to dashboard if no specific route matches */}
@@ -250,7 +223,16 @@ function App() {
             <Route path="/" element={<Navigate to="/admin/login" replace />} />
 
             {/* Catch-all route */}
-            <Route path="*" element={<Navigate to="/admin/login" replace />} />
+            {/* <Route path="*" element={<Navigate to="/admin/login" replace />} /> */}
+
+             {/* Utility Pages */}
+            <Route path="/not-authorized" element={<NotAuthorized />} />
+            <Route path="/not-found" element={<NotFound />} />
+
+           
+
+            {/* Catch-all -> NotFound */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
 
           {/* Toast Container */}

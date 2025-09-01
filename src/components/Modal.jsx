@@ -9,7 +9,7 @@ const Modal = ({ handleClose, title, children }) => {
       >
         <div
           className="modal-dialog"
-          style={{ maxWidth: "80%", height: "auto" }}
+          style={{ maxWidth: "50%", height: "auto" }}
         >
           <div className="modal-content">
             <div className="modal-header">

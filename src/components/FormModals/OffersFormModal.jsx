@@ -155,7 +155,6 @@ const OffersFormModal = ({
     <Modal title={title} handleClose={handleClose}>
       <div
         className="p-6 bg-white rounded-lg shadow-md"
-        style={{ width: "60%", maxHeight: "80vh", overflowY: "auto" }}
       >
         <PageTitle pageTitle={isEditMode ? "Edit Offer" : "Add Offer"} />
 
