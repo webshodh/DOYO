@@ -4,7 +4,7 @@ import { getAuth, signOut } from "firebase/auth";
 import { useHotelSelection } from "../Context/HotelSelectionContext";
 import { toast } from "react-toastify";
 
-const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
+const Navbar = ({ onMenuToggle, isSidebarOpen, admin }) => {
   const navigate = useNavigate();
   const auth = getAuth();
   const { selectedHotel, availableHotels, selectHotel, user } =
@@ -112,124 +112,127 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
           </button>
 
           {/* Hotel Name */}
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
+          {admin && (
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold text-gray-800">
+                {selectedHotel?.name || "Select Hotel"}
+              </h1>
             </div>
-            <h1 className="text-xl font-bold text-gray-800">
-              {selectedHotel?.name || "Select Hotel"}
-            </h1>
-          </div>
+          )}
         </div>
 
         {/* Right Section */}
         <div className="flex items-center space-x-3">
           {/* Hotel Switcher Dropdown */}
-          <div className="relative" ref={hotelDropdownRef}>
-            <button
-              onClick={() => setIsHotelDropdownOpen(!isHotelDropdownOpen)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {admin && (
+            <div className="relative" ref={hotelDropdownRef}>
+              <button
+                onClick={() => setIsHotelDropdownOpen(!isHotelDropdownOpen)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                />
-              </svg>
-              <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                Switch Hotel
-              </span>
-              <svg
-                className={`w-4 h-4 text-gray-400 transition-transform ${
-                  isHotelDropdownOpen ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-4 h-4 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                  Switch Hotel
+                </span>
+                <svg
+                  className={`w-4 h-4 text-gray-400 transition-transform ${
+                    isHotelDropdownOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
 
-            {/* Hotel Dropdown Menu */}
-            {isHotelDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div className="py-2">
-                  <div className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border-b">
-                    Available Hotels ({availableHotels.length})
+              {/* Hotel Dropdown Menu */}
+              {isHotelDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border-b">
+                      Available Hotels ({availableHotels.length})
+                    </div>
+                    {availableHotels.map((hotel) => (
+                      <button
+                        key={hotel.id}
+                        onClick={() => handleHotelSwitch(hotel)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-orange-50 flex items-center space-x-3 transition-colors ${
+                          selectedHotel?.id === hotel.id
+                            ? "bg-orange-100 text-orange-700"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        <div className="w-6 h-6 bg-orange-100 rounded flex items-center justify-center">
+                          <svg
+                            className="w-3 h-3 text-orange-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"
+                            />
+                          </svg>
+                        </div>
+                        <span className="flex-1">{hotel.name}</span>
+                        {selectedHotel?.id === hotel.id && (
+                          <svg
+                            className="w-4 h-4 text-orange-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
                   </div>
-                  {availableHotels.map((hotel) => (
-                    <button
-                      key={hotel.id}
-                      onClick={() => handleHotelSwitch(hotel)}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-orange-50 flex items-center space-x-3 transition-colors ${
-                        selectedHotel?.id === hotel.id
-                          ? "bg-orange-100 text-orange-700"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      <div className="w-6 h-6 bg-orange-100 rounded flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-orange-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"
-                          />
-                        </svg>
-                      </div>
-                      <span className="flex-1">{hotel.name}</span>
-                      {selectedHotel?.id === hotel.id && (
-                        <svg
-                          className="w-4 h-4 text-orange-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
                 </div>
-              </div>
-            )}
-          </div>
-
+              )}
+            </div>
+          )}
           {/* Profile Dropdown */}
           <div className="relative" ref={profileDropdownRef}>
             <button

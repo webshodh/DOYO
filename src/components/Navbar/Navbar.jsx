@@ -1,8 +1,18 @@
 import React from "react";
 import { Star } from "lucide-react"; // Star icon for reviews
 import { colors } from "theme/theme";
+import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ title, hotelPlaceId, hotelName }) => {
+const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
+  const navigate = useNavigate();
+
+  const handleOfferClick = () => {
+    navigate(`/viewMenu/${hotelName}/offers`);
+  };
+
+  const handleHomeClick = () => {
+    navigate(`/viewMenu/${hotelName}/home`);
+  };
   // Function to handle Google review redirection
   const handleReviewClick = () => {
     let reviewUrl;
@@ -37,6 +47,48 @@ const NavBar = ({ title, hotelPlaceId, hotelName }) => {
         </h2>
 
         <div className="flex items-center gap-4">
+          {/* Offer Button */}
+          {offers && (
+            <button
+              onClick={handleOfferClick}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
+              style={{
+                backgroundColor: colors.LightGrey || "#f8f9fa",
+                color: "#f59e0b", // yellow-500
+              }}
+              title="View Offers"
+            >
+              <Star
+                size={20}
+                fill="#f59e0b"
+                stroke="#f59e0b"
+                className="animate-pulse"
+              />
+              <span className="text-sm font-medium text-yellow-600">
+                Offers
+              </span>
+            </button>
+          )}
+          {/* Home Button */}
+          {home && (
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
+              style={{
+                backgroundColor: colors.LightGrey || "#f8f9fa",
+                color: "#f59e0b", // yellow-500
+              }}
+              title="View Menu"
+            >
+              <Star
+                size={20}
+                fill="#f59e0b"
+                stroke="#f59e0b"
+                className="animate-pulse"
+              />
+              <span className="text-sm font-medium text-yellow-600">Menu</span>
+            </button>
+          )}
           {/* Review Icon Button */}
           <button
             onClick={handleReviewClick}

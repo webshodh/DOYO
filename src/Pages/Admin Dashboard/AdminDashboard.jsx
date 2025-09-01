@@ -54,7 +54,7 @@ const AdminDashboard = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} admin={true}/>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">

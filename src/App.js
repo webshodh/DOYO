@@ -23,7 +23,9 @@ import Navbar from "./components/NavBarComponent";
 import AddCategory from "Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "Pages/Admin Dashboard/AddMenu";
-import { Home, SuperAdminDashboard } from "Pages";
+import { AddHotel, AdminList, Home, SuperAdminDashboard } from "Pages";
+import AddOffers from "Pages/Admin Dashboard/AddOffers";
+import Offers from "Pages/User/Offers";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -112,6 +114,7 @@ function App() {
               }
             />
             <Route path="/viewMenu/:hotelName/home" element={<Home />} />
+            <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
             {/* Admin Routes - Wrapped with HotelSelectionProvider */}
             <Route
               path="/admin/hotel-select"
@@ -129,7 +132,55 @@ function App() {
               path="/super-admin/dashboard"
               element={
                 <ProtectedRoute>
-                  <SuperAdminDashboard />
+                  <HotelSelectionProvider>
+                    <SuperAdminDashboard />
+                  </HotelSelectionProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/super-admin/*"
+              element={
+                <ProtectedRoute>
+                  <HotelSelectionProvider>
+                    <Routes>
+                      <Route
+                        path="dashboard"
+                        element={<SuperAdminDashboard />}
+                      />
+                      <Route path="profile" element={<Profile />} />
+                      <Route
+                        path="add-hotel"
+                        element={
+                          <DashboardLayout>
+                            <AddHotel />
+                          </DashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="view-admin"
+                        element={
+                          <DashboardLayout>
+                            <AdminList />
+                          </DashboardLayout>
+                        }
+                      />
+
+                      <Route
+                        path="settings"
+                        element={
+                          <DashboardLayout>
+                            <SettingsPage />
+                          </DashboardLayout>
+                        }
+                      />
+                      {/* Redirect to dashboard if no specific route matches */}
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </HotelSelectionProvider>
                 </ProtectedRoute>
               }
             />
@@ -164,6 +215,14 @@ function App() {
                         element={
                           <DashboardLayout>
                             <AddMenu />
+                          </DashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-offers"
+                        element={
+                          <DashboardLayout>
+                            <AddOffers />
                           </DashboardLayout>
                         }
                       />
