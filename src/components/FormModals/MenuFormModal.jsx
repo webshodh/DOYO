@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FORM_CONFIG } from "Constants/formConfig";
+import { FORM_CONFIG } from "Constants/addMenuFormConfig";
 import { Upload, ChefHat, AlertCircle, X, Save } from "lucide-react";
 import { FormSection, getDefaultFormData } from "utility/FormUtilityFunctions";
 
@@ -11,6 +11,7 @@ const MenuFormModal = ({
   mainCategories,
   editMode = false,
   initialData = null,
+  hotelName
 }) => {
   const [formData, setFormData] = useState(getDefaultFormData());
   const [previewImage, setPreviewImage] = useState(null);
@@ -217,13 +218,6 @@ const MenuFormModal = ({
       }
     });
 
-    console.log("Prepared submission data:", submissionData); // Debug log
-    console.log("Submission data keys:", Object.keys(submissionData)); // Debug log
-    console.log(
-      "Total fields being submitted:",
-      Object.keys(submissionData).length
-    );
-
     // Validate critical fields are present
     const criticalFields = [
       "menuName",
@@ -409,32 +403,9 @@ const MenuFormModal = ({
                     onChange={setFormData}
                     externalOptions={externalOptions}
                     disabled={isSubmitting}
+                    hotelName={hotelName}
                   />
                 ))}
-
-                {/* Debug Section - Remove this in production */}
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">
-                    Debug Info (Remove in production):
-                  </h4>
-                  <p className="text-sm">
-                    Form fields count: {Object.keys(formData).length}
-                  </p>
-                  <p className="text-sm">
-                    Categories count: {(categories || []).length}
-                  </p>
-                  <p className="text-sm">
-                    Main Categories count: {(mainCategories || []).length}
-                  </p>
-                  <details>
-                    <summary className="cursor-pointer text-sm font-medium">
-                      Show current form data
-                    </summary>
-                    <pre className="text-xs mt-2 bg-white p-2 rounded overflow-auto max-h-40">
-                      {JSON.stringify(formData, null, 2)}
-                    </pre>
-                  </details>
-                </div>
 
                 {/* Form Actions */}
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200">

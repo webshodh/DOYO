@@ -5,7 +5,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
-const AdminLoginPage = () => {
+const SuperAdminLoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,6 +14,13 @@ const AdminLoginPage = () => {
 
   const auth = getAuth();
   const navigate = useNavigate();
+
+  // Predefined super admin emails
+  const superAdminEmails = [
+    "webshodhteam@gmail.com",
+    "superadmin2@example.com",
+    "superadmin3@example.com",
+  ];
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -37,9 +44,20 @@ const AdminLoginPage = () => {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Admin Login Successful!");
-      navigate("/admin/hotel-select");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      if (superAdminEmails.includes(user.email)) {
+        toast.success("Super Admin Login Successful!");
+        navigate("/super-admin/dashboard");
+      } else {
+        toast.error("Access Denied! Not a Super Admin.");
+        await auth.signOut();
+      }
     } catch (error) {
       if (error.code === "auth/user-not-found") {
         toast.error("No account found with this email address.");
@@ -60,10 +78,10 @@ const AdminLoginPage = () => {
       <div className="md:w-3/5 w-full bg-gray-200 p-4 flex items-center justify-center">
         <div className="w-full max-w-md bg-white p-8 shadow-lg rounded-lg dark:bg-gray-800">
           <h3 className="text-4xl font-extrabold text-center text-orange-600 dark:text-orange-400 mb-2">
-            Admin Login
+            Super Admin Login
           </h3>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8">
-            Log in to manage your hotel.
+            Enter your credentials to access the dashboard.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -138,4 +156,4 @@ const AdminLoginPage = () => {
   );
 };
 
-export default AdminLoginPage;
+export default SuperAdminLoginPage;

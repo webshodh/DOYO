@@ -6,6 +6,8 @@ import Sidebar from "../../components/SideBarComponent";
 import AddMenu from "./AddMenu";
 import { useCategoriesData, useMainCategoriesData, useMenuData } from "data";
 import StatCard from "Atoms/StatCard";
+import useOptionsData from "data/useOptionsData";
+import OptionData from "Constants/option";
 
 const AdminDashboard = () => {
   const { hotelName } = useParams();
@@ -25,6 +27,15 @@ const AdminDashboard = () => {
     loading: categoriesLoading,
     error: categoriesError,
   } = useCategoriesData(hotelName);
+
+  const {   optionsData,
+    totalOptionsCount,
+    categories,
+    optionTypes,
+    error } =
+    useOptionsData(hotelName);
+
+  console.log("categories1231", optionsData);
 
   const {
     mainCategoriesData,

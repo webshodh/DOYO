@@ -1,5 +1,5 @@
 import { CheckCircle } from "lucide-react";
-import { OPTIONS } from "Constants/formConfig";
+import { OPTIONS } from "../Constants/addMenuFormConfig";
 
 // Default form values
 export const getDefaultFormData = () => ({

@@ -195,6 +195,7 @@ function AddMenu() {
           mainCategories={mainCategories}
           editMode={editMode}
           initialData={editedMenuData}
+          hotelName={hotelName}
         />
         <PageTitle pageTitle="View Menu" />
         {/* Main Content */}
