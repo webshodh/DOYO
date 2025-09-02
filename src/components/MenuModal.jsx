@@ -53,6 +53,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
 
   const formatNutritionalInfo = (info) => {
     if (!info) return null;
+    console.log("info", info);
     return Object.entries(info).filter(([key, value]) => value);
   };
 
@@ -88,14 +89,34 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
               Chef's Special
             </div>
           )}
+
           {modalData.isPopular && (
             <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
               Popular
             </div>
           )}
+
           {modalData.isRecommended && (
             <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
               Recommended
+            </div>
+          )}
+
+          {modalData.isMostOrdered && (
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              Most Ordered
+            </div>
+          )}
+
+          {modalData.isLimitedEdition && (
+            <div className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              Limited Edition
+            </div>
+          )}
+
+          {modalData.isSeasonal && (
+            <div className="bg-gradient-to-r from-teal-400 to-cyan-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              Seasonal
             </div>
           )}
         </div>

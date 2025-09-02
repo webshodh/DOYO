@@ -240,7 +240,7 @@ export const FORM_CONFIG = {
     },
     {
       id: "features",
-      title: "Special Features & Dietary Info",
+      title: "Special Features",
       icon: Leaf,
       bgColor: "red",
       fields: [
@@ -258,20 +258,7 @@ export const FORM_CONFIG = {
           icon: Star,
           iconColor: "yellow",
         },
-        {
-          name: "isVegan",
-          label: "Vegan",
-          type: "checkbox",
-          icon: Leaf,
-          iconColor: "green",
-        },
-        {
-          name: "isGlutenFree",
-          label: "Gluten Free",
-          type: "checkbox",
-          icon: AlertCircle,
-          iconColor: "blue",
-        },
+
         {
           name: "isRecommended",
           label: "Recommended",
@@ -279,13 +266,7 @@ export const FORM_CONFIG = {
           icon: AlertCircle,
           iconColor: "blue",
         },
-        {
-          name: "isSugarFree",
-          label: "Sugar Free",
-          type: "checkbox",
-          icon: AlertCircle,
-          iconColor: "blue",
-        },
+
         {
           name: "isMostOrdered",
           label: "Most Ordered",
@@ -308,6 +289,37 @@ export const FORM_CONFIG = {
           icon: AlertCircle,
           iconColor: "blue",
         },
+      ],
+    },
+    {
+      id: "Dietary",
+      title: "Dietary Info",
+      icon: Leaf,
+      bgColor: "orange",
+      fields: [
+        {
+          name: "isVegan",
+          label: "Vegan",
+          type: "checkbox",
+          icon: Leaf,
+          iconColor: "green",
+        },
+        {
+          name: "isGlutenFree",
+          label: "Gluten Free",
+          type: "checkbox",
+          icon: AlertCircle,
+          iconColor: "blue",
+        },
+
+        {
+          name: "isSugarFree",
+          label: "Sugar Free",
+          type: "checkbox",
+          icon: AlertCircle,
+          iconColor: "blue",
+        },
+
         {
           name: "isOrganic",
           label: "Organic",

@@ -1,20 +1,22 @@
 import { CheckCircle } from "lucide-react";
-
 import { OPTIONS } from "Constants/formConfig";
 
 // Default form values
 export const getDefaultFormData = () => ({
+  // Basic Information
   menuName: "",
   menuContent: "",
   ingredients: "",
   menuCookingTime: "",
   servingSize: "",
 
+  // Pricing & Timing
   menuPrice: "",
   discount: "",
   finalPrice: "",
   calories: "",
 
+  // Categories & Classification
   mainCategory: "",
   menuCategory: "",
   categoryType: "",
@@ -22,6 +24,7 @@ export const getDefaultFormData = () => ({
   spiceLevel: "",
   portionSize: "",
 
+  // Preparation Details
   preparationMethod: "",
   difficulty: "",
   availability: "Available",
@@ -30,11 +33,20 @@ export const getDefaultFormData = () => ({
   texture: "",
   cookingStyle: "",
 
-  nutritionalInfo: { protein: "", carbs: "", fat: "", fiber: "" },
+  // Nutritional Information
+  nutritionalInfo: {
+    protein: "",
+    carbs: "",
+    fat: "",
+    fiber: "",
+  },
 
+  // File and Image
   file: null,
   existingImageUrl: "",
+  imageUrl: "",
 
+  // Special Features (Boolean flags)
   chefSpecial: false,
   isPopular: false,
   isVegan: false,
@@ -50,6 +62,8 @@ export const getDefaultFormData = () => ({
   isJainFriendly: false,
   isKidsFriendly: false,
   isBeverageAlcoholic: false,
+
+  // Allergens (Array)
   allergens: [],
 });
 
@@ -71,7 +85,13 @@ export const setNestedValue = (obj, path, value) => {
 };
 
 // Reusable form field component
-export const FormField = ({ field, value, onChange, externalOptions }) => {
+export const FormField = ({
+  field,
+  value,
+  onChange,
+  externalOptions,
+  disabled = false,
+}) => {
   const fieldValue = field.name.includes(".")
     ? getNestedValue(value, field.name)
     : value[field.name] ||
@@ -82,6 +102,8 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
         : "");
 
   const handleChange = (newValue) => {
+    if (disabled) return;
+
     if (field.name.includes(".")) {
       onChange(setNestedValue(value, field.name, newValue));
     } else {
@@ -95,7 +117,6 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
       // First check external options
       if (externalOptions?.[field.options]) {
         const options = externalOptions[field.options];
-        console.log(`Options for ${field.options}:`, options);
         return Array.isArray(options) ? options : [];
       }
 
@@ -127,9 +148,10 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
           </label>
           <textarea
             rows={field.rows || 3}
-            value={fieldValue}
+            value={fieldValue || ""}
             onChange={(e) => handleChange(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+            disabled={disabled}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             placeholder={field.placeholder}
             required={field.required}
           />
@@ -146,9 +168,10 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
             {field.label} {field.required && "*"}
           </label>
           <select
-            value={fieldValue}
+            value={fieldValue || ""}
             onChange={(e) => handleChange(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+            disabled={disabled}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             required={field.required}
           >
             <option value="">
@@ -178,7 +201,7 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
               }
 
               return (
-                <option key={index} value={optionValue}>
+                <option key={`${field.name}-${index}`} value={optionValue}>
                   {optionLabel}
                 </option>
               );
@@ -187,24 +210,23 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
           {fieldValue && field.required && (
             <CheckCircle className="absolute top-10 right-3 w-5 h-5 text-green-500" />
           )}
-          {/* Debug info - remove in production */}
-          {field.name === "mainCategory" || field.name === "menuCategory" ? (
-            <div className="text-xs text-gray-500 mt-1">
-              Options count: {fieldOptions.length}
-            </div>
-          ) : null}
         </div>
       );
 
     case "checkbox":
       const IconComponent = field.icon;
       return (
-        <label className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-all duration-200">
+        <label
+          className={`flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 ${
+            disabled ? "cursor-not-allowed opacity-75" : "cursor-pointer"
+          }`}
+        >
           <input
             type="checkbox"
-            checked={fieldValue || false}
+            checked={Boolean(fieldValue)}
             onChange={(e) => handleChange(e.target.checked)}
-            className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
+            disabled={disabled}
+            className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 disabled:cursor-not-allowed"
           />
           <div className="flex items-center gap-2">
             {IconComponent && (
@@ -221,20 +243,25 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
       return (
         <div className={getColSpanClass()}>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            {field.label}
+            {field.label} {field.required && "*"}
           </label>
-          <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-32 overflow-y-auto">
             {fieldOptions.map((option, index) => {
               const optionValue =
                 typeof option === "object" && option !== null
                   ? option.value || option.name || option
                   : option;
-              const isSelected = (fieldValue || []).includes(optionValue);
+              const isSelected =
+                Array.isArray(fieldValue) && fieldValue.includes(optionValue);
 
               return (
                 <label
-                  key={index}
-                  className={`flex items-center justify-center p-2 rounded-lg border-2 cursor-pointer transition-all duration-200 text-sm font-medium ${
+                  key={`${field.name}-multiselect-${index}`}
+                  className={`flex items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 text-xs font-medium ${
+                    disabled
+                      ? "cursor-not-allowed opacity-75"
+                      : "cursor-pointer"
+                  } ${
                     isSelected
                       ? "border-red-500 bg-red-100 text-red-700"
                       : "border-gray-200 bg-white hover:bg-gray-50"
@@ -244,19 +271,26 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => {
-                      const currentValues = fieldValue || [];
+                      if (disabled) return;
+                      const currentValues = Array.isArray(fieldValue)
+                        ? fieldValue
+                        : [];
                       const newValues = e.target.checked
                         ? [...currentValues, optionValue]
                         : currentValues.filter((v) => v !== optionValue);
                       handleChange(newValues);
                     }}
+                    disabled={disabled}
                     className="sr-only"
                   />
-                  {optionValue}
+                  <span className="text-center">{optionValue}</span>
                 </label>
               );
             })}
           </div>
+          {fieldOptions.length === 0 && (
+            <p className="text-sm text-gray-500 italic">No options available</p>
+          )}
         </div>
       );
 
@@ -268,9 +302,10 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
           </label>
           <input
             type={field.type}
-            value={fieldValue}
+            value={fieldValue || ""}
             onChange={(e) => handleChange(e.target.value)}
-            className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 ${
+            disabled={disabled || field.readonly}
+            className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed ${
               field.readonly ? "bg-gray-100 text-green-600 font-bold" : ""
             }`}
             placeholder={field.placeholder}
@@ -280,7 +315,7 @@ export const FormField = ({ field, value, onChange, externalOptions }) => {
             readOnly={field.readonly}
             required={field.required}
           />
-          {fieldValue && field.required && (
+          {fieldValue && field.required && !field.readonly && (
             <CheckCircle className="absolute top-10 right-3 w-5 h-5 text-green-500" />
           )}
         </div>
@@ -293,6 +328,7 @@ export const FormSection = ({
   formData,
   onChange,
   externalOptions,
+  disabled = false,
 }) => {
   const IconComponent = section.icon;
   const bgColorClass = `bg-${section.bgColor}-50`;
@@ -301,7 +337,9 @@ export const FormSection = ({
 
   return (
     <div
-      className={`${bgColorClass} rounded-xl p-6 border ${borderColorClass}`}
+      className={`${bgColorClass} rounded-xl p-6 border ${borderColorClass} ${
+        disabled ? "opacity-75" : ""
+      }`}
     >
       <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <IconComponent className={`w-5 h-5 ${iconColorClass}`} />
@@ -315,7 +353,7 @@ export const FormSection = ({
       >
         {section.id === "features" ? (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {section.fields
                 .filter((f) => f.type === "checkbox")
                 .map((field) => (
@@ -325,6 +363,7 @@ export const FormSection = ({
                     value={formData}
                     onChange={onChange}
                     externalOptions={externalOptions}
+                    disabled={disabled}
                   />
                 ))}
             </div>
@@ -337,6 +376,7 @@ export const FormSection = ({
                   value={formData}
                   onChange={onChange}
                   externalOptions={externalOptions}
+                  disabled={disabled}
                 />
               ))}
           </>
@@ -348,6 +388,7 @@ export const FormSection = ({
               value={formData}
               onChange={onChange}
               externalOptions={externalOptions}
+              disabled={disabled}
             />
           ))
         )}
