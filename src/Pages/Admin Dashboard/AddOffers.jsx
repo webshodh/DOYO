@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 import SearchWithButton from "components/SearchWithAddButton";
 import OffersFormModal from "../../components/FormModals/OffersFormModal";
 import { useOffers } from "../../customHooks/useOffers";
+import { Spinner } from "react-bootstrap";
 
 function AddOffers() {
   // Modal state
@@ -72,19 +73,7 @@ function AddOffers() {
 
   // Loading state
   if (loading) {
-    return (
-      <div
-        className="d-flex justify-center items-center"
-        style={{ minHeight: "400px" }}
-      >
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2 text-gray-600">Loading offers...</p>
-        </div>
-      </div>
-    );
+    <Spinner />;
   }
 
   return (

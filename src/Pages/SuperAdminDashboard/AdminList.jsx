@@ -9,6 +9,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
 import AdminEditForm from "./AdminEditForm"; // Import the separate component
+import ErrorMessage from "Atoms/ErrorMessage";
+import { Spinner } from "react-bootstrap";
 
 const AdminList = () => {
   const { data, loading, error, refetch } = useData("/admins/");
@@ -111,15 +113,11 @@ const AdminList = () => {
   const columns = adminsListColumn;
 
   if (loading) {
-    return <div style={{ margin: "20px" }}>Loading admins...</div>;
+    <Spinner />;
   }
 
   if (error) {
-    return (
-      <div style={{ margin: "20px", color: "red" }}>
-        Error loading admins: {error.message}
-      </div>
-    );
+    return <ErrorMessage message={error.message} />;
   }
 
   return (

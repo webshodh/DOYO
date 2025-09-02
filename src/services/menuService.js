@@ -7,7 +7,10 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { toast } from "react-toastify";
-import { validateMenuForm, calculateFinalPrice } from "../Validation/menuValidation";
+import {
+  validateMenuForm,
+  calculateFinalPrice,
+} from "../Validation/menuValidation";
 
 export const menuServices = {
   // Check if user has permission to manage hotel menus
@@ -79,19 +82,71 @@ export const menuServices = {
         menuData.discount
       );
 
-      // Prepare menu data
+      // Prepare menu data with ALL fields
       const newMenuData = {
-        menuName: menuData.menuName.trim(),
-        menuCookingTime: menuData.menuCookingTime,
-        menuPrice: menuData.menuPrice,
-        discount: menuData.discount || "0",
+        // Basic Information
+        menuName: menuData.menuName?.trim() || "",
+        menuContent: menuData.menuContent?.trim() || "",
+        ingredients: menuData.ingredients?.trim() || "",
+        menuCookingTime: parseInt(menuData.menuCookingTime) || 0,
+        servingSize: parseInt(menuData.servingSize) || 1,
+
+        // Pricing & Timing
+        menuPrice: parseFloat(menuData.menuPrice) || 0,
+        discount: parseFloat(menuData.discount) || 0,
         finalPrice: finalPrice,
-        menuCategory: menuData.menuCategory,
-        menuContent: menuData.menuContent.trim(),
-        availability: menuData.availability,
-        mainCategory: menuData.mainCategory,
+        calories: parseInt(menuData.calories) || 0,
+
+        // Categories & Classification
+        mainCategory: menuData.mainCategory || "",
+        menuCategory: menuData.menuCategory || "",
+        categoryType: menuData.categoryType || "",
+        mealType: menuData.mealType || "",
+        spiceLevel: menuData.spiceLevel || "",
+        portionSize: menuData.portionSize || "",
+
+        // Preparation Details
+        preparationMethod: menuData.preparationMethod || "",
+        difficulty: menuData.difficulty || "",
+        availability: menuData.availability || "Available",
+        cuisineType: menuData.cuisineType || "",
+        tasteProfile: menuData.tasteProfile || "",
+        texture: menuData.texture || "",
+        cookingStyle: menuData.cookingStyle || "",
+
+        // Nutritional Information
+        nutritionalInfo: {
+          protein: parseFloat(menuData.nutritionalInfo?.protein) || 0,
+          carbs: parseFloat(menuData.nutritionalInfo?.carbs) || 0,
+          fat: parseFloat(menuData.nutritionalInfo?.fat) || 0,
+          fiber: parseFloat(menuData.nutritionalInfo?.fiber) || 0,
+        },
+
+        // Special Features (Boolean flags)
+        chefSpecial: Boolean(menuData.chefSpecial),
+        isPopular: Boolean(menuData.isPopular),
+        isVegan: Boolean(menuData.isVegan),
+        isGlutenFree: Boolean(menuData.isGlutenFree),
+        isRecommended: Boolean(menuData.isRecommended),
+        isSugarFree: Boolean(menuData.isSugarFree),
+        isMostOrdered: Boolean(menuData.isMostOrdered),
+        isSeasonal: Boolean(menuData.isSeasonal),
+        isLimitedEdition: Boolean(menuData.isLimitedEdition),
+        isOrganic: Boolean(menuData.isOrganic),
+        isHighProtein: Boolean(menuData.isHighProtein),
+        isLactoseFree: Boolean(menuData.isLactoseFree),
+        isJainFriendly: Boolean(menuData.isJainFriendly),
+        isKidsFriendly: Boolean(menuData.isKidsFriendly),
+        isBeverageAlcoholic: Boolean(menuData.isBeverageAlcoholic),
+
+        // Allergens (Array)
+        allergens: Array.isArray(menuData.allergens) ? menuData.allergens : [],
+
+        // System fields
         uuid: uid(),
         imageUrl: imageUrl,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       // Save to database
@@ -138,7 +193,7 @@ export const menuServices = {
       }
 
       // Upload new image if provided
-      let imageUrl = menuData.existingImageUrl || "";
+      let imageUrl = menuData.existingImageUrl || menuData.imageUrl || "";
       if (menuData.file) {
         imageUrl = await menuServices.uploadMenuImage(menuData.file, hotelName);
       }
@@ -149,19 +204,71 @@ export const menuServices = {
         menuData.discount
       );
 
-      // Prepare updated menu data
+      // Prepare updated menu data with ALL fields
       const updatedMenuData = {
-        menuName: menuData.menuName.trim(),
-        menuCookingTime: menuData.menuCookingTime,
-        menuPrice: menuData.menuPrice,
-        discount: menuData.discount || "0",
+        // Basic Information
+        menuName: menuData.menuName?.trim() || "",
+        menuContent: menuData.menuContent?.trim() || "",
+        ingredients: menuData.ingredients?.trim() || "",
+        menuCookingTime: parseInt(menuData.menuCookingTime) || 0,
+        servingSize: parseInt(menuData.servingSize) || 1,
+
+        // Pricing & Timing
+        menuPrice: parseFloat(menuData.menuPrice) || 0,
+        discount: parseFloat(menuData.discount) || 0,
         finalPrice: finalPrice,
-        menuCategory: menuData.menuCategory,
-        menuContent: menuData.menuContent.trim(),
-        availability: menuData.availability,
-        mainCategory: menuData.mainCategory,
+        calories: parseInt(menuData.calories) || 0,
+
+        // Categories & Classification
+        mainCategory: menuData.mainCategory || "",
+        menuCategory: menuData.menuCategory || "",
+        categoryType: menuData.categoryType || "",
+        mealType: menuData.mealType || "",
+        spiceLevel: menuData.spiceLevel || "",
+        portionSize: menuData.portionSize || "",
+
+        // Preparation Details
+        preparationMethod: menuData.preparationMethod || "",
+        difficulty: menuData.difficulty || "",
+        availability: menuData.availability || "Available",
+        cuisineType: menuData.cuisineType || "",
+        tasteProfile: menuData.tasteProfile || "",
+        texture: menuData.texture || "",
+        cookingStyle: menuData.cookingStyle || "",
+
+        // Nutritional Information
+        nutritionalInfo: {
+          protein: parseFloat(menuData.nutritionalInfo?.protein) || 0,
+          carbs: parseFloat(menuData.nutritionalInfo?.carbs) || 0,
+          fat: parseFloat(menuData.nutritionalInfo?.fat) || 0,
+          fiber: parseFloat(menuData.nutritionalInfo?.fiber) || 0,
+        },
+
+        // Special Features (Boolean flags)
+        chefSpecial: Boolean(menuData.chefSpecial),
+        isPopular: Boolean(menuData.isPopular),
+        isVegan: Boolean(menuData.isVegan),
+        isGlutenFree: Boolean(menuData.isGlutenFree),
+        isRecommended: Boolean(menuData.isRecommended),
+        isSugarFree: Boolean(menuData.isSugarFree),
+        isMostOrdered: Boolean(menuData.isMostOrdered),
+        isSeasonal: Boolean(menuData.isSeasonal),
+        isLimitedEdition: Boolean(menuData.isLimitedEdition),
+        isOrganic: Boolean(menuData.isOrganic),
+        isHighProtein: Boolean(menuData.isHighProtein),
+        isLactoseFree: Boolean(menuData.isLactoseFree),
+        isJainFriendly: Boolean(menuData.isJainFriendly),
+        isKidsFriendly: Boolean(menuData.isKidsFriendly),
+        isBeverageAlcoholic: Boolean(menuData.isBeverageAlcoholic),
+
+        // Allergens (Array)
+        allergens: Array.isArray(menuData.allergens) ? menuData.allergens : [],
+
+        // System fields
         uuid: menuId,
         imageUrl: imageUrl,
+        createdAt: menuData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       // Update in database

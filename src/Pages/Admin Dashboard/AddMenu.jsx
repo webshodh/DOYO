@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { DynamicTable } from "components";
 import { ViewMenuColumns } from "Constants/Columns";
 import CategoryTabs from "components/CategoryTab";
-import { PageTitle } from "Atoms";
+import { PageTitle, Spinner } from "Atoms";
 import SearchWithButton from "components/SearchWithAddButton";
 import MenuFormModal from "../../components/FormModals/MenuFormModal";
 import { useMenu } from "../../customHooks/menu";
@@ -180,11 +180,7 @@ function AddMenu() {
   console.log("Table data prepared:", tableData.length, "items");
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-gray-600">Loading menus...</div>
-      </div>
-    );
+    <Spinner />;
   }
 
   return (

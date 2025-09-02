@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 import SearchWithButton from "components/SearchWithAddButton";
 import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
 import { useCategory } from "../../customHooks/useCategory";
+import { Spinner } from "react-bootstrap";
 
 function AddCategory() {
   // Modal state
@@ -66,19 +67,7 @@ function AddCategory() {
 
   // Loading state
   if (loading) {
-    return (
-      <div
-        className="d-flex justify-center items-center"
-        style={{ minHeight: "400px" }}
-      >
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2 text-gray-600">Loading categories...</p>
-        </div>
-      </div>
-    );
+    <Spinner />;
   }
 
   return (

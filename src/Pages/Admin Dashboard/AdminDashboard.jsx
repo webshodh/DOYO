@@ -5,6 +5,7 @@ import Navbar from "../../components/NavBarComponent";
 import Sidebar from "../../components/SideBarComponent";
 import AddMenu from "./AddMenu";
 import { useCategoriesData, useMainCategoriesData, useMenuData } from "data";
+import StatCard from "Atoms/StatCard";
 
 const AdminDashboard = () => {
   const { hotelName } = useParams();
@@ -34,32 +35,24 @@ const AdminDashboard = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-  console.log("totalMenus", totalMenus);
+
   const closeSidebar = () => {
     setIsSidebarOpen(false);
   };
 
-  const StatCard = ({ title, value, icon, color, change }) => (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div className={`p-3 rounded-full ${color}`}>{icon}</div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} admin={true}/>
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} admin={true} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Navbar */}
-        <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <Navbar
+          onMenuToggle={toggleSidebar}
+          isSidebarOpen={isSidebarOpen}
+          admin={true}
+        />
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6">

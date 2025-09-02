@@ -6,7 +6,7 @@ export const validateMenuForm = (menuData) => {
     menuPrice,
     menuCookingTime,
     menuCategory,
-    mainCategory,
+    categoryType,
     menuContent,
   } = menuData;
 
@@ -38,8 +38,8 @@ export const validateMenuForm = (menuData) => {
     return false;
   }
 
-  if (!mainCategory) {
-    toast.error("Main Category is required!", {
+  if (!categoryType) {
+    toast.error("Category Type is required!", {
       position: toast.POSITION.TOP_RIGHT,
     });
     return false;
