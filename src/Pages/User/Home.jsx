@@ -412,7 +412,7 @@ function Home() {
           </div>
 
           {/* Active Filters Display */}
-          {/* {(selectedSpecialFilters.length > 0 || selectedCategory || selectedMainCategory) && (
+          {(selectedSpecialFilters.length > 0 || selectedCategory || selectedMainCategory) && (
             <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Active Filters:</span>
@@ -465,7 +465,7 @@ function Home() {
                 )}
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Special Categories Filter - Horizontal Scroll */}
           {availableSpecialCategories.length > 0 && (
