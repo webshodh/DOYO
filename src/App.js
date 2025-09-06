@@ -38,6 +38,7 @@ import AdminDashboardLayout from "./Pages/AdminDashboardLayout";
 import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 import AddOption from "Pages/Admin Dashboard/AddOptions";
 import SuperAdminLoginPage from "Pages/Login/SuperAdminLoginPage";
+import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
 
 // Super Admin credentials (same as in login page)
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -314,6 +315,15 @@ function App() {
                           </AdminDashboardLayout>
                         }
                       />
+                      <Route
+                        path="upload-data"
+                        element={
+                          <AdminDashboardLayout>
+                            <BulkMenuUpload />
+                          </AdminDashboardLayout>
+                        }
+                      />
+
                       <Route
                         path="settings"
                         element={
