@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 
 // Context Providers
-import { HotelProvider } from "./Context/HotelContext"; // Your existing context
+import { HotelProvider } from "./Context/HotelContext";
 import { HotelSelectionProvider } from "./Context/HotelSelectionContext";
 
 // Components
@@ -37,9 +37,13 @@ import SettingsPage from "Pages/Admin Dashboard/Setting";
 import AdminDashboardLayout from "./Pages/AdminDashboardLayout";
 import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 import AddOption from "Pages/Admin Dashboard/AddOptions";
+import SuperAdminLoginPage from "Pages/Login/SuperAdminLoginPage";
 
-// Protected Route Component
-const ProtectedRoute = ({
+// Super Admin credentials (same as in login page)
+const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
+
+// Protected Route Component for Regular Admin
+const ProtectedAdminRoute = ({
   children,
   requiresAuth = true,
   redirectTo = "/admin/login",
@@ -58,7 +62,7 @@ const ProtectedRoute = ({
   }, [auth]);
 
   if (loading) {
-    <Spinner />;
+    return <Spinner />;
   }
 
   if (requiresAuth && !user) {
@@ -66,9 +70,68 @@ const ProtectedRoute = ({
   }
 
   if (!requiresAuth && user) {
+    // If user is super admin, redirect to super admin dashboard
+    if (user.email === SUPER_ADMIN_EMAIL) {
+      return <Navigate to="/super-admin/dashboard" replace />;
+    }
+    // Regular admin goes to hotel selection
     return <Navigate to="/admin/hotel-select" replace />;
   }
 
+  // Block super admin from accessing admin routes
+  if (user && user.email === SUPER_ADMIN_EMAIL) {
+    return <Navigate to="/super-admin/dashboard" replace />;
+  }
+
+  return children;
+};
+
+// Protected Route Component for Super Admin
+const ProtectedSuperAdminRoute = ({
+  children,
+  requiresAuth = true,
+  redirectTo = "/super-admin/login",
+}) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [auth]);
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (requiresAuth && !user) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  if (!requiresAuth && user) {
+    // If already logged in, redirect based on user type
+    if (user.email === SUPER_ADMIN_EMAIL) {
+      return <Navigate to="/super-admin/dashboard" replace />;
+    } else {
+      return <Navigate to="/super-admin/login" replace />;
+    }
+  }
+
+  // Block regular admin from accessing super admin routes
+  if (user && user.email !== SUPER_ADMIN_EMAIL) {
+    return <Navigate to="/not-authorized" replace />;
+  }
+
+  return children;
+};
+
+// Public Route Component (no auth required)
+const PublicRoute = ({ children }) => {
   return children;
 };
 
@@ -78,101 +141,139 @@ function App() {
       <HotelProvider>
         <div className="App">
           <Routes>
-            {/* Public Routes - No HotelSelectionProvider needed */}
+            {/* Public Routes - No authentication required */}
+            <Route
+              path="/viewMenu/:hotelName/home"
+              element={
+                <PublicRoute>
+                  <Home />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/viewMenu/:hotelName/offers"
+              element={
+                <PublicRoute>
+                  <Offers />
+                </PublicRoute>
+              }
+            />
+
+            {/* Admin Login Routes */}
             <Route
               path="/admin/login"
               element={
-                <ProtectedRoute requiresAuth={false}>
+                <ProtectedAdminRoute requiresAuth={false}>
                   <LoginPage />
-                </ProtectedRoute>
+                </ProtectedAdminRoute>
               }
             />
+
+            {/* Super Admin Login Routes */}
+            <Route
+              path="/super-admin/login"
+              element={
+                <ProtectedSuperAdminRoute requiresAuth={false}>
+                  <SuperAdminLoginPage />
+                </ProtectedSuperAdminRoute>
+              }
+            />
+
             <Route
               path="/super-admin/sign-up"
               element={
-                <ProtectedRoute requiresAuth={false}>
+                <ProtectedSuperAdminRoute requiresAuth={false}>
                   <SignupPage />
-                </ProtectedRoute>
+                </ProtectedSuperAdminRoute>
               }
             />
-            <Route path="/viewMenu/:hotelName/home" element={<Home />} />
-            <Route path="/viewMenu/:hotelName/offers" element={<Offers />} />
-            {/* Admin Routes - Wrapped with HotelSelectionProvider */}
+
+            {/* Admin Hotel Selection (with splash screen) */}
             <Route
               path="/admin/hotel-select"
               element={
-                <ProtectedRoute>
+                <ProtectedAdminRoute>
                   <HotelSelectionProvider>
                     <HotelSplashScreen />
                   </HotelSelectionProvider>
-                </ProtectedRoute>
+                </ProtectedAdminRoute>
               }
             />
 
-            {/* Super Admin Routes - No HotelSelectionProvider needed */}
-            <Route
-              path="/super-admin/dashboard"
-              element={
-                <ProtectedRoute>
-                  <HotelSelectionProvider>
-                    <SuperAdminDashboard />
-                  </HotelSelectionProvider>
-                </ProtectedRoute>
-              }
-            />
+            {/* Super Admin Routes - NO HotelSelectionProvider, NO Splash Screen */}
             <Route
               path="/super-admin/*"
               element={
-                <ProtectedRoute>
-                  {/* <HotelSelectionProvider> */}
-                  <Routes>
-                    <Route path="dashboard" element={<SuperAdminDashboard />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route
-                      path="add-hotel"
-                      element={
-                        <SuperAdminDashboardLayout>
-                          <AddHotel />
-                        </SuperAdminDashboardLayout>
-                      }
-                    />
-                    <Route
-                      path="view-admin"
-                      element={
-                        <SuperAdminDashboardLayout>
-                          <AdminList />
-                        </SuperAdminDashboardLayout>
-                      }
-                    />
-
-                    <Route
-                      path="settings"
-                      element={
-                        <SuperAdminDashboardLayout>
-                          <SettingsPage />
-                        </SuperAdminDashboardLayout>
-                      }
-                    />
-                    {/* Redirect to dashboard if no specific route matches */}
-                    <Route
-                      path=""
-                      element={<Navigate to="dashboard" replace />}
-                    />
-                  </Routes>
-                  {/* </HotelSelectionProvider> */}
-                </ProtectedRoute>
+                <ProtectedSuperAdminRoute>
+                  <HotelSelectionProvider>
+                    <Routes>
+                      <Route
+                        path="dashboard"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <SuperAdminDashboard />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="profile"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <Profile />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-hotel"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <AddHotel />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="view-admin"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <AdminList />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="settings"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <SettingsPage />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                      {/* Redirect to dashboard if no specific route matches */}
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </HotelSelectionProvider>
+                </ProtectedSuperAdminRoute>
               }
             />
 
-            {/* Hotel-specific Admin Routes - All wrapped with HotelSelectionProvider */}
+            {/* Hotel-specific Admin Routes - WITH HotelSelectionProvider */}
             <Route
               path="/:hotelName/admin/*"
               element={
-                <ProtectedRoute>
+                <ProtectedAdminRoute>
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="profile" element={<Profile />} />
+                      <Route
+                        path="profile"
+                        element={
+                          <AdminDashboardLayout>
+                            <Profile />
+                          </AdminDashboardLayout>
+                        }
+                      />
                       <Route
                         path="add-category"
                         element={
@@ -213,7 +314,6 @@ function App() {
                           </AdminDashboardLayout>
                         }
                       />
-
                       <Route
                         path="settings"
                         element={
@@ -229,15 +329,12 @@ function App() {
                       />
                     </Routes>
                   </HotelSelectionProvider>
-                </ProtectedRoute>
+                </ProtectedAdminRoute>
               }
             />
 
-            {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/admin/login" replace />} />
-
-            {/* Catch-all route */}
-            {/* <Route path="*" element={<Navigate to="/admin/login" replace />} /> */}
+            {/* Default redirect based on authentication */}
+            <Route path="/" element={<AuthBasedRedirect />} />
 
             {/* Utility Pages */}
             <Route path="/not-authorized" element={<NotAuthorized />} />
@@ -266,55 +363,36 @@ function App() {
   );
 }
 
+// Component to handle root redirect based on authentication status
+const AuthBasedRedirect = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [auth]);
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (!user) {
+    // Not authenticated, redirect to admin login
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  // Authenticated user, redirect based on role
+  if (user.email === SUPER_ADMIN_EMAIL) {
+    return <Navigate to="/super-admin/dashboard" replace />;
+  } else {
+    return <Navigate to="/super-admin/login" replace />;
+  }
+};
+
 export default App;
-
-// import React from "react";
-// import {
-//   BrowserRouter as Router,
-//   Routes,
-//   Route,
-//   Navigate,
-// } from "react-router-dom";
-// import { ToastContainer } from "react-toastify";
-// import { HotelProvider } from "./Context/HotelContext";
-
-// import PublicRoutes from "./Routes/PublicRoutes";
-// import AdminRoutes from "./Routes/AdminRoutes";
-// import SuperAdminRoutes from "./Routes/SuperAdminRoutes";
-// import NotAuthorized from "./Pages/Screens/NotAuthorized";
-// import NotFound from "./Pages/Screens/NotFound";
-
-// function App() {
-//   return (
-//     <Router>
-//       <HotelProvider>
-//         <div className="App">
-//           <Routes>
-//             {/* Public */}
-//             <Route path="/*" element={<PublicRoutes />} />
-
-//             {/* Admin */}
-//             <Route path="/admin/*" element={<AdminRoutes />} />
-
-//             {/* Super Admin */}
-//             <Route path="/super-admin/*" element={<SuperAdminRoutes />} />
-
-//             {/* Utility Pages */}
-//             <Route path="/not-authorized" element={<NotAuthorized />} />
-//             <Route path="/not-found" element={<NotFound />} />
-
-//             {/* Default redirect */}
-//             <Route path="/" element={<Navigate to="/admin/login" replace />} />
-
-//             {/* Catch-all */}
-//             <Route path="*" element={<NotFound />} />
-//           </Routes>
-
-//           <ToastContainer position="top-right" autoClose={5000} theme="light" />
-//         </div>
-//       </HotelProvider>
-//     </Router>
-//   );
-// }
-
-// export default App;

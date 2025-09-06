@@ -49,6 +49,7 @@ const HotelFormModal = ({
     { value: "bar", label: "Bar & Pub" },
     { value: "fast_food", label: "Fast Food" },
     { value: "fine_dining", label: "Fine Dining" },
+    { value: "dhaba", label: "Dhaba" },
   ];
 
   return (
@@ -167,6 +168,8 @@ const HotelFormModal = ({
                     )}
                 </div>
               </div>
+
+              {/* add alternative contact no  */}
 
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700">

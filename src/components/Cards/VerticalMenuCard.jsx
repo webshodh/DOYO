@@ -218,11 +218,6 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
 
         {/* Content Section */}
         <div className="p-4">
-          {/* Restaurant Name */}
-          {/* <h5 className="text-gray-500 text-sm font-medium mb-1 truncate">
-            {item.restaurantName}
-          </h5> */}
-
           {/* Menu Name */}
           <h2 className="text-lg font-bold text-gray-800 mb-2 leading-tight">
             {truncatedContent}
