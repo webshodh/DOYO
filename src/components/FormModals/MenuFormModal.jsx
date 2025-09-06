@@ -74,16 +74,17 @@ const MenuFormModal = ({
         "image/jpg",
         "image/png",
         "image/webp",
+        "image/gif",
       ];
       if (!allowedTypes.includes(selectedFile.type)) {
-        alert("Please select a valid image file (JPG, PNG, WEBP)");
+        alert("Please select a valid image file (JPG, PNG, GIF, WEBP)");
         return;
       }
 
-      // Validate file size (10MB)
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      // Validate file size (2MB)
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
       if (selectedFile.size > maxSize) {
-        alert("File size must be less than 10MB");
+        alert("File size must be less than 2MB");
         return;
       }
 
@@ -337,11 +338,12 @@ const MenuFormModal = ({
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Image Upload */}
+              {/* Image/GIF Upload */}
               <div className="lg:col-span-1">
                 <div className="sticky top-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Upload className="w-5 h-5 text-orange-500" />
-                    Menu Image
+                    Menu Image/GIF
                   </h3>
 
                   <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 hover:border-orange-400 transition-colors duration-200">
@@ -377,17 +379,17 @@ const MenuFormModal = ({
                       >
                         <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-600 font-medium">
-                          Click to upload image
+                          Click to upload image or GIF
                         </p>
                         <p className="text-gray-400 text-sm">
-                          PNG, JPG up to 10MB
+                          PNG, JPG, GIF, WEBP up to 2MB
                         </p>
                       </label>
                     )}
                     <input
                       type="file"
                       id="file"
-                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                       onChange={handleFileChange}
                       disabled={isSubmitting}
                       className="hidden"

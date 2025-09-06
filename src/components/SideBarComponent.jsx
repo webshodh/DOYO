@@ -60,12 +60,12 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
                     </p>
                   </div>
                 </div>
-                <div className="hidden sm:block text-left min-w-0">
+                {/* <div className="hidden sm:block text-left min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate max-w-20 lg:max-w-32">
                     Welcome, {user?.displayName?.split(" ")[0] || "Admin"}
                     <span className="text-xs text-gray-500 ml-2">● Online</span>
                   </p>
-                </div>
+                </div> */}
               </>
             )}
             <div className="flex items-center justify-between">
