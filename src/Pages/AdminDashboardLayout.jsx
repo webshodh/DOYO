@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import Sidebar from "components/SideBarComponent";
 import Navbar from "components/NavBarComponent";
 
 // Dashboard Layout Component
 const AdminDashboardLayout = ({ children }) => {
+  const { hotelName } = useParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -45,22 +47,46 @@ const AdminDashboardLayout = ({ children }) => {
       </div>
 
       <div className="relative flex h-screen">
-        {/* Sidebar */}
-        <div className={`${isDesktop ? "relative" : "absolute"} z-50`}>
-          <Sidebar
-            isOpen={isDesktop ? true : isSidebarOpen}
-            onClose={closeSidebar}
-            admin={true}
+        {/* Mobile Overlay */}
+        {!isDesktop && isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
+            onClick={closeSidebar}
           />
-        </div>
+        )}
+
+        {/* Sidebar - Desktop: Always visible, Mobile: Overlay */}
+        {isDesktop ? (
+          // Desktop Sidebar - Always visible beside content
+          <div className="relative flex-shrink-0 w-64 bg-white border-r border-gray-200/50">
+            <Sidebar
+              isOpen={true}
+              onClose={closeSidebar}
+              admin={true}
+            />
+          </div>
+        ) : (
+          // Mobile Sidebar - Overlay when open
+          <div 
+            className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <Sidebar
+              isOpen={isSidebarOpen}
+              onClose={closeSidebar}
+              admin={true}
+            />
+          </div>
+        )}
 
         {/* Main Content Area */}
-        <div
-          className={`flex-1 flex flex-col min-w-0 transition-all duration-300`}
-        >
+        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isDesktop ? 'ml-0' : ''}`}>
           {/* Navbar */}
-          <div className="sticky top-0 z-30">
+          <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/50">
             <Navbar
+              title="Admin Dashboard"
+              hotelName={hotelName}
               onMenuToggle={toggleSidebar}
               isSidebarOpen={isSidebarOpen}
               admin={true}
@@ -74,15 +100,15 @@ const AdminDashboardLayout = ({ children }) => {
               {/* Content Wrapper with improved spacing and background */}
               <div className="min-h-full">
                 {/* Content Area */}
-                <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                  {/* Content Background */}
-                  <div className="relative">
-                    {/* Decorative elements */}
+                <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+                  {/* Content Background with improved responsive spacing */}
+                  <div className="relative max-w-7xl mx-auto">
+                    {/* Decorative elements - adjusted for mobile */}
                     <div className="absolute top-0 right-0 -z-10 opacity-20">
-                      <div className="w-72 h-72 bg-gradient-to-br from-orange-200 via-amber-200 to-orange-300 rounded-full blur-3xl"></div>
+                      <div className="w-48 h-48 sm:w-72 sm:h-72 bg-gradient-to-br from-orange-200 via-amber-200 to-orange-300 rounded-full blur-3xl"></div>
                     </div>
                     <div className="absolute bottom-0 left-0 -z-10 opacity-10">
-                      <div className="w-96 h-96 bg-gradient-to-br from-blue-200 via-indigo-200 to-blue-300 rounded-full blur-3xl"></div>
+                      <div className="w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-blue-200 via-indigo-200 to-blue-300 rounded-full blur-3xl"></div>
                     </div>
 
                     {/* Main Content */}
@@ -90,73 +116,78 @@ const AdminDashboardLayout = ({ children }) => {
                   </div>
                 </div>
 
-                {/* Footer */}
+                {/* Footer - Improved responsive design */}
                 <footer className="mt-auto border-t border-gray-200/50 bg-white/80 backdrop-blur-sm">
-                  <div className="px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-                      {/* Left side - Copyright */}
-                      <div className="flex items-center space-x-4">
-                        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-800">
-                            Hotel Management System
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            © 2024 All rights reserved
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Right side - Status and links */}
-                      <div className="flex items-center space-x-6">
-                        {/* System Status */}
-                        <div className="flex items-center space-x-2">
-                          <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <span className="text-xs text-gray-600 font-medium">
-                              System Online
-                            </span>
+                  <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
+                    <div className="max-w-7xl mx-auto">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                        {/* Left side - Copyright */}
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"
+                              />
+                            </svg>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">
+                              Hotel Management System
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              © 2024 All rights reserved
+                            </p>
                           </div>
                         </div>
 
-                        {/* Quick Links */}
-                        <div className="hidden sm:flex items-center space-x-4 text-xs text-gray-500">
-                          <button className="hover:text-gray-700 transition-colors">
-                            Help
-                          </button>
-                          <button className="hover:text-gray-700 transition-colors">
-                            Privacy
-                          </button>
-                          <button className="hover:text-gray-700 transition-colors">
-                            Terms
-                          </button>
+                        {/* Right side - Status and links */}
+                        <div className="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto justify-between sm:justify-end">
+                          {/* System Status */}
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1">
+                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-gray-600 font-medium">
+                                Online
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Quick Links - Hidden on mobile to save space */}
+                          <div className="hidden md:flex items-center space-x-4 text-xs text-gray-500">
+                            <button className="hover:text-gray-700 transition-colors">
+                              Help
+                            </button>
+                            <button className="hover:text-gray-700 transition-colors">
+                              Privacy
+                            </button>
+                            <button className="hover:text-gray-700 transition-colors">
+                              Terms
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Performance indicator */}
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>
-                          Last updated: {new Date().toLocaleTimeString()}
-                        </span>
-                        <div className="flex items-center space-x-1">
-                          <div className="w-1 h-1 bg-green-400 rounded-full"></div>
-                          <span>Optimal Performance</span>
+                      {/* Performance indicator - Simplified for mobile */}
+                      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span className="truncate">
+                            Updated: {new Date().toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </span>
+                          <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                            <div className="w-1 h-1 bg-green-400 rounded-full"></div>
+                            <span>Optimal</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -168,27 +199,11 @@ const AdminDashboardLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* Loading overlay for smooth transitions */}
-      <div
-        className={`fixed inset-0 bg-white/80 backdrop-blur-sm z-[60] flex items-center justify-center transition-opacity duration-300 ${
-          isDesktop
-            ? "opacity-0 pointer-events-none"
-            : "lg:opacity-0 lg:pointer-events-none"
-        }`}
-      >
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
-          <p className="text-sm text-gray-600 font-medium">
-            Loading Dashboard...
-          </p>
-        </div>
-      </div>
-
       {/* Custom Styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
@@ -239,6 +254,14 @@ const AdminDashboardLayout = ({ children }) => {
 
         .animate-float {
           animation: float 6s ease-in-out infinite;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+          }
         }
       `}</style>
     </div>

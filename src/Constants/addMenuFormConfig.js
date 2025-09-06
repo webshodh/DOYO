@@ -365,9 +365,6 @@ export const FORM_CONFIG = {
   ],
 };
 
-// Predefined options
-// export const OPTIONS = {
-
 // Special categories configuration
 export const specialCategories = [
   {

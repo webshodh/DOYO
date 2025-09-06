@@ -111,35 +111,6 @@ const Navbar = ({ onMenuToggle, isSidebarOpen, admin }) => {
               )}
             </svg>
           </button>
-
-          {/* Hotel Name */}
-          {admin && (
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-sm">
-                <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  />
-                </svg>
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate">
-                  {selectedHotel?.name || "Select Hotel"}
-                </h1>
-                <p className="text-xs text-gray-500 hidden sm:block">
-                  Hotel Management
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Section */}
@@ -279,10 +250,10 @@ const Navbar = ({ onMenuToggle, isSidebarOpen, admin }) => {
                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
               </div>
               <div className="hidden sm:block text-left min-w-0">
-                <p className="text-sm font-semibold text-gray-800 truncate max-w-20 lg:max-w-32">
+                {/* <p className="text-sm font-semibold text-gray-800 truncate max-w-20 lg:max-w-32">
                   {user?.displayName?.split(" ")[0] || "Admin"}
-                </p>
-                <p className="text-xs text-gray-500">Online</p>
+                </p> */}
+                {/* <p className="text-xs text-gray-500">Online</p> */}
               </div>
               <svg
                 className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 group-hover:text-orange-600 transition-all duration-200 hidden sm:block ${

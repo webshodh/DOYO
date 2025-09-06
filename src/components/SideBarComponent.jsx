@@ -5,10 +5,11 @@ import {
   superAdminMenuItems,
   iconMap,
 } from "../Constants/sideBarMenuConfig";
+import { useHotelSelection } from "Context/HotelSelectionContext";
 
 const Sidebar = ({ isOpen, onClose, admin = false }) => {
   const { hotelName } = useParams(); // Will exist only for Admin routes
-
+  const { selectedHotel, user } = useHotelSelection();
   // Select menu set dynamically
   const menu = admin ? adminMenuItems(hotelName) : superAdminMenuItems;
 
@@ -24,22 +25,50 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full w-72 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 transform transition-all duration-300 ease-out z-50 lg:translate-x-0 lg:static lg:z-auto lg:w-64 xl:w-72 ${
+        className={`fixed left-0 top-0 h-full w-72 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 transform transition-all duration-300 ease-out z-50  ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex flex-col h-full">
+        <div>
           {/* Header */}
           <div className="relative p-4 sm:p-6 border-b border-gray-200/50 bg-gradient-to-r from-orange-50 to-amber-50/80">
+            {/* Hotel Name */}
+            {admin && (
+              <>
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate">
+                      {selectedHotel?.name || "Select Hotel"}
+                    </h1>
+                    <p className="text-xs text-gray-500 hidden sm:block">
+                      {admin ? "Admin Panel" : "Super Admin Panel"}
+                    </p>
+                  </div>
+                </div>
+                <div className="hidden sm:block text-left min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 truncate max-w-20 lg:max-w-32">
+                    Welcome, {user?.displayName?.split(" ")[0] || "Admin"}
+                    <span className="text-xs text-gray-500 ml-2">● Online</span>
+                  </p>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-1">
-                  {admin ? "Admin Panel" : "Super Admin Panel"}
-                </h3>
-                <p className="text-xs text-gray-600 font-medium">
-                  {admin ? "Hotel Management" : "System Management"}
-                </p>
-              </div>
               <button
                 onClick={onClose}
                 className="lg:hidden p-2 rounded-xl hover:bg-white/80 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200 group"
@@ -68,7 +97,7 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
             <div className="px-3 sm:px-4">
-              <ul style={{marginLeft:'-2rem'}}>
+              <ul style={{ marginLeft: "-2rem" }}>
                 {menu.map((item, index) => (
                   <li key={item.name} className="group">
                     <NavLink
@@ -144,31 +173,7 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 sm:p-6 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/80 to-slate-50/80">
-            <div className="flex items-center space-x-3 p-3 bg-white/60 rounded-xl border border-gray-200/50">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800">
-                  Need Help?
-                </p>
-                <p className="text-xs text-gray-600">Contact Support Team</p>
-              </div>
-            </div>
-
+          <div className="p-2 sm:p-6 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/80 to-slate-50/80">
             {/* Version info */}
             <div className="mt-3 text-center">
               <p className="text-xs text-gray-500">Version 2.0.1</p>
@@ -176,25 +181,6 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
           </div>
         </div>
       </div>
-
-      {/* Custom scrollbar styles */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f8fafc;
-          border-radius: 10px;
-          margin: 8px 0;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #e2e8f0, #cbd5e1);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
-        }
-      `}</style>
     </>
   );
 };

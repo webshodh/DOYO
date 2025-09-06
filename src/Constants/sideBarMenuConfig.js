@@ -10,11 +10,11 @@ export const adminMenuItems = (hotelName) => [
     path: `/${hotelName}/admin/add-category`,
     icon: "category",
   },
-  {
-    name: "Add Special Category",
-    path: `/${hotelName}/admin/add-special-category`,
-    icon: "star",
-  },
+  // {
+  //   name: "Add Special Category",
+  //   path: `/${hotelName}/admin/add-special-category`,
+  //   icon: "star",
+  // },
   {
     name: "Add Options",
     path: `/${hotelName}/admin/add-options`,

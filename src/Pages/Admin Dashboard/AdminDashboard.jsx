@@ -1,18 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useHotelSelection } from "../../Context/HotelSelectionContext";
-import Navbar from "../../components/NavBarComponent";
-import Sidebar from "../../components/SideBarComponent";
+import AdminDashboardLayout from "../AdminDashboardLayout";
 import AddMenu from "./AddMenu";
 import { useCategoriesData, useMainCategoriesData, useMenuData } from "data";
 import StatCard from "Atoms/StatCard";
 import useOptionsData from "data/useOptionsData";
 import { simplifyOptions } from "utility/ConvertOptions";
+import { Spinner } from "Atoms";
 
 const AdminDashboard = () => {
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const {
     menuData,
@@ -32,60 +31,43 @@ const AdminDashboard = () => {
     useOptionsData(hotelName);
 
   console.log("categories1231", categories);
-  const optionsCategoryCount = categories.length
+  const optionsCategoryCount = categories.length;
 
-  const {
-    mainCategoriesData,
-    totalMainCategories,
-    // loading: categoriesLoading,
-    // error: categoriesError,
-  } = useMainCategoriesData(hotelName);
-  console.log("mainCategoriesData_____", mainCategoriesData)
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-  };
+  const { mainCategoriesData, totalMainCategories } =
+    useMainCategoriesData(hotelName);
+  console.log("mainCategoriesData_____", mainCategoriesData);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} admin={true} />
+    <AdminDashboardLayout>
+      {/* Dashboard Content - Now properly contained within layout */}
+      <div className="space-y-6 sm:space-y-8">
+        {/* Header Section */}
+        <div>
+          <div className="text-left">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent mb-3">
+              Dashboard Overview
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-2xl">
+              Welcome back! Here's what's happening at{" "}
+              <span className="font-semibold text-orange-600">
+                {selectedHotel?.name || "your hotel"}
+              </span>{" "}
+              today.
+            </p>
+          </div>
+        </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Navbar */}
-        <Navbar
-          onMenuToggle={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-          admin={true}
-        />
-
-        {/* Dashboard Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Dashboard Overview
-              </h1>
-              <p className="text-gray-600">
-                Welcome back! Here's what's happening at{" "}
-                {selectedHotel?.name || "your hotel"} today.
-              </p>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard
-                title="Total Menu"
-                value={totalMenus}
-                color="bg-blue-100"
-                icon={
+        {/* Stats Grid - Enhanced Responsive Design */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Total Menu Items"
+              value={totalMenus || 0}
+              color="bg-gradient-to-br from-blue-50 to-blue-100"
+              icon={
+                <div className="p-2 bg-blue-500 rounded-lg">
                   <svg
-                    className="w-6 h-6 text-blue-600"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -97,16 +79,20 @@ const AdminDashboard = () => {
                       d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                     />
                   </svg>
-                }
-              />
+                </div>
+              }
+            />
+          </div>
 
-              <StatCard
-                title="Total Categories"
-                value={totalCategories}
-                color="bg-green-100"
-                icon={
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Total Categories"
+              value={totalCategories || 0}
+              color="bg-gradient-to-br from-green-50 to-green-100"
+              icon={
+                <div className="p-2 bg-green-500 rounded-lg">
                   <svg
-                    className="w-6 h-6 text-green-600"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -118,56 +104,114 @@ const AdminDashboard = () => {
                       d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                     />
                   </svg>
-                }
-              />
-
-              <StatCard
-                title="Total MainCategories"
-                value={totalMainCategories}
-                color="bg-orange-100"
-                icon={
-                  <svg
-                    className="w-6 h-6 text-orange-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                }
-              />
-                <StatCard
-                title="Total Options Category"
-                value={optionsCategoryCount}
-                color="bg-orange-100"
-                icon={
-                  <svg
-                    className="w-6 h-6 text-orange-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                }
-              />
-              
-            </div>
-            <AddMenu />
+                </div>
+              }
+            />
           </div>
-        </main>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Main Categories"
+              value={totalMainCategories || 0}
+              color="bg-gradient-to-br from-orange-50 to-orange-100"
+              icon={
+                <div className="p-2 bg-orange-500 rounded-lg">
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              }
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Options Categories"
+              value={optionsCategoryCount || 0}
+              color="bg-gradient-to-br from-purple-50 to-purple-100"
+              icon={
+                <div className="p-2 bg-purple-500 rounded-lg">
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                    />
+                  </svg>
+                </div>
+              }
+            />
+          </div>
+        </div>
+
+        {/* Loading States */}
+        {(menuLoading || categoriesLoading) && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+              <Spinner />
+            </div>
+          </div>
+        )}
+
+        {/* Error States */}
+        {(menuError || categoriesError || error) && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-6 h-6 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-red-800 font-semibold mb-1">
+                  Error Loading Data
+                </h3>
+                <p className="text-red-600 text-sm">
+                  {menuError ||
+                    categoriesError ||
+                    error ||
+                    "An unexpected error occurred. Please try again."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AddMenu Component - Enhanced Container */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+          <div className="p-0">
+            <AddMenu onlyView={true}/>
+          </div>
+        </div>
       </div>
-    </div>
+    </AdminDashboardLayout>
   );
 };
 
