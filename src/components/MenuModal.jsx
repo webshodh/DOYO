@@ -26,7 +26,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
   if (!modalData || !show) return null;
 
   const hasDiscount = modalData.discount && modalData.discount > 0;
-  const discountPercentage = hasDiscount ? Math.round(modalData.discount) : 0;
+  const discountPercentage = hasDiscount ? Math.round(modalData.discount) : '';
 
   const getSpiceIcon = (level) => {
     switch (level) {
@@ -79,11 +79,11 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
 
         {/* Special Badges */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          {hasDiscount && (
+          {hasDiscount ? (
             <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg animate-pulse">
               {discountPercentage}% OFF
             </div>
-          )}
+          ):""}
           {modalData.chefSpecial && (
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
               Chef's Special
@@ -293,16 +293,16 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
             {/* Price Section */}
             <div className="text-right ml-6">
               <div className="flex items-center gap-2 mb-1">
-                {hasDiscount && (
+                {hasDiscount ? (
                   <span className="text-lg text-gray-400 line-through">
                     ₹{Math.round(modalData.menuPrice)}
                   </span>
-                )}
+                ):""}
                 <span className="text-3xl font-bold text-green-600">
                   ₹{modalData.finalPrice || modalData.menuPrice}
                 </span>
               </div>
-              {hasDiscount && (
+              {hasDiscount ? (
                 <span className="text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">
                   Save ₹
                   {Math.round(
@@ -310,7 +310,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
                       (modalData.finalPrice || modalData.menuPrice)
                   )}
                 </span>
-              )}
+              ):''}
             </div>
           </div>
 
@@ -466,7 +466,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
                 </h3>
                 <div className="bg-green-50 rounded-xl p-4 border border-green-200">
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    {modalData.calories && (
+                    {modalData.calories ? (
                       <div className="text-center bg-white rounded-lg p-3">
                         <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
                           <Zap className="w-4 h-4 text-white" />
@@ -479,7 +479,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
                         </p>
                         <p className="text-xs text-green-600">kcal</p>
                       </div>
-                    )}
+                    ):""}
 
                     {formatNutritionalInfo(modalData.nutritionalInfo)?.map(
                       ([key, value]) => (

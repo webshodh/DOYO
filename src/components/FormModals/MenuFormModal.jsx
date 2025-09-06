@@ -11,7 +11,7 @@ const MenuFormModal = ({
   mainCategories,
   editMode = false,
   initialData = null,
-  hotelName
+  hotelName,
 }) => {
   const [formData, setFormData] = useState(getDefaultFormData());
   const [previewImage, setPreviewImage] = useState(null);
@@ -49,8 +49,8 @@ const MenuFormModal = ({
   // Calculate final price
   useEffect(() => {
     if (formData.menuPrice) {
-      const price = parseFloat(formData.menuPrice) || 0;
-      const discountPercent = parseFloat(formData.discount) || 0;
+      const price = parseFloat(formData.menuPrice);
+      const discountPercent = parseFloat(formData.discount);
       const finalPrice = price - (price * discountPercent) / 100;
 
       setFormData((prev) => ({
@@ -127,15 +127,15 @@ const MenuFormModal = ({
       menuName: String(formData.menuName || "").trim(),
       menuContent: String(formData.menuContent || "").trim(),
       ingredients: String(formData.ingredients || "").trim(),
-      menuCookingTime: parseInt(formData.menuCookingTime) || 0,
+      menuCookingTime: parseInt(formData.menuCookingTime),
       servingSize: parseInt(formData.servingSize) || 1,
 
       // Pricing & Timing
-      menuPrice: parseFloat(formData.menuPrice) || 0,
-      discount: parseFloat(formData.discount) || 0,
+      menuPrice: parseFloat(formData.menuPrice),
+      discount: parseFloat(formData.discount),
       finalPrice:
-        parseFloat(formData.finalPrice) || parseFloat(formData.menuPrice) || 0,
-      calories: parseInt(formData.calories) || 0,
+        parseFloat(formData.finalPrice) || parseFloat(formData.menuPrice),
+      calories: parseInt(formData.calories),
 
       // Categories & Classification - CRITICAL: Ensure these are strings, not empty
       mainCategory: String(formData.mainCategory || ""),
@@ -156,10 +156,10 @@ const MenuFormModal = ({
 
       // Nutritional Information - CRITICAL: Ensure nested object structure
       nutritionalInfo: {
-        protein: parseFloat(formData.nutritionalInfo?.protein) || 0,
-        carbs: parseFloat(formData.nutritionalInfo?.carbs) || 0,
-        fat: parseFloat(formData.nutritionalInfo?.fat) || 0,
-        fiber: parseFloat(formData.nutritionalInfo?.fiber) || 0,
+        protein: parseFloat(formData.nutritionalInfo?.protein),
+        carbs: parseFloat(formData.nutritionalInfo?.carbs),
+        fat: parseFloat(formData.nutritionalInfo?.fat),
+        fiber: parseFloat(formData.nutritionalInfo?.fiber),
       },
 
       // Special Features - CRITICAL: Ensure ALL boolean flags are explicitly set
@@ -295,7 +295,10 @@ const MenuFormModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{marginTop:'100px'}}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ marginTop: "100px" }}
+    >
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={!isSubmitting ? handleClose : undefined}
