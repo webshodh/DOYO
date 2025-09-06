@@ -665,14 +665,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
                     {modalData.spiceLevel || "Medium"}
                   </span>
                 </div>
-                <div className="flex justify-between bg-white rounded-lg p-2">
-                  <span className="text-gray-600 font-medium">
-                    Portion Size:
-                  </span>
-                  <span className="font-semibold text-gray-800">
-                    {modalData.portionSize || "Regular"}
-                  </span>
-                </div>
+                
               </div>
             </div>
           </div>

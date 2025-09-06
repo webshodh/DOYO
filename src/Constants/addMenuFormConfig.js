@@ -141,12 +141,7 @@ export const FORM_CONFIG = {
           type: "select",
           options: "spiceLevels",
         },
-        {
-          name: "portionSize",
-          label: "Portion Size",
-          type: "select",
-          options: "portionSizes",
-        },
+        
       ],
     },
     {
@@ -161,12 +156,7 @@ export const FORM_CONFIG = {
           type: "select",
           options: "preparationMethods",
         },
-        {
-          name: "difficulty",
-          label: "Difficulty Level",
-          type: "select",
-          options: "difficultyLevels",
-        },
+        
         {
           name: "availability",
           label: "Availability",
@@ -376,147 +366,7 @@ export const FORM_CONFIG = {
 };
 
 // Predefined options
-export const OPTIONS = {
-  // Spice Levels
-  spiceLevels: ["None", "Mild", "Medium", "Hot", "Extra Hot", "Extreme"],
-
-  // Preparation Methods
-  preparationMethods: [
-    "Fried",
-    "Grilled",
-    "Baked",
-    "Steamed",
-    "Roasted",
-    "Boiled",
-    "Raw",
-    "Smoked",
-    "Poached",
-    "Sous Vide",
-    "Stir-Fried",
-    "Tandoor",
-    "Slow Cooked",
-  ],
-
-  // Portion Sizes
-  portionSizes: [
-    "Kids",
-    "Small",
-    "Regular",
-    "Large",
-    "Family",
-    "Party Platter",
-  ],
-
-  // Meal Types
-  mealTypes: [
-    "Appetizer",
-    "Main Course",
-    "Dessert",
-    "Beverage",
-    "Snack",
-    "Soup",
-    "Salad",
-    "Side Dish",
-    "Breakfast",
-    "Brunch",
-    "Lunch",
-    "Dinner",
-    "Late Night",
-  ],
-
-  // Difficulty Levels
-  difficultyLevels: ["Easy", "Medium", "Hard", "Expert"],
-
-  // Allergen Options
-  allergenOptions: [
-    "Nuts",
-    "Dairy",
-    "Gluten",
-    "Eggs",
-    "Soy",
-    "Shellfish",
-    "Fish",
-    "Sesame",
-    "Mustard",
-    "Corn",
-    "Peanuts",
-    "Wheat",
-    "Sulphites",
-  ],
-
-  // Cuisine Types
-  cuisineTypes: [
-    "Indian",
-    "Chinese",
-    "Italian",
-    "Mexican",
-    "Thai",
-    "Japanese",
-    "Korean",
-    "Mediterranean",
-    "American",
-    "French",
-    "Middle Eastern",
-    "Spanish",
-    "Fusion",
-    "Continental",
-  ],
-
-  // Taste Profiles
-  tasteProfiles: [
-    "Sweet",
-    "Savory",
-    "Spicy",
-    "Tangy",
-    "Bitter",
-    "Umami",
-    "Sour",
-    "Smoky",
-    "Earthy",
-  ],
-
-  // Texture Types
-  textures: [
-    "Crispy",
-    "Crunchy",
-    "Creamy",
-    "Chewy",
-    "Soft",
-    "Fluffy",
-    "Juicy",
-    "Tender",
-    "Silky",
-    "Sticky",
-  ],
-
-  // Cooking Styles
-  cookingStyles: [
-    "Tandoor",
-    "Stir-Fry",
-    "Deep-Fry",
-    "Grill",
-    "BBQ",
-    "Stew",
-    "Curry",
-    "Pan-Seared",
-    "Oven-Roasted",
-  ],
-
-  // Food Category Tags
-  foodCategoryTags: [
-    "Healthy",
-    "Street Food",
-    "Comfort Food",
-    "Luxury",
-    "Budget-Friendly",
-    "Signature Dish",
-    "Festive",
-    "Quick Bite",
-    "Viral",
-    "Traditional",
-    "Fusion",
-  ],
-};
+// export const OPTIONS = {
 
 // Special categories configuration
 export const specialCategories = [

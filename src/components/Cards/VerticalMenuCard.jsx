@@ -90,7 +90,7 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
         icon: <Star className="w-3 h-3" />,
       });
     }
-    return badge.slice(0, 3); // Show max 2 features to avoid overcrowding
+    return badge.slice(0, 2); // Show max 2 features to avoid overcrowding
   };
 
   const getSpecialFeatures = () => {
@@ -279,7 +279,7 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
           {/* Price and Action Section */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <i className="bi bi-currency-rupee mr-1 text-orange-500"></i>
+              {/* <i className="bi bi-currency-rupee mr-1 text-orange-500"></i> */}
               <div className="flex items-center flex-wrap gap-1">
                 {item.discount && item.discount > 0 && (
                   <span className="line-through text-red-500 text-sm mr-1">

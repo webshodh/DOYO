@@ -1,5 +1,7 @@
 import { CheckCircle } from "lucide-react";
-import { OPTIONS } from "../Constants/addMenuFormConfig";
+// import { OPTIONS as STATIC_OPTIONS } from "../Constants/addMenuFormConfig";
+import { simplifyOptions } from "./ConvertOptions";
+import useOptionsData from "data/useOptionsData";
 
 // Default form values
 export const getDefaultFormData = () => ({
@@ -91,7 +93,11 @@ export const FormField = ({
   onChange,
   externalOptions,
   disabled = false,
+  hotelName,
 }) => {
+  const { optionsData } = useOptionsData(hotelName);
+  const OPTIONS = simplifyOptions(optionsData);
+
   const fieldValue = field.name.includes(".")
     ? getNestedValue(value, field.name)
     : value[field.name] ||
@@ -111,20 +117,48 @@ export const FormField = ({
     }
   };
 
+  // Updated getFieldOptions function to properly handle dynamic options
   const getFieldOptions = () => {
-    // Handle external options (categories and mainCategories)
     if (typeof field.options === "string") {
-      // First check external options
+      // Debug logs to help identify the issue
+      console.log(`Looking for options for field: ${field.options}`);
+      console.log('External options available:', Object.keys(externalOptions || {}));
+      console.log('Dynamic OPTIONS available:', Object.keys(OPTIONS || {}));
+      console.log('OPTIONS data:', OPTIONS);
+
+      // First check external options (categories, mainCategories passed from parent)
       if (externalOptions?.[field.options]) {
         const options = externalOptions[field.options];
+        console.log(`Found in external options:`, options);
         return Array.isArray(options) ? options : [];
       }
 
-      // Then check static OPTIONS
-      if (OPTIONS[field.options]) {
+      // Then check dynamic options from API (simplified options)
+      if (OPTIONS && OPTIONS[field.options]) {
+        console.log(`Found in dynamic OPTIONS:`, OPTIONS[field.options]);
         return OPTIONS[field.options];
       }
 
+      // Try common variations of the field name
+      const variations = [
+        field.options,
+        field.options.toLowerCase(),
+        field.options.replace(/s$/, ''), // Remove trailing 's'
+        field.options + 's', // Add trailing 's'
+        field.options.replace(/([A-Z])/g, '_$1').toLowerCase(), // camelCase to snake_case
+        field.options.replace(/_/g, ''), // Remove underscores
+      ];
+
+      for (const variation of variations) {
+        if (OPTIONS && OPTIONS[variation]) {
+          console.log(`Found with variation '${variation}':`, OPTIONS[variation]);
+          return OPTIONS[variation];
+        }
+      }
+
+      // Fallback: return empty array if no options found
+      console.warn(`No options found for field: ${field.options}`);
+      console.warn('Available option keys:', Object.keys(OPTIONS || {}));
       return [];
     }
 
@@ -178,11 +212,9 @@ export const FormField = ({
               {field.placeholder || `Select ${field.label.toLowerCase()}`}
             </option>
             {fieldOptions.map((option, index) => {
-              // Handle different option structures
               let optionValue, optionLabel;
 
               if (typeof option === "object" && option !== null) {
-                // Handle object options - check various property names
                 optionValue =
                   option.value ||
                   option._id ||
@@ -195,7 +227,6 @@ export const FormField = ({
                   option.name ||
                   option.value;
               } else {
-                // Handle string options
                 optionValue = option;
                 optionLabel = option;
               }
@@ -329,6 +360,7 @@ export const FormSection = ({
   onChange,
   externalOptions,
   disabled = false,
+  hotelName,
 }) => {
   const IconComponent = section.icon;
   const bgColorClass = `bg-${section.bgColor}-50`;
@@ -364,6 +396,7 @@ export const FormSection = ({
                     onChange={onChange}
                     externalOptions={externalOptions}
                     disabled={disabled}
+                    hotelName={hotelName}
                   />
                 ))}
             </div>
@@ -377,6 +410,7 @@ export const FormSection = ({
                   onChange={onChange}
                   externalOptions={externalOptions}
                   disabled={disabled}
+                  hotelName={hotelName}
                 />
               ))}
           </>
@@ -389,6 +423,7 @@ export const FormSection = ({
               onChange={onChange}
               externalOptions={externalOptions}
               disabled={disabled}
+              hotelName={hotelName}
             />
           ))
         )}
