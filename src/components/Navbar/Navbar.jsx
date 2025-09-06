@@ -36,16 +36,20 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
   return (
     <>
       <div
-        className="text-black p-2 flex justify-between items-center sticky"
-        style={{ background: colors.White }}
+        className="text-white p-2 flex justify-between items-center sticky"
+        style={{ background: colors.Orange }}
       >
         <h2
-          className="font-semibold text-black mt-2"
+          className="font-semibold text-white mt-2"
           style={{ marginLeft: "10px" }}
         >
           {title}
         </h2>
-
+      </div>
+      <div
+        className="text-black p-2 flex justify-between items-center sticky"
+        style={{ background: colors.White }}
+      >
         <div className="flex items-center gap-4">
           {/* Offer Button */}
           {offers && (

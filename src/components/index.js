@@ -5,9 +5,7 @@ export { default as MenuModal } from "./MenuModal";
 export { default as DynamicTable } from "./DynamicTable";
 
 // Cards
-
-export { default as CardSlider } from "./Cards/CardSlider";
-export { default as MenuCard } from "./Cards/MenuCard";
+export { default as MenuCard } from "./Cards/VerticalMenuCard";
 export { default as HorizontalMenuCard } from "./Cards/HorizontalMenuCard";
 
 // Navbar

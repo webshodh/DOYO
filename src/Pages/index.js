@@ -8,8 +8,6 @@ export { default as SignupPage } from "./Login/SignupPage";
 export { default as ResetPasswordPage } from "./Login/ResetPasswordPage";
 export { default as ForgotPasswordPage } from "./Login/ForgotPasswordPage";
 
-
-
 // Screen
 export { default as WelcomeScreen } from "./Screens/WelcomeScreen";
 export { default as ThankYouScreen } from "./Screens/ThankYouScreen";

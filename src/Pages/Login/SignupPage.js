@@ -78,7 +78,7 @@ const SuperAdminSignup = () => {
         
         // Redirect to super admin dashboard
         setTimeout(() => {
-          navigate("/superadmin/dashboard");
+          navigate("/super-admin/dashboard");
         }, 1500);
         
       } catch (error) {

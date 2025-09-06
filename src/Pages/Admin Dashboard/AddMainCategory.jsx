@@ -8,6 +8,8 @@ import { DynamicTable } from "../../components";
 import SearchWithButton from "../../components/SearchWithAddButton";
 import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
 import { useCategoryManager } from "../../customHooks/mainCategory";
+import { Spinner } from "Atoms";
+import ErrorMessage from "Atoms/ErrorMessage";
 
 const CategoryManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,11 +20,14 @@ const CategoryManager = () => {
 
   const {
     categories,
+    filteredCategories,
+    categoryCount,
     loading,
     error,
     addCategory,
     updateCategory,
     deleteCategory,
+    hasCategories
   } = useCategoryManager(hotelName);
 
   // Filter and format categories for table
@@ -67,25 +72,24 @@ const CategoryManager = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading categories...</div>
-      </div>
-    );
+    <Spinner />;
   }
 
   if (error) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-red-600">Error: {error}</div>
-      </div>
-    );
+    return <ErrorMessage message={error.message} />;
   }
 
   return (
     <>
       <div style={{ margin: "20px" }}>
         <PageTitle pageTitle="View Special Categories" />
+        {hasCategories && (
+              <div className="text-sm text-gray-600">
+                {searchTerm
+                  ? `Showing ${filteredCategories.length} of ${categoryCount} categories`
+                  : `Total: ${categoryCount} categories`}gg
+              </div>
+            )}
         <CategoryFormModal
           show={showModal}
           onClose={handleCloseModal}

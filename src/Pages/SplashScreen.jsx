@@ -2,26 +2,28 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHotelSelection } from "../Context/HotelSelectionContext";
 import { toast } from "react-toastify";
+import { Spinner } from "Atoms";
 
 const HotelSplashScreen = () => {
   const navigate = useNavigate();
-  const { availableHotels, loading, selectHotel, user } = useHotelSelection();
+  const { availableHotels, loading, selectHotel } = useHotelSelection();
   const [selectedHotelId, setSelectedHotelId] = useState("");
 
   useEffect(() => {
-    // If no user is logged in, redirect to login
-    if (!user) {
-      navigate("/login");
-      return;
+    let timer;
+
+    if (!loading) {
+      timer = setTimeout(() => {
+        if (availableHotels.length === 0) {
+          toast.error(
+            "No hotels assigned to your account. Please contact administrator."
+          );
+        }
+      }, 2000); // 2 second delay
     }
 
-    // If no hotels available and not loading, show message
-    if (!loading && availableHotels.length === 0) {
-      toast.error(
-        "No hotels assigned to your account. Please contact administrator."
-      );
-    }
-  }, [user, availableHotels, loading, navigate]);
+    return () => clearTimeout(timer); // cleanup on unmount
+  }, [availableHotels, loading, navigate]);
 
   const handleHotelSelect = (hotelId) => {
     setSelectedHotelId(hotelId);
@@ -43,14 +45,7 @@ const HotelSplashScreen = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your hotels...</p>
-        </div>
-      </div>
-    );
+    <Spinner />;
   }
 
   return (

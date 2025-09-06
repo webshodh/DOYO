@@ -250,12 +250,12 @@ const Profile = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      {/* <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} /> */}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Navbar */}
-        <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        {/* <Navbar onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} /> */}
 
         {/* Profile Content */}
         <main className="flex-1 overflow-y-auto p-6">

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAdminData from "../../data/useAdminData";
+import { Spinner } from "Atoms";
+import ErrorMessage from "Atoms/ErrorMessage";
 
 const HotelSelector = ({ adminId, selectedHotelName, onHotelSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +15,7 @@ const HotelSelector = ({ adminId, selectedHotelName, onHotelSelect }) => {
     loading,
     error,
   } = useAdminData(`/admins/${adminId}/hotels`);
-console.log("selectedHotelName", selectedHotelName)
+  console.log("selectedHotelName", selectedHotelName);
   useEffect(() => {
     if (hotelsData) {
       setHotels(
@@ -30,11 +32,13 @@ console.log("selectedHotelName", selectedHotelName)
     });
   };
 
-  if (loading)
-    return <span className="text-sm text-gray-300">Loading hotels...</span>;
-  if (error)
-    return <span className="text-sm text-red-400">Error loading hotels</span>;
+  if (loading) {
+    <Spinner />;
+  }
 
+  if (error) {
+    return <ErrorMessage message={error.message} />;
+  }
   return (
     <div className="relative hotel-selector">
       <div

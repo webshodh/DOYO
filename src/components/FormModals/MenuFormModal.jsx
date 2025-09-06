@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FaCheckCircle } from "react-icons/fa";
-import Modal from "components/Modal";
-import { calculateFinalPrice } from "../../Validation/menuValidation";
+import { FORM_CONFIG } from "Constants/addMenuFormConfig";
+import { Upload, ChefHat, AlertCircle, X, Save } from "lucide-react";
+import { FormSection, getDefaultFormData } from "utility/FormUtilityFunctions";
 
 const MenuFormModal = ({
   show,
@@ -11,384 +11,443 @@ const MenuFormModal = ({
   mainCategories,
   editMode = false,
   initialData = null,
+  hotelName,
 }) => {
-  const [formData, setFormData] = useState({
-    menuName: "",
-    menuCookingTime: "",
-    menuPrice: "",
-    discount: "",
-    finalPrice: "",
-    menuCategory: "",
-    menuContent: "",
-    availability: "Available",
-    mainCategory: "",
-    file: null,
-    existingImageUrl: "",
-  });
+  const [formData, setFormData] = useState(getDefaultFormData());
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form data when modal opens or initialData changes
+  // Initialize form data
   useEffect(() => {
     if (initialData && editMode) {
-      setFormData({
-        menuName: initialData.menuName || "",
-        menuCookingTime: initialData.menuCookingTime || "",
-        menuPrice: initialData.menuPrice || "",
-        discount: initialData.discount || "",
-        finalPrice: initialData.finalPrice || "",
-        menuCategory: initialData.menuCategory || "",
-        menuContent: initialData.menuContent || "",
-        availability: initialData.availability || "Available",
-        mainCategory: initialData.mainCategory || "",
-        file: null,
-        existingImageUrl: initialData.imageUrl || "",
-      });
+      // Ensure all nested objects are properly initialized
+      const sanitizedData = {
+        ...getDefaultFormData(),
+        ...initialData,
+        // Ensure nutritionalInfo is properly initialized
+        nutritionalInfo: {
+          protein: "",
+          carbs: "",
+          fat: "",
+          fiber: "",
+          ...(initialData.nutritionalInfo || {}),
+        },
+        // Ensure allergens is an array
+        allergens: Array.isArray(initialData.allergens)
+          ? initialData.allergens
+          : [],
+      };
+
+      setFormData(sanitizedData);
+      setPreviewImage(initialData.imageUrl || initialData.existingImageUrl);
     } else {
-      // Reset form for new entry
-      setFormData({
-        menuName: "",
-        menuCookingTime: "",
-        menuPrice: "",
-        discount: "",
-        finalPrice: "",
-        menuCategory: "",
-        menuContent: "",
-        availability: "Available",
-        mainCategory: "",
-        file: null,
-        existingImageUrl: "",
-      });
+      setFormData(getDefaultFormData());
+      setPreviewImage(null);
     }
   }, [initialData, editMode, show]);
 
-  // Calculate final price when price or discount changes
+  // Calculate final price
   useEffect(() => {
     if (formData.menuPrice) {
-      const finalPrice = calculateFinalPrice(
-        formData.menuPrice,
-        formData.discount
-      );
-      setFormData((prev) => ({ ...prev, finalPrice: finalPrice.toString() }));
+      const price = parseFloat(formData.menuPrice);
+      const discountPercent = parseFloat(formData.discount);
+      const finalPrice = price - (price * discountPercent) / 100;
+
+      setFormData((prev) => ({
+        ...prev,
+        finalPrice: finalPrice.toFixed(2),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        finalPrice: "",
+      }));
     }
   }, [formData.menuPrice, formData.discount]);
 
-  const handleInputChange = (field) => (e) => {
-    const value = e.target.value;
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    setFormData((prev) => ({ ...prev, file: selectedFile }));
+    if (selectedFile) {
+      // Validate file type
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        alert("Please select a valid image file (JPG, PNG, WEBP)");
+        return;
+      }
+
+      // Validate file size (10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (selectedFile.size > maxSize) {
+        alert("File size must be less than 10MB");
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, file: selectedFile }));
+      const reader = new FileReader();
+      reader.onload = (e) => setPreviewImage(e.target.result);
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      { field: "menuName", label: "Menu Name" },
+      { field: "menuContent", label: "Description" },
+      { field: "menuCookingTime", label: "Cooking Time" },
+      { field: "menuPrice", label: "Base Price" },
+      { field: "menuCategory", label: "Menu Category" },
+      { field: "categoryType", label: "Category Type" },
+    ];
+
+    const missingFields = requiredFields.filter(({ field }) => {
+      const value = formData[field];
+      return !value || (typeof value === "string" && value.trim() === "");
+    });
+
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map(({ label }) => label).join(", ");
+      alert(`Please fill in the following required fields: ${fieldNames}`);
+      return false;
+    }
+
+    return true;
+  };
+
+  const prepareFormDataForSubmission = () => {
+    console.log("Raw form data before preparation:", formData); // Debug log
+
+    // Create a comprehensive copy ensuring ALL fields are included and properly typed
+    const submissionData = {
+      // Basic Information
+      menuName: String(formData.menuName || "").trim(),
+      menuContent: String(formData.menuContent || "").trim(),
+      ingredients: String(formData.ingredients || "").trim(),
+      menuCookingTime: parseInt(formData.menuCookingTime),
+      servingSize: parseInt(formData.servingSize) || 1,
+
+      // Pricing & Timing
+      menuPrice: parseFloat(formData.menuPrice),
+      discount: parseFloat(formData.discount),
+      finalPrice:
+        parseFloat(formData.finalPrice) || parseFloat(formData.menuPrice),
+      calories: parseInt(formData.calories),
+
+      // Categories & Classification - CRITICAL: Ensure these are strings, not empty
+      mainCategory: String(formData.mainCategory || ""),
+      menuCategory: String(formData.menuCategory || ""),
+      categoryType: String(formData.categoryType || ""),
+      mealType: String(formData.mealType || ""),
+      spiceLevel: String(formData.spiceLevel || ""),
+      portionSize: String(formData.portionSize || ""),
+
+      // Preparation Details - CRITICAL: Ensure all preparation fields are included
+      preparationMethod: String(formData.preparationMethod || ""),
+      difficulty: String(formData.difficulty || ""),
+      availability: String(formData.availability || "Available"),
+      cuisineType: String(formData.cuisineType || ""),
+      tasteProfile: String(formData.tasteProfile || ""),
+      texture: String(formData.texture || ""),
+      cookingStyle: String(formData.cookingStyle || ""),
+
+      // Nutritional Information - CRITICAL: Ensure nested object structure
+      nutritionalInfo: {
+        protein: parseFloat(formData.nutritionalInfo?.protein),
+        carbs: parseFloat(formData.nutritionalInfo?.carbs),
+        fat: parseFloat(formData.nutritionalInfo?.fat),
+        fiber: parseFloat(formData.nutritionalInfo?.fiber),
+      },
+
+      // Special Features - CRITICAL: Ensure ALL boolean flags are explicitly set
+      chefSpecial: Boolean(formData.chefSpecial),
+      isPopular: Boolean(formData.isPopular),
+      isVegan: Boolean(formData.isVegan),
+      isGlutenFree: Boolean(formData.isGlutenFree),
+      isRecommended: Boolean(formData.isRecommended),
+      isSugarFree: Boolean(formData.isSugarFree),
+      isMostOrdered: Boolean(formData.isMostOrdered),
+      isSeasonal: Boolean(formData.isSeasonal),
+      isLimitedEdition: Boolean(formData.isLimitedEdition),
+      isOrganic: Boolean(formData.isOrganic),
+      isHighProtein: Boolean(formData.isHighProtein),
+      isLactoseFree: Boolean(formData.isLactoseFree),
+      isJainFriendly: Boolean(formData.isJainFriendly),
+      isKidsFriendly: Boolean(formData.isKidsFriendly),
+      isBeverageAlcoholic: Boolean(formData.isBeverageAlcoholic),
+
+      // Allergens - CRITICAL: Ensure it's always an array
+      allergens: Array.isArray(formData.allergens)
+        ? [...formData.allergens]
+        : [],
+
+      // File and Image handling
+      file: formData.file || null,
+      existingImageUrl: String(
+        formData.existingImageUrl || formData.imageUrl || ""
+      ),
+      imageUrl: String(formData.imageUrl || formData.existingImageUrl || ""),
+
+      // System timestamps
+      createdAt: editMode
+        ? formData.createdAt || new Date().toISOString()
+        : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+
+      // Preserve UUID if editing
+      ...(editMode && formData.uuid && { uuid: formData.uuid }),
+    };
+
+    // Additional validation: ensure no undefined values
+    Object.keys(submissionData).forEach((key) => {
+      if (submissionData[key] === undefined) {
+        console.warn(`Warning: Field ${key} is undefined, setting to default`);
+        // Set appropriate defaults based on expected type
+        if (typeof formData[key] === "boolean") {
+          submissionData[key] = false;
+        } else if (typeof formData[key] === "number") {
+          submissionData[key] = 0;
+        } else if (Array.isArray(formData[key])) {
+          submissionData[key] = [];
+        } else {
+          submissionData[key] = "";
+        }
+      }
+    });
+
+    // Validate critical fields are present
+    const criticalFields = [
+      "menuName",
+      "menuContent",
+      "menuPrice",
+      "menuCategory",
+      "categoryType",
+      "mainCategory",
+      "spiceLevel",
+      "portionSize",
+      "preparationMethod",
+      "difficulty",
+      "cuisineType",
+      "nutritionalInfo",
+      "allergens",
+    ];
+
+    criticalFields.forEach((field) => {
+      if (!(field in submissionData)) {
+        console.error(
+          `Critical field ${field} is missing from submission data`
+        );
+      }
+    });
+
+    return submissionData;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await onSubmit(formData);
-    if (success) {
-      onClose();
+
+    console.log("Current form data on submit:", formData); // Debug log
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const submissionData = prepareFormDataForSubmission();
+      console.log("Final submission data:", submissionData);
+      console.log(
+        "Number of fields being submitted:",
+        Object.keys(submissionData).length
+      );
+
+      // Ensure we're passing all the data correctly
+      const success = await onSubmit(submissionData);
+
+      if (success) {
+        handleClose();
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      alert("There was an error submitting the form. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    setFormData({
-      menuName: "",
-      menuCookingTime: "",
-      menuPrice: "",
-      discount: "",
-      finalPrice: "",
-      menuCategory: "",
-      menuContent: "",
-      availability: "Available",
-      mainCategory: "",
-      file: null,
-      existingImageUrl: "",
-    });
+    setFormData(getDefaultFormData());
+    setPreviewImage(null);
+    setIsSubmitting(false);
     onClose();
   };
 
   if (!show) return null;
 
+  // Create external options object with proper structure
+  const externalOptions = {
+    categories: categories || [],
+    mainCategories: mainCategories || [],
+  };
+
   return (
-    <Modal
-      title={editMode ? "Edit Menu" : "Add Menu"}
-      handleClose={handleClose}
-      children={
-        <div className="bg-white p-6 w-full max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit} className="space-y-6 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Menu Name */}
-              <div className="relative col-span-2">
-                <label
-                  htmlFor="menuName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Name *
-                </label>
-                <input
-                  type="text"
-                  id="menuName"
-                  value={formData.menuName}
-                  onChange={handleInputChange("menuName")}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    formData.menuName ? "border-green-500" : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter Menu Name"
-                  required
-                />
-                {formData.menuName && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500 top-6">
-                    <FaCheckCircle />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ marginTop: "100px" }}
+    >
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={!isSubmitting ? handleClose : undefined}
+      ></div>
+
+      <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 rounded-full p-2">
+                <ChefHat className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {editMode ? "Edit Menu Item" : "Add New Menu Item"}
+                </h2>
+                <p className="text-orange-100">
+                  {editMode
+                    ? "Update menu details"
+                    : "Create a delicious new menu item"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-50"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Image Upload */}
+              <div className="lg:col-span-1">
+                <div className="sticky top-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Upload className="w-5 h-5 text-orange-500" />
+                    Menu Image
+                  </h3>
+
+                  <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 hover:border-orange-400 transition-colors duration-200">
+                    {previewImage ? (
+                      <div className="relative">
+                        <img
+                          src={previewImage}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-xl"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewImage(null);
+                            setFormData((prev) => ({
+                              ...prev,
+                              file: null,
+                              existingImageUrl: "",
+                            }));
+                          }}
+                          disabled={isSubmitting}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label
+                        htmlFor="file"
+                        className={`block p-8 text-center ${
+                          isSubmitting ? "cursor-not-allowed" : "cursor-pointer"
+                        }`}
+                      >
+                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">
+                          Click to upload image
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          PNG, JPG up to 10MB
+                        </p>
+                      </label>
+                    )}
+                    <input
+                      type="file"
+                      id="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleFileChange}
+                      disabled={isSubmitting}
+                      className="hidden"
+                    />
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Menu Price */}
-              <div className="relative">
-                <label
-                  htmlFor="menuPrice"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Price *
-                </label>
-                <input
-                  type="number"
-                  id="menuPrice"
-                  value={formData.menuPrice}
-                  onChange={handleInputChange("menuPrice")}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    formData.menuPrice ? "border-green-500" : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter Price"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-                {formData.menuPrice && (
-                  <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
-                )}
-              </div>
+              {/* Form Sections */}
+              <div className="lg:col-span-2 space-y-6">
+                {FORM_CONFIG.sections.map((section) => (
+                  <FormSection
+                    key={section.id}
+                    section={section}
+                    formData={formData}
+                    onChange={setFormData}
+                    externalOptions={externalOptions}
+                    disabled={isSubmitting}
+                    hotelName={hotelName}
+                  />
+                ))}
 
-              {/* Cooking Time */}
-              <div className="relative">
-                <label
-                  htmlFor="cookingTime"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Cooking Time (mins) *
-                </label>
-                <input
-                  type="number"
-                  id="cookingTime"
-                  value={formData.menuCookingTime}
-                  onChange={handleInputChange("menuCookingTime")}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    formData.menuCookingTime
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter cooking time"
-                  min="1"
-                  required
-                />
-                {formData.menuCookingTime && (
-                  <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
-                )}
-              </div>
+                {/* Form Actions */}
+                <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>* Required fields</span>
+                  </div>
 
-              {/* Discount */}
-              <div className="relative">
-                <label
-                  htmlFor="discount"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Discount (%)
-                </label>
-                <input
-                  type="number"
-                  id="discount"
-                  value={formData.discount}
-                  onChange={handleInputChange("discount")}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                  placeholder="Enter discount percentage"
-                  min="0"
-                  max="100"
-                />
-              </div>
-
-              {/* Final Price */}
-              <div className="relative">
-                <label
-                  htmlFor="finalPrice"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Final Price
-                </label>
-                <input
-                  type="number"
-                  id="finalPrice"
-                  value={formData.finalPrice}
-                  readOnly
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"
-                  placeholder="Auto-calculated"
-                />
-              </div>
-
-              {/* Menu Category */}
-              <div className="relative">
-                <label
-                  htmlFor="menuCategory"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Category *
-                </label>
-                <select
-                  id="menuCategory"
-                  value={formData.menuCategory}
-                  onChange={handleInputChange("menuCategory")}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    formData.menuCategory
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  required
-                >
-                  <option value="">Select category</option>
-                  {categories.map((cat, index) => (
-                    <option
-                      key={index}
-                      value={cat.categoryName || cat.name || cat}
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      disabled={isSubmitting}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {cat.categoryName || cat.name || cat}
-                    </option>
-                  ))}
-                </select>
-                {formData.menuCategory && (
-                  <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
-                )}
-              </div>
+                      <X className="w-4 h-4" />
+                      Cancel
+                    </button>
 
-              {/* Main Category */}
-              <div className="relative">
-                <label
-                  htmlFor="mainCategory"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Main Category *
-                </label>
-                <select
-                  id="mainCategory"
-                  value={formData.mainCategory}
-                  onChange={handleInputChange("mainCategory")}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    formData.mainCategory
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  required
-                >
-                  <option value="">Select main category</option>
-                  {mainCategories.map((cat, index) => (
-                    <option
-                      key={index}
-                      value={cat.categoryName || cat.name || cat}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {cat.categoryName || cat.name || cat}
-                    </option>
-                  ))}
-                </select>
-                {formData.mainCategory && (
-                  <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
-                )}
-              </div>
-
-              {/* Availability */}
-              <div className="relative">
-                <label
-                  htmlFor="availability"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Availability
-                </label>
-                <select
-                  id="availability"
-                  value={formData.availability}
-                  onChange={handleInputChange("availability")}
-                  className="mt-1 block w-full px-3 py-2 border border-green-500 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                >
-                  <option value="Available">Available</option>
-                  <option value="Not Available">Not Available</option>
-                </select>
-              </div>
-
-              {/* File Upload */}
-              <div className="relative">
-                <label
-                  htmlFor="file"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Upload Image
-                </label>
-                <input
-                  type="file"
-                  id="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-                {formData.existingImageUrl && !formData.file && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    Current image will be kept if no new image is selected
-                  </p>
-                )}
-              </div>
-
-              {/* Menu Content */}
-              <div className="relative col-span-2">
-                <label
-                  htmlFor="menuContent"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Menu Content *
-                </label>
-                <textarea
-                  id="menuContent"
-                  rows="3"
-                  value={formData.menuContent}
-                  onChange={handleInputChange("menuContent")}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    formData.menuContent
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-green-500`}
-                  placeholder="Enter menu description"
-                  required
-                />
-                {formData.menuContent && (
-                  <FaCheckCircle className="absolute top-8 right-3 text-green-500" />
-                )}
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="col-span-2 flex items-center justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                >
-                  {editMode ? "Update Menu" : "Add Menu"}
-                </button>
+                      <Save className="w-4 h-4" />
+                      {isSubmitting
+                        ? "Saving..."
+                        : editMode
+                        ? "Update Menu Item"
+                        : "Create Menu Item"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </form>
         </div>
-      }
-    />
+      </div>
+    </div>
   );
 };
 

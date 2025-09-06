@@ -3,6 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HotelFormModal from "../../components/FormModals/HotelFormModal";
 import { useHotel } from "../../customHooks/useHotel";
+import { Spinner } from "Atoms";
 
 function AddHotelWithAdmins() {
   const {
@@ -116,16 +117,7 @@ function AddHotelWithAdmins() {
   };
 
   if (loading) {
-    return (
-      <div className="container mt-4">
-        <div className="text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">Loading...</p>
-        </div>
-      </div>
-    );
+    <Spinner />;
   }
 
   return (
