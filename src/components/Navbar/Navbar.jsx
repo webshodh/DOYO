@@ -1,18 +1,22 @@
-import React from "react";
-import { Star } from "lucide-react"; // Star icon for reviews
+import React, { useState } from "react";
+import { Star, Menu, X } from "lucide-react"; // Added Menu and X icons for sidebar toggle
 import { colors } from "theme/theme";
 import { useNavigate } from "react-router-dom";
 
 const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleOfferClick = () => {
     navigate(`/viewMenu/${hotelName}/offers`);
+    setIsSidebarOpen(false); // Close sidebar after navigation
   };
 
   const handleHomeClick = () => {
     navigate(`/viewMenu/${hotelName}/home`);
+    setIsSidebarOpen(false); // Close sidebar after navigation
   };
+
   // Function to handle Google review redirection
   const handleReviewClick = () => {
     let reviewUrl;
@@ -31,86 +35,138 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
 
     // Open in new tab
     window.open(reviewUrl, "_blank", "noopener,noreferrer");
+    setIsSidebarOpen(false); // Close sidebar after action
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
     <>
+      {/* Main Navigation Bar */}
       <div
-        className="text-white p-2 flex justify-between items-center sticky"
+        className="text-white p-2 flex justify-between items-left sticky z-50"
         style={{ background: colors.Orange }}
       >
-        <h2
-          className="font-semibold text-white mt-2"
-          style={{ marginLeft: "10px" }}
+        {/* Menu Button */}
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all duration-200"
+          title="Menu"
         >
+          <Menu size={24} className="text-white" />
+        </button>
+        <h2 className="font-semibold text-white" style={{ marginLeft: "10px" }}>
           {title}
         </h2>
+        <div className="w-10"></div> {/* Spacer for centering */}
       </div>
+
+      
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+
+      {/* Sidebar */}
       <div
-        className="text-black p-2 flex justify-between items-center sticky"
-        style={{ background: colors.White }}
+        className={`fixed top-0 left-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        <div className="flex items-center gap-4">
-          {/* Offer Button */}
-          {offers && (
-            <button
-              onClick={handleOfferClick}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
-              style={{
-                backgroundColor: colors.LightGrey || "#f8f9fa",
-                color: "#f59e0b", // yellow-500
-              }}
-              title="View Offers"
+        {/* Sidebar Header with Logo */}
+        <div
+          className="p-4 border-b flex justify-between items-center"
+          style={{ background: colors.Orange }}
+        >
+          {/* Logo */}
+          <div className="flex items-center">
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl"
+              style={{ background: colors.White }}
             >
-              <Star
-                size={20}
-                fill="#f59e0b"
-                stroke="#f59e0b"
-                className="animate-pulse"
-              />
-              <span className="text-sm font-medium text-yellow-600">
-                Offers
+              <span style={{ color: colors.Orange }}>
+                {hotelName ? hotelName.charAt(0).toUpperCase() : "H"}
               </span>
-            </button>
-          )}
-          {/* Home Button */}
-          {home && (
-            <button
-              onClick={handleHomeClick}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
-              style={{
-                backgroundColor: colors.LightGrey || "#f8f9fa",
-                color: "#f59e0b", // yellow-500
-              }}
-              title="View Menu"
-            >
-              <Star
-                size={20}
-                fill="#f59e0b"
-                stroke="#f59e0b"
-                className="animate-pulse"
-              />
-              <span className="text-sm font-medium text-yellow-600">Menu</span>
-            </button>
-          )}
-          {/* Review Icon Button */}
+            </div>
+            <div className="ml-3">
+              <h3 className="text-white font-semibold text-lg">
+                {hotelName || "Hotel"}
+              </h3>
+            </div>
+          </div>
+          {/* Close Button */}
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all duration-200"
+          >
+            <X size={24} className="text-white" />
+          </button>
+        </div>
+
+        {/* Sidebar Menu Items */}
+        <div className="p-4">
+          {/* Review Option */}
           <button
             onClick={handleReviewClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-yellow-50 hover:scale-105 border border-yellow-400"
-            style={{
-              backgroundColor: colors.LightGrey || "#f8f9fa",
-              color: "#f59e0b", // yellow-500
-            }}
-            title="Write a Review"
+            className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
           >
             <Star
-              size={20}
+              size={24}
               fill="#f59e0b"
               stroke="#f59e0b"
               className="animate-pulse"
             />
-            <span className="text-sm font-medium text-yellow-600">Review</span>
+            <div className="text-left">
+              <span className="text-lg font-medium text-gray-800">Review</span>
+              <p className="text-sm text-gray-600">Write a review on Google</p>
+            </div>
           </button>
+
+          {/* Offers Option */}
+          {offers && (
+            <button
+              onClick={handleOfferClick}
+              className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
+            >
+              <Star
+                size={24}
+                fill="#f59e0b"
+                stroke="#f59e0b"
+                className="animate-pulse"
+              />
+              <div className="text-left">
+                <span className="text-lg font-medium text-gray-800">
+                  Offers
+                </span>
+                <p className="text-sm text-gray-600">View special offers</p>
+              </div>
+            </button>
+          )}
+
+          {/* Menu/Home Option */}
+          {home && (
+            <button
+              onClick={handleHomeClick}
+              className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
+            >
+              <Star
+                size={24}
+                fill="#f59e0b"
+                stroke="#f59e0b"
+                className="animate-pulse"
+              />
+              <div className="text-left">
+                <span className="text-lg font-medium text-gray-800">Menu</span>
+                <p className="text-sm text-gray-600">View menu items</p>
+              </div>
+            </button>
+          )}
         </div>
       </div>
     </>

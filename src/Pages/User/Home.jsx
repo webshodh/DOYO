@@ -257,12 +257,12 @@ function Home() {
         <div
           style={{
             background: `${colors.LightGrey}`,
-            padding: "20px",
+            padding: "10px",
           }}
           className="pb-6"
         >
           {/* Search and Sort */}
-          <div className="top-16 mb-4">
+          <div className="top-12 mb-1">
             <FilterSortSearch
               searchTerm={searchTerm}
               handleSearch={handleSearch}
@@ -337,7 +337,7 @@ function Home() {
 
           {/* Special Categories Filter - Horizontal Scroll */}
           {availableSpecialCategories.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-2">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
                 Special Categories
               </h3>
@@ -382,7 +382,7 @@ function Home() {
           )}
 
           {/* Category Tabs */}
-          <div className="top-24 mb-4">
+          <div className="top-12 mb-2">
             <CategoryTabs
               categories={categories}
               menuCountsByCategory={menuCountsByCategory}
@@ -420,7 +420,7 @@ function Home() {
           </div> */}
 
           {/* Results Count */}
-          <div className="mb-4">
+          <div className="mb-2">
             <p className="text-sm text-gray-600">
               Showing {filteredAndSortedItems.length} items
               {(selectedSpecialFilters.length > 0 ||
