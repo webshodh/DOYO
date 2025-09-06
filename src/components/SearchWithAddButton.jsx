@@ -1,4 +1,5 @@
 import React from "react";
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 const SearchWithButton = ({
   searchTerm,
@@ -8,6 +9,7 @@ const SearchWithButton = ({
   placeholder = "What are you looking for?",
   inputWidth = "80%",
   buttonColor = "bg-orange-500",
+  onlyView=false
 }) => {
   return (
     <div className="d-flex" style={{ width: "100%" }}>
@@ -25,14 +27,17 @@ const SearchWithButton = ({
         />
       </div>
       {/* Button */}
+      {!onlyView &&
       <div>
         <button
           onClick={onButtonClick}
-          className={`px-4 py-2 mr-2 text-white ${buttonColor} rounded-md mt-2`}
+          className={`px-2 py-2 mr-2 text-white ${buttonColor} rounded-md mt-2`}
         >
-          {buttonText}
+          {/* {buttonText} */}
+          <PlusIcon className="h-6 w-6 text-white-500" />
         </button>
       </div>
+}
     </div>
   );
 };

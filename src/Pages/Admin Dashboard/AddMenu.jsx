@@ -10,7 +10,7 @@ import SearchWithButton from "components/SearchWithAddButton";
 import MenuFormModal from "../../components/FormModals/MenuFormModal";
 import { useMenu } from "../../customHooks/menu";
 
-function AddMenu() {
+function AddMenu({onlyView}) {
   const [show, setShow] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedMenuData, setEditedMenuData] = useState(null);
@@ -195,10 +195,11 @@ function AddMenu() {
           mainCategories={mainCategories}
           editMode={editMode}
           initialData={editedMenuData}
+          hotelName={hotelName}
         />
         <PageTitle pageTitle="View Menu" />
         {/* Main Content */}
-        <div className="w-full px-4 mt-2">
+        <div className="w-full mt-2">
           {/* Search and Add Button */}
           <div className="mt-1 mb-3">
             <SearchWithButton
@@ -206,6 +207,7 @@ function AddMenu() {
               onSearchChange={(e) => handleSearchChange(e.target.value)}
               buttonText="Add Menu"
               onButtonClick={handleAdd}
+              onlyView={onlyView}
             />
           </div>
 

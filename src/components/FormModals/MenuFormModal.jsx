@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FORM_CONFIG } from "Constants/formConfig";
+import { FORM_CONFIG } from "Constants/addMenuFormConfig";
 import { Upload, ChefHat, AlertCircle, X, Save } from "lucide-react";
 import { FormSection, getDefaultFormData } from "utility/FormUtilityFunctions";
 
@@ -11,6 +11,7 @@ const MenuFormModal = ({
   mainCategories,
   editMode = false,
   initialData = null,
+  hotelName,
 }) => {
   const [formData, setFormData] = useState(getDefaultFormData());
   const [previewImage, setPreviewImage] = useState(null);
@@ -48,8 +49,8 @@ const MenuFormModal = ({
   // Calculate final price
   useEffect(() => {
     if (formData.menuPrice) {
-      const price = parseFloat(formData.menuPrice) || 0;
-      const discountPercent = parseFloat(formData.discount) || 0;
+      const price = parseFloat(formData.menuPrice);
+      const discountPercent = parseFloat(formData.discount);
       const finalPrice = price - (price * discountPercent) / 100;
 
       setFormData((prev) => ({
@@ -126,15 +127,15 @@ const MenuFormModal = ({
       menuName: String(formData.menuName || "").trim(),
       menuContent: String(formData.menuContent || "").trim(),
       ingredients: String(formData.ingredients || "").trim(),
-      menuCookingTime: parseInt(formData.menuCookingTime) || 0,
+      menuCookingTime: parseInt(formData.menuCookingTime),
       servingSize: parseInt(formData.servingSize) || 1,
 
       // Pricing & Timing
-      menuPrice: parseFloat(formData.menuPrice) || 0,
-      discount: parseFloat(formData.discount) || 0,
+      menuPrice: parseFloat(formData.menuPrice),
+      discount: parseFloat(formData.discount),
       finalPrice:
-        parseFloat(formData.finalPrice) || parseFloat(formData.menuPrice) || 0,
-      calories: parseInt(formData.calories) || 0,
+        parseFloat(formData.finalPrice) || parseFloat(formData.menuPrice),
+      calories: parseInt(formData.calories),
 
       // Categories & Classification - CRITICAL: Ensure these are strings, not empty
       mainCategory: String(formData.mainCategory || ""),
@@ -155,10 +156,10 @@ const MenuFormModal = ({
 
       // Nutritional Information - CRITICAL: Ensure nested object structure
       nutritionalInfo: {
-        protein: parseFloat(formData.nutritionalInfo?.protein) || 0,
-        carbs: parseFloat(formData.nutritionalInfo?.carbs) || 0,
-        fat: parseFloat(formData.nutritionalInfo?.fat) || 0,
-        fiber: parseFloat(formData.nutritionalInfo?.fiber) || 0,
+        protein: parseFloat(formData.nutritionalInfo?.protein),
+        carbs: parseFloat(formData.nutritionalInfo?.carbs),
+        fat: parseFloat(formData.nutritionalInfo?.fat),
+        fiber: parseFloat(formData.nutritionalInfo?.fiber),
       },
 
       // Special Features - CRITICAL: Ensure ALL boolean flags are explicitly set
@@ -216,13 +217,6 @@ const MenuFormModal = ({
         }
       }
     });
-
-    console.log("Prepared submission data:", submissionData); // Debug log
-    console.log("Submission data keys:", Object.keys(submissionData)); // Debug log
-    console.log(
-      "Total fields being submitted:",
-      Object.keys(submissionData).length
-    );
 
     // Validate critical fields are present
     const criticalFields = [
@@ -301,7 +295,10 @@ const MenuFormModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ marginTop: "100px" }}
+    >
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={!isSubmitting ? handleClose : undefined}
@@ -409,32 +406,9 @@ const MenuFormModal = ({
                     onChange={setFormData}
                     externalOptions={externalOptions}
                     disabled={isSubmitting}
+                    hotelName={hotelName}
                   />
                 ))}
-
-                {/* Debug Section - Remove this in production */}
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">
-                    Debug Info (Remove in production):
-                  </h4>
-                  <p className="text-sm">
-                    Form fields count: {Object.keys(formData).length}
-                  </p>
-                  <p className="text-sm">
-                    Categories count: {(categories || []).length}
-                  </p>
-                  <p className="text-sm">
-                    Main Categories count: {(mainCategories || []).length}
-                  </p>
-                  <details>
-                    <summary className="cursor-pointer text-sm font-medium">
-                      Show current form data
-                    </summary>
-                    <pre className="text-xs mt-2 bg-white p-2 rounded overflow-auto max-h-40">
-                      {JSON.stringify(formData, null, 2)}
-                    </pre>
-                  </details>
-                </div>
 
                 {/* Form Actions */}
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200">

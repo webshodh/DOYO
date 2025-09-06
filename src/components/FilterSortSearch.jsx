@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaSortAmountUp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { colors } from "theme/theme";
-
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 const FilterSortSearch = ({
   searchTerm,
   handleSearch,

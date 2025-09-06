@@ -141,12 +141,7 @@ export const FORM_CONFIG = {
           type: "select",
           options: "spiceLevels",
         },
-        {
-          name: "portionSize",
-          label: "Portion Size",
-          type: "select",
-          options: "portionSizes",
-        },
+        
       ],
     },
     {
@@ -161,12 +156,7 @@ export const FORM_CONFIG = {
           type: "select",
           options: "preparationMethods",
         },
-        {
-          name: "difficulty",
-          label: "Difficulty Level",
-          type: "select",
-          options: "difficultyLevels",
-        },
+        
         {
           name: "availability",
           label: "Availability",
@@ -375,145 +365,141 @@ export const FORM_CONFIG = {
   ],
 };
 
-// Predefined options
-export const OPTIONS = {
-  // Spice Levels
-  spiceLevels: ["None", "Mild", "Medium", "Hot", "Extra Hot", "Extreme"],
-
-  // Preparation Methods
-  preparationMethods: [
-    "Fried",
-    "Grilled",
-    "Baked",
-    "Steamed",
-    "Roasted",
-    "Boiled",
-    "Raw",
-    "Smoked",
-    "Poached",
-    "Sous Vide",
-    "Stir-Fried",
-    "Tandoor",
-    "Slow Cooked",
-  ],
-
-  // Portion Sizes
-  portionSizes: [
-    "Kids",
-    "Small",
-    "Regular",
-    "Large",
-    "Family",
-    "Party Platter",
-  ],
-
-  // Meal Types
-  mealTypes: [
-    "Appetizer",
-    "Main Course",
-    "Dessert",
-    "Beverage",
-    "Snack",
-    "Soup",
-    "Salad",
-    "Side Dish",
-    "Breakfast",
-    "Brunch",
-    "Lunch",
-    "Dinner",
-    "Late Night",
-  ],
-
-  // Difficulty Levels
-  difficultyLevels: ["Easy", "Medium", "Hard", "Expert"],
-
-  // Allergen Options
-  allergenOptions: [
-    "Nuts",
-    "Dairy",
-    "Gluten",
-    "Eggs",
-    "Soy",
-    "Shellfish",
-    "Fish",
-    "Sesame",
-    "Mustard",
-    "Corn",
-    "Peanuts",
-    "Wheat",
-    "Sulphites",
-  ],
-
-  // Cuisine Types
-  cuisineTypes: [
-    "Indian",
-    "Chinese",
-    "Italian",
-    "Mexican",
-    "Thai",
-    "Japanese",
-    "Korean",
-    "Mediterranean",
-    "American",
-    "French",
-    "Middle Eastern",
-    "Spanish",
-    "Fusion",
-    "Continental",
-  ],
-
-  // Taste Profiles
-  tasteProfiles: [
-    "Sweet",
-    "Savory",
-    "Spicy",
-    "Tangy",
-    "Bitter",
-    "Umami",
-    "Sour",
-    "Smoky",
-    "Earthy",
-  ],
-
-  // Texture Types
-  textures: [
-    "Crispy",
-    "Crunchy",
-    "Creamy",
-    "Chewy",
-    "Soft",
-    "Fluffy",
-    "Juicy",
-    "Tender",
-    "Silky",
-    "Sticky",
-  ],
-
-  // Cooking Styles
-  cookingStyles: [
-    "Tandoor",
-    "Stir-Fry",
-    "Deep-Fry",
-    "Grill",
-    "BBQ",
-    "Stew",
-    "Curry",
-    "Pan-Seared",
-    "Oven-Roasted",
-  ],
-
-  // Food Category Tags
-  foodCategoryTags: [
-    "Healthy",
-    "Street Food",
-    "Comfort Food",
-    "Luxury",
-    "Budget-Friendly",
-    "Signature Dish",
-    "Festive",
-    "Quick Bite",
-    "Viral",
-    "Traditional",
-    "Fusion",
-  ],
-};
+// Special categories configuration
+export const specialCategories = [
+  {
+    name: "chefSpecial",
+    label: "Chef's Special",
+    icon: ChefHat,
+    iconColor: "text-orange-500",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-200",
+    activeColor: "bg-orange-500",
+  },
+  {
+    name: "isPopular",
+    label: "Popular",
+    icon: Star,
+    iconColor: "text-yellow-500",
+    bgColor: "bg-yellow-50",
+    borderColor: "border-yellow-200",
+    activeColor: "bg-yellow-500",
+  },
+  {
+    name: "isVegan",
+    label: "Vegan",
+    icon: Leaf,
+    iconColor: "text-green-500",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-200",
+    activeColor: "bg-green-500",
+  },
+  {
+    name: "isGlutenFree",
+    label: "Gluten Free",
+    icon: AlertCircle,
+    iconColor: "text-blue-500",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+    activeColor: "bg-blue-500",
+  },
+  {
+    name: "isRecommended",
+    label: "Recommended",
+    icon: AlertCircle,
+    iconColor: "text-purple-500",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
+    activeColor: "bg-purple-500",
+  },
+  {
+    name: "isSugarFree",
+    label: "Sugar Free",
+    icon: AlertCircle,
+    iconColor: "text-pink-500",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    activeColor: "bg-pink-500",
+  },
+  {
+    name: "isMostOrdered",
+    label: "Most Ordered",
+    icon: AlertCircle,
+    iconColor: "text-red-500",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+    activeColor: "bg-red-500",
+  },
+  {
+    name: "isSeasonal",
+    label: "Seasonal",
+    icon: AlertCircle,
+    iconColor: "text-emerald-500",
+    bgColor: "bg-emerald-50",
+    borderColor: "border-emerald-200",
+    activeColor: "bg-emerald-500",
+  },
+  {
+    name: "isLimitedEdition",
+    label: "Limited Edition",
+    icon: AlertCircle,
+    iconColor: "text-indigo-500",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    activeColor: "bg-indigo-500",
+  },
+  {
+    name: "isOrganic",
+    label: "Organic",
+    icon: AlertCircle,
+    iconColor: "text-lime-500",
+    bgColor: "bg-lime-50",
+    borderColor: "border-lime-200",
+    activeColor: "bg-lime-500",
+  },
+  {
+    name: "isHighProtein",
+    label: "High Protein",
+    icon: AlertCircle,
+    iconColor: "text-teal-500",
+    bgColor: "bg-teal-50",
+    borderColor: "border-teal-200",
+    activeColor: "bg-teal-500",
+  },
+  {
+    name: "isLactoseFree",
+    label: "Lactose Free",
+    icon: AlertCircle,
+    iconColor: "text-cyan-500",
+    bgColor: "bg-cyan-50",
+    borderColor: "border-cyan-200",
+    activeColor: "bg-cyan-500",
+  },
+  {
+    name: "isJainFriendly",
+    label: "Jain Friendly",
+    icon: AlertCircle,
+    iconColor: "text-amber-500",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-200",
+    activeColor: "bg-amber-500",
+  },
+  {
+    name: "isKidsFriendly",
+    label: "Kids Friendly",
+    icon: AlertCircle,
+    iconColor: "text-rose-500",
+    bgColor: "bg-rose-50",
+    borderColor: "border-rose-200",
+    activeColor: "bg-rose-500",
+  },
+  {
+    name: "isBeverageAlcoholic",
+    label: "Alcoholic",
+    icon: AlertCircle,
+    iconColor: "text-violet-500",
+    bgColor: "bg-violet-50",
+    borderColor: "border-violet-200",
+    activeColor: "bg-violet-500",
+  },
+];

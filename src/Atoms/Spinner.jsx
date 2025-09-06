@@ -1,17 +1,18 @@
 // Spinner.js
 import React from "react";
-import { colors } from "theme/theme";
 
-const Spinner = ({ text }) => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div
-      style={{ borderColor: colors.Orange }}
-      className="w-12 h-12 border-4  border-t-4 border-gray-200 rounded-full animate-spin"
-      role="status"
-    >
-      <span className="sr-only">{text ? text : "Loading..."}</span>
+const Spinner = ({ text }) => {
+  return (
+    // Loading overlay for smooth transitions
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[60] flex items-center justify-center transition-opacity duration-300">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+        <p className="text-sm text-gray-600 font-medium">
+          {text || "Loading..."}
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Spinner;

@@ -90,7 +90,7 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
         icon: <Star className="w-3 h-3" />,
       });
     }
-    return badge.slice(0, 3); // Show max 2 features to avoid overcrowding
+    return badge.slice(0, 2); // Show max 2 features to avoid overcrowding
   };
 
   const getSpecialFeatures = () => {
@@ -140,7 +140,7 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden relative group border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden relative group border border-gray-100" style={{height:"450px"}}>
         {/* Image Container */}
         <div className="relative h-48 overflow-hidden">
           {/* Loading Spinner */}
@@ -218,11 +218,6 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
 
         {/* Content Section */}
         <div className="p-4">
-          {/* Restaurant Name */}
-          {/* <h5 className="text-gray-500 text-sm font-medium mb-1 truncate">
-            {item.restaurantName}
-          </h5> */}
-
           {/* Menu Name */}
           <h2 className="text-lg font-bold text-gray-800 mb-2 leading-tight">
             {truncatedContent}
@@ -268,32 +263,32 @@ const VerticalMenuCard = ({ item, handleImageLoad }) => {
               </div>
             )}
             {/* Calories */}
-            {item.calories && (
+            {item.calories ? (
               <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
                 <Zap className="w-3 h-3 text-yellow-500" />
                 <span>{item.calories} kcal</span>
               </div>
-            )}
+            ):""}
           </div>
 
           {/* Price and Action Section */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <i className="bi bi-currency-rupee mr-1 text-orange-500"></i>
+              {/* <i className="bi bi-currency-rupee mr-1 text-orange-500"></i> */}
               <div className="flex items-center flex-wrap gap-1">
-                {item.discount && item.discount > 0 && (
+                {item.discount && item.discount > 0 ? (
                   <span className="line-through text-red-500 text-sm mr-1">
                     ₹{Math.round(item.menuPrice)}
                   </span>
-                )}
+                ):""}
                 <span className="text-orange-500 text-xl font-bold">
                   ₹{item.finalPrice}
                 </span>
-                {item.discount && item.discount > 0 && (
+                {item.discount && item.discount > 0 ? (
                   <span className="text-green-600 text-xs font-medium bg-green-50 px-1.5 py-0.5 rounded">
                     Save ₹{Math.round(item.menuPrice - item.finalPrice)}
                   </span>
-                )}
+                ):""}
               </div>
             </div>
             {/* Serving Size */}

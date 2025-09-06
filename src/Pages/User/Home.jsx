@@ -5,151 +5,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Navbar, FilterSortSearch } from "../../components";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
-import { ChefHat, Star, Leaf, AlertCircle } from "lucide-react";
-
 import CategoryTabs from "../../components/CategoryTab";
 import { useParams } from "react-router-dom";
-import MenuViewToggle from "./MenuViewToggle";
 import VerticalMenuCard from "components/Cards/VerticalMenuCard";
-
-// Special categories configuration
-const specialCategories = [
-  {
-    name: "chefSpecial",
-    label: "Chef's Special",
-    icon: ChefHat,
-    iconColor: "text-orange-500",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-200",
-    activeColor: "bg-orange-500",
-  },
-  {
-    name: "isPopular",
-    label: "Popular",
-    icon: Star,
-    iconColor: "text-yellow-500",
-    bgColor: "bg-yellow-50",
-    borderColor: "border-yellow-200",
-    activeColor: "bg-yellow-500",
-  },
-  {
-    name: "isVegan",
-    label: "Vegan",
-    icon: Leaf,
-    iconColor: "text-green-500",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-    activeColor: "bg-green-500",
-  },
-  {
-    name: "isGlutenFree",
-    label: "Gluten Free",
-    icon: AlertCircle,
-    iconColor: "text-blue-500",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-    activeColor: "bg-blue-500",
-  },
-  {
-    name: "isRecommended",
-    label: "Recommended",
-    icon: AlertCircle,
-    iconColor: "text-purple-500",
-    bgColor: "bg-purple-50",
-    borderColor: "border-purple-200",
-    activeColor: "bg-purple-500",
-  },
-  {
-    name: "isSugarFree",
-    label: "Sugar Free",
-    icon: AlertCircle,
-    iconColor: "text-pink-500",
-    bgColor: "bg-pink-50",
-    borderColor: "border-pink-200",
-    activeColor: "bg-pink-500",
-  },
-  {
-    name: "isMostOrdered",
-    label: "Most Ordered",
-    icon: AlertCircle,
-    iconColor: "text-red-500",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
-    activeColor: "bg-red-500",
-  },
-  {
-    name: "isSeasonal",
-    label: "Seasonal",
-    icon: AlertCircle,
-    iconColor: "text-emerald-500",
-    bgColor: "bg-emerald-50",
-    borderColor: "border-emerald-200",
-    activeColor: "bg-emerald-500",
-  },
-  {
-    name: "isLimitedEdition",
-    label: "Limited Edition",
-    icon: AlertCircle,
-    iconColor: "text-indigo-500",
-    bgColor: "bg-indigo-50",
-    borderColor: "border-indigo-200",
-    activeColor: "bg-indigo-500",
-  },
-  {
-    name: "isOrganic",
-    label: "Organic",
-    icon: AlertCircle,
-    iconColor: "text-lime-500",
-    bgColor: "bg-lime-50",
-    borderColor: "border-lime-200",
-    activeColor: "bg-lime-500",
-  },
-  {
-    name: "isHighProtein",
-    label: "High Protein",
-    icon: AlertCircle,
-    iconColor: "text-teal-500",
-    bgColor: "bg-teal-50",
-    borderColor: "border-teal-200",
-    activeColor: "bg-teal-500",
-  },
-  {
-    name: "isLactoseFree",
-    label: "Lactose Free",
-    icon: AlertCircle,
-    iconColor: "text-cyan-500",
-    bgColor: "bg-cyan-50",
-    borderColor: "border-cyan-200",
-    activeColor: "bg-cyan-500",
-  },
-  {
-    name: "isJainFriendly",
-    label: "Jain Friendly",
-    icon: AlertCircle,
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50",
-    borderColor: "border-amber-200",
-    activeColor: "bg-amber-500",
-  },
-  {
-    name: "isKidsFriendly",
-    label: "Kids Friendly",
-    icon: AlertCircle,
-    iconColor: "text-rose-500",
-    bgColor: "bg-rose-50",
-    borderColor: "border-rose-200",
-    activeColor: "bg-rose-500",
-  },
-  {
-    name: "isBeverageAlcoholic",
-    label: "Alcoholic",
-    icon: AlertCircle,
-    iconColor: "text-violet-500",
-    bgColor: "bg-violet-50",
-    borderColor: "border-violet-200",
-    activeColor: "bg-violet-500",
-  },
-];
+import { specialCategories } from "../../Constants/addMenuFormConfig";
 
 function Home() {
   const [menus, setMenus] = useState([]);
@@ -412,10 +271,14 @@ function Home() {
           </div>
 
           {/* Active Filters Display */}
-          {(selectedSpecialFilters.length > 0 || selectedCategory || selectedMainCategory) && (
+          {(selectedSpecialFilters.length > 0 ||
+            selectedCategory ||
+            selectedMainCategory) && (
             <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+                <span className="text-sm font-medium text-gray-700">
+                  Active Filters:
+                </span>
                 <button
                   onClick={clearAllFilters}
                   className="text-xs text-red-500 hover:text-red-700 font-medium"
@@ -424,8 +287,10 @@ function Home() {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {selectedSpecialFilters.map(filter => {
-                  const category = specialCategories.find(c => c.name === filter);
+                {selectedSpecialFilters.map((filter) => {
+                  const category = specialCategories.find(
+                    (c) => c.name === filter
+                  );
                   return (
                     <span
                       key={filter}
@@ -456,7 +321,10 @@ function Home() {
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
                     {selectedMainCategory}
                     <button
-                      onClick={() => {setSelectedMainCategory(""); setActiveMainCategory("");}}
+                      onClick={() => {
+                        setSelectedMainCategory("");
+                        setActiveMainCategory("");
+                      }}
                       className="ml-1 text-purple-600 hover:text-purple-800"
                     >
                       ×
