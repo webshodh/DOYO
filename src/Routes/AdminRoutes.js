@@ -1,3 +1,4 @@
+// AdminRoutes.js - Corrected
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -19,7 +20,7 @@ const AdminRoutes = () => {
       <Route
         path="/admin/hotel-select"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin" redirectTo="/admin/login">
             <HotelSelectionProvider>
               <HotelSplashScreen />
             </HotelSelectionProvider>
@@ -27,15 +28,29 @@ const AdminRoutes = () => {
         }
       />
 
-      {/* Hotel-specific routes */}
+      {/* Hotel-specific admin routes */}
       <Route
         path="/:hotelName/admin/*"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin" redirectTo="/admin/login">
             <HotelSelectionProvider>
               <Routes>
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="profile" element={<Profile />} />
+                <Route
+                  path="dashboard"
+                  element={
+                    <AdminDashboardLayout>
+                      <AdminDashboard />
+                    </AdminDashboardLayout>
+                  }
+                />
+                <Route
+                  path="profile"
+                  element={
+                    <AdminDashboardLayout>
+                      <Profile />
+                    </AdminDashboardLayout>
+                  }
+                />
                 <Route
                   path="add-category"
                   element={
@@ -76,9 +91,9 @@ const AdminRoutes = () => {
                     </AdminDashboardLayout>
                   }
                 />
-
                 {/* Default redirect */}
                 <Route path="" element={<Navigate to="dashboard" replace />} />
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </HotelSelectionProvider>
           </ProtectedRoute>

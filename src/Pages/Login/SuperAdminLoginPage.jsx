@@ -16,8 +16,8 @@ const SuperAdminLoginPage = () => {
   const navigate = useNavigate();
 
   // Single predefined super admin credentials
-  const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
-  const SUPER_ADMIN_PASSWORD = "Vishal@7674";
+  const SUPER_ADMIN_EMAIL = process.env.REACT_APP_SUPER_ADMIN_EMAIL;
+  const SUPER_ADMIN_PASSWORD = process.env.REACT_APP_SUPER_ADMIN_PASSWORD;
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -45,63 +45,65 @@ const SuperAdminLoginPage = () => {
     e.preventDefault();
     if (!validateFields()) return;
 
-    // Check credentials before Firebase authentication
-    if (email !== SUPER_ADMIN_EMAIL || password !== SUPER_ADMIN_PASSWORD) {
-      toast.error("Invalid super admin credentials!");
-      setErrors({ 
-        email: "Invalid credentials", 
-        password: "Invalid credentials" 
-      });
-      return;
-    }
-
+    // Clear previous errors
+    setErrors({});
     setLoading(true);
+
     try {
-      // Authenticate with Firebase
+      // Authenticate with Firebase first
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-      
+
       const user = userCredential.user;
-      
-      // Double-check email after Firebase auth
+
+      // Check if the authenticated user is the super admin
       if (user.email === SUPER_ADMIN_EMAIL) {
         toast.success("Super Admin authentication successful!");
-        
-        // Immediate redirect without splash screen
+
+        // Navigate to dashboard
         setTimeout(() => {
           navigate("/super-admin/dashboard", { replace: true });
         }, 1000);
       } else {
-        toast.error("Unauthorized access!");
+        // Sign out if not super admin
         await auth.signOut();
+        toast.error("Unauthorized access! Only super admin can access this area.");
+        setErrors({
+          email: "Unauthorized access",
+          password: "Unauthorized access",
+        });
       }
     } catch (error) {
       let errorMessage = "Authentication failed";
-      
+
       switch (error.code) {
         case "auth/user-not-found":
-          errorMessage = "Super admin account not found.";
+          errorMessage = "No account found with this email address.";
           break;
         case "auth/wrong-password":
-          errorMessage = "Invalid super admin credentials.";
+        case "auth/invalid-credential":
+          errorMessage = "Invalid email or password.";
           break;
         case "auth/invalid-email":
           errorMessage = "Invalid email format.";
           break;
         case "auth/user-disabled":
-          errorMessage = "Super admin account has been disabled.";
+          errorMessage = "This account has been disabled.";
+          break;
+        case "auth/too-many-requests":
+          errorMessage = "Too many failed attempts. Please try again later.";
           break;
         default:
           errorMessage = "Authentication error: " + error.message;
       }
-      
+
       toast.error(errorMessage);
-      setErrors({ 
-        email: "Authentication failed", 
-        password: "Authentication failed" 
+      setErrors({
+        email: "Authentication failed",
+        password: "Authentication failed",
       });
     } finally {
       setLoading(false);
@@ -110,7 +112,7 @@ const SuperAdminLoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
-      <ToastContainer 
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -122,212 +124,128 @@ const SuperAdminLoginPage = () => {
         pauseOnHover
         theme="dark"
       />
-      
-      {/* Background Effects */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute top-0 right-0 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-      </div>
 
-      {/* Grid Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
-
-      <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
-          
-          {/* Left Side - Branding */}
-          <div className="flex-1 text-center lg:text-left space-y-6 lg:max-w-lg">
-            {/* Logo */}
-            <div className="flex items-center justify-center lg:justify-start space-x-4 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                <FaShieldAlt className="text-2xl text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Hotel Control</h1>
-                <p className="text-blue-300 font-medium">Enterprise Suite</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
-                Super Admin
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-                  Control Center
-                </span>
-              </h2>
-              <p className="text-xl text-blue-200 leading-relaxed">
-                Secure access to enterprise-level hotel management system with advanced administrative privileges.
+      {/* Main Container */}
+      <div className="flex flex-col md:flex-row min-h-screen">
+        {/* Left Column - Login Form */}
+        <div className="md:w-3/5 w-full bg-gray-200 p-4 flex items-center justify-center">
+          <div className="w-full max-w-md bg-white p-8 shadow-lg rounded-lg dark:bg-gray-800">
+            <div className="text-center mb-8">
+              <FaUserShield className="mx-auto text-5xl text-orange-600 dark:text-orange-400 mb-4" />
+              <h3 className="text-4xl font-extrabold text-orange-600 dark:text-orange-400 mb-2">
+                Super Admin Login
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Secure access to administrative controls
               </p>
             </div>
 
-            {/* Features */}
-            <div className="hidden lg:flex flex-col space-y-4 pt-8">
-              <div className="flex items-center space-x-3 text-blue-200">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span>Complete system oversight</span>
+            <form onSubmit={handleSubmit}>
+              {/* Email Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  className={`w-full p-3 text-gray-900 bg-gray-100 border ${
+                    errors.email ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white dark:border-gray-600`}
+                  placeholder="Enter your admin email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  autoComplete="email"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-2">{errors.email}</p>
+                )}
               </div>
-              <div className="flex items-center space-x-3 text-blue-200">
-                <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
-                <span>Advanced analytics & reporting</span>
+
+              {/* Password Field */}
+              <div className="mb-6 relative">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                  Password
+                </label>
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  className={`w-full p-3 pr-10 text-gray-900 bg-gray-100 border ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white dark:border-gray-600`}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-11 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  onClick={togglePasswordVisibility}
+                  disabled={loading}
+                  aria-label={passwordVisible ? "Hide password" : "Show password"}
+                >
+                  {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                </button>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-2">{errors.password}</p>
+                )}
               </div>
-              <div className="flex items-center space-x-3 text-blue-200">
-                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span>Multi-hotel management</span>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-3 px-4 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75 transition-all duration-200 ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 active:bg-orange-700"
+                }`}
+              >
+                <div className="flex items-center justify-center">
+                  {loading && (
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {loading ? "Authenticating..." : "Secure Login"}
+                  {!loading && <FaShieldAlt className="ml-2" />}
+                </div>
+              </button>
+            </form>
+
+            {/* Security Notice */}
+            <div className="mt-6 p-3 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+              <div className="flex items-center">
+                <FaShieldAlt className="text-yellow-600 dark:text-yellow-400 mr-2" />
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  This is a secure admin area. All activities are logged.
+                </p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right Side - Login Form */}
-          <div className="flex-1 w-full max-w-md">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
-              {/* Form Header */}
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <FaUserShield className="text-2xl text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  Secure Access
-                </h3>
-                <p className="text-blue-200">
-                  Enter your super admin credentials
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Field */}
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      className={`w-full p-4 bg-white/10 backdrop-blur-sm border ${
-                        errors.email ? "border-red-400" : "border-white/30"
-                      } rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200`}
-                      placeholder="Enter super admin email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (errors.email) setErrors({ ...errors, email: "" });
-                      }}
-                      disabled={loading}
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="text-red-300 text-sm mt-2 flex items-center space-x-1">
-                      <span>⚠️</span>
-                      <span>{errors.email}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={passwordVisible ? "text" : "password"}
-                      className={`w-full p-4 bg-white/10 backdrop-blur-sm border ${
-                        errors.password ? "border-red-400" : "border-white/30"
-                      } rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 pr-12`}
-                      placeholder="Enter super admin password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (errors.password) setErrors({ ...errors, password: "" });
-                      }}
-                      disabled={loading}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
-                      onClick={togglePasswordVisibility}
-                      disabled={loading}
-                    >
-                      {passwordVisible ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-red-300 text-sm mt-2 flex items-center space-x-1">
-                      <span>⚠️</span>
-                      <span>{errors.password}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full py-4 rounded-xl font-semibold text-white text-lg transition-all duration-300 transform ${
-                    loading
-                      ? "bg-gray-500 cursor-not-allowed scale-95"
-                      : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 shadow-lg hover:shadow-2xl"
-                  }`}
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Authenticating...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center space-x-2">
-                      <FaShieldAlt />
-                      <span>Access Control Center</span>
-                    </div>
-                  )}
-                </button>
-              </form>
-
-              {/* Security Notice */}
-              <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-400/30 rounded-xl">
-                <p className="text-yellow-200 text-sm text-center flex items-center justify-center space-x-2">
-                  <FaShieldAlt className="text-yellow-400" />
-                  <span>Secure encrypted connection</span>
-                </p>
-              </div>
+        {/* Right Column - Logo/Branding */}
+        <div className="md:w-2/5 w-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center p-8">
+          <div className="text-center text-white">
+            <img 
+              src="/logo.png" 
+              alt="Application Logo" 
+              className="max-w-full h-auto mb-6 mx-auto"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            <div className="space-y-4">
+              <FaUserShield className="mx-auto text-8xl opacity-20" />
+              <h2 className="text-3xl font-bold">Administrative Access</h2>
+              <p className="text-lg opacity-90">Secure. Reliable. Professional.</p>
             </div>
-
-            {/* Demo Credentials (for development) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 p-4 bg-orange-500/10 border border-orange-400/30 rounded-xl">
-                <p className="text-orange-200 text-sm text-center font-mono">
-                  Demo: {SUPER_ADMIN_EMAIL}
-                </p>
-                <p className="text-orange-200 text-sm text-center font-mono">
-                  Pass: {SUPER_ADMIN_PASSWORD}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
-
-      {/* Custom Styles */}
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 };

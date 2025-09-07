@@ -55,11 +55,11 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
           className="p-2 rounded-lg hover:bg-orange hover:bg-opacity-20 transition-all duration-200"
           title="Menu"
         >
-          <Menu size={24} className="text-white" />
+          <Menu size={24} className="text-black-500" />
         </button>
         <h2
-          className="font-semibold text-orange"
-          style={{ marginLeft: "10px", color:colors.Orange }}
+          className="font-semibold text-black-500"
+          style={{ marginLeft: "10px", paddingTop:'5px', color:colors.Orange }}
         >
           {title}
         </h2>

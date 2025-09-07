@@ -1,3 +1,4 @@
+// SuperAdminRoutes.js - Corrected
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -5,8 +6,8 @@ import SuperAdminDashboardLayout from "../Pages/SuperAdminDashboardLayout";
 import SuperAdminDashboard from "../Pages/SuperAdminDashboard/SuperAdminDashboard";
 import AddHotel from "../Pages/SuperAdminDashboard/AddHotel";
 import AdminList from "../Pages/SuperAdminDashboard/AdminList";
-// import SettingsPage from "../Pages/SuperAdminDashboard/Setting";
 import Profile from "../components/ProfileComponent";
+import SettingsPage from "../Pages/Admin Dashboard/Setting"; // Fixed import path
 
 const SuperAdminRoutes = () => {
   return (
@@ -14,7 +15,10 @@ const SuperAdminRoutes = () => {
       <Route
         path="/super-admin/*"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute
+            requiredRole="super-admin"
+            redirectTo="/super-admin/login"
+          >
             <Routes>
               <Route
                 path="dashboard"
@@ -24,7 +28,14 @@ const SuperAdminRoutes = () => {
                   </SuperAdminDashboardLayout>
                 }
               />
-              <Route path="profile" element={<Profile />} />
+              <Route
+                path="profile"
+                element={
+                  <SuperAdminDashboardLayout>
+                    <Profile />
+                  </SuperAdminDashboardLayout>
+                }
+              />
               <Route
                 path="add-hotel"
                 element={
@@ -41,15 +52,17 @@ const SuperAdminRoutes = () => {
                   </SuperAdminDashboardLayout>
                 }
               />
-              {/* <Route
+              <Route
                 path="settings"
                 element={
                   <SuperAdminDashboardLayout>
                     <SettingsPage />
                   </SuperAdminDashboardLayout>
                 }
-              /> */}
+              />
+              {/* Default redirect to dashboard */}
               <Route path="" element={<Navigate to="dashboard" replace />} />
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </ProtectedRoute>
         }

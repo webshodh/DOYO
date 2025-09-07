@@ -25,17 +25,16 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full w-72 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 transform transition-all duration-300 ease-out z-50  ${
+        className={`fixed left-0 top-0 h-full w-64 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 transform transition-all duration-300 ease-out z-50  ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div>
           {/* Header */}
-          <div className="relative p-4 sm:p-6 border-b border-gray-200/50 bg-gradient-to-r from-orange-50 to-amber-50/80">
-            {/* Hotel Name */}
+          <div className="relative p-3 sm:p-6 border-b border-gray-200/50 bg-gradient-to-r from-orange-50 to-amber-50/80">
             {admin && (
               <>
-                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                <div className="flex  items-center space-x-2 sm:space-x-3 min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-sm">
                     <svg
                       className="w-4 h-4 sm:w-5 sm:h-5 text-white"
@@ -52,43 +51,32 @@ const Sidebar = ({ isOpen, onClose, admin = false }) => {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate">
-                      {selectedHotel?.name || "Select Hotel"}
-                    </h1>
-                    <p className="text-xs text-gray-500 hidden sm:block">
+                    <h4 className=" text-gray-800 hidden sm:block">
                       {admin ? "Admin Panel" : "Super Admin Panel"}
-                    </p>
+                    </h4>
                   </div>
+                  <button
+                    onClick={onClose}
+                    className="lg:hidden p-2 rounded-xl hover:bg-white/80 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200 group"
+                    aria-label="Close sidebar"
+                  >
+                    <svg
+                      className="w-5 h-5 text-gray-800 group-hover:text-gray-700 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                 </div>
-                {/* <div className="hidden sm:block text-left min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate max-w-20 lg:max-w-32">
-                    Welcome, {user?.displayName?.split(" ")[0] || "Admin"}
-                    <span className="text-xs text-gray-500 ml-2">● Online</span>
-                  </p>
-                </div> */}
               </>
             )}
-            <div className="flex items-center justify-between">
-              <button
-                onClick={onClose}
-                className="lg:hidden p-2 rounded-xl hover:bg-white/80 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200 group"
-                aria-label="Close sidebar"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
 
             {/* Decorative element */}
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500"></div>

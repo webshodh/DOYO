@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaUserShield } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -131,9 +131,24 @@ const AdminLoginPage = () => {
         </div>
       </div>
       {/* Right Column */}
-      <div className="md:w-2/5 w-full bg-gray-200 flex items-center justify-center">
-        <img src="/logo.png" alt="App Logo" className="max-w-full h-auto" />
-      </div>
+     {/* Right Column - Logo/Branding */}
+             <div className="md:w-2/5 w-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center p-8">
+               <div className="text-center text-white">
+                 <img 
+                   src="/logo.png" 
+                   alt="Application Logo" 
+                   className="max-w-full h-auto mb-6 mx-auto"
+                   onError={(e) => {
+                     e.target.style.display = 'none';
+                   }}
+                 />
+                 <div className="space-y-4">
+                   <FaUserShield className="mx-auto text-8xl opacity-20" />
+                   <h2 className="text-3xl font-bold">Administrative Access</h2>
+                   <p className="text-lg opacity-90">Secure. Reliable. Professional.</p>
+                 </div>
+               </div>
+             </div>
     </div>
   );
 };
