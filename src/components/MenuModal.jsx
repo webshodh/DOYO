@@ -116,20 +116,9 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
           {/* Title Section */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2 leading-tight">
+              <h3 className="text-3xl font-bold text-gray-800 mb-2 leading-tight">
                 {modalData.menuName}
-              </h2>
-
-              {/* Category & Type Tags */}
-              <div >
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <TagsContainer data={modalData} categories={["primary"]} />
-                </div>
-
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <TagsContainer data={modalData} categories={["dietaries"]} />
-                </div>
-              </div>
+              </h3>
             </div>
 
             {/* Price Section */}
@@ -157,6 +146,16 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
               ) : (
                 ""
               )}
+            </div>
+          </div>
+          {/* Category & Type Tags */}
+          <div>
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <TagsContainer data={modalData} categories={["primary"]} />
+            </div>
+
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <TagsContainer data={modalData} categories={["dietaries"]} />
             </div>
           </div>
 
@@ -237,7 +236,7 @@ const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
             Nutritional Information
           </h3>
           <div className="bg-green-50 rounded-xl p-4 border border-green-200 mt-2">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 text-sm">
               {/* Calories Card */}
               {modalData.calories && (
                 <NutritionCard

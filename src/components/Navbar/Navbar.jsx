@@ -46,24 +46,25 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
     <>
       {/* Main Navigation Bar */}
       <div
-        className="text-white p-2 flex justify-between items-left sticky z-50"
-        style={{ background: colors.Orange }}
+        className="text-orange p-2 flex justify-between items-left sticky z-50"
+        style={{ background: colors.White, color: colors.Orange }}
       >
         {/* Menu Button */}
         <button
           onClick={toggleSidebar}
-          className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all duration-200"
+          className="p-2 rounded-lg hover:bg-orange hover:bg-opacity-20 transition-all duration-200"
           title="Menu"
         >
           <Menu size={24} className="text-white" />
         </button>
-        <h2 className="font-semibold text-white" style={{ marginLeft: "10px" }}>
+        <h2
+          className="font-semibold text-orange"
+          style={{ marginLeft: "10px", color:colors.Orange }}
+        >
           {title}
         </h2>
         <div className="w-10"></div> {/* Spacer for centering */}
       </div>
-
-      
 
       {/* Sidebar Overlay */}
       {isSidebarOpen && (

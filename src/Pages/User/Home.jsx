@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar, FilterSortSearch } from "../../components";
+import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../../components";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 import CategoryTabs from "../../components/CategoryTab";
@@ -456,7 +456,7 @@ function Home() {
               className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-2"
               key={item.id}
             >
-              <VerticalMenuCard item={item} handleImageLoad={handleImageLoad} />
+              <HorizontalMenuCard item={item} handleImageLoad={handleImageLoad} />
             </div>
           ))}
         </div>
