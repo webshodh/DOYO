@@ -51,25 +51,25 @@ const useHotelData = (path = "/") => {
   const totalHotels = hotelData.length;
 
   const hotelsByType = hotelData.reduce((acc, hotel) => {
-    const type = hotel.type || "unknown";
+    const type = hotel.info.businessType || "unknown";
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {});
 
   const hotelsByState = hotelData.reduce((acc, hotel) => {
-    const state = hotel.state || "Unknown State";
+    const state = hotel.info.state || "Unknown State";
     acc[state] = (acc[state] || 0) + 1;
     return acc;
   }, {});
 
   const hotelsByDistrict = hotelData.reduce((acc, hotel) => {
-    const district = hotel.district || "Unknown District";
+    const district = hotel.info.district || "Unknown District";
     acc[district] = (acc[district] || 0) + 1;
     return acc;
   }, {});
 
   const hotelsByCity = hotelData.reduce((acc, hotel) => {
-    const city = hotel.city || "Unknown City";
+    const city = hotel.info.city || "Unknown City";
     acc[city] = (acc[city] || 0) + 1;
     return acc;
   }, {});

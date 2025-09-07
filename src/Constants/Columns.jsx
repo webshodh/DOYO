@@ -28,13 +28,6 @@ export const adminsListColumn = [
     // Optional: You can add a formatter if you want to format the date
     formatter: (value) => new Date(value).toLocaleDateString(),
   },
-  {
-    header: "Updated At",
-    accessor: "updatedAt",
-    // Optional: You can add a formatter if you want to format the date
-    formatter: (value) =>
-      value ? new Date(value).toLocaleDateString() : "Not updated",
-  },
 ];
 
 export const hotelsListColumn = [
@@ -49,7 +42,7 @@ export const hotelsListColumn = [
   { header: "Address", accessor: "fullAddress" },
   { header: "Cuisine Type", accessor: "cuisineType" },
   { header: "Status", accessor: "status" },
-  { header: "Created Date", accessor: "createdDate" }
+  { header: "Created Date", accessor: "createdDate" },
 ];
 
 export const HotelsListColumn = [

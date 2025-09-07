@@ -23,20 +23,18 @@ export const hotelFormConfig = {
           required: true,
           validation: "required",
           options: [
-            { value: "", label: "Select Business Type" },
             { value: "restaurant", label: "Restaurant" },
+            { value: "hotel", label: "Hotel" },
             { value: "cafe", label: "Cafe" },
-            { value: "bakery", label: "Bakery" },
-            { value: "bar_pub", label: "Bar & Pub" },
+            { value: "dhaba", label: "Dhaba" },
+            { value: "bar", label: "Bar" },
             { value: "fast_food", label: "Fast Food" },
             { value: "fine_dining", label: "Fine Dining" },
             { value: "food_truck", label: "Food Truck" },
-            { value: "hotel", label: "Hotel" },
             { value: "catering", label: "Catering Service" },
           ],
           gridCols: "lg:col-span-1",
         },
-
         {
           name: "primaryContact",
           label: "Primary Contact Number",
@@ -55,6 +53,19 @@ export const hotelFormConfig = {
           required: false,
           validation: "contactOptional",
           maxLength: 10,
+          gridCols: "lg:col-span-1",
+        },
+        {
+          name: "isActive",
+          label: "Active",
+          type: "select",
+          placeholder: "Select Status",
+          required: true,
+          validation: "required",
+          options: [
+            { value: "active", label: "Active" },
+            { value: "in_active", label: "In Active" },
+          ],
           gridCols: "lg:col-span-1",
         },
       ],
@@ -121,6 +132,15 @@ export const hotelFormConfig = {
           gridCols: "md:col-span-1",
         },
         {
+          name: "country",
+          label: "Country",
+          type: "text",
+          placeholder: "Enter Country",
+          required: true,
+          validation: "required",
+          gridCols: "md:col-span-1",
+        },
+        {
           name: "pincode",
           label: "Pincode",
           type: "text",
@@ -159,7 +179,6 @@ export const hotelFormConfig = {
         },
       ],
     },
-
     {
       id: "social_media",
       title: "Social Media & Marketing",

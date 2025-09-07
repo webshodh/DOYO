@@ -15,7 +15,7 @@ import {
 } from "../../Validation/hotelValidation";
 import { FormSection } from "utility/FormUtilityFunctions";
 import { hotelFormConfig } from "Constants/addHotelFormConfig";
-import useHotel  from "../../customHooks/useHotel";
+import useHotel from "../../customHooks/useHotel";
 
 const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
   // Use the custom hook for all hotel and admin management
@@ -57,7 +57,7 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
     return defaultData;
   };
 
-  const handleSubmit = async (e) => { 
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Create combined data for submission
@@ -114,14 +114,8 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
               {/* Header */}
               <div className="text-center mb-8">
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                  {editMode
-                    ? "Edit Restaurant"
-                    : "Add Restaurant with Admin Management"}
+                  {editMode ? "Edit Restaurant" : "Add Restaurant with Admin"}
                 </h1>
-                <p className="text-gray-600 text-lg">
-                  Complete the form below to {editMode ? "update" : "register"}{" "}
-                  a restaurant
-                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">
@@ -178,9 +172,9 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
                               admin.email?.trim() && !validateEmail(admin.email)
                                 ? "border-red-300 focus:border-red-500"
                                 : admin.email?.trim() &&
-                                  validateEmail(admin.email)
-                                ? "border-green-300 focus:border-purple-500"
-                                : "border-gray-300 focus:border-purple-500"
+                                    validateEmail(admin.email)
+                                  ? "border-green-300 focus:border-purple-500"
+                                  : "border-gray-300 focus:border-purple-500"
                             } ${
                               submitting
                                 ? "bg-gray-100 cursor-not-allowed"
@@ -206,7 +200,7 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
                             ) : (
                               <>
                                 <Search className="w-4 h-4" />
-                                <span>Search</span>
+                                {/* <span>Search</span> */}
                               </>
                             )}
                           </button>
@@ -449,8 +443,8 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
                       {submitting
                         ? "Saving..."
                         : editMode
-                        ? "Update Restaurant"
-                        : "Create Restaurant"}
+                          ? "Update Restaurant"
+                          : "Create Restaurant"}
                     </button>
                   </div>
                 </div>

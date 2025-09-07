@@ -33,8 +33,8 @@ const SuperAdminDashboard = () => {
     hotelsByDistrict,
     hotelsByCity,
     totalHotels,
-  } = useHotelData("/");
-  console.log("hotelData", hotelData);
+  } = useHotelData("/hotels");
+  console.log("hotelData+hotelDatahotelData", hotelData);
 
   // Calculate additional statistics from the data
   const calculateStats = () => {
@@ -44,6 +44,7 @@ const SuperAdminDashboard = () => {
         totalCafes: 0,
         totalRestaurants: 0,
         totalBars: 0,
+        totalDhaba: 0,
         totalStates: 0,
         totalDistricts: 0,
         activeHotels: 0,
@@ -52,35 +53,32 @@ const SuperAdminDashboard = () => {
     }
 
     const hotels = Object.values(hotelData);
-    
+
     // Count by business type (assuming you have a 'type' or 'category' field)
-    const hotelCount = hotels.filter(hotel => 
-      hotel.type?.toLowerCase().includes('hotel') || 
-      hotel.category?.toLowerCase().includes('hotel') ||
-      (!hotel.type && !hotel.category) // default to hotel if no type specified
+    const hotelCount = hotels.filter((hotel) =>
+      hotel.info.businessType?.toLowerCase().includes("hotel")
     ).length;
-    
-    const cafeCount = hotels.filter(hotel => 
-      hotel.type?.toLowerCase().includes('cafe') || 
-      hotel.category?.toLowerCase().includes('cafe') ||
-      hotel.cuisineType?.toLowerCase().includes('cafe')
+
+    const cafeCount = hotels.filter((hotel) =>
+      hotel.info.businessType?.toLowerCase().includes("cafe")
     ).length;
-    
-    const restaurantCount = hotels.filter(hotel => 
-      hotel.type?.toLowerCase().includes('restaurant') || 
-      hotel.category?.toLowerCase().includes('restaurant') ||
-      hotel.cuisineType?.toLowerCase().includes('restaurant')
+
+    const restaurantCount = hotels.filter((hotel) =>
+      hotel.info.businessType?.toLowerCase().includes("restaurant")
     ).length;
-    
-    const barCount = hotels.filter(hotel => 
-      hotel.type?.toLowerCase().includes('bar') || 
-      hotel.category?.toLowerCase().includes('bar') ||
-      hotel.type?.toLowerCase().includes('lounge') ||
-      hotel.category?.toLowerCase().includes('lounge')
+
+    const barCount = hotels.filter((hotel) =>
+      hotel.info.businessType?.toLowerCase().includes("bar")
+    ).length;
+
+    const dhabaCount = hotels.filter((hotel) =>
+      hotel.info.businessType?.toLowerCase().includes("bar")
     ).length;
 
     // Count active/inactive
-    const activeCount = hotels.filter(hotel => hotel.isActive !== false).length;
+    const activeCount = hotels.filter(
+      (hotel) => hotel.isActive !== false
+    ).length;
     const inactiveCount = hotels.length - activeCount;
 
     return {
@@ -88,6 +86,7 @@ const SuperAdminDashboard = () => {
       totalCafes: cafeCount,
       totalRestaurants: restaurantCount,
       totalBars: barCount,
+      totalDhaba: dhabaCount,
       totalStates: Object.keys(hotelsByState || {}).length,
       totalDistricts: Object.keys(hotelsByDistrict || {}).length,
       totalCities: Object.keys(hotelsByCity || {}).length,
@@ -163,11 +162,13 @@ const SuperAdminDashboard = () => {
 
   // Quick Insights Component
   const QuickInsights = () => {
-    const mostPopularState = Object.entries(hotelsByState || {})
-      .sort((a, b) => b[1] - a[1])[0];
-    
-    const mostPopularDistrict = Object.entries(hotelsByDistrict || {})
-      .sort((a, b) => b[1] - a[1])[0];
+    const mostPopularState = Object.entries(hotelsByState || {}).sort(
+      (a, b) => b[1] - a[1]
+    )[0];
+
+    const mostPopularDistrict = Object.entries(hotelsByDistrict || {}).sort(
+      (a, b) => b[1] - a[1]
+    )[0];
 
     return (
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-2xl animate-fade-in-up">
@@ -186,14 +187,19 @@ const SuperAdminDashboard = () => {
             <p className="text-xl font-bold">
               {mostPopularState ? mostPopularState[0] : "N/A"}
             </p>
-            <p className="text-sm opacity-80">Top State ({mostPopularState ? mostPopularState[1] : 0} hotels)</p>
+            <p className="text-sm opacity-80">
+              Top State ({mostPopularState ? mostPopularState[1] : 0} hotels)
+            </p>
           </div>
           <div className="text-center p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm">
             <FaCity className="mx-auto text-2xl mb-2" />
             <p className="text-xl font-bold">
               {mostPopularDistrict ? mostPopularDistrict[0] : "N/A"}
             </p>
-            <p className="text-sm opacity-80">Top District ({mostPopularDistrict ? mostPopularDistrict[1] : 0} hotels)</p>
+            <p className="text-sm opacity-80">
+              Top District ({mostPopularDistrict ? mostPopularDistrict[1] : 0}{" "}
+              hotels)
+            </p>
           </div>
         </div>
       </div>
@@ -254,6 +260,18 @@ const SuperAdminDashboard = () => {
                 <StatCard
                   title="Total Cafes"
                   value={calculatedStats.totalCafes}
+                  color="bg-gradient-to-br from-green-50 to-green-100"
+                  icon={
+                    <div className="p-2 bg-green-500 rounded-lg">
+                      <FaCoffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    </div>
+                  }
+                />
+              </div>
+              <div className="transform hover:scale-105 transition-all duration-300">
+                <StatCard
+                  title="Total Dhaba"
+                  value={calculatedStats.totalDhaba}
                   color="bg-gradient-to-br from-green-50 to-green-100"
                   icon={
                     <div className="p-2 bg-green-500 rounded-lg">
@@ -384,21 +402,36 @@ const SuperAdminDashboard = () => {
           <div className="text-center py-6 animate-fade-in-up">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
               <div>
-                <span className="font-semibold text-green-600">{calculatedStats.activeHotels}</span> Active
+                <span className="font-semibold text-green-600">
+                  {calculatedStats.activeHotels}
+                </span>{" "}
+                Active
               </div>
               <div>
-                <span className="font-semibold text-red-600">{calculatedStats.inactiveHotels}</span> Inactive
+                <span className="font-semibold text-red-600">
+                  {calculatedStats.inactiveHotels}
+                </span>{" "}
+                Inactive
               </div>
               <div>
-                <span className="font-semibold text-blue-600">{calculatedStats.totalStates}</span> States
+                <span className="font-semibold text-blue-600">
+                  {calculatedStats.totalStates}
+                </span>{" "}
+                States
               </div>
               <div>
-                <span className="font-semibold text-purple-600">{calculatedStats.totalDistricts}</span> Districts
+                <span className="font-semibold text-purple-600">
+                  {calculatedStats.totalDistricts}
+                </span>{" "}
+                Districts
               </div>
             </div>
             <p className="text-gray-500 text-sm">
-              Dashboard powered by Real-time Analytics • Data refreshed automatically •v 
-              Total Properties: <span className="font-semibold">{calculatedStats.totalProperties}</span>
+              Dashboard powered by Real-time Analytics • Data refreshed
+              automatically •v Total Properties:{" "}
+              <span className="font-semibold">
+                {calculatedStats.totalProperties}
+              </span>
             </p>
           </div>
         )}

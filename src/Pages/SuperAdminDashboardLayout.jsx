@@ -83,7 +83,7 @@ const SuperAdminDashboardLayout = ({ children }) => {
           ${isDesktop ? "ml-0" : "ml-0"}
         `}>
           {/* Navbar */}
-          <div className="sticky top-0 z-30">
+          <div className="sticky top-0">
             <Navbar
               onMenuToggle={toggleSidebar}
               isSidebarOpen={isSidebarOpen}
