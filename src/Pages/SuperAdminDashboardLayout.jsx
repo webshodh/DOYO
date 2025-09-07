@@ -52,20 +52,36 @@ const SuperAdminDashboardLayout = ({ children }) => {
         <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-gradient-to-br from-cyan-200/20 to-blue-300/20 rounded-full blur-xl animate-float-slow"></div>
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {!isDesktop && isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
       <div className="relative flex h-screen">
-        {/* Sidebar */}
-        <div className={`${isDesktop ? "relative" : "absolute"} z-50`}>
+        {/* Sidebar Container */}
+        <div className={`
+          ${isDesktop 
+            ? "relative w-64 flex-shrink-0" 
+            : "absolute inset-y-0 left-0 z-50 w-64"
+          }
+          ${!isDesktop && !isSidebarOpen ? "-translate-x-full" : "translate-x-0"}
+          transition-transform duration-300 ease-in-out
+        `}>
           <Sidebar
-            isOpen={isDesktop ? true : isSidebarOpen}
+            isOpen={true} // Always true since we handle visibility via transform
             onClose={closeSidebar}
             admin={false}
           />
         </div>
 
         {/* Main Content Area */}
-        <div
-          className={`flex-1 flex flex-col min-w-0 transition-all duration-300 `}
-        >
+        <div className={`
+          flex-1 flex flex-col min-w-0 transition-all duration-300
+          ${isDesktop ? "ml-0" : "ml-0"}
+        `}>
           {/* Navbar */}
           <div className="sticky top-0 z-30">
             <Navbar
@@ -76,7 +92,7 @@ const SuperAdminDashboardLayout = ({ children }) => {
           </div>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-hidden bg-transparent">
             {/* Content Container */}
             <div className="h-full overflow-y-auto custom-scrollbar">
               {/* Content Wrapper */}
@@ -132,49 +148,6 @@ const SuperAdminDashboardLayout = ({ children }) => {
                         </div>
                       </div>
 
-                      {/* Center - System metrics */}
-                      <div className="flex items-center space-x-8">
-                        {/* System Health */}
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-gray-800">
-                              System Health
-                            </p>
-                            <p className="text-xs text-green-600">Excellent</p>
-                          </div>
-                        </div>
-
-                        {/* Active Users */}
-                        <div className="hidden md:flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg
-                              className="w-4 h-4 text-blue-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                              />
-                            </svg>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-gray-800">
-                              Active Users
-                            </p>
-                            <p className="text-xs text-blue-600">
-                              1,247 online
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Right side - Advanced controls */}
                       <div className="flex items-center space-x-4">
                         <div className="hidden lg:flex items-center space-x-3 text-xs text-gray-500">
@@ -200,46 +173,6 @@ const SuperAdminDashboardLayout = ({ children }) => {
                         </div>
                       </div>
                     </div>
-
-                    {/* Advanced metrics bar */}
-                    <div className="mt-6 pt-4 border-t border-slate-100">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                        <div>
-                          <p className="text-lg font-bold text-blue-600">
-                            99.9%
-                          </p>
-                          <p className="text-xs text-gray-600">Uptime</p>
-                        </div>
-                        <div>
-                          <p className="text-lg font-bold text-green-600">
-                            2.3ms
-                          </p>
-                          <p className="text-xs text-gray-600">Response Time</p>
-                        </div>
-                        <div>
-                          <p className="text-lg font-bold text-purple-600">
-                            156
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Hotels Managed
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-lg font-bold text-indigo-600">
-                            4.8/5
-                          </p>
-                          <p className="text-xs text-gray-600">Satisfaction</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500">
-                        <span>
-                          Last system update: {new Date().toLocaleDateString()}
-                        </span>
-                        <span className="text-gray-300">•</span>
-                        <span>Version 3.2.1 Enterprise</span>
-                      </div>
-                    </div>
                   </div>
                 </footer>
               </div>
@@ -248,128 +181,87 @@ const SuperAdminDashboardLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* Enhanced loading overlay */}
-      <div
-        className={`fixed inset-0 bg-gradient-to-br from-white/90 to-slate-100/90 backdrop-blur-md z-[60] flex items-center justify-center transition-all duration-500 ${
-          isDesktop
-            ? "opacity-0 pointer-events-none"
-            : "lg:opacity-0 lg:pointer-events-none"
-        }`}
-      >
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-indigo-600 rounded-full animate-spin animate-reverse"></div>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold text-gray-800">
-              Super Admin Portal
-            </p>
-            <p className="text-sm text-gray-600">
-              Initializing enterprise controls...
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Custom Styles with Super Admin theme */}
+      {/* Custom Scrollbar Styles */}
       <style jsx>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+        
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
+          width: 6px;
         }
-
+        
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(241, 245, 249, 0.6);
-          border-radius: 12px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(
-            to bottom,
-            rgba(59, 130, 246, 0.7),
-            rgba(99, 102, 241, 0.7)
-          );
-          border-radius: 12px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(
-            to bottom,
-            rgba(59, 130, 246, 0.9),
-            rgba(99, 102, 241, 0.9)
-          );
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-corner {
           background: transparent;
         }
-
-        .custom-scrollbar {
-          scroll-behavior: smooth;
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(156, 163, 175, 0.5);
+          border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(156, 163, 175, 0.7);
         }
 
-        /* Enhanced animations for Super Admin */
         @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg) scale(1);
-          }
-          33% {
-            transform: translateY(-15px) rotate(2deg) scale(1.05);
-          }
-          66% {
-            transform: translateY(8px) rotate(-1deg) scale(0.95);
-          }
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
         }
 
         @keyframes float-delayed {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg) scale(1);
-          }
-          33% {
-            transform: translateY(12px) rotate(-2deg) scale(1.1);
-          }
-          66% {
-            transform: translateY(-6px) rotate(1deg) scale(0.9);
-          }
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(-180deg); }
         }
 
         @keyframes float-slow {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-10px) rotate(180deg);
-          }
-        }
-
-        @keyframes reverse {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(-360deg);
-          }
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(90deg); }
         }
 
         .animate-float {
-          animation: float 8s ease-in-out infinite;
+          animation: float 6s ease-in-out infinite;
         }
 
         .animate-float-delayed {
-          animation: float-delayed 10s ease-in-out infinite 2s;
+          animation: float-delayed 8s ease-in-out infinite;
+          animation-delay: 2s;
         }
 
         .animate-float-slow {
-          animation: float-slow 12s linear infinite;
+          animation: float-slow 10s ease-in-out infinite;
+          animation-delay: 4s;
         }
 
-        .animate-reverse {
-          animation: reverse 1.5s linear infinite;
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out;
+        }
+
+        .animate-fade-in-down {
+          animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </div>

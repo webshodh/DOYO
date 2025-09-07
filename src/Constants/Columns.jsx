@@ -16,20 +16,40 @@ export const ViewMenuColumns = [
 
 export const adminsListColumn = [
   { header: "Sr.No", accessor: "srNo" },
-  { header: "Name", accessor: "name" }, // Use 'name' as primary, fallback to 'displayName'
-  { header: "Display Name", accessor: "displayName" }, // Some records have displayName
-  { header: "Mobile Number", accessor: "contact" }, // Primary field, can fallback to 'phone'
+  { header: "Name", accessor: "name" },
+  { header: "Display Name", accessor: "displayName" },
+  { header: "Mobile Number", accessor: "contact" },
   { header: "Email", accessor: "email" },
-  {
-    header: "Hotels",
-    accessor: (row) => {
-      if (!row.hotels) return "No hotels assigned";
-      return Object.keys(row.hotels).join(", ");
-    },
-  },
+  { header: "Hotels", accessor: "hotelNames" }, // Now uses the processed hotelNames field
   { header: "Role", accessor: "role" },
-  { header: "Created At", accessor: "createdAt" },
-  { header: "Updated At", accessor: "updatedAt" }, // Optional, some records have this
+  {
+    header: "Created At",
+    accessor: "createdAt",
+    // Optional: You can add a formatter if you want to format the date
+    formatter: (value) => new Date(value).toLocaleDateString(),
+  },
+  {
+    header: "Updated At",
+    accessor: "updatedAt",
+    // Optional: You can add a formatter if you want to format the date
+    formatter: (value) =>
+      value ? new Date(value).toLocaleDateString() : "Not updated",
+  },
+];
+
+export const hotelsListColumn = [
+  { header: "Sr.No", accessor: "srNo" },
+  { header: "Hotel Name", accessor: "hotelName" },
+  { header: "Owner Name", accessor: "ownerName" },
+  { header: "Contact", accessor: "contactInfo" },
+  { header: "Owner Contact", accessor: "ownerContact" },
+  { header: "Email", accessor: "email" },
+  { header: "District", accessor: "district" },
+  { header: "State", accessor: "state" },
+  { header: "Address", accessor: "fullAddress" },
+  { header: "Cuisine Type", accessor: "cuisineType" },
+  { header: "Status", accessor: "status" },
+  { header: "Created Date", accessor: "createdDate" }
 ];
 
 export const HotelsListColumn = [

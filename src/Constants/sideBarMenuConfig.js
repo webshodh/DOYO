@@ -54,20 +54,21 @@ export const superAdminMenuItems = [
     icon: "dashboard",
   },
   {
-    name: "Add Hotel",
-    path: `/super-admin/add-hotel`,
-    icon: "hotel",
+    name: "Add Hotels",
+    path: `/super-admin/view-hotel`,
+    icon: "settings",
   },
+  // {
+  //   name: "Add Hotel",
+  //   path: `/super-admin/add-hotel`,
+  //   icon: "hotel",
+  // },
   {
     name: "View Admins",
     path: `/super-admin/view-admin`,
     icon: "users",
   },
-  {
-    name: "Settings",
-    path: `/super-admin/settings`,
-    icon: "settings",
-  },
+  
 ];
 
 // Centralized icon map

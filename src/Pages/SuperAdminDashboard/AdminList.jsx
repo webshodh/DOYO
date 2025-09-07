@@ -14,15 +14,24 @@ import { Spinner } from "react-bootstrap";
 
 const AdminList = () => {
   const { data, loading, error, refetch } = useData("/admins/");
+  console.log("adminData_______", data)
   const { hotelName } = useParams();
   const [editingAdmin, setEditingAdmin] = useState(null);
 
-  // Convert data to an array and add serial numbers
+  // Convert data to an array and add serial numbers + process hotel names
   const adminsDataArray = Object.entries(data || {}).map(
     ([id, admin], index) => ({
       srNo: index + 1,
       id,
       ...admin,
+      // Process hotels to create a readable string
+      hotelNames: admin.hotels 
+        ? Object.keys(admin.hotels).join(", ") 
+        : "No hotels assigned",
+      // Ensure displayName shows properly
+      displayName: admin.displayName || admin.name || "",
+      // Handle contact/phone field
+      contact: admin.contact || admin.phone || "",
     })
   );
 
@@ -113,7 +122,7 @@ const AdminList = () => {
   const columns = adminsListColumn;
 
   if (loading) {
-    <Spinner />;
+    return <Spinner />;
   }
 
   if (error) {
