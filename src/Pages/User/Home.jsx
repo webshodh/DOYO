@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar, FilterSortSearch } from "../../components";
+import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../../components";
 import "../../styles/Home.css";
 import { colors } from "../../theme/theme";
 import CategoryTabs from "../../components/CategoryTab";
 import { useParams } from "react-router-dom";
 import VerticalMenuCard from "components/Cards/VerticalMenuCard";
 import { specialCategories } from "../../Constants/addMenuFormConfig";
+import CaptainMenuCard from "components/Cards/CaptainMenuCard";
 
 function Home() {
   const [menus, setMenus] = useState([]);
@@ -257,12 +258,12 @@ function Home() {
         <div
           style={{
             background: `${colors.LightGrey}`,
-            padding: "20px",
+            padding: "10px",
           }}
           className="pb-6"
         >
           {/* Search and Sort */}
-          <div className="top-16 mb-4">
+          <div className="top-12 mb-1">
             <FilterSortSearch
               searchTerm={searchTerm}
               handleSearch={handleSearch}
@@ -337,7 +338,7 @@ function Home() {
 
           {/* Special Categories Filter - Horizontal Scroll */}
           {availableSpecialCategories.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-2">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
                 Special Categories
               </h3>
@@ -382,7 +383,7 @@ function Home() {
           )}
 
           {/* Category Tabs */}
-          <div className="top-24 mb-4">
+          <div className="top-12 mb-2">
             <CategoryTabs
               categories={categories}
               menuCountsByCategory={menuCountsByCategory}
@@ -420,7 +421,7 @@ function Home() {
           </div> */}
 
           {/* Results Count */}
-          <div className="mb-4">
+          <div className="mb-2">
             <p className="text-sm text-gray-600">
               Showing {filteredAndSortedItems.length} items
               {(selectedSpecialFilters.length > 0 ||
@@ -456,7 +457,7 @@ function Home() {
               className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-2"
               key={item.id}
             >
-              <VerticalMenuCard item={item} handleImageLoad={handleImageLoad} />
+              <CaptainMenuCard item={item} handleImageLoad={handleImageLoad} />
             </div>
           ))}
         </div>

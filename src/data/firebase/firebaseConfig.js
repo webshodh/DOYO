@@ -47,4 +47,5 @@ export {
   signInWithPhoneNumber,
   signInWithPopup,
   OAuthProvider,
+  firebaseConfig
 };

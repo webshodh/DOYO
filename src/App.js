@@ -37,8 +37,9 @@ import SettingsPage from "Pages/Admin Dashboard/Setting";
 import AdminDashboardLayout from "./Pages/AdminDashboardLayout";
 import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 import AddOption from "Pages/Admin Dashboard/AddOptions";
-import SuperAdminLoginPage from "Pages/Login/SuperAdminLoginPage";
 import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
+import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
+import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
 
 // Super Admin credentials (same as in login page)
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -170,25 +171,6 @@ function App() {
               }
             />
 
-            {/* Super Admin Login Routes */}
-            <Route
-              path="/super-admin/login"
-              element={
-                <ProtectedSuperAdminRoute requiresAuth={false}>
-                  <SuperAdminLoginPage />
-                </ProtectedSuperAdminRoute>
-              }
-            />
-
-            <Route
-              path="/super-admin/sign-up"
-              element={
-                <ProtectedSuperAdminRoute requiresAuth={false}>
-                  <SignupPage />
-                </ProtectedSuperAdminRoute>
-              }
-            />
-
             {/* Admin Hotel Selection (with splash screen) */}
             <Route
               path="/admin/hotel-select"
@@ -211,9 +193,9 @@ function App() {
                       <Route
                         path="dashboard"
                         element={
-                          <SuperAdminDashboardLayout>
-                            <SuperAdminDashboard />
-                          </SuperAdminDashboardLayout>
+                          // <SuperAdminDashboardLayout>
+                          <SuperAdminDashboard />
+                          // </SuperAdminDashboardLayout>
                         }
                       />
                       <Route
@@ -241,10 +223,18 @@ function App() {
                         }
                       />
                       <Route
-                        path="settings"
+                        path="view-hotel"
                         element={
                           <SuperAdminDashboardLayout>
-                            <SettingsPage />
+                            <ViewHotel />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                       <Route
+                        path="view-hotel-subscriptions"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <ViewHotelSubscription />
                           </SuperAdminDashboardLayout>
                         }
                       />

@@ -6,9 +6,24 @@ import {
   validateContact,
   validatePassword,
 } from "../Validation/hotelValidation";
+import { hotelFormConfig } from "Constants/addHotelFormConfig";
 
-export const useHotel = () => {
-  const [hotelName, setHotelName] = useState("");
+const useHotel = () => {
+  // Get default form data from config
+  const getDefaultFormData = () => {
+    const defaultData = {};
+    hotelFormConfig.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        defaultData[field.name] = field.defaultValue || "";
+      });
+    });
+    return defaultData;
+  };
+
+  // Form data state
+  const [formData, setFormData] = useState(getDefaultFormData());
+
+  // Admin state
   const [admin, setAdmin] = useState({
     name: "",
     email: "",
@@ -20,6 +35,8 @@ export const useHotel = () => {
     existingHotels: [],
     searched: false,
   });
+
+  // Loading states
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -111,83 +128,127 @@ export const useHotel = () => {
     });
   }, [admin.searched, admin.isExisting]);
 
-  // Submit hotel with admin
-  const submitHotelWithAdmin = useCallback(async () => {
-    try {
-      setSubmitting(true);
-
-      // Validate hotel name
-      if (!hotelName.trim()) {
-        toast.error("Hotel name is required", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return { success: false };
-      }
-
-      // Check if hotel already exists
-      const hotelExists = await hotelServices.checkHotelExists(hotelName);
-      if (hotelExists) {
-        toast.error("Hotel with this name already exists", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return { success: false };
-      }
-
-      // Validate admin details
-      if (!admin.searched) {
-        toast.error("Please search for admin by email first", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return { success: false };
-      }
-
-      if (!getAdminValidationStatus()) {
-        toast.error("Please fill in all required admin details", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return { success: false };
-      }
-
-      const result = await hotelServices.createHotelWithAdmin(hotelName, admin);
-
-      if (result.success) {
-        if (admin.isExisting) {
-          toast.success(
-            `Hotel "${hotelName}" created and assigned to existing admin "${admin.name}"`,
-            {
-              position: toast.POSITION.TOP_RIGHT,
-            }
-          );
-        } else {
-          toast.success(
-            `Hotel "${hotelName}" created with new admin "${admin.name}"`,
-            {
-              position: toast.POSITION.TOP_RIGHT,
-            }
-          );
-        }
-        resetForm();
-      } else {
-        toast.error(result.message || "Failed to create hotel", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      }
-
-      return result;
-    } catch (error) {
-      console.error("Error submitting hotel:", error);
-      toast.error("Unexpected error occurred", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      return { success: false, error: error.message };
-    } finally {
-      setSubmitting(false);
+  // Get admin validation status
+  const getAdminValidationStatus = useCallback(() => {
+    // Must have searched for admin first
+    if (
+      !admin.searched ||
+      !admin.email?.trim() ||
+      !validateEmail(admin.email)
+    ) {
+      return false;
     }
-  }, [hotelName, admin]);
+
+    // Basic required fields
+    if (!admin.name?.trim() || !admin.contact?.trim()) {
+      return false;
+    }
+
+    // Contact validation
+    if (!validateContact(admin.contact)) {
+      return false;
+    }
+
+    // For new admins, password is required
+    if (
+      !admin.isExisting &&
+      (!admin.password?.trim() || !validatePassword(admin.password))
+    ) {
+      return false;
+    }
+
+    return true;
+  }, [admin]);
+
+  // Submit hotel with admin - Updated to accept hotelData parameter
+  const submitHotelWithAdmin = useCallback(
+    async (hotelData = null) => {
+      try {
+        setSubmitting(true);
+
+        // Use provided hotelData or fallback to formData.businessName
+        const dataToUse = hotelData || formData;
+        const hotelName = dataToUse.hotelName || dataToUse.businessName;
+
+        // Validate hotel name
+        if (!hotelName?.trim()) {
+          toast.error("Business name is required", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          return { success: false };
+        }
+
+        // Check if hotel already exists
+        const hotelExists = await hotelServices.checkHotelExists(hotelName);
+        if (hotelExists) {
+          toast.error("Business with this name already exists", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          return { success: false };
+        }
+
+        // Validate admin details
+        if (!admin.searched) {
+          toast.error("Please search for admin by email first", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          return { success: false };
+        }
+
+        if (!getAdminValidationStatus()) {
+          toast.error("Please fill in all required admin details", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          return { success: false };
+        }
+
+        // Create the hotel with complete data
+        const result = await hotelServices.createHotelWithAdmin(
+          hotelName,
+          admin,
+          dataToUse
+        );
+
+        if (result.success) {
+          if (admin.isExisting) {
+            toast.success(
+              `Restaurant "${hotelName}" created and assigned to existing admin "${admin.name}"`,
+              {
+                position: toast.POSITION.TOP_RIGHT,
+              }
+            );
+          } else {
+            toast.success(
+              `Restaurant "${hotelName}" created with new admin "${admin.name}"`,
+              {
+                position: toast.POSITION.TOP_RIGHT,
+              }
+            );
+          }
+          resetForm();
+        } else {
+          toast.error(result.message || "Failed to create restaurant", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
+
+        return result;
+      } catch (error) {
+        console.error("Error submitting hotel:", error);
+        toast.error("Unexpected error occurred", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return { success: false, error: error.message };
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [formData, admin, getAdminValidationStatus]
+  );
 
   // Reset form to initial state
   const resetForm = useCallback(() => {
-    setHotelName("");
+    setFormData(getDefaultFormData());
     setAdmin({
       name: "",
       email: "",
@@ -201,24 +262,23 @@ export const useHotel = () => {
     });
   }, []);
 
-  // Get admin validation status
-  const getAdminValidationStatus = useCallback(() => {
-    if (!admin.searched) return false;
-
-    const hasValidEmail = admin.email.trim() && validateEmail(admin.email);
-    const hasName = admin.name.trim();
-    const hasValidContact =
-      admin.contact.trim() && validateContact(admin.contact);
-    const hasValidPassword =
-      admin.isExisting ||
-      (admin.password.trim() && validatePassword(admin.password));
-
-    return hasValidEmail && hasName && hasValidContact && hasValidPassword;
-  }, [admin]);
-
   // Get form validation status
   const getFormValidationStatus = useCallback(() => {
-    const hotelValid = hotelName.trim();
+    // Get all required fields from config
+    const requiredFields = [];
+    hotelFormConfig.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        if (field.required) {
+          requiredFields.push(field.name);
+        }
+      });
+    });
+
+    // Check if all required fields have values
+    const hotelValid = requiredFields.every((fieldName) =>
+      formData[fieldName]?.toString().trim()
+    );
+
     const adminValid = getAdminValidationStatus();
 
     return {
@@ -226,25 +286,25 @@ export const useHotel = () => {
       adminValid,
       isFormValid: hotelValid && adminValid,
     };
-  }, [hotelName, getAdminValidationStatus]);
+  }, [formData, getAdminValidationStatus]);
 
   return {
     // State
-    hotelName,
+    formData,
     admin,
     loading,
     submitting,
     searching,
 
     // Actions
-    setHotelName,
+    setFormData,
     updateAdmin,
     searchAdmin,
     createNewAdmin,
     submitHotelWithAdmin,
     resetForm,
 
-    // Computed values
+    // Validation functions
     getAdminValidationStatus,
     getFormValidationStatus,
 
@@ -252,3 +312,5 @@ export const useHotel = () => {
     adminExists: admin.isExisting,
   };
 };
+
+export default useHotel;

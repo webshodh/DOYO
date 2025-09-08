@@ -16,30 +16,45 @@ export const ViewMenuColumns = [
 
 export const adminsListColumn = [
   { header: "Sr.No", accessor: "srNo" },
-  { header: "Name", accessor: "name" }, // Use 'name' as primary, fallback to 'displayName'
-  { header: "Display Name", accessor: "displayName" }, // Some records have displayName
-  { header: "Mobile Number", accessor: "contact" }, // Primary field, can fallback to 'phone'
+  { header: "Name", accessor: "name" },
+  { header: "Display Name", accessor: "displayName" },
+  { header: "Mobile Number", accessor: "contact" },
   { header: "Email", accessor: "email" },
-  {
-    header: "Hotels",
-    accessor: (row) => {
-      if (!row.hotels) return "No hotels assigned";
-      return Object.keys(row.hotels).join(", ");
-    },
-  },
+  { header: "Hotels", accessor: "hotelNames" }, // Now uses the processed hotelNames field
   { header: "Role", accessor: "role" },
-  { header: "Created At", accessor: "createdAt" },
-  { header: "Updated At", accessor: "updatedAt" }, // Optional, some records have this
+  {
+    header: "Created At",
+    accessor: "createdAt",
+    // Optional: You can add a formatter if you want to format the date
+    formatter: (value) => new Date(value).toLocaleDateString(),
+  },
 ];
 
-export const HotelsListColumn = [
+export const hotelsListColumn = [
   { header: "Sr.No", accessor: "srNo" },
-  { header: "Hotel Name", accessor: "name" },
-  { header: "Country", accessor: "surname" },
-  { header: "State", accessor: "mobile" },
-  { header: "District", accessor: "email" },
-  { header: "Area", accessor: "role" },
-  { header: "Created At", accessor: "role" },
+  { header: "Hotel Name", accessor: "hotelName" },
+  { header: "Owner Name", accessor: "ownerName" },
+  { header: "Contact", accessor: "contactInfo" },
+  { header: "Owner Contact", accessor: "ownerContact" },
+  { header: "Email", accessor: "email" },
+  { header: "Country", accessor: "country" },
+  { header: "District", accessor: "district" },
+  { header: "State", accessor: "state" },
+  { header: "Address", accessor: "fullAddress" },
+  { header: "Cuisine Type", accessor: "cuisineType" },
+  { header: "Status", accessor: "status" },
+  { header: "Created Date", accessor: "createdDate" },
+];
+
+export const hotelsSubscriptionListColumn = [
+  { header: "Sr.No", accessor: "srNo" },
+  { header: "Hotel Name", accessor: "hotelName" },
+  { header: "Country", accessor: "country" },
+  { header: "State", accessor: "state" },
+  { header: "District", accessor: "district" },
+  { header: "City", accessor: "city" },
+  { header: "Status", accessor: "status" },
+  { header: "Created At", accessor: "createdDate" },
 ];
 // Constants/Columns.js - Add this to your existing Columns file
 
