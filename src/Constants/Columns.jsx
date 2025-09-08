@@ -37,6 +37,7 @@ export const hotelsListColumn = [
   { header: "Contact", accessor: "contactInfo" },
   { header: "Owner Contact", accessor: "ownerContact" },
   { header: "Email", accessor: "email" },
+  { header: "Country", accessor: "country" },
   { header: "District", accessor: "district" },
   { header: "State", accessor: "state" },
   { header: "Address", accessor: "fullAddress" },
@@ -45,14 +46,15 @@ export const hotelsListColumn = [
   { header: "Created Date", accessor: "createdDate" },
 ];
 
-export const HotelsListColumn = [
+export const hotelsSubscriptionListColumn = [
   { header: "Sr.No", accessor: "srNo" },
-  { header: "Hotel Name", accessor: "name" },
-  { header: "Country", accessor: "surname" },
-  { header: "State", accessor: "mobile" },
-  { header: "District", accessor: "email" },
-  { header: "Area", accessor: "role" },
-  { header: "Created At", accessor: "role" },
+  { header: "Hotel Name", accessor: "hotelName" },
+  { header: "Country", accessor: "country" },
+  { header: "State", accessor: "state" },
+  { header: "District", accessor: "district" },
+  { header: "City", accessor: "city" },
+  { header: "Status", accessor: "status" },
+  { header: "Created At", accessor: "createdDate" },
 ];
 // Constants/Columns.js - Add this to your existing Columns file
 

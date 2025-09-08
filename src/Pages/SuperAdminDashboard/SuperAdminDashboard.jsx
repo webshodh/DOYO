@@ -180,7 +180,7 @@ const SuperAdminDashboard = () => {
           <div className="text-center p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm">
             <FaUsers className="mx-auto text-2xl mb-2" />
             <p className="text-2xl font-bold">{calculatedStats.activeHotels}</p>
-            <p className="text-sm opacity-80">Active Properties</p>
+            <p className="text-sm opacity-80">Active Hotels</p>
           </div>
           <div className="text-center p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm">
             <FaGlobe className="mx-auto text-2xl mb-2" />

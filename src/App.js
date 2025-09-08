@@ -39,6 +39,7 @@ import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 import AddOption from "Pages/Admin Dashboard/AddOptions";
 import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
 import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
+import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
 
 // Super Admin credentials (same as in login page)
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -226,6 +227,14 @@ function App() {
                         element={
                           <SuperAdminDashboardLayout>
                             <ViewHotel />
+                          </SuperAdminDashboardLayout>
+                        }
+                      />
+                       <Route
+                        path="view-hotel-subscriptions"
+                        element={
+                          <SuperAdminDashboardLayout>
+                            <ViewHotelSubscription />
                           </SuperAdminDashboardLayout>
                         }
                       />
