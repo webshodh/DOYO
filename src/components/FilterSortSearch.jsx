@@ -21,19 +21,19 @@ const FilterSortSearch = ({
   return (
     <div className="flex flex-wrap items-center ml-2">
       {/* Search */}
-      <div className="flex-grow mb-2">
+      <div className="flex-grow mb-1">
         <input
           type="text"
           placeholder="What are you looking for?"
           value={searchTerm}
           onChange={handleSearch}
-          className="w-full border border-orange-500 rounded-full py-2 px-4 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="w-full border border-orange-500 rounded-full py-2 px-4 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
       </div>
 
       {/* Sort by Price */}
       {handleSort && (
-        <div className="relative mb-2 ml-2">
+        <div className="relative mb-1 ml-2">
           <button
             onClick={toggleDropdown}
             className="bg-orange-500 text-white rounded-full py-2 px-4 flex items-center justify-center hover:bg-orange-600 focus:outline-none"
@@ -69,7 +69,7 @@ const FilterSortSearch = ({
       {/* Filter by Category */}
       {handleCategoryFilter && (
         <>
-          <div className="relative mb-2 ml-2">
+          <div className="relative mb-1 ml-2">
             <button
               className="bg-red-500 text-white rounded-full py-2 px-4 hover:bg-red-600 focus:outline-none"
               id="dropdownCategoryFilterButton"

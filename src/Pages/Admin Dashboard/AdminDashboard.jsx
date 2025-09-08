@@ -30,7 +30,7 @@ const AdminDashboard = () => {
   const { optionsData, totalOptionsCount, categories, optionTypes, error } =
     useOptionsData(hotelName);
 
-  console.log("categories1231", categories);
+  console.log("categories1231", totalOptionsCount);
   const optionsCategoryCount = categories.length;
 
   const { mainCategoriesData, totalMainCategories } =
@@ -111,31 +111,6 @@ const AdminDashboard = () => {
 
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
-              title="Main Categories"
-              value={totalMainCategories || 0}
-              color="bg-gradient-to-br from-orange-50 to-orange-100"
-              icon={
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              }
-            />
-          </div>
-
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
               title="Options Categories"
               value={optionsCategoryCount || 0}
               color="bg-gradient-to-br from-purple-50 to-purple-100"
@@ -152,6 +127,31 @@ const AdminDashboard = () => {
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                    />
+                  </svg>
+                </div>
+              }
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Options for Options Categories"
+              value={totalOptionsCount || 0}
+              color="bg-gradient-to-br from-orange-50 to-orange-100"
+              icon={
+                <div className="p-2 bg-orange-500 rounded-lg">
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
                 </div>
@@ -207,7 +207,7 @@ const AdminDashboard = () => {
         {/* AddMenu Component - Enhanced Container */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
           <div className="p-0">
-            <AddMenu onlyView={true}/>
+            <AddMenu onlyView={true} />
           </div>
         </div>
       </div>

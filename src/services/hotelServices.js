@@ -18,8 +18,10 @@ export const hotelServices = {
         for (const [adminId, adminData] of Object.entries(allAdmins)) {
           if (adminData.email === email) {
             // Get hotel names from admin's hotels object
-            const hotelNames = adminData.hotels ? Object.keys(adminData.hotels) : [];
-            
+            const hotelNames = adminData.hotels
+              ? Object.keys(adminData.hotels)
+              : [];
+
             return {
               exists: true,
               adminId: adminId,
@@ -34,11 +36,11 @@ export const hotelServices = {
           }
         }
       }
-      
+
       return { exists: false, adminId: null, adminData: null };
     } catch (error) {
-      console.error('Error searching admin:', error);
-      throw new Error('Failed to search admin');
+      console.error("Error searching admin:", error);
+      throw new Error("Failed to search admin");
     }
   },
 
@@ -119,16 +121,22 @@ export const hotelServices = {
   // Save hotel data to database
   saveHotelData: async (hotelName, hotelData) => {
     try {
+      console.log(`Saving to /hotels/${hotelName}/info:`, hotelData); // Debug log
+
       await set(ref(db, `/hotels/${hotelName}/info`), hotelData);
+
+      console.log("Hotel data saved successfully"); // Debug log
+
       return true;
     } catch (error) {
       console.error("Error saving hotel data:", error);
+      console.error("Data that failed to save:", hotelData); // Debug log
       throw new Error("Failed to save hotel data");
     }
   },
 
   // Create hotel with admin (existing or new)
-  createHotelWithAdmin: async (hotelName, admin) => {
+  createHotelWithAdmin: async (hotelName, admin, completeFormData = {}) => {
     try {
       // Validate basic requirements
       if (!hotelName.trim()) {
@@ -142,7 +150,10 @@ export const hotelServices = {
       // Check if hotel already exists
       const hotelExists = await hotelServices.checkHotelExists(hotelName);
       if (hotelExists) {
-        return { success: false, message: "Hotel with this name already exists" };
+        return {
+          success: false,
+          message: "Hotel with this name already exists",
+        };
       }
 
       const hotelUuid = uuidv4();
@@ -155,7 +166,10 @@ export const hotelServices = {
       } else {
         // Create new admin account
         if (!admin.password.trim()) {
-          return { success: false, message: "Password is required for new admin" };
+          return {
+            success: false,
+            message: "Password is required for new admin",
+          };
         }
 
         try {
@@ -170,12 +184,16 @@ export const hotelServices = {
       // Update admin's hotel list
       await hotelServices.updateAdminHotelList(adminId, hotelName, hotelUuid);
 
-      // Prepare hotel data
-      const hotelData = {
+      // THIS IS THE FIX - Create COMPLETE hotel data object with ALL form fields
+      const completeHotelData = {
+        // System fields
         uuid: hotelUuid,
         hotelName,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         status: "active",
+
+        // Admin information
         admin: {
           adminId,
           name: admin.name,
@@ -184,12 +202,46 @@ export const hotelServices = {
           role: admin.role || "admin",
           assignedAt: new Date().toISOString(),
         },
+
+        // === ALL FORM DATA FROM hotelFormConfig ===
+
+        // Basic Information Section
+        businessName: completeFormData.businessName || hotelName,
+        businessType: completeFormData.businessType || "",
+        primaryContact: completeFormData.primaryContact || "",
+        alternateContact: completeFormData.alternateContact || "",
+
+        // Location Information Section
+        address: completeFormData.address || "",
+        area: completeFormData.area || "",
+        landmark: completeFormData.landmark || "",
+        city: completeFormData.city || "",
+        district: completeFormData.district || "",
+        state: completeFormData.state || "",
+        pincode: completeFormData.pincode || "",
+
+        // Business Details Section
+        businessEmail: completeFormData.businessEmail || "",
+        website: completeFormData.website || "",
+
+        // Social Media & Marketing Section
+        instagramHandle: completeFormData.instagramHandle || "",
+        facebookPage: completeFormData.facebookPage || "",
+        googleMapsLink: completeFormData.googleMapsLink || "",
+        zomatoLink: completeFormData.zomatoLink || "",
+        swiggyLink: completeFormData.swiggyLink || "",
+
+        // Add any additional metadata
+        formVersion: "1.0",
+        source: "admin_panel",
       };
 
-      // Save hotel data
-      await hotelServices.saveHotelData(hotelName, hotelData);
+      console.log("Saving complete hotel data:", completeHotelData); // Debug log
 
-      const message = isNewAdmin 
+      // Save complete hotel data to /hotels/{hotelName}/info
+      await hotelServices.saveHotelData(hotelName, completeHotelData);
+
+      const message = isNewAdmin
         ? `Hotel "${hotelName}" created with new admin "${admin.name}"`
         : `Hotel "${hotelName}" assigned to existing admin "${admin.name}"`;
 
@@ -203,11 +255,12 @@ export const hotelServices = {
         adminId: adminId,
         message: message,
         isNewAdmin: isNewAdmin,
+        hotelData: completeHotelData,
       };
     } catch (error) {
-      console.error('Error creating hotel with admin:', error);
-      const errorMessage = error.message || 'Failed to create hotel with admin';
-      
+      console.error("Error creating hotel with admin:", error);
+      const errorMessage = error.message || "Failed to create hotel with admin";
+
       toast.error(`Error: ${errorMessage}`, {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -228,7 +281,7 @@ export const hotelServices = {
       if (snapshot.exists()) {
         const adminData = snapshot.val();
         const hotels = adminData.hotels ? Object.values(adminData.hotels) : [];
-        
+
         return {
           admin: {
             id: adminId,
@@ -241,11 +294,11 @@ export const hotelServices = {
           hotels: hotels,
         };
       } else {
-        throw new Error('Admin not found');
+        throw new Error("Admin not found");
       }
     } catch (error) {
-      console.error('Error getting admin with hotels:', error);
-      throw new Error('Failed to get admin details');
+      console.error("Error getting admin with hotels:", error);
+      throw new Error("Failed to get admin details");
     }
   },
 
@@ -253,16 +306,18 @@ export const hotelServices = {
   getHotelsByAdmin: async (adminEmail) => {
     try {
       const adminData = await hotelServices.searchAdminByEmail(adminEmail);
-      
+
       if (adminData.exists) {
-        const adminDetails = await hotelServices.getAdminWithHotels(adminData.adminId);
+        const adminDetails = await hotelServices.getAdminWithHotels(
+          adminData.adminId
+        );
         return adminDetails.hotels;
       } else {
         return [];
       }
     } catch (error) {
-      console.error('Error getting hotels by admin:', error);
-      throw new Error('Failed to get hotels for admin');
+      console.error("Error getting hotels by admin:", error);
+      throw new Error("Failed to get hotels for admin");
     }
   },
 
@@ -272,19 +327,19 @@ export const hotelServices = {
       // Get hotel data
       const hotelRef = ref(db, `/hotels/${hotelName}/info`);
       const hotelSnapshot = await get(hotelRef);
-      
+
       if (!hotelSnapshot.exists()) {
-        return { success: false, message: 'Hotel not found' };
+        return { success: false, message: "Hotel not found" };
       }
 
       const hotelData = hotelSnapshot.val();
-      
+
       // Get admin data
       const adminRef = ref(db, `admins/${adminId}`);
       const adminSnapshot = await get(adminRef);
-      
+
       if (!adminSnapshot.exists()) {
-        return { success: false, message: 'Admin not found' };
+        return { success: false, message: "Admin not found" };
       }
 
       const adminData = adminSnapshot.val();
@@ -300,17 +355,21 @@ export const hotelServices = {
       });
 
       // Update admin's hotel list
-      await hotelServices.updateAdminHotelList(adminId, hotelName, hotelData.uuid);
+      await hotelServices.updateAdminHotelList(
+        adminId,
+        hotelName,
+        hotelData.uuid
+      );
 
       return {
         success: true,
         message: `Hotel "${hotelName}" successfully assigned to admin "${adminData.name}"`,
       };
     } catch (error) {
-      console.error('Error assigning hotel to admin:', error);
+      console.error("Error assigning hotel to admin:", error);
       return {
         success: false,
-        message: error.message || 'Failed to assign hotel to admin',
+        message: error.message || "Failed to assign hotel to admin",
       };
     }
   },
@@ -326,13 +385,13 @@ export const hotelServices = {
 
       return {
         success: true,
-        message: 'Admin successfully removed from hotel',
+        message: "Admin successfully removed from hotel",
       };
     } catch (error) {
-      console.error('Error removing admin from hotel:', error);
+      console.error("Error removing admin from hotel:", error);
       return {
         success: false,
-        message: error.message || 'Failed to remove admin from hotel',
+        message: error.message || "Failed to remove admin from hotel",
       };
     }
   },

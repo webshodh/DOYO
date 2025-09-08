@@ -26,10 +26,11 @@ const HorizontalMenuCard = ({ item, handleImageLoad }) => {
 
   const handleClose = () => setShow(false);
 
-  const truncatedContent =
-    item.menuName.length > 25
-      ? item.menuName.slice(0, 25) + "..."
-      : item.menuName;
+  // Enhanced truncation function for menu name
+  const truncateTitle = (title, maxLength = 12) => {
+    if (!title) return "";
+    return title.length > maxLength ? title.slice(0, maxLength) + "..." : title;
+  };
 
   const getSpiceIcon = (level) => {
     switch (level) {
@@ -138,200 +139,169 @@ const HorizontalMenuCard = ({ item, handleImageLoad }) => {
   const specialFeatures = getSpecialFeatures();
 
   return (
-    <div className="w-full max-w-full mx-auto mb-3">
-      <div className="flex bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden relative group transition-all duration-300 ease-in-out transform hover:-translate-y-1 border border-gray-100">
-        {/* Image Container */}
-        <div className="flex-shrink-0 w-32 sm:w-36 md:w-40 relative overflow-hidden">
-          {/* Loading Spinner */}
-          {!item.imageUrl && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <div className="w-6 h-6 border-4 border-t-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
-            </div>
-          )}
-
-          <img
-            src={item.imageUrl || "/dish.png"}
-            alt={item.menuName}
-            onLoad={handleImageLoad}
-            onError={(e) => {
-              e.target.src = "/dish.png";
-            }}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            style={{ height: "220px" }}
-          />
-
-          {/* Special Badge Overlay - Top Priority */}
-          {priorityBadge && (
-            <div className="absolute bottom-3 left-3">
-              <div
-                className={`bg-gradient-to-r ${priorityBadge.color} text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1`}
-              >
-                {priorityBadge.icon}
-                {priorityBadge.text}
+    <div className="w-full h-full">
+      {/* Fixed height container for consistent card dimensions */}
+      <div className="h-44 bg-white rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden relative group transition-all duration-300 ease-in-out transform hover:-translate-y-1 border border-gray-100 hover:border-orange-200">
+        <div className="flex h-full">
+          {/* Image Container - Fixed width and height */}
+          <div className="flex-shrink-0 w-28 sm:w-32 relative overflow-hidden">
+            {/* Loading Spinner */}
+            {!item.imageUrl && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="w-6 h-6 border-4 border-t-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Discount Badge */}
-          {item.discount > 0 && (
-            <div className="absolute top-2 right-2">
-              <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
-                {item.discount}% OFF
-              </div>
-            </div>
-          )}
+            <img
+              src={item.imageUrl || "/dish.png"}
+              alt={item.menuName}
+              onLoad={handleImageLoad}
+              onError={(e) => {
+                e.target.src = "/dish.png";
+              }}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
 
-          {/* Main Category Badge - Bottom Left */}
-          {/* {item.mainCategory && (
-            <div className="absolute bottom-2 left-2">
-              <span className="bg-black/70 backdrop-blur-sm text-white text-xs font-medium py-1 px-2 rounded-md">
-                {item.mainCategory}
-              </span>
-            </div>
-          )} */}
-
-          {/* Availability Overlay */}
-          {item.availability !== "Available" && (
-            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-              <span className="bg-red-500 text-white px-3 py-1 text-xs font-bold rounded-full">
-                {item.availability}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Content Container */}
-        <div className="flex-1 p-4 flex flex-col relative">
-          {/* Menu Category Icon */}
-          <div className="absolute top-3 right-3">
-            <div className="bg-white rounded-full p-1.5 shadow-md border border-gray-100">
-              {item.categoryType === "Veg" || item.categoryType === "veg" ? (
-                <img
-                  src="/veglogo.jpeg"
-                  alt={item.categoryType}
-                  className="w-4 h-4"
-                />
-              ) : item.categoryType === "Non Veg" ||
-                item.categoryType === "Non-veg" ||
-                item.categoryType === "non-veg" ||
-                item.categoryType === "nonveg" ||
-                item.categoryType === "Nonveg" ? (
-                <img
-                  src="/nonVeglogo.png"
-                  alt={item.categoryType}
-                  className="w-4 h-4"
-                />
-              ) : null}
-            </div>
-          </div>
-
-          {/* Top Section */}
-          <div className="pr-8">
-            {/* Menu Name */}
-            <h3 className="text-lg font-bold text-gray-800 leading-tight mb-2">
-              {truncatedContent}
-            </h3>
-            <div className="flex items-center flex-wrap gap-2 mb-2">
-              {/* Menu Category */}
-              {item.menuCategory && (
-                <span className="inline-block bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">
-                  {item.menuCategory}
-                </span>
-              )}
-
-              {/* Special Features Tags */}
-              {specialFeatures.length > 0 &&
-                specialFeatures.map((feature, index) => (
-                  <span
-                    key={index}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${feature.color}`}
-                  >
-                    {feature.icon}
-                    {feature.text}
-                  </span>
-                ))}
-            </div>
-
-            {/* Quick Info Row */}
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-              <div className="flex items-center gap-3">
-                {/* Cooking Time */}
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4 text-orange-500" />
-                  <span className="font-medium">{item.menuCookingTime}min</span>
+            {/* Special Badge Overlay - Top Priority */}
+            {priorityBadge && (
+              <div className="absolute top-2 left-2">
+                <div
+                  className={`bg-gradient-to-r ${priorityBadge.color} text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1`}
+                >
+                  {priorityBadge.icon}
+                  {priorityBadge.text}
                 </div>
+              </div>
+            )}
 
-                {/* Serving Size */}
-                {item.servingSize && (
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4 text-blue-500" />
+            {/* Discount Badge */}
+            {item.discount > 0 && (
+              <div className="absolute bottom-2 right-2">
+                <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                  {item.discount}% OFF
+                </div>
+              </div>
+            )}
+
+            {/* Availability Overlay */}
+            {item.availability !== "Available" && (
+              <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                <span className="bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-full">
+                  {item.availability}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Content Container - Flexible */}
+          <div className="flex-1 p-2 flex flex-col justify-between relative min-w-0">
+            {/* Top Section */}
+            <div className="flex-1">
+              {/* Menu Category Icon */}
+              <div className="absolute top-2 right-2">
+                <div className="bg-white rounded-full p-1 shadow-md border border-gray-100">
+                  {item.categoryType === "Veg" ||
+                  item.categoryType === "veg" ? (
+                    <img
+                      src="/veglogo.jpeg"
+                      alt={item.categoryType}
+                      className="w-3 h-3"
+                    />
+                  ) : item.categoryType === "Non Veg" ||
+                    item.categoryType === "Non-veg" ||
+                    item.categoryType === "non-veg" ||
+                    item.categoryType === "nonveg" ||
+                    item.categoryType === "Nonveg" ? (
+                    <img
+                      src="/nonVeglogo.png"
+                      alt={item.categoryType}
+                      className="w-3 h-3"
+                    />
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Menu Name with enhanced truncation */}
+              <h3
+                className="text-base sm:text-lg font-bold text-gray-800 leading-tight mb-1 pr-2"
+                title={item.menuName} // Show full name on hover
+              >
+                {truncateTitle(item.menuName, 12)}
+              </h3>
+
+              {/* Quick Info Row */}
+              <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 mb-1">
+                <div className="flex items-center gap-2">
+                  {/* Cooking Time */}
+                  <div className="flex items-center gap-1 mb-2">
+                    <Clock className="w-3 h-3 text-orange-500" />
                     <span className="font-medium">
-                      Serves {item.servingSize}
+                      {item.menuCookingTime}min
                     </span>
                   </div>
+                  {/* Menu Category */}
+                  {item.menuCategory && (
+                    <span className="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 px-2 py-1 rounded-full text-xs font-medium mb-2 shadow-sm">
+                      {truncateTitle(item.menuCategory, 10)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                {/* Spice Level & Portion */}
+                {item.spiceLevel && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                    <div className="flex items-center gap-1">
+                      <Flame className="w-3 h-3 text-red-500" />
+                      <span>
+                        {getSpiceIcon(item.spiceLevel)} {item.spiceLevel}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {/* Calories */}
+                {item.calories ? (
+                  <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
+                    <Zap className="w-3 h-3 text-yellow-500" />
+                    <span>{item.calories} kcal</span>
+                  </div>
+                ) : (
+                  ""
                 )}
               </div>
             </div>
 
-            {/* Spice Level & Portion */}
-            {/* {(item.spiceLevel || item.portionSize) && (
-              <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
-                {item.spiceLevel && (
-                  <div className="flex items-center gap-1">
-                    <Flame className="w-3 h-3 text-red-500" />
-                    <span>
-                      {getSpiceIcon(item.spiceLevel)} {item.spiceLevel}
-                    </span>
-                  </div>
-                )}
-                {item.portionSize && (
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">{item.portionSize}</span>
-                  </div>
-                )}
-              </div>
-            )} */}
-          </div>
-
-          {/* Bottom Section */}
-          <div className="mt-1">
-            {/* Price Section */}
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center">
-                <i className="bi bi-currency-rupee mr-1 text-orange-500"></i>
-                <div className="flex items-center gap-2">
-                  {item.discount && item.discount > 0 && (
+            {/* Bottom Section */}
+            <div>
+              {/* Price Section */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1">
+                  {item.discount && item.discount > 0 ? (
                     <span className="line-through text-gray-400 text-sm">
                       ₹{Math.round(item.menuPrice)}
                     </span>
+                  ) : (
+                    ""
                   )}
-                  <span className="text-orange-500 text-xl font-bold">
+                  <span className="text-orange-500 text-lg sm:text-xl font-bold">
                     ₹{item.finalPrice}
                   </span>
-                  {item.discount && item.discount > 0 && (
-                    <span className="text-green-600 text-xs font-medium bg-green-50 px-1.5 py-0.5 rounded">
+                  {item.discount && item.discount > 0 ? (
+                    <span className="text-green-600 text-xs font-medium bg-green-50 px-1 py-0.5 rounded ml-1">
                       Save ₹{Math.round(item.menuPrice - item.finalPrice)}
                     </span>
+                  ) : (
+                    ""
                   )}
                 </div>
               </div>
 
-              {/* Calories */}
-              {item.calories && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
-                  <Zap className="w-3 h-3 text-yellow-500" />
-                  <span>{item.calories} kcal</span>
-                </div>
-              )}
-            </div>
-
-            {/* Action Button */}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+              {/* Action Button */}
               <button
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 flex-1 ${
+                className={`w-full py-2 px-3 rounded-xl font-semibold text-sm transition-all duration-300 shadow-lg ${
                   item.availability === "Available"
-                    ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 hover:shadow-md transform hover:scale-105"
-                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 hover:shadow-xl transform hover:scale-105 active:scale-95"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed shadow-none"
                 }`}
                 onClick={() =>
                   item.availability === "Available" && handleShow(item)
@@ -346,11 +316,11 @@ const HorizontalMenuCard = ({ item, handleImageLoad }) => {
           </div>
         </div>
 
-        {/* Hover Effect Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-50 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none"></div>
+        {/* Enhanced Hover Effects */}
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-50 via-transparent to-red-50 opacity-0 group-hover:opacity-40 transition-all duration-500 pointer-events-none"></div>
 
-        {/* Animated Border on Hover */}
-        <div className="absolute inset-0 border-2 border-transparent group-hover:border-orange-200 rounded-2xl transition-colors duration-300 pointer-events-none"></div>
+        {/* Animated glow effect */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 to-red-400 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none blur-sm"></div>
       </div>
 
       <MenuModal show={show} handleClose={handleClose} modalData={modalData} />
