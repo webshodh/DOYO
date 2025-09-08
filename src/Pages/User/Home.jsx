@@ -391,35 +391,7 @@ function Home() {
             />
           </div>
 
-          {/* Main Category Buttons */}
-          {/* <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              {mainCategories.map((mainCategory) => {
-                const categoryName = mainCategory.categoryName;
-                const categoryCount = mainCategoryCounts[categoryName] || 0;
-
-                if (categoryCount > 0) {
-                  return (
-                    <button
-                      key={mainCategory.mainCategoryName}
-                      onClick={handleMainCategoryFilter}
-                      className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition duration-300 ease-in-out rounded-full ${
-                        activeMainCategory === categoryName
-                          ? "bg-orange-500 text-white shadow-md"
-                          : "bg-white border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
-                      }`}
-                      data-category={categoryName}
-                    >
-                      {categoryName} ({categoryCount})
-                    </button>
-                  );
-                }
-
-                return null;
-              })}
-            </div>
-          </div> */}
-
+         
           {/* Results Count */}
           <div className="mb-2">
             <p className="text-sm text-gray-600">
@@ -433,14 +405,7 @@ function Home() {
           </div>
         </div>
 
-        {/* <div>
-          // Menu Items
-          <MenuViewToggle
-            filteredAndSortedItems={filteredAndSortedItems}
-            handleImageLoad={handleImageLoad}
-            colors={colors}
-          />
-        </div> */}
+        
 
         {/* Menu Items */}
         <div

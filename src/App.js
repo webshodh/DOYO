@@ -40,6 +40,8 @@ import AddOption from "Pages/Admin Dashboard/AddOptions";
 import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
 import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
 import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
+import CaptainMenuPage from "Pages/Captain/CaptainMenuPage";
+import CheckoutPage from "Pages/Captain/CheckoutPage";
 
 // Super Admin credentials (same as in login page)
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -230,7 +232,7 @@ function App() {
                           </SuperAdminDashboardLayout>
                         }
                       />
-                       <Route
+                      <Route
                         path="view-hotel-subscriptions"
                         element={
                           <SuperAdminDashboardLayout>
@@ -265,6 +267,83 @@ function App() {
                           </AdminDashboardLayout>
                         }
                       />
+                      <Route
+                        path="add-category"
+                        element={
+                          <AdminDashboardLayout>
+                            <AddCategory />
+                          </AdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-special-category"
+                        element={
+                          <AdminDashboardLayout>
+                            <CategoryManager />
+                          </AdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-options"
+                        element={
+                          <AdminDashboardLayout>
+                            <AddOption />
+                          </AdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-menu"
+                        element={
+                          <AdminDashboardLayout>
+                            <AddMenu />
+                          </AdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="add-offers"
+                        element={
+                          <AdminDashboardLayout>
+                            <AddOffers />
+                          </AdminDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="upload-data"
+                        element={
+                          <AdminDashboardLayout>
+                            <BulkMenuUpload />
+                          </AdminDashboardLayout>
+                        }
+                      />
+
+                      <Route
+                        path="settings"
+                        element={
+                          <AdminDashboardLayout>
+                            <SettingsPage />
+                          </AdminDashboardLayout>
+                        }
+                      />
+                      {/* Redirect to dashboard if no specific route matches */}
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </HotelSelectionProvider>
+                </ProtectedAdminRoute>
+              }
+            />
+
+            {/* Captain-specific Admin Routes - WITH HotelSelectionProvider */}
+            <Route
+              path="/viewMenu/:hotelName/captain/*"
+              element={
+                <ProtectedAdminRoute>
+                  <HotelSelectionProvider>
+                    <Routes>
+                      <Route path="home" element={<CaptainMenuPage />} />
+                      <Route path="checkout" element={<CheckoutPage />} />
                       <Route
                         path="add-category"
                         element={
