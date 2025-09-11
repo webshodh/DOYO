@@ -1,338 +1,250 @@
-import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useCallback, useMemo, memo } from "react";
+import { Clock, Users, Zap, Eye, AlertCircle } from "lucide-react";
+
 import MenuModal from "../MenuModal";
-import {
-  Clock,
-  Star,
-  ChefHat,
-  TrendingUp,
-  Award,
-  Heart,
-  Flame,
-  Users,
-  Leaf,
-  Shield,
-  Zap,
-} from "lucide-react";
+import VerticalMenuImage from "components/VerticalMenuImage";
+import PriorityBadge from "Atoms/PriorityBadge";
+import DiscountBadge from "Atoms/DiscountBadge";
+import CategoryIndicator from "components/CategoryIndicator";
+import SpecialFeatures from "components/SpecialFeatures";
+import SpiceLevelIndicator from "Atoms/SpiceLevelIndicator";
+import PriceDisplay from "Atoms/PriceDisplay";
+import ActionButton from "Atoms/ActionButton";
 
-const VerticalMenuCard = ({ item, handleImageLoad }) => {
-  const [show, setShow] = useState(false);
-  const [modalData, setModalData] = useState(null);
+// Import reusable components from previous extractions
 
-  const handleShow = (item) => {
-    setModalData(item);
-    setShow(true);
-  };
+// Enhanced ActionButton for vertical layout
+// const VerticalActionButton = memo(
+//   ({ isAvailable, onClick, isLoading = false }) => {
+//     return (
+//       <button
+//         onClick={onClick}
+//         disabled={!isAvailable || isLoading}
+//         className={`w-full py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+//           isAvailable && !isLoading
+//             ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 focus:ring-orange-500"
+//             : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//         }`}
+//         aria-label={
+//           isAvailable ? "View menu item details" : "Item currently unavailable"
+//         }
+//       >
+//         {isLoading ? (
+//           <>
+//             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+//             Loading...
+//           </>
+//         ) : isAvailable ? (
+//           <>
+//             <Eye size={16} />
+//             View Details
+//           </>
+//         ) : (
+//           <>
+//             <AlertCircle size={16} />
+//             Unavailable
+//           </>
+//         )}
+//       </button>
+//     );
+//   }
+// );
 
-  const handleClose = () => setShow(false);
+// VerticalActionButton.displayName = "VerticalActionButton";
 
-  const truncatedContent =
-    item.menuName.length > 20
-      ? item.menuName.slice(0, 20) + "..."
-      : item.menuName;
+// Main VerticalMenuCard component
+const VerticalMenuCard = memo(
+  ({
+    item,
+    handleImageLoad,
+    onCardClick,
+    className = "",
+    height = "470px",
+  }) => {
+    const [show, setShow] = useState(false);
+    const [modalData, setModalData] = useState(null);
+    const [isButtonLoading, setIsButtonLoading] = useState(false);
 
-  const getSpiceIcon = (level) => {
-    switch (level) {
-      case "Mild":
-        return "🟢";
-      case "Medium":
-        return "🟡";
-      case "Hot":
-        return "🟠";
-      case "Extra Hot":
-        return "🔴";
-      default:
-        return "🟡";
-    }
-  };
+    // Memoized computed values
+    const isAvailable = useMemo(
+      () => item?.availability === "Available",
+      [item?.availability]
+    );
 
-  const getPriorityBadge = () => {
-    const badge = [];
-    if (item.chefSpecial) {
-      badge.push({
-        text: "Chef's Special",
-        color: "from-purple-500 to-pink-500",
-        icon: <ChefHat className="w-3 h-3" />,
-      });
-    }
-    if (item.isMostOrdered) {
-      badge.push({
-        text: "Most Ordered",
-        color: "from-rose-500 to-red-500",
-        icon: <TrendingUp className="w-3 h-3" />,
-      });
-    }
-    if (item.isPopular) {
-      badge.push({
-        text: "Popular",
-        color: "from-yellow-500 to-orange-500",
-        icon: <Star className="w-3 h-3" />,
-      });
-    }
-    if (item.isRecommended) {
-      badge.push({
-        text: "Recommended",
-        color: "from-blue-500 to-indigo-500",
-        icon: <Heart className="w-3 h-3" />,
-      });
-    }
-    if (item.isLimitedEdition) {
-      badge.push({
-        text: "Limited",
-        color: "from-indigo-500 to-purple-500",
-        icon: <Award className="w-3 h-3" />,
-      });
-    }
-    if (item.isSeasonal) {
-      badge.push({
-        text: "Seasonal",
-        color: "from-amber-500 to-orange-500",
-        icon: <Star className="w-3 h-3" />,
-      });
-    }
-    return badge.slice(0, 2); // Show max 2 features to avoid overcrowding
-  };
+    const truncatedName = useMemo(
+      () =>
+        item?.menuName?.length > 25
+          ? `${item.menuName.slice(0, 25)}...`
+          : item?.menuName || "Menu Item",
+      [item?.menuName]
+    );
 
-  const getSpecialFeatures = () => {
-    const features = [];
+    // Event handlers
+    const handleShow = useCallback(
+      async (menuItem) => {
+        if (!isAvailable) return;
 
-    if (item.isVegan) {
-      features.push({
-        text: "Vegan",
-        icon: <Leaf className="w-3 h-3" />,
-        color: "bg-green-100 text-green-700",
-      });
-    }
-    if (item.isGlutenFree) {
-      features.push({
-        text: "Gluten Free",
-        icon: <Shield className="w-3 h-3" />,
-        color: "bg-blue-100 text-blue-700",
-      });
-    }
-    if (item.isHighProtein) {
-      features.push({
-        text: "High Protein",
-        icon: <Zap className="w-3 h-3" />,
-        color: "bg-red-100 text-red-700",
-      });
-    }
-    if (item.isOrganic) {
-      features.push({
-        text: "Organic",
-        icon: <Leaf className="w-3 h-3" />,
-        color: "bg-emerald-100 text-emerald-700",
-      });
-    }
-    if (item.isSugarFree) {
-      features.push({
-        text: "Sugar Free",
-        icon: <Shield className="w-3 h-3" />,
-        color: "bg-purple-100 text-purple-700",
-      });
+        setIsButtonLoading(true);
+
+        try {
+          // Simulate loading delay for better UX
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          setModalData(menuItem);
+          setShow(true);
+          onCardClick?.(menuItem);
+        } catch (error) {
+          console.error("Error opening modal:", error);
+        } finally {
+          setIsButtonLoading(false);
+        }
+      },
+      [isAvailable, onCardClick]
+    );
+
+    const handleClose = useCallback(() => {
+      setShow(false);
+      setModalData(null);
+    }, []);
+
+    const handleCardClick = useCallback(
+      (e) => {
+        // Prevent modal opening when clicking interactive elements
+        if (e.target.closest("button") || e.target.closest("a")) {
+          return;
+        }
+        handleShow(item);
+      },
+      [handleShow, item]
+    );
+
+    // Validate item prop
+    if (!item || typeof item !== "object") {
+      return (
+        <div className={`w-full max-w-sm mx-auto ${className}`}>
+          <div className="bg-gray-100 rounded-xl p-8 text-center">
+            <AlertCircle size={32} className="text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">Invalid menu item</p>
+          </div>
+        </div>
+      );
     }
 
-    return features.slice(0, 2); // Show max 2 features to avoid overcrowding
-  };
-
-  const priorityBadge = getPriorityBadge();
-  const specialFeatures = getSpecialFeatures();
-
-  return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden relative group border border-gray-100" style={{height:"450px"}}>
-        {/* Image Container */}
-        <div className="relative h-48 overflow-hidden">
-          {/* Loading Spinner */}
-          {!item.imageUrl && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <div className="w-8 h-8 border-4 border-t-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
-            </div>
-          )}
-
-          {/* Main Image */}
-          <img
-            src={item.imageUrl || "/dish.png"}
-            alt={item.menuName}
+    return (
+      <article className={`w-full max-w-sm mx-auto ${className}`}>
+        <div
+          className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden relative group border border-gray-100 cursor-pointer"
+          style={{ height }}
+          onClick={handleCardClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleShow(item);
+            }
+          }}
+          aria-label={`View details for ${item.menuName}`}
+        >
+          {/* Image Container */}
+          <VerticalMenuImage
+            imageUrl={item.imageUrl}
+            menuName={item.menuName}
             onLoad={handleImageLoad}
-            onError={(e) => {
-              e.target.src = "/dish.png";
-            }}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            isUnavailable={!isAvailable}
           />
 
-          {priorityBadge.length > 0 && (
-            <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-              {priorityBadge.map((badge, index) => (
-                <span
-                  key={index}
-                  className={`bg-gradient-to-r ${badge.color} text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1`}
-                >
-                  {badge.icon}
-                  {badge.text}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Overlay Badges */}
+          <PriorityBadge item={item} />
+          <DiscountBadge discount={item.discount} />
+          <CategoryIndicator categoryType={item.categoryType} />
 
-          {/* Discount Badge */}
-          {item.discount > 0 && (
-            <div className="absolute top-3 left-3">
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold py-1.5 px-3 rounded-full shadow-lg animate-pulse">
-                {item.discount}% OFF
-              </span>
-            </div>
-          )}
+          {/* Content Section */}
+          <div className="p-4 space-y-3">
+            {/* Menu Name */}
+            <h2 className="text-lg font-bold text-gray-800 leading-tight line-clamp-2">
+              {truncatedName}
+            </h2>
 
-          {/* Main Category Badge */}
-          {/* {item.mainCategory && (
-            <div className="absolute bottom-3 left-3">
-              <span className="bg-black/70 backdrop-blur-sm text-white text-xs font-medium py-1 px-2 rounded-md">
-                {item.mainCategory}
-              </span>
-            </div>
-          )} */}
-
-          {/* Availability Badge */}
-          {item.availability !== "Available" && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <span className="bg-red-500 text-white px-4 py-2 text-sm font-bold rounded-full">
-                {item.availability}
-              </span>
-            </div>
-          )}
-
-          {/* Menu Category Icon */}
-          <div className="absolute top-3 right-3 bg-white rounded-full p-1.5 shadow-md">
-            {item.categoryType === "Veg" || item.categoryType === "veg" ? (
-              <img src="/veglogo.jpeg" alt="Veg" className="w-5 h-5" />
-            ) : item.categoryType === "Nonveg" ||
-              item.categoryType === "Non Veg" ||
-              item.categoryType === "Non-veg" ||
-              item.categoryType === "non-veg" ||
-              item.categoryType === "nonveg" ? (
-              <img src="/nonVeglogo.png" alt="Nonveg" className="w-5 h-5" />
-            ) : null}
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="p-4">
-          {/* Menu Name */}
-          <h2 className="text-lg font-bold text-gray-800 mb-2 leading-tight">
-            {truncatedContent}
-          </h2>
-
-          <div className="flex items-center flex-wrap gap-2 mb-2">
-            {/* Menu Category */}
-            {item.menuCategory && (
-              <span className="inline-block bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">
-                {item.menuCategory}
-              </span>
-            )}
-
-            {/* Special Features Tags */}
-            {specialFeatures.length > 0 &&
-              specialFeatures.map((feature, index) => (
-                <span
-                  key={index}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${feature.color}`}
-                >
-                  {feature.icon}
-                  {feature.text}
-                </span>
-              ))}
-          </div>
-
-          {/* Quick Info Row */}
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <span className="font-medium">{item.menuCookingTime}min</span>
-            </div>
-
-            {/* Spice Level & Portion */}
-            {item.spiceLevel && (
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                <div className="flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-red-500" />
-                  <span>
-                    {getSpiceIcon(item.spiceLevel)} {item.spiceLevel}
+            {/* Category and Special Features */}
+            <div className="space-y-2">
+              <div className="flex items-center flex-wrap gap-2">
+                {item.menuCategory && (
+                  <span className="inline-block bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-xs font-medium border border-blue-200">
+                    {item.menuCategory}
                   </span>
-                </div>
-              </div>
-            )}
-            {/* Calories */}
-            {item.calories ? (
-              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                <Zap className="w-3 h-3 text-yellow-500" />
-                <span>{item.calories} kcal</span>
-              </div>
-            ):""}
-          </div>
-
-          {/* Price and Action Section */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              {/* <i className="bi bi-currency-rupee mr-1 text-orange-500"></i> */}
-              <div className="flex items-center flex-wrap gap-1">
-                {item.discount && item.discount > 0 ? (
-                  <span className="line-through text-red-500 text-sm mr-1">
-                    ₹{Math.round(item.menuPrice)}
-                  </span>
-                ):""}
-                <span className="text-orange-500 text-xl font-bold">
-                  ₹{item.finalPrice}
-                </span>
-                {item.discount && item.discount > 0 ? (
-                  <span className="text-green-600 text-xs font-medium bg-green-50 px-1.5 py-0.5 rounded">
-                    Save ₹{Math.round(item.menuPrice - item.finalPrice)}
-                  </span>
-                ):""}
+                )}
+                <SpecialFeatures item={item} maxFeatures={2} />
               </div>
             </div>
-            {/* Serving Size */}
-            {item.servingSize && (
+
+            {/* Quick Info Row */}
+            <div className="flex items-center justify-between text-sm text-gray-600">
               <div className="flex items-center gap-1">
-                <Users className="w-4 h-4 text-blue-500" />
-                <span className="font-medium text-xs">
-                  Serves {item.servingSize}
+                <Clock className="w-4 h-4 text-orange-500" />
+                <span className="font-medium">
+                  {item.menuCookingTime || 15}min
                 </span>
               </div>
-            )}
+
+              <SpiceLevelIndicator spiceLevel={item.spiceLevel} />
+
+              {item.calories && (
+                <div className="flex items-center gap-1">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs">{item.calories} kcal</span>
+                </div>
+              )}
+            </div>
+
+            {/* Price and Serving Info */}
+            <div className="flex items-center justify-between">
+              <PriceDisplay item={item} />
+
+              {item.servingSize && (
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  <span>Serves {item.servingSize}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Button */}
+            <ActionButton
+              isAvailable={isAvailable}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShow(item);
+              }}
+              isLoading={isButtonLoading}
+            />
           </div>
 
-          {/* Action Button */}
-          <div className="flex justify-center">
-            <button
-              className={`w-full py-2 px-4 rounded-lg font-semibold transition-all duration-200 ${
-                item.availability === "Available"
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
-              onClick={() =>
-                item.availability === "Available" && handleShow(item)
-              }
-              disabled={item.availability !== "Available"}
-            >
-              {item.availability === "Available"
-                ? "View Details"
-                : "Unavailable"}
-            </button>
-          </div>
+          {/* Hover Effects */}
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-50 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 border-2 border-transparent group-hover:border-orange-200 rounded-xl transition-colors duration-300 pointer-events-none" />
         </div>
 
-        {/* Hover Effect Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-orange-50 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none"></div>
+        {/* Modal */}
+        {show && modalData && (
+          <MenuModal
+            show={show}
+            handleClose={handleClose}
+            modalData={modalData}
+          />
+        )}
+      </article>
+    );
+  }
+);
 
-        {/* Animated Border on Hover */}
-        <div className="absolute inset-0 border-2 border-transparent group-hover:border-orange-200 rounded-xl transition-colors duration-300 pointer-events-none"></div>
-      </div>
+VerticalMenuCard.displayName = "VerticalMenuCard";
 
-      {/* Modal */}
-      <MenuModal show={show} handleClose={handleClose} modalData={modalData} />
-    </div>
-  );
+// Default props
+VerticalMenuCard.defaultProps = {
+  handleImageLoad: () => {},
+  onCardClick: () => {},
+  className: "",
+  height: "470px",
 };
 
 export default VerticalMenuCard;

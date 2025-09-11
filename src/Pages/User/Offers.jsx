@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useOffersData from "../../data/useOffersData";
 import CategoryTabs from "../../components/CategoryTab";
-import NavBar from "components/Navbar/Navbar";
+import NavBar from "components/Navbar";
 import { Spinner } from "Atoms";
 import ErrorMessage from "Atoms/ErrorMessage";
 

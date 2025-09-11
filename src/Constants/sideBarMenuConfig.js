@@ -36,6 +36,11 @@ export const adminMenuItems = (hotelName) => [
   //   icon: "upload",
   // },
   {
+    name: "Kitchen",
+    path: `/${hotelName}/admin/kitchen`,
+    icon: "offer",
+  },
+  {
     name: "Preview",
     path: `/viewMenu/${hotelName}/home`,
     icon: "preview",

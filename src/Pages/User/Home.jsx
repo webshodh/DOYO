@@ -1,434 +1,459 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  memo,
+  Suspense,
+} from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar, FilterSortSearch, HorizontalMenuCard } from "../../components";
-import "../../styles/Home.css";
-import { colors } from "../../theme/theme";
-import CategoryTabs from "../../components/CategoryTab";
-import { useParams } from "react-router-dom";
-import VerticalMenuCard from "components/Cards/VerticalMenuCard";
 import { specialCategories } from "../../Constants/addMenuFormConfig";
-import CaptainMenuCard from "components/Cards/CaptainMenuCard";
+import ErrorState from "components/ErrorState";
+import NavBar from "components/Navbar";
+import ActiveFilters from "components/ActiveFilters";
+import SpecialCategoriesFilter from "components/SpecialCategoriesFilter";
+import ResultsSummary from "components/ResultsSummary";
+import MenuCardSkeleton from "Atoms/MenuCardSkeleton";
+import LoadingSpinner from "Atoms/LoadingSpinner";
+import EmptyState from "components/EmptyState";
 
-function Home() {
+// Lazy load heavy components
+const Navbar = React.lazy(() => import("../../components/Navbar"));
+const FilterSortSearch = React.lazy(() =>
+  import("../../components/FilterSortSearch")
+);
+const CategoryTabs = React.lazy(() => import("../../components/CategoryTab"));
+const HorizontalMenuCard = React.lazy(() =>
+  import("../../components/Cards/HorizontalMenuCard")
+);
+
+
+
+// Main Home component
+const Home = memo(() => {
+  const { hotelName } = useParams();
+  const location = useLocation();
+
+  // State management
   const [menus, setMenus] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [mainCategories, setMainCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [mainCategories, setMainCategories] = useState([]);
-  const [mainCategoryCounts, setMainCategoryCounts] = useState({});
-  const [menuCounts, setMenuCounts] = useState({});
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("");
-  const [activeMainCategory, setActiveMainCategory] = useState("");
-  const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [filteredMenus, setFilteredMenus] = useState([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSpecialFilters, setSelectedSpecialFilters] = useState([]);
-  const [specialCategoryCounts, setSpecialCategoryCounts] = useState({});
-  const { hotelName } = useParams();
 
+  // UI states
+  const [viewMode, setViewMode] = useState("grid");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Counts
+  const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
+  const [menuCountsByMainCategory, setMenuCountsByMainCategory] = useState({});
+  const [specialCategoryCounts, setSpecialCategoryCounts] = useState({});
+
+  // Check if user is admin
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path.includes("admin")) {
-      setIsAdmin(true);
+    setIsAdmin(location.pathname.includes("admin"));
+  }, [location.pathname]);
+
+  // Data fetching
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch menus
+        const menusPromise = new Promise((resolve) => {
+          onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
+            const data = snapshot.val();
+            const menusData = data ? Object.values(data) : [];
+            resolve(menusData);
+          });
+        });
+
+        // Fetch categories
+        const categoriesPromise = new Promise((resolve) => {
+          onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
+            const data = snapshot.val();
+            const categoriesData = data ? Object.values(data) : [];
+            resolve(categoriesData);
+          });
+        });
+
+        // Fetch main categories
+        const mainCategoriesPromise = new Promise((resolve) => {
+          onValue(
+            ref(db, `/hotels/${hotelName}/Maincategories/`),
+            (snapshot) => {
+              const data = snapshot.val();
+              const mainCategoriesData = data ? Object.values(data) : [];
+              resolve(mainCategoriesData);
+            }
+          );
+        });
+
+        const [menusData, categoriesData, mainCategoriesData] =
+          await Promise.all([
+            menusPromise,
+            categoriesPromise,
+            mainCategoriesPromise,
+          ]);
+
+        setMenus(menusData);
+        setCategories(categoriesData);
+        setMainCategories(mainCategoriesData);
+
+        // Calculate counts
+        calculateCounts(menusData, categoriesData, mainCategoriesData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (hotelName) {
+      fetchData();
+    }
+  }, [hotelName]);
+
+  // Calculate counts
+  const calculateCounts = useCallback(
+    (menusData, categoriesData, mainCategoriesData) => {
+      // Category counts
+      const categoryCounts = {};
+      categoriesData.forEach((category) => {
+        const count = menusData.filter(
+          (menu) => menu.menuCategory === category.categoryName
+        ).length;
+        categoryCounts[category.categoryName] = count;
+      });
+      setMenuCountsByCategory(categoryCounts);
+
+      // Main category counts
+      const mainCategoryCounts = {};
+      mainCategoriesData.forEach((mainCategory) => {
+        const count = menusData.filter(
+          (menu) => menu.mainCategory === mainCategory.mainCategoryName
+        ).length;
+        mainCategoryCounts[mainCategory.mainCategoryName] = count;
+      });
+      setMenuCountsByMainCategory(mainCategoryCounts);
+
+      // Special category counts
+      const specialCounts = {};
+      specialCategories.forEach((category) => {
+        const count = menusData.filter(
+          (menu) => menu[category.name] === true
+        ).length;
+        specialCounts[category.name] = count;
+      });
+      setSpecialCategoryCounts(specialCounts);
+    },
+    []
+  );
+
+  // Filter and sort menus
+  const filteredAndSortedMenus = useMemo(() => {
+    let filtered = [...menus];
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (menu) =>
+          menu.menuName?.toLowerCase().includes(search) ||
+          menu.menuDescription?.toLowerCase().includes(search)
+      );
+    }
+
+    // Category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(
+        (menu) => menu.menuCategory === selectedCategory
+      );
+    }
+
+    // Main category filter
+    if (selectedMainCategory) {
+      filtered = filtered.filter(
+        (menu) => menu.mainCategory === selectedMainCategory
+      );
+    }
+
+    // Special filters
+    if (selectedSpecialFilters.length > 0) {
+      filtered = filtered.filter((menu) =>
+        selectedSpecialFilters.every((filter) => menu[filter] === true)
+      );
+    }
+
+    // Sorting
+    if (sortOrder === "lowToHigh") {
+      filtered.sort(
+        (a, b) =>
+          parseFloat(a.finalPrice || a.menuPrice || 0) -
+          parseFloat(b.finalPrice || b.menuPrice || 0)
+      );
+    } else if (sortOrder === "highToLow") {
+      filtered.sort(
+        (a, b) =>
+          parseFloat(b.finalPrice || b.menuPrice || 0) -
+          parseFloat(a.finalPrice || a.menuPrice || 0)
+      );
+    } else if (sortOrder === "nameAsc") {
+      filtered.sort((a, b) =>
+        (a.menuName || "").localeCompare(b.menuName || "")
+      );
+    } else if (sortOrder === "nameDesc") {
+      filtered.sort((a, b) =>
+        (b.menuName || "").localeCompare(a.menuName || "")
+      );
+    }
+
+    return filtered;
+  }, [
+    menus,
+    searchTerm,
+    selectedCategory,
+    selectedMainCategory,
+    selectedSpecialFilters,
+    sortOrder,
+  ]);
+
+  // Available special categories (only those with items)
+  const availableSpecialCategories = useMemo(
+    () =>
+      specialCategories.filter(
+        (category) => specialCategoryCounts[category.name] > 0
+      ),
+    [specialCategoryCounts]
+  );
+
+  // Event handlers
+  const handleSearch = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleSort = useCallback((order) => {
+    setSortOrder(order);
+  }, []);
+
+  const handleCategoryFilter = useCallback((category, type) => {
+    if (type === "all" || category === "") {
+      setSelectedCategory("");
+      setSelectedMainCategory("");
+    } else if (type === "main") {
+      setSelectedMainCategory(category);
+      setSelectedCategory("");
     } else {
-      setIsAdmin(false);
+      setSelectedCategory(category);
+      setSelectedMainCategory("");
     }
   }, []);
 
-  // Fetch Menu
-  useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
-      setMenus([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        const menusData = Object.values(data);
-        setMenus(menusData);
-        setFilteredMenus(menusData);
-        calculateSpecialCategoryCounts(menusData);
-      }
-    });
-  }, [hotelName]);
-
-  // Calculate counts for special categories
-  const calculateSpecialCategoryCounts = (menusData) => {
-    const counts = {};
-    specialCategories.forEach((category) => {
-      const categoryMenus = menusData.filter(
-        (menu) => menu[category.name] === true
-      );
-      counts[category.name] = categoryMenus.length;
-    });
-    setSpecialCategoryCounts(counts);
-  };
-
-  // Fetch categories
-  useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
-      setCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        const categoriesData = Object.values(data);
-        setCategories(categoriesData);
-        fetchMenuCounts(categoriesData);
-      }
-    });
-  }, [hotelName]);
-
-  // Fetch Maincategories
-  useEffect(() => {
-    onValue(ref(db, `/hotels/${hotelName}/Maincategories/`), (snapshot) => {
-      setMainCategories([]);
-      const data = snapshot.val();
-      if (data !== null) {
-        const mainCategoriesData = Object.values(data);
-        setMainCategories(mainCategoriesData);
-        fetchMainCategoryCounts(mainCategoriesData);
-      }
-    });
-  }, [hotelName]);
-
-  const fetchMenuCounts = (categoriesData) => {
-    const counts = {};
-    categoriesData.forEach((category) => {
-      const categoryMenus = menus.filter(
-        (menu) => menu.menuCategory === category.categoryName
-      );
-      counts[category.categoryName] = categoryMenus.length;
-    });
-    setMenuCounts(counts);
-  };
-
-  const fetchMainCategoryCounts = (mainCategoriesData) => {
-    const counts = {};
-    mainCategoriesData.forEach((mainCategory) => {
-      const mainCategoryMenus = menus.filter(
-        (menu) => menu.mainCategory === mainCategory.mainCategoryName
-      );
-      counts[mainCategory.mainCategoryName] = mainCategoryMenus.length;
-    });
-    setMainCategoryCounts(counts);
-  };
-
-  useEffect(() => {
-    const countsByMainCategory = {};
-    menus.forEach((menu) => {
-      const mainCategory = menu.mainCategory;
-      countsByMainCategory[mainCategory] =
-        (countsByMainCategory[mainCategory] || 0) + 1;
-    });
-    setMainCategoryCounts(countsByMainCategory);
-  }, [menus]);
-
-  useEffect(() => {
-    const countsByCategory = {};
-    menus.forEach((menu) => {
-      const category = menu.menuCategory;
-      countsByCategory[category] = (countsByCategory[category] || 0) + 1;
-    });
-    setMenuCountsByCategory(countsByCategory);
-  }, [menus]);
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSort = (order) => {
-    setSortOrder(order);
-  };
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
-
-  const handleCategoryFilter = (category) => {
-    setSelectedCategory(category);
-    setActiveCategory(category);
-    setSelectedMainCategory("");
-    setActiveMainCategory("");
-  };
-
-  const handleMainCategoryFilter = (event) => {
-    const categoryName = event.target.getAttribute("data-category");
-    if (categoryName === null) {
-      setSelectedMainCategory("");
-      setActiveMainCategory("");
-    }
-    setSelectedMainCategory(categoryName);
-    setActiveMainCategory(categoryName);
-  };
-
-  const handleSpecialFilterToggle = (filterName) => {
+  const handleSpecialFilterToggle = useCallback((filterName) => {
     setSelectedSpecialFilters((prev) =>
       prev.includes(filterName)
         ? prev.filter((f) => f !== filterName)
         : [...prev, filterName]
     );
-  };
+  }, []);
 
-  const clearAllFilters = () => {
-    setSelectedSpecialFilters([]);
-    setSelectedCategory("");
-    setActiveCategory("");
-    setSelectedMainCategory("");
-    setActiveMainCategory("");
+  const clearAllFilters = useCallback(() => {
     setSearchTerm("");
-  };
+    setSelectedCategory("");
+    setSelectedMainCategory("");
+    setSelectedSpecialFilters([]);
+    setSortOrder("default");
+  }, []);
 
-  const filterAndSortItems = () => {
-    const search = (searchTerm || "").toLowerCase();
+  const clearSearch = useCallback(() => {
+    setSearchTerm("");
+  }, []);
 
-    let filteredItems = filteredMenus.filter((menu) =>
-      menu.menuName.toLowerCase().includes(search)
-    );
+  const removeSpecialFilter = useCallback((filter) => {
+    setSelectedSpecialFilters((prev) => prev.filter((f) => f !== filter));
+  }, []);
 
-    // Filter by selected category
-    if (
-      selectedCategory &&
-      typeof selectedCategory === "string" &&
-      selectedCategory.trim() !== ""
-    ) {
-      filteredItems = filteredItems.filter(
-        (menu) =>
-          menu.menuCategory &&
-          menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase()
-      );
-    }
+  const removeCategoryFilter = useCallback(() => {
+    setSelectedCategory("");
+  }, []);
 
-    // Filter by selected main category
-    if (
-      selectedMainCategory &&
-      typeof selectedMainCategory === "string" &&
-      selectedMainCategory.trim() !== ""
-    ) {
-      filteredItems = filteredItems.filter(
-        (menu) =>
-          menu.mainCategory &&
-          menu.mainCategory.toLowerCase().trim() ===
-            selectedMainCategory.toLowerCase().trim()
-      );
-    }
+  const removeMainCategoryFilter = useCallback(() => {
+    setSelectedMainCategory("");
+  }, []);
 
-    // Filter by special categories
-    if (selectedSpecialFilters.length > 0) {
-      filteredItems = filteredItems.filter((menu) =>
-        selectedSpecialFilters.every((filter) => menu[filter] === true)
-      );
-    }
+  const changeViewMode = useCallback((mode) => {
+    setViewMode(mode);
+  }, []);
 
-    // Sort by price
-    if (sortOrder === "lowToHigh") {
-      filteredItems.sort(
-        (a, b) => parseFloat(a.menuPrice) - parseFloat(b.menuPrice)
-      );
-    } else if (sortOrder === "highToLow") {
-      filteredItems.sort(
-        (a, b) => parseFloat(b.menuPrice) - parseFloat(a.menuPrice)
-      );
-    }
+  const handleRetry = useCallback(() => {
+    window.location.reload();
+  }, []);
 
-    return filteredItems;
-  };
-
-  const filteredAndSortedItems = filterAndSortItems();
-
-  // Get available special categories (those with items)
-  const availableSpecialCategories = specialCategories.filter(
-    (category) => specialCategoryCounts[category.name] > 0
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(
+    () =>
+      searchTerm ||
+      selectedCategory ||
+      selectedMainCategory ||
+      selectedSpecialFilters.length > 0,
+    [searchTerm, selectedCategory, selectedMainCategory, selectedSpecialFilters]
   );
 
+  // Error state
+  if (error) {
+    return <ErrorState onRetry={handleRetry} />;
+  }
+
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar for non-admin users */}
       {!isAdmin && (
-        <>
-          <Navbar
-            hotelName={`${hotelName}`}
-            title={`${hotelName}`}
-            Fabar={true}
-            style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }}
-            offers={true}
-          />
-        </>
+        <Suspense fallback={<div className="h-16 bg-white border-b" />}>
+          <div className="sticky top-0 z-50">
+            <NavBar hotelName={hotelName} title={hotelName} admin={false} />
+          </div>
+        </Suspense>
       )}
-      <div>
-        <div
-          style={{
-            background: `${colors.LightGrey}`,
-            padding: "10px",
-          }}
-          className="pb-6"
-        >
-          {/* Search and Sort */}
-          <div className="top-12 mb-1">
+
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Search and Sort */}
+        <div className="mb-6">
+          <Suspense
+            fallback={
+              <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
+            }
+          >
             <FilterSortSearch
               searchTerm={searchTerm}
               handleSearch={handleSearch}
               handleSort={handleSort}
+              currentSort={sortOrder}
+              placeholder="Search menu items..."
+              className="w-full"
             />
-          </div>
+          </Suspense>
+        </div>
 
-          {/* Active Filters Display */}
-          {(selectedSpecialFilters.length > 0 ||
-            selectedCategory ||
-            selectedMainCategory) && (
-            <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Active Filters:
-                </span>
-                <button
-                  onClick={clearAllFilters}
-                  className="text-xs text-red-500 hover:text-red-700 font-medium"
-                >
-                  Clear All
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {selectedSpecialFilters.map((filter) => {
-                  const category = specialCategories.find(
-                    (c) => c.name === filter
-                  );
-                  return (
-                    <span
-                      key={filter}
-                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                    >
-                      {category?.label}
-                      <button
-                        onClick={() => handleSpecialFilterToggle(filter)}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
-                {selectedCategory && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                    {selectedCategory}
-                    <button
-                      onClick={() => handleCategoryFilter("")}
-                      className="ml-1 text-green-600 hover:text-green-800"
-                    >
-                      ×
-                    </button>
-                  </span>
-                )}
-                {selectedMainCategory && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                    {selectedMainCategory}
-                    <button
-                      onClick={() => {
-                        setSelectedMainCategory("");
-                        setActiveMainCategory("");
-                      }}
-                      className="ml-1 text-purple-600 hover:text-purple-800"
-                    >
-                      ×
-                    </button>
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
+        {/* Active Filters */}
+        <ActiveFilters
+          specialFilters={selectedSpecialFilters}
+          category={selectedCategory}
+          mainCategory={selectedMainCategory}
+          searchTerm={searchTerm}
+          onRemoveSpecial={removeSpecialFilter}
+          onRemoveCategory={removeCategoryFilter}
+          onRemoveMainCategory={removeMainCategoryFilter}
+          onClearSearch={clearSearch}
+          onClearAll={clearAllFilters}
+        />
 
-          {/* Special Categories Filter - Horizontal Scroll */}
-          {availableSpecialCategories.length > 0 && (
-            <div className="mb-2">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                Special Categories
-              </h3>
-              <div className="overflow-x-auto pb-2">
-                <div className="flex space-x-3 min-w-max">
-                  {availableSpecialCategories.map((category) => {
-                    const isSelected = selectedSpecialFilters.includes(
-                      category.name
-                    );
-                    const Icon = category.icon;
-                    const count = specialCategoryCounts[category.name];
+        {/* Special Categories Filter */}
+        <SpecialCategoriesFilter
+          categories={availableSpecialCategories}
+          selectedFilters={selectedSpecialFilters}
+          onToggle={handleSpecialFilterToggle}
+          counts={specialCategoryCounts}
+        />
 
-                    return (
-                      <button
-                        key={category.name}
-                        onClick={() => handleSpecialFilterToggle(category.name)}
-                        className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full border-2 transition-all duration-200 transform hover:scale-105 ${
-                          isSelected
-                            ? `${category.activeColor} text-white border-transparent shadow-md`
-                            : `${category.bgColor} ${category.iconColor} ${category.borderColor} hover:shadow-md`
-                        }`}
-                      >
-                        <Icon className="w-4 h-4 mr-2" />
-                        <span className="text-sm font-medium whitespace-nowrap">
-                          {category.label}
-                        </span>
-                        <span
-                          className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            isSelected
-                              ? "bg-white bg-opacity-20 text-white"
-                              : "bg-gray-200 text-gray-600"
-                          }`}
-                        >
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Category Tabs */}
-          <div className="top-12 mb-2">
+        {/* Category Tabs */}
+        <div className="mb-6">
+          <Suspense
+            fallback={
+              <div className="h-16 bg-gray-200 rounded-lg animate-pulse" />
+            }
+          >
             <CategoryTabs
               categories={categories}
+              mainCategories={mainCategories}
               menuCountsByCategory={menuCountsByCategory}
+              menuCountsByMainCategory={menuCountsByMainCategory}
               handleCategoryFilter={handleCategoryFilter}
+              initialActiveTab={
+                selectedCategory || selectedMainCategory || "All"
+              }
             />
-          </div>
-
-         
-          {/* Results Count */}
-          <div className="mb-2">
-            <p className="text-sm text-gray-600">
-              Showing {filteredAndSortedItems.length} items
-              {(selectedSpecialFilters.length > 0 ||
-                selectedCategory ||
-                selectedMainCategory ||
-                searchTerm) &&
-                ` (filtered from ${filteredMenus.length} total items)`}
-            </p>
-          </div>
+          </Suspense>
         </div>
 
-        
+        {/* Results Summary */}
+        <ResultsSummary
+          totalResults={menus.length}
+          filteredResults={filteredAndSortedMenus.length}
+          hasFilters={hasActiveFilters}
+          viewMode={viewMode}
+          onViewModeChange={changeViewMode}
+        />
 
         {/* Menu Items */}
-        <div
-          className="flex flex-wrap justify-center gap-1 px-4 ml-2"
-          style={{
-            height: "calc(100vh - 240px)",
-            overflowY: "auto",
-            background: colors.LightGrey,
-            // marginBottom: "50px",
-          }}
-        >
-          {filteredAndSortedItems.map((item) => (
+        {loading ? (
+          <div
+            className={`grid gap-4 ${
+              viewMode === "grid"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                : "grid-cols-1"
+            }`}
+          >
+            {Array.from({ length: 8 }).map((_, index) => (
+              <MenuCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : filteredAndSortedMenus.length > 0 ? (
+          <Suspense fallback={<LoadingSpinner text="Loading menu items..." />}>
             <div
-              className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 mb-2"
-              key={item.id}
+              className={`grid gap-4 ${
+                viewMode === "grid"
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  : "grid-cols-1 max-w-4xl mx-auto"
+              }`}
             >
-              <CaptainMenuCard item={item} handleImageLoad={handleImageLoad} />
+              {filteredAndSortedMenus.map((item) => (
+                <div key={item.id || item.menuId} className="w-full">
+                  <HorizontalMenuCard
+                    item={item}
+                    onAddToCart={(item, quantity) => {
+                      // Handle add to cart
+                      console.log("Add to cart:", item, quantity);
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </Suspense>
+        ) : (
+          <EmptyState
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={clearAllFilters}
+          />
+        )}
       </div>
-    </>
+
+      {/* Custom scrollbar styles */}
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+    </div>
   );
-}
+});
+
+Home.displayName = "Home";
 
 export default Home;

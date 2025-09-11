@@ -10,4 +10,4 @@ export { default as HorizontalMenuCard } from "./Cards/HorizontalMenuCard";
 
 // Navbar
 
-export { default as Navbar } from "./Navbar/Navbar";
+export { default as Navbar } from "./Navbar";

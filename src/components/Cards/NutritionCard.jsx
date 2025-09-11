@@ -1,72 +1,185 @@
-const NutritionCard = ({
-  icon: Icon,
-  label,
-  value,
-  unit = "",
-  colorScheme = "green",
-  showLetter = false,
-  letter = "",
-}) => {
-  const colorClasses = {
-    green: {
-      bg: "bg-green-500",
-      textPrimary: "text-green-600",
-      textSecondary: "text-green-800",
-    },
-    blue: {
-      bg: "bg-blue-500",
-      textPrimary: "text-blue-600",
-      textSecondary: "text-blue-800",
-    },
-    red: {
-      bg: "bg-red-500",
-      textPrimary: "text-red-600",
-      textSecondary: "text-red-800",
-    },
-    orange: {
-      bg: "bg-orange-500",
-      textPrimary: "text-orange-600",
-      textSecondary: "text-orange-800",
-    },
-    purple: {
-      bg: "bg-purple-500",
-      textPrimary: "text-purple-600",
-      textSecondary: "text-purple-800",
-    },
-  };
+import React, { useMemo, memo, forwardRef } from "react";
+import { Activity } from "lucide-react";
+import { COLOR_THEMES } from "Constants/Themes/colorThemes";
+import { SIZE_VARIANTS } from "Constants/Themes/sizeVariants";
+import LoadingSpinner from "Atoms/LoadingSpinner";
+import ErrorState from "components/ErrorState";
+import IconContainer from "Atoms/IconContainer";
+import ValueDisplay from "Atoms/ValueDisplay";
 
-  const colors = colorClasses[colorScheme] || colorClasses.green;
+// Import constants and components
 
-  return (
-    <div className="bg-white rounded-lg p-3 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div style={{marginTop:"15px"}}
-        className={`w-8 h-8 ${colors.bg} rounded-full flex items-center justify-center flex-shrink-0`}
-      >
-        {showLetter ? (
-          <span className="text-white text-xs font-bold">
-            {letter || label.charAt(0).toUpperCase()}
-          </span>
-        ) : (
-          Icon && <Icon className="w-4 h-4 text-white" />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-1 flex-wrap">
-          <p className={`text-lg font-bold ${colors.textSecondary} leading-tight`}>
-            {value}
-          </p>
-          {unit && (
-            <p className={`text-xs ${colors.textPrimary} font-medium`}>
-              {unit}
+
+// Main NutritionCard component with forwardRef
+const NutritionCard = memo(
+  forwardRef(
+    (
+      {
+        icon: Icon = Activity,
+        label = "",
+        value = "",
+        unit = "",
+        colorScheme = "green",
+        size = "medium",
+        showLetter = false,
+        letter = "",
+        className = "",
+        onClick,
+        onHover,
+        isLoading = false,
+        hasError = false,
+        errorMessage = "Failed to load nutrition data",
+        showBorder = true,
+        useGradientIcon = false,
+        isInteractive = false,
+        showAnimation = false,
+        ariaLabel,
+        testId,
+        ...rest
+      },
+      ref
+    ) => {
+      // Memoized configurations
+      const colors = useMemo(
+        () => COLOR_THEMES[colorScheme] || COLOR_THEMES.green,
+        [colorScheme]
+      );
+
+      const sizeConfig = useMemo(
+        () => SIZE_VARIANTS[size] || SIZE_VARIANTS.medium,
+        [size]
+      );
+
+      // Handle loading state
+      if (isLoading) {
+        return <LoadingSpinner size={size} colorScheme={colorScheme} />;
+      }
+
+      // Handle error state
+      if (hasError) {
+        return <ErrorState size={size} message={errorMessage} />;
+      }
+
+      // Validate props
+      if (!label) {
+        console.warn("NutritionCard: label prop is required");
+      }
+
+      if (value === "" || value === null || value === undefined) {
+        console.warn("NutritionCard: value prop should not be empty");
+      }
+
+      // Build dynamic classes
+      const containerClasses = [
+        "bg-white",
+        "rounded-lg",
+        sizeConfig.container,
+        "flex",
+        "items-start",
+        sizeConfig.gap,
+        "shadow-sm",
+        "transition-all",
+        "duration-200",
+        "ease-in-out",
+        showBorder ? `border ${colors.border}` : "",
+        isInteractive
+          ? `cursor-pointer ${colors.hoverShadow} hover:shadow-md ${colors.focusRing} focus:outline-none focus:ring-2 focus:ring-offset-2`
+          : "hover:shadow-md",
+        showAnimation ? "transform hover:scale-[1.02]" : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      // Event handlers
+      const handleClick = (e) => {
+        if (onClick && (isInteractive || onClick)) {
+          onClick(e);
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          handleClick(e);
+        }
+      };
+
+      const handleMouseEnter = (e) => {
+        if (onHover) {
+          onHover(e, "enter");
+        }
+      };
+
+      const handleMouseLeave = (e) => {
+        if (onHover) {
+          onHover(e, "leave");
+        }
+      };
+
+      return (
+        <div
+          ref={ref}
+          className={containerClasses}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          role={isInteractive ? "button" : "group"}
+          tabIndex={isInteractive ? 0 : -1}
+          aria-label={ariaLabel || `${label}: ${value} ${unit}`.trim()}
+          data-testid={testId}
+          {...rest}
+        >
+          <IconContainer
+            Icon={Icon}
+            showLetter={showLetter}
+            letter={letter}
+            label={label}
+            colors={colors}
+            sizeConfig={sizeConfig}
+            useGradient={useGradientIcon}
+          />
+
+          <div className="flex-1 min-w-0">
+            <ValueDisplay
+              value={value}
+              unit={unit}
+              colors={colors}
+              sizeConfig={sizeConfig}
+            />
+            <p
+              className={`${sizeConfig.labelText} ${colors.textPrimary} font-medium capitalize mt-1 leading-tight select-text`}
+            >
+              {label}
             </p>
-          )}
+          </div>
         </div>
-        <p className={`text-xs ${colors.textPrimary} font-medium capitalize mt-1 leading-tight`}>
-          {label}
-        </p>
-      </div>
-    </div>
-  );
+      );
+    }
+  )
+);
+
+NutritionCard.displayName = "NutritionCard";
+
+// Default props
+NutritionCard.defaultProps = {
+  icon: Activity,
+  label: "",
+  value: "",
+  unit: "",
+  colorScheme: "green",
+  size: "medium",
+  showLetter: false,
+  letter: "",
+  className: "",
+  isLoading: false,
+  hasError: false,
+  errorMessage: "Failed to load nutrition data",
+  showBorder: true,
+  useGradientIcon: false,
+  isInteractive: false,
+  showAnimation: false,
 };
 
 export default NutritionCard;

@@ -1,69 +1,210 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
+import { 
+  Menu, 
+  X, 
+  Search, 
+  Bell, 
+  Settings, 
+  User, 
+  LogOut, 
+  Building, 
+  ChevronDown,
+  Check,
+  AlertCircle,
+  Loader
+} from "lucide-react";
 import { useHotelSelection } from "../Context/HotelSelectionContext";
 import { toast } from "react-toastify";
 
-const Navbar = ({ onMenuToggle, isSidebarOpen, admin }) => {
-  const navigate = useNavigate();
-  const auth = getAuth();
-  const { selectedHotel, availableHotels, selectHotel, user } =
-    useHotelSelection();
-
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isHotelDropdownOpen, setIsHotelDropdownOpen] = useState(false);
-
-  const profileDropdownRef = useRef(null);
-  const hotelDropdownRef = useRef(null);
-
-  // Close dropdowns when clicking outside
+// Custom hook for outside click detection
+const useOutsideClick = (ref, handler) => {
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        profileDropdownRef.current &&
-        !profileDropdownRef.current.contains(event.target)
-      ) {
-        setIsProfileDropdownOpen(false);
+    const listener = (event) => {
+      if (!ref.current || ref.current.contains(event.target)) {
+        return;
       }
-      if (
-        hotelDropdownRef.current &&
-        !hotelDropdownRef.current.contains(event.target)
-      ) {
-        setIsHotelDropdownOpen(false);
-      }
+      handler(event);
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+    
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
     };
+  }, [ref, handler]);
+};
+
+// Menu toggle button component
+const MenuToggleButton = memo(({ onToggle, isOpen }) => (
+  <button
+    onClick={onToggle}
+    className="lg:hidden p-2 rounded-xl hover:bg-gray-100 active:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200"
+    aria-label={isOpen ? "Close menu" : "Open menu"}
+    aria-expanded={isOpen}
+  >
+    <div className="relative w-6 h-6">
+      <span
+        className={`absolute block w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ${
+          isOpen ? "rotate-45 top-3" : "top-1"
+        }`}
+      />
+      <span
+        className={`absolute block w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ${
+          isOpen ? "opacity-0" : "top-3"
+        }`}
+      />
+      <span
+        className={`absolute block w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ${
+          isOpen ? "-rotate-45 top-3" : "top-5"
+        }`}
+      />
+    </div>
+  </button>
+));
+
+MenuToggleButton.displayName = 'MenuToggleButton';
+
+// Search component
+const SearchBar = memo(({ className = "" }) => {
+  const [searchValue, setSearchValue] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const handleSearchChange = useCallback((e) => {
+    setSearchValue(e.target.value);
   }, []);
 
-  const handleLogout = async () => {
+  return (
+    <div className={`relative ${className}`}>
+      <div
+        className={`flex items-center bg-gray-50 rounded-lg border transition-all duration-200 ${
+          isSearchFocused
+            ? "border-orange-300 bg-white shadow-sm"
+            : "border-transparent hover:bg-gray-100"
+        }`}
+      >
+        <Search className="w-4 h-4 text-gray-400 ml-3" />
+        <input
+          type="text"
+          value={searchValue}
+          onChange={handleSearchChange}
+          onFocus={() => setIsSearchFocused(true)}
+          onBlur={() => setIsSearchFocused(false)}
+          placeholder="Search..."
+          className="w-full px-3 py-2 bg-transparent text-sm placeholder-gray-500 focus:outline-none"
+        />
+      </div>
+    </div>
+  );
+});
+
+SearchBar.displayName = 'SearchBar';
+
+// Hotel switcher dropdown component
+const HotelSwitcher = memo(({ 
+  selectedHotel, 
+  availableHotels, 
+  onHotelSwitch,
+  isOpen,
+  onToggle,
+  dropdownRef
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleHotelSwitch = useCallback(async (hotel) => {
+    setIsLoading(true);
     try {
-      await signOut(auth);
-      localStorage.removeItem("selectedHotel");
-      toast.success("Logged out successfully!");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Error logging out. Please try again.");
+      await onHotelSwitch(hotel);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [onHotelSwitch]);
 
-  const handleEditProfile = () => {
-    setIsProfileDropdownOpen(false);
-    navigate(`/${selectedHotel?.id}/admin/profile`);
-  };
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={onToggle}
+        className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-orange-400 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-sm font-medium"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+      >
+        <Building className="w-4 h-4 text-gray-600" />
+        <span className="hidden sm:inline text-gray-700">Switch Hotel</span>
+        <span className="sm:hidden text-gray-700">Switch</span>
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
 
-  const handleHotelSwitch = (hotel) => {
-    selectHotel(hotel);
-    setIsHotelDropdownOpen(false);
-    navigate(`/${hotel.id}/admin/dashboard`);
-    toast.success(`Switched to ${hotel.name}`);
-  };
+      {isOpen && (
+        <>
+          {/* Mobile backdrop */}
+          <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden" />
+          
+          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+            <div className="p-2">
+              {/* Header */}
+              <div className="px-3 py-2 border-b border-gray-100 mb-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Available Hotels
+                  </span>
+                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                    {availableHotels.length}
+                  </span>
+                </div>
+              </div>
 
-  const getUserInitials = () => {
+              {/* Hotel list */}
+              <div className="max-h-64 overflow-y-auto space-y-1">
+                {availableHotels.map((hotel) => (
+                  <button
+                    key={hotel.id}
+                    onClick={() => handleHotelSwitch(hotel)}
+                    disabled={isLoading}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 ${
+                      selectedHotel?.id === hotel.id
+                        ? "bg-orange-50 border border-orange-200 text-orange-800"
+                        : "hover:bg-gray-50 text-gray-700"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        selectedHotel?.id === hotel.id
+                          ? "bg-orange-200 text-orange-600"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      <Building className="w-4 h-4" />
+                    </div>
+                    <span className="flex-1 font-medium truncate">{hotel.name}</span>
+                    {selectedHotel?.id === hotel.id && (
+                      <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                    )}
+                    {isLoading && (
+                      <Loader className="w-4 h-4 animate-spin text-gray-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+});
+
+HotelSwitcher.displayName = 'HotelSwitcher';
+
+// User avatar component
+const UserAvatar = memo(({ user, size = "md" }) => {
+  const getUserInitials = useCallback(() => {
     if (user?.displayName) {
       return user.displayName
         .split(" ")
@@ -75,297 +216,235 @@ const Navbar = ({ onMenuToggle, isSidebarOpen, admin }) => {
       return user.email.charAt(0).toUpperCase();
     }
     return "A";
+  }, [user]);
+
+  const sizeClasses = {
+    sm: "w-8 h-8 text-sm",
+    md: "w-9 h-9 text-sm",
+    lg: "w-10 h-10 text-base"
   };
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50 px-3 sm:px-4 lg:px-6 py-3 transition-all duration-300">
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Left Section */}
-        <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
-          {/* Menu Toggle Button */}
-          <button
-            onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-xl hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-orange-50 transition-all duration-200 group"
-            aria-label="Toggle menu"
-          >
-            <svg
-              className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 group-hover:text-gray-800 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isSidebarOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
-        </div>
+    <div className={`${sizeClasses[size]} bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg relative`}>
+      {getUserInitials()}
+      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full" />
+    </div>
+  );
+});
 
-        {/* Right Section */}
-        <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
-          {/* Hotel Switcher Dropdown */}
-          {admin && (
-            <div className="relative" ref={hotelDropdownRef}>
+UserAvatar.displayName = 'UserAvatar';
+
+// Profile dropdown component
+const ProfileDropdown = memo(({ 
+  user, 
+  isOpen, 
+  onToggle, 
+  onEditProfile, 
+  onLogout,
+  dropdownRef,
+  isLoggingOut = false
+}) => (
+  <div className="relative" ref={dropdownRef}>
+    <button
+      onClick={onToggle}
+      className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200"
+      aria-haspopup="true"
+      aria-expanded={isOpen}
+      aria-label="Profile menu"
+    >
+      <UserAvatar user={user} />
+      <ChevronDown
+        className={`w-4 h-4 text-gray-400 transition-transform duration-200 hidden sm:block ${
+          isOpen ? "rotate-180" : ""
+        }`}
+      />
+    </button>
+
+    {isOpen && (
+      <>
+        {/* Mobile backdrop */}
+        <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden" />
+        
+        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+          <div className="p-2">
+            {/* User info */}
+            <div className="px-3 py-3 border-b border-gray-100 mb-2">
+              <div className="flex items-center gap-3">
+                <UserAvatar user={user} size="lg" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-800 truncate">
+                    {user?.displayName || "Admin User"}
+                  </p>
+                  <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu items */}
+            <div className="space-y-1">
               <button
-                onClick={() => setIsHotelDropdownOpen(!isHotelDropdownOpen)}
-                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-xl border border-gray-300/60 hover:bg-gray-50/80 hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 group"
-                aria-label="Switch hotel"
+                onClick={onEditProfile}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-gray-50 text-gray-700 transition-all duration-200"
               >
-                <svg
-                  className="w-4 h-4 text-gray-600 group-hover:text-orange-600 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-orange-700 hidden sm:inline transition-colors">
-                  Switch
-                </span>
-                <svg
-                  className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 group-hover:text-orange-600 transition-all duration-200 ${
-                    isHotelDropdownOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <User className="w-4 h-4 text-gray-500" />
+                </div>
+                <span className="font-medium">Edit Profile</span>
               </button>
 
-              {/* Hotel Dropdown Menu */}
-              {isHotelDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-10 bg-black/10 backdrop-blur-[1px] lg:hidden"></div>
-                  <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/60 z-50 overflow-hidden">
-                    <div className="p-1">
-                      <div className="px-4 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl mb-1">
-                        <div className="flex items-center justify-between">
-                          <span>Available Hotels</span>
-                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-                            {availableHotels.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                        {availableHotels.map((hotel, index) => (
-                          <button
-                            key={hotel.id}
-                            onClick={() => handleHotelSwitch(hotel)}
-                            className={`w-full text-left px-4 py-3 text-sm rounded-xl hover:bg-orange-50/80 flex items-center space-x-3 transition-all duration-200 group ${
-                              selectedHotel?.id === hotel.id
-                                ? "bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 shadow-sm"
-                                : "text-gray-700 hover:text-orange-700"
-                            }`}
-                          >
-                            <div
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                                selectedHotel?.id === hotel.id
-                                  ? "bg-orange-200"
-                                  : "bg-gray-100 group-hover:bg-orange-100"
-                              }`}
-                            >
-                              <svg
-                                className={`w-4 h-4 transition-colors ${
-                                  selectedHotel?.id === hotel.id
-                                    ? "text-orange-600"
-                                    : "text-gray-500 group-hover:text-orange-500"
-                                }`}
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"
-                                />
-                              </svg>
-                            </div>
-                            <span className="flex-1 font-medium truncate">
-                              {hotel.name}
-                            </span>
-                            {selectedHotel?.id === hotel.id && (
-                              <div className="flex-shrink-0">
-                                <svg
-                                  className="w-5 h-5 text-orange-600"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Profile Dropdown */}
-          <div className="relative" ref={profileDropdownRef}>
-            <button
-              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2 rounded-xl hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-orange-50 transition-all duration-200 group"
-              aria-label="Profile menu"
-            >
-              <div className="relative">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:shadow-xl transition-shadow duration-200">
-                  {getUserInitials()}
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
-              </div>
-              <div className="hidden sm:block text-left min-w-0">
-                {/* <p className="text-sm font-semibold text-gray-800 truncate max-w-20 lg:max-w-32">
-                  {user?.displayName?.split(" ")[0] || "Admin"}
-                </p> */}
-                {/* <p className="text-xs text-gray-500">Online</p> */}
-              </div>
-              <svg
-                className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 group-hover:text-orange-600 transition-all duration-200 hidden sm:block ${
-                  isProfileDropdownOpen ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                onClick={onLogout}
+                disabled={isLoggingOut}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-red-50 text-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+                <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
+                  {isLoggingOut ? (
+                    <Loader className="w-4 h-4 text-red-500 animate-spin" />
+                  ) : (
+                    <LogOut className="w-4 h-4 text-red-500" />
+                  )}
+                </div>
+                <span className="font-medium">
+                  {isLoggingOut ? "Signing out..." : "Sign Out"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+));
+
+ProfileDropdown.displayName = 'ProfileDropdown';
+
+// Main Navbar component
+const Navbar = memo(({ onMenuToggle, isSidebarOpen, admin }) => {
+  const navigate = useNavigate();
+  const auth = getAuth();
+  const { selectedHotel, availableHotels, selectHotel, user } = useHotelSelection();
+
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isHotelDropdownOpen, setIsHotelDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const profileDropdownRef = useRef(null);
+  const hotelDropdownRef = useRef(null);
+
+  // Outside click handlers
+  useOutsideClick(profileDropdownRef, () => setIsProfileDropdownOpen(false));
+  useOutsideClick(hotelDropdownRef, () => setIsHotelDropdownOpen(false));
+
+  // Memoized handlers
+  const handleLogout = useCallback(async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut(auth);
+      localStorage.removeItem("selectedHotel");
+      toast.success("Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Error logging out. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+      setIsProfileDropdownOpen(false);
+    }
+  }, [auth, navigate]);
+
+  const handleEditProfile = useCallback(() => {
+    setIsProfileDropdownOpen(false);
+    if (selectedHotel?.id) {
+      navigate(`/${selectedHotel.id}/admin/profile`);
+    }
+  }, [navigate, selectedHotel]);
+
+  const handleHotelSwitch = useCallback(async (hotel) => {
+    try {
+      selectHotel(hotel);
+      setIsHotelDropdownOpen(false);
+      navigate(`/${hotel.id}/admin/dashboard`);
+      toast.success(`Switched to ${hotel.name}`);
+    } catch (error) {
+      console.error("Hotel switch error:", error);
+      toast.error("Failed to switch hotel. Please try again.");
+    }
+  }, [selectHotel, navigate]);
+
+  const toggleProfileDropdown = useCallback(() => {
+    setIsProfileDropdownOpen(prev => !prev);
+    setIsHotelDropdownOpen(false);
+  }, []);
+
+  const toggleHotelDropdown = useCallback(() => {
+    setIsHotelDropdownOpen(prev => !prev);
+    setIsProfileDropdownOpen(false);
+  }, []);
+
+  return (
+    <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Left Section */}
+          <div className="flex items-center gap-4 flex-1">
+            <MenuToggleButton onToggle={onMenuToggle} isOpen={isSidebarOpen} />
+            <SearchBar className="hidden sm:block flex-1 max-w-md" />
+          </div>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-3">
+            {/* Mobile search button */}
+            <button className="sm:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <Search className="w-5 h-5 text-gray-600" />
             </button>
 
-            {/* Profile Dropdown Menu */}
-            {isProfileDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-10 bg-black/10 backdrop-blur-[1px] lg:hidden"></div>
-                <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/60 z-50 overflow-hidden">
-                  <div className="p-1">
-                    <div className="px-4 py-3 text-sm border-b border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl mb-1">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-                          {getUserInitials()}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-gray-800 truncate">
-                            {user?.displayName || "Admin User"}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {user?.email}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+            {/* Notifications (placeholder) */}
+            <button className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 relative">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+            </button>
 
-                    <button
-                      onClick={handleEditProfile}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-700 flex items-center space-x-3 transition-all duration-200 rounded-xl group"
-                    >
-                      <div className="w-8 h-8 bg-gray-100 group-hover:bg-orange-100 rounded-lg flex items-center justify-center transition-colors">
-                        <svg
-                          className="w-4 h-4 text-gray-500 group-hover:text-orange-600 transition-colors"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
-                        </svg>
-                      </div>
-                      <span className="font-medium">Edit Profile</span>
-                    </button>
-
-                    <div className="h-px bg-gray-100 mx-3 my-1"></div>
-
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3 transition-all duration-200 rounded-xl group"
-                    >
-                      <div className="w-8 h-8 bg-red-50 group-hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors">
-                        <svg
-                          className="w-4 h-4 text-red-500 transition-colors"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                          />
-                        </svg>
-                      </div>
-                      <span className="font-medium">Sign Out</span>
-                    </button>
-                  </div>
-                </div>
-              </>
+            {/* Hotel Switcher */}
+            {admin && (
+              <HotelSwitcher
+                selectedHotel={selectedHotel}
+                availableHotels={availableHotels}
+                onHotelSwitch={handleHotelSwitch}
+                isOpen={isHotelDropdownOpen}
+                onToggle={toggleHotelDropdown}
+                dropdownRef={hotelDropdownRef}
+              />
             )}
+
+            {/* Profile Dropdown */}
+            <ProfileDropdown
+              user={user}
+              isOpen={isProfileDropdownOpen}
+              onToggle={toggleProfileDropdown}
+              onEditProfile={handleEditProfile}
+              onLogout={handleLogout}
+              dropdownRef={profileDropdownRef}
+              isLoggingOut={isLoggingOut}
+            />
           </div>
         </div>
       </div>
 
-      {/* Custom scrollbar styles */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
+      {/* Mobile search bar */}
+      <div className="sm:hidden px-4 pb-3">
+        <SearchBar />
+      </div>
     </nav>
   );
+});
+
+Navbar.displayName = 'Navbar';
+
+// Default props
+Navbar.defaultProps = {
+  onMenuToggle: () => {},
+  isSidebarOpen: false,
+  admin: false,
 };
 
 export default Navbar;
