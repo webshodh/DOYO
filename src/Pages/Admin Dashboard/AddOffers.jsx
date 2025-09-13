@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "../../styles/AddOffers.css";
-import { PageTitle } from "../../Atoms";
+import { PageTitle } from "../../atoms";
 import { ViewOffersColumns } from "../../Constants/Columns";
 import { DynamicTable } from "../../components";
 import { useParams } from "react-router-dom";
-import SearchWithButton from "components/SearchWithAddButton";
+import SearchWithButton from "molecules/SearchWithAddButton";
 import OffersFormModal from "../../components/FormModals/OffersFormModal";
 import { useOffers } from "../../customHooks/useOffers";
 import { Spinner } from "react-bootstrap";

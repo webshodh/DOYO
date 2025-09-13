@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useHotelSelection } from "../../Context/HotelSelectionContext";
-import StatCard from "Atoms/StatCard";
-import { Spinner } from "Atoms";
+import { useHotelSelection } from "../../context/HotelSelectionContext";
+import StatCard from "components/Cards/StatCard";
+import { Spinner } from "atoms";
 import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 import useHotelData from "../../data/useHotelData"; // Import the hook
 import {
@@ -19,7 +19,7 @@ import {
   FaGlassCheers,
   FaBuilding,
 } from "react-icons/fa";
-import ErrorMessage from "Atoms/ErrorMessage";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 const SuperAdminDashboard = () => {
   // Use the custom hook to get hotel data

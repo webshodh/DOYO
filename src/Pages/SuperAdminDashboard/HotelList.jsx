@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useData from "../../data/useData";
-import { PageTitle } from "../../Atoms";
+import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
 import { hotelsListColumn } from "../../Constants/Columns";
 import { db } from "../../data/firebase/firebaseConfig";
@@ -10,10 +10,10 @@ import { ref, update, get, remove } from "firebase/database";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import HotelEditForm from "./AddHotel"; // Import the separate component
-import ErrorMessage from "Atoms/ErrorMessage";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { Spinner } from "react-bootstrap";
-import SearchWithButton from "components/SearchWithAddButton";
-import CategoryTabs from "components/CategoryTab";
+import SearchWithButton from "molecules/SearchWithAddButton";
+import CategoryTabs from "molecules/CategoryTab";
 
 const ViewHotel = () => {
   const { data, loading, error, refetch } = useData("/hotels/");

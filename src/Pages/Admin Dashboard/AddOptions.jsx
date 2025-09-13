@@ -2,10 +2,10 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import PageTitle from "../../Atoms/PageTitle";
+import PageTitle from "../../atoms/PageTitle";
 import { useOptionsManager } from "../../customHooks/useOption";
-import { Spinner } from "Atoms";
-import ErrorMessage from "Atoms/ErrorMessage";
+import { Spinner } from "atoms";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 import {
   PlusIcon,
   PencilIcon,

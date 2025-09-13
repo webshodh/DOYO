@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "components/SideBarComponent";
-import Navbar from "components/NavBarComponent";
+import Sidebar from "organisms/SideBarComponent";
+import Navbar from "organisms/NavBarComponent";
 
 // Super Admin Dashboard Layout Component
 const SuperAdminDashboardLayout = ({ children }) => {
@@ -54,7 +54,7 @@ const SuperAdminDashboardLayout = ({ children }) => {
 
       {/* Mobile Sidebar Overlay */}
       {!isDesktop && isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={closeSidebar}
         />
@@ -62,14 +62,19 @@ const SuperAdminDashboardLayout = ({ children }) => {
 
       <div className="relative flex h-screen">
         {/* Sidebar Container */}
-        <div className={`
-          ${isDesktop 
-            ? "relative w-64 flex-shrink-0" 
-            : "absolute inset-y-0 left-0 z-50 w-64"
+        <div
+          className={`
+          ${
+            isDesktop
+              ? "relative w-64 flex-shrink-0"
+              : "absolute inset-y-0 left-0 z-50 w-64"
           }
-          ${!isDesktop && !isSidebarOpen ? "-translate-x-full" : "translate-x-0"}
+          ${
+            !isDesktop && !isSidebarOpen ? "-translate-x-full" : "translate-x-0"
+          }
           transition-transform duration-300 ease-in-out
-        `}>
+        `}
+        >
           <Sidebar
             isOpen={true} // Always true since we handle visibility via transform
             onClose={closeSidebar}
@@ -78,10 +83,12 @@ const SuperAdminDashboardLayout = ({ children }) => {
         </div>
 
         {/* Main Content Area */}
-        <div className={`
+        <div
+          className={`
           flex-1 flex flex-col min-w-0 transition-all duration-300
           ${isDesktop ? "ml-0" : "ml-0"}
-        `}>
+        `}
+        >
           {/* Navbar */}
           <div className="sticky top-0">
             <Navbar
@@ -187,37 +194,52 @@ const SuperAdminDashboardLayout = ({ children }) => {
           scrollbar-width: thin;
           scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(156, 163, 175, 0.5);
           border-radius: 3px;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(156, 163, 175, 0.7);
         }
 
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(180deg);
+          }
         }
 
         @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-15px) rotate(-180deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-15px) rotate(-180deg);
+          }
         }
 
         @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(90deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(90deg);
+          }
         }
 
         .animate-float {

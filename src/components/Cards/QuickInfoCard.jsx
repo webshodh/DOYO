@@ -1,64 +1,177 @@
-import { Clock, Users, Flame, Zap } from "lucide-react";
+import React, { useMemo, memo, forwardRef } from "react";
+import { Clock } from "lucide-react";
+import { QUICK_INFO_COLOR_THEMES } from "Constants/Themes/quickInfoColorThemes";
+import { QUICK_INFO_SIZE_VARIANTS } from "Constants/Themes/quickInfoSizeVariants";
+import { LAYOUT_VARIANTS } from "Constants/Themes/layoutVariants";
+import LoadingSpinner from "atoms/LoadingSpinner";
+import ErrorState from "atoms/Messages/ErrorState";
 
-const QuickInfoCard = ({ icon: Icon, label, value, colorScheme = "blue" }) => {
-  const colorClasses = {
-    blue: {
-      bg: "bg-gradient-to-r from-blue-50 to-blue-100",
-      border: "border-blue-200",
-      iconColor: "text-blue-600",
-      labelColor: "text-blue-600",
-      valueColor: "text-blue-800",
-    },
-    orange: {
-      bg: "bg-gradient-to-r from-orange-50 to-orange-100",
-      border: "border-orange-200",
-      iconColor: "text-orange-600",
-      labelColor: "text-orange-600",
-      valueColor: "text-orange-800",
-    },
-    red: {
-      bg: "bg-gradient-to-r from-red-50 to-red-100",
-      border: "border-red-200",
-      iconColor: "text-red-600",
-      labelColor: "text-red-600",
-      valueColor: "text-red-800",
-    },
-    green: {
-      bg: "bg-gradient-to-r from-green-50 to-green-100",
-      border: "border-green-200",
-      iconColor: "text-green-600",
-      labelColor: "text-green-600",
-      valueColor: "text-green-800",
-    },
-    purple: {
-      bg: "bg-gradient-to-r from-purple-50 to-purple-100",
-      border: "border-purple-200",
-      iconColor: "text-purple-600",
-      labelColor: "text-purple-600",
-      valueColor: "text-purple-800",
-    },
-    gray: {
-      bg: "bg-gradient-to-r from-gray-50 to-gray-100",
-      border: "border-gray-200",
-      iconColor: "text-gray-600",
-      labelColor: "text-gray-600",
-      valueColor: "text-gray-800",
-    },
-  };
+// Import constants and components
 
-  const colors = colorClasses[colorScheme] || colorClasses.blue;
+const QuickInfoCard = memo(
+  forwardRef(
+    (
+      {
+        icon: Icon = Clock,
+        label = "",
+        value = "",
+        colorScheme = "blue",
+        size = "medium",
+        layout = "horizontal",
+        className = "",
+        onClick,
+        onHover,
+        isLoading = false,
+        hasError = false,
+        errorMessage,
+        showAnimation = false,
+        showBorder = true,
+        showShadow = false,
+        isInteractive = false,
+        ariaLabel,
+        testId,
+        ...rest
+      },
+      ref
+    ) => {
+      // Memoized color theme
+      const colors = useMemo(
+        () =>
+          QUICK_INFO_COLOR_THEMES[colorScheme] || QUICK_INFO_COLOR_THEMES.blue,
+        [colorScheme]
+      );
 
-  return (
-    <div className={`${colors.bg} rounded-xl p-3 border ${colors.border}`}>
-      <div className="flex items-center gap-2">
-        <Icon className={`w-4 h-4 ${colors.iconColor}`} />
-        <div>
-          <p className={`text-xs ${colors.labelColor} font-medium`}>{label}</p>
-          <p className={`text-sm font-bold ${colors.valueColor}`}>{value}</p>
+      // Memoized size configuration
+      const sizeConfig = useMemo(
+        () => QUICK_INFO_SIZE_VARIANTS[size] || QUICK_INFO_SIZE_VARIANTS.medium,
+        [size]
+      );
+
+      // Memoized layout configuration
+      const layoutConfig = useMemo(
+        () => LAYOUT_VARIANTS[layout] || LAYOUT_VARIANTS.horizontal,
+        [layout]
+      );
+
+      // Handle loading state
+      if (isLoading) {
+        return <LoadingSpinner size={size} />;
+      }
+
+      // Handle error state
+      if (hasError) {
+        return <ErrorState size={size} message={errorMessage} />;
+      }
+
+      // Validate required props
+      if (!Icon || typeof Icon !== "function") {
+        console.warn("QuickInfoCard: Invalid icon prop provided");
+        return <ErrorState size={size} message="Invalid icon" />;
+      }
+
+      // Build dynamic classes
+      const containerClasses = [
+        colors.bg,
+        "rounded-xl",
+        "transition-all",
+        "duration-200",
+        "ease-in-out",
+        sizeConfig.container,
+        showBorder ? colors.border : "",
+        showBorder ? "border" : "",
+        showShadow ? "shadow-sm" : "",
+        showAnimation ? "transform hover:scale-105" : "",
+        isInteractive
+          ? `cursor-pointer ${colors.shadowHover} hover:shadow-md ${colors.ringFocus} focus:outline-none focus:ring-2 focus:ring-offset-2`
+          : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      const contentClasses = ["flex", layoutConfig, sizeConfig.gap].join(" ");
+
+      // Event handlers
+      const handleClick = (e) => {
+        if (onClick && isInteractive) {
+          onClick(e);
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          handleClick(e);
+        }
+      };
+
+      const handleMouseEnter = (e) => {
+        if (onHover) {
+          onHover(e, "enter");
+        }
+      };
+
+      const handleMouseLeave = (e) => {
+        if (onHover) {
+          onHover(e, "leave");
+        }
+      };
+
+      return (
+        <div
+          ref={ref}
+          className={containerClasses}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          role={isInteractive ? "button" : "presentation"}
+          tabIndex={isInteractive ? 0 : -1}
+          aria-label={ariaLabel || `${label}: ${value}`}
+          data-testid={testId}
+          {...rest}
+        >
+          <div className={contentClasses}>
+            <Icon
+              className={`${sizeConfig.icon} ${colors.iconColor} flex-shrink-0`}
+              aria-hidden="true"
+            />
+            <div className={layout === "horizontal" ? "" : "mt-1"}>
+              <p
+                className={`${sizeConfig.label} ${colors.labelColor} font-medium leading-tight`}
+              >
+                {label}
+              </p>
+              <p
+                className={`${sizeConfig.value} font-bold ${colors.valueColor} leading-tight`}
+              >
+                {value}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      );
+    }
+  )
+);
+
+QuickInfoCard.displayName = "QuickInfoCard";
+
+// Default props
+QuickInfoCard.defaultProps = {
+  icon: Clock,
+  label: "",
+  value: "",
+  colorScheme: "blue",
+  size: "medium",
+  layout: "horizontal",
+  className: "",
+  isLoading: false,
+  hasError: false,
+  showAnimation: false,
+  showBorder: true,
+  showShadow: false,
+  isInteractive: false,
 };
 
 export default QuickInfoCard;

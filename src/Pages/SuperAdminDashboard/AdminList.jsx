@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useData from "../../data/useData";
-import { PageTitle } from "../../Atoms";
+import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
 import { adminsListColumn } from "../../Constants/Columns";
 import { db } from "../../data/firebase/firebaseConfig";
@@ -9,12 +9,12 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
 import AdminEditForm from "./AdminEditForm"; // Import the separate component
-import ErrorMessage from "Atoms/ErrorMessage";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { Spinner } from "react-bootstrap";
 
 const AdminList = () => {
   const { data, loading, error, refetch } = useData("/admins/");
-  console.log("adminData_______", data)
+  console.log("adminData_______", data);
   const { hotelName } = useParams();
   const [editingAdmin, setEditingAdmin] = useState(null);
 
@@ -25,8 +25,8 @@ const AdminList = () => {
       id,
       ...admin,
       // Process hotels to create a readable string
-      hotelNames: admin.hotels 
-        ? Object.keys(admin.hotels).join(", ") 
+      hotelNames: admin.hotels
+        ? Object.keys(admin.hotels).join(", ")
         : "No hotels assigned",
       // Ensure displayName shows properly
       displayName: admin.displayName || admin.name || "",

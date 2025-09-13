@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HotelFormModal from "../../components/FormModals/HotelFormModal";
 import useHotel from "../../customHooks/useHotel";
-import { Spinner } from "Atoms";
+import { Spinner } from "atoms";
 
 function AddHotelWithAdmins() {
   const {

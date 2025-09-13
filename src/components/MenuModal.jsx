@@ -1,322 +1,228 @@
-import React from "react";
-import {
-  Clock,
-  ChefHat,
-  X,
-  Flame,
-  Users,
-  Zap,
-  AlertCircle,
-  Info,
-  FileText,
-  Activity,
-} from "lucide-react";
-import QuickInfoCard from "./Cards/QuickInfoCard";
-import NutritionCard from "./Cards/NutritionCard";
+import React, { useState, useCallback, useMemo, memo, useEffect } from "react";
+import { ChefHat, AlertCircle, Info, Shield } from "lucide-react";
+import CloseButton from "atoms/Buttons/CloseButton";
+import SpecialBadges from "atoms/Badges/SpecialBadges";
+import ImageHeader from "../atoms/Headers/ImageHeader";
+import TitlePriceSection from "molecules/Sections/TitlePriceSection";
+import TagsSection from "molecules/Sections/TagsSection";
+import QuickInfoSection from "molecules/Sections/QuickInfoSection";
+import DescriptionSection from "molecules/Sections/DescriptionSection";
+import NutritionalSection from "molecules/Sections/NutritionalSection";
+import DetailSectionGroup from "molecules/Sections/DetailSectionGroup";
+import UnavailableNotice from "atoms/Messages/UnavailableNotice";
 import {
   getAdditionalDetails,
   getDietaryItems,
   getPreparationItems,
-} from "./Cards/DetailSectionCard";
-import DetailSectionCard from "./Cards/DetailSectionCard";
-import { TagsContainer } from "Atoms/Tags";
-import { SimpleIngredientsDisplay } from "Atoms/IngredientTag";
+} from "Constants/itemConfigurations";
 
-const MenuModal = ({ show, handleClose, modalData, addToCart }) => {
-  if (!modalData || !show) return null;
+// Main MenuModal component
+const MenuModal = memo(
+  ({ show, handleClose, modalData, addToCart, isLoading = false }) => {
+    // Handle escape key
+    useEffect(() => {
+      const handleEscape = (e) => {
+        if (e.key === "Escape" && show) {
+          handleClose();
+        }
+      };
 
-  const hasDiscount = modalData.discount && modalData.discount > 0;
-  const discountPercentage = hasDiscount ? Math.round(modalData.discount) : "";
+      if (show) {
+        document.addEventListener("keydown", handleEscape);
+        document.body.style.overflow = "hidden";
+      }
 
-  const getSpiceIcon = (level) => {
-    switch (level) {
-      case "Mild":
-        return "🟢";
-      case "Medium":
-        return "🟡";
-      case "Hot":
-        return "🟠";
-      case "Extra Hot":
-        return "🔴";
-      default:
-        return "🟡";
-    }
-  };
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        document.body.style.overflow = "unset";
+      };
+    }, [show, handleClose]);
 
-  const formatNutritionalInfo = (info) => {
-    if (!info) return null;
-    console.log("info", info);
-    return Object.entries(info).filter(([key, value]) => value);
-  };
+    // Memoized backdrop click handler
+    const handleBackdropClick = useCallback(
+      (e) => {
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      },
+      [handleClose]
+    );
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={handleClose}
-      ></div>
+    // Memoized sections visibility
+    const sectionsVisibility = useMemo(() => {
+      if (!modalData) return {};
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-4xl w-full max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-        {/* Custom Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all duration-200 flex items-center justify-center group"
-        >
-          <X className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
-        </button>
+      return {
+        hasPreparationDetails: !!(
+          modalData.preparationMethod ||
+          modalData.cookingStyle ||
+          modalData.tasteProfile ||
+          modalData.texture
+        ),
+        hasDietaryInfo: !!(
+          modalData.isVegan ||
+          modalData.isGlutenFree ||
+          modalData.isSugarFree ||
+          modalData.isLactoseFree ||
+          modalData.isJainFriendly ||
+          modalData.isOrganic ||
+          modalData.isKidsFriendly
+        ),
+        hasAdditionalDetails: !!(
+          modalData.menuCategory ||
+          modalData.mealType ||
+          modalData.cuisineType ||
+          modalData.spiceLevel
+        ),
+      };
+    }, [modalData]);
 
-        {/* Special Badges */}
-        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          {hasDiscount ? (
-            <div className="bg-gradient-to-r from-green-500 to-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg animate-pulse">
-              {discountPercentage}% OFF
-            </div>
-          ) : (
-            ""
-          )}
+    // Early returns
+    if (!show) return null;
 
-          <TagsContainer data={modalData} categories={["features"]} />
-        </div>
-
-        {/* Header with Image */}
-        <div className="relative h-64 bg-gradient-to-br from-orange-50 to-red-50">
-          {modalData.imageUrl ? (
-            <img
-              src={modalData.imageUrl}
-              className="w-full h-full object-cover"
-              alt={modalData.menuName}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-              <ChefHat className="w-16 h-16 text-gray-400" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-
-          {/* Availability Badge */}
-          <div className="absolute bottom-4 right-4">
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-bold ${
-                modalData.availability === "Available"
-                  ? "bg-green-500 text-white"
-                  : "bg-red-500 text-white"
-              }`}
-            >
-              {modalData.availability === "Available"
-                ? "✅ Available"
-                : "❌ Not Available"}
-            </span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {/* Title Section */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex-1">
-              <h3 className="text-3xl font-bold text-gray-800 mb-2 leading-tight">
-                {modalData.menuName}
-              </h3>
-            </div>
-
-            {/* Price Section */}
-            <div className="text-right ml-6">
-              <div className="flex items-center gap-2 mb-1">
-                {hasDiscount ? (
-                  <span className="text-lg text-gray-400 line-through">
-                    ₹{Math.round(modalData.menuPrice)}
-                  </span>
-                ) : (
-                  ""
-                )}
-                <span className="text-3xl font-bold text-green-600">
-                  ₹{modalData.finalPrice || modalData.menuPrice}
-                </span>
-              </div>
-              {hasDiscount ? (
-                <span className="text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">
-                  Save ₹
-                  {Math.round(
-                    modalData.menuPrice -
-                      (modalData.finalPrice || modalData.menuPrice)
-                  )}
-                </span>
-              ) : (
-                ""
-              )}
-            </div>
-          </div>
-          {/* Category & Type Tags */}
-          <div>
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <TagsContainer data={modalData} categories={["primary"]} />
-            </div>
-
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <TagsContainer data={modalData} categories={["dietaries"]} />
-            </div>
-          </div>
-
-          {/* Quick Info Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <QuickInfoCard
-              icon={Clock}
-              label="Cooking Time"
-              value={`${modalData.menuCookingTime} mins`}
-              colorScheme="blue"
-            />
-
-            <QuickInfoCard
-              icon={Users}
-              label="Serves"
-              value={modalData.servingSize || 1}
-              colorScheme="orange"
-            />
-
-            <QuickInfoCard
-              icon={Flame}
-              label="Spice Level"
-              value={`${getSpiceIcon(modalData.spiceLevel)} ${
-                modalData.spiceLevel || "Medium"
-              }`}
-              colorScheme="red"
-            />
-
-            <QuickInfoCard
-              icon={Zap}
-              label="Portion"
-              value={modalData.portionSize || "Regular"}
-              colorScheme="green"
-            />
-          </div>
-
-          {/* Description Section */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-orange-500" />
-              About This Dish
+    if (!modalData) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              No Data Available
             </h3>
-            <div className="bg-gradient-to-r from-gray-50 to-orange-50 rounded-xl p-4 border-l-4 border-orange-500">
-              <p className="text-gray-700 leading-relaxed mb-3">
-                {modalData.menuContent ||
-                  `Delicious ${modalData.menuName} prepared with the finest ingredients and authentic spices.`}
-              </p>
-
-              {modalData.ingredients && (
-                <SimpleIngredientsDisplay ingredients={modalData.ingredients} />
-              )}
-            </div>
+            <p className="text-gray-600 mb-4">
+              The requested item information could not be loaded.
+            </p>
+            <button
+              onClick={handleClose}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Close
+            </button>
           </div>
-
-          {/* Preparation Details */}
-          {(modalData.preparationMethod ||
-            modalData.cookingStyle ||
-            modalData.tasteProfile ||
-            modalData.texture) && (
-            <div>
-              <DetailSectionCard
-                title="Preparation Details"
-                items={getPreparationItems()}
-                data={modalData}
-                showIcon={true}
-                iconComponent={Clock}
-                iconColor="text-pink-500"
-                containerBg="bg-pink-50"
-                containerBorder="border-green-200"
-                gridCols={{ default: 2, lg: 4 }}
-              />
-            </div>
-          )}
-
-          {/* Nutritional Information */}
-          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-green-500" />
-            Nutritional Information
-          </h3>
-          <div className="bg-green-50 rounded-xl p-4 border border-green-200 mt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 text-sm">
-              {/* Calories Card */}
-              {modalData.calories && (
-                <NutritionCard
-                  icon={Zap}
-                  label="Calories"
-                  value={modalData.calories}
-                  unit="kcal"
-                  colorScheme="green"
-                />
-              )}
-
-              {/* Other Nutritional Info Cards */}
-              {formatNutritionalInfo(modalData.nutritionalInfo)?.map(
-                ([key, value]) => (
-                  <NutritionCard
-                    key={key}
-                    label={key}
-                    value={value}
-                    unit="g"
-                    colorScheme="blue"
-                    showLetter={true}
-                    letter={key.charAt(0).toUpperCase()}
-                  />
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Dietary Information & Allergens */}
-          {(modalData.isVegan ||
-            modalData.isGlutenFree ||
-            modalData.isSugarFree ||
-            modalData.isLactoseFree ||
-            modalData.isJainFriendly ||
-            modalData.isOrganic ||
-            modalData.isKidsFriendly) && (
-            <DetailSectionCard
-              title="Dietary Information & Allergens"
-              items={getDietaryItems()}
-              data={modalData}
-              showIcon={true}
-              iconComponent={AlertCircle}
-              iconColor="text-red-500"
-              containerBg="bg-red-50"
-              containerBorder="border-red-200"
-              gridCols={{ default: 2, md: 3 }}
-            />
-          )}
-
-          {/* Additional Information */}
-          {(modalData.menuCategory ||
-            modalData.mealType ||
-            modalData.cuisineType ||
-            modalData.spiceLevel) && (
-            <DetailSectionCard
-              title="Additional Details"
-              items={getAdditionalDetails()}
-              data={modalData}
-              showIcon={true}
-              iconComponent={Info}
-              iconColor="text-red-500"
-              containerBg="bg-red-50"
-              containerBorder="border-red-200"
-              gridCols={{ default: 2, md: 3 }}
-            />
-          )}
-
-          {modalData.availability !== "Available" && (
-            <div className="w-full bg-gray-300 text-gray-600 py-4 rounded-xl flex items-center justify-center gap-3 font-semibold text-lg">
-              <X className="w-5 h-5" />
-              Currently Unavailable
-            </div>
-          )}
         </div>
+      );
+    }
 
-        {/* Bottom Accent */}
-        <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
+    const isAvailable = modalData.availability === "Available";
+
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+          onClick={handleBackdropClick}
+          aria-label="Close modal"
+        />
+
+        {/* Modal */}
+        <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+          {/* Close Button */}
+          <CloseButton onClose={handleClose} />
+
+          {/* Special Badges */}
+          <SpecialBadges modalData={modalData} />
+
+          {/* Header with Image */}
+          <ImageHeader
+            imageUrl={modalData.imageUrl}
+            menuName={modalData.menuName}
+            availability={modalData.availability}
+            isLoading={isLoading}
+          />
+
+          {/* Content */}
+          <div className="p-4 sm:p-6">
+            {/* Title and Price Section */}
+            <TitlePriceSection modalData={modalData} />
+
+            {/* Tags Section */}
+            <TagsSection modalData={modalData} />
+
+            {/* Quick Info Cards */}
+            <QuickInfoSection modalData={modalData} />
+
+            {/* Description Section */}
+            <DescriptionSection modalData={modalData} />
+
+            {/* Nutritional Information */}
+            <NutritionalSection modalData={modalData} />
+
+            {/* Detail Sections */}
+            <DetailSectionGroup
+              layout="stack"
+              sections={[
+                ...(sectionsVisibility.hasPreparationDetails
+                  ? [
+                      {
+                        title: "Preparation Details",
+                        items: getPreparationItems(),
+                        data: modalData,
+                        showIcon: true,
+                        iconComponent: ChefHat,
+                        colorScheme: "orange",
+                        gridLayout: "balanced",
+                      },
+                    ]
+                  : []),
+                ...(sectionsVisibility.hasDietaryInfo
+                  ? [
+                      {
+                        title: "Dietary Information & Allergens",
+                        items: getDietaryItems(),
+                        data: modalData,
+                        showIcon: true,
+                        iconComponent: Shield,
+                        colorScheme: "green",
+                        gridLayout: "balanced",
+                      },
+                    ]
+                  : []),
+                ...(sectionsVisibility.hasAdditionalDetails
+                  ? [
+                      {
+                        title: "Additional Details",
+                        items: getAdditionalDetails(),
+                        data: modalData,
+                        showIcon: true,
+                        iconComponent: Info,
+                        colorScheme: "blue",
+                        gridLayout: "balanced",
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+
+            {/* Unavailable Notice */}
+            {!isAvailable && <UnavailableNotice />}
+          </div>
+
+          {/* Bottom Accent */}
+          <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500" />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+);
+
+MenuModal.displayName = "MenuModal";
+
+// Default props
+MenuModal.defaultProps = {
+  show: false,
+  handleClose: () => {},
+  modalData: null,
+  addToCart: () => {},
+  isLoading: false,
 };
 
 export default MenuModal;
