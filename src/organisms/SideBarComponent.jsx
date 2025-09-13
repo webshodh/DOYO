@@ -1,178 +1,60 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-  memo,
-} from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useHotelSelection } from "context/HotelSelectionContext";
-import {
-  Home,
-  Users,
-  Settings,
-  Bell,
-  Book,
-  DollarSign,
-  Layers,
-  CreditCard,
-  BarChart2,
-  FileText,
-  ShoppingCart,
-  ChevronDown,
-  ChevronRight,
-  X,
-  Building,
-  Star,
-  Zap,
-  Shield,
-  Menu,
-  LogOut,
-  User,
-} from "lucide-react";
+import { X, Building, User, ChevronDown } from "lucide-react";
 import { toast } from "react-toastify";
 import {
-  adminMenuItems,
-  superAdminMenuItems,
+  roleThemes,
   iconMap,
+  getRoleConfig,
+  getMenuItems,
 } from "../Constants/sideBarMenuConfig";
+import SidebarHeader from "atoms/Headers/SidebarHeader";
 
-// Custom hook for outside click detection
-const useOutsideClick = (ref, handler) => {
-  useEffect(() => {
-    const listener = (event) => {
-      if (!ref.current || ref.current.contains(event.target)) {
-        return;
-      }
-      handler(event);
-    };
 
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
 
-    return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
-    };
-  }, [ref, handler]);
-};
-
-// Enhanced icon mapping with fallback
-const enhancedIconMap = {
-  dashboard: Home,
-  users: Users,
-  settings: Settings,
-  notifications: Bell,
-  book: Book,
-  payments: DollarSign,
-  inventory: Layers,
-  billing: CreditCard,
-  reports: BarChart2,
-  menus: FileText,
-  cart: ShoppingCart,
-  building: Building,
-  star: Star,
-  zap: Zap,
-  shield: Shield,
-};
-
-// Sidebar header component
-const SidebarHeader = memo(({ admin, onClose }) => (
-  <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200/50 bg-gradient-to-r from-orange-50 to-amber-50/80 relative">
-    <div className="flex items-center gap-3 min-w-0 flex-1">
-      <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-        <Building className="w-4 h-4 text-white" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <h2 className="text-lg font-semibold text-gray-800 truncate">
-          {admin ? "Admin Panel" : "Super Admin"}
-        </h2>
-        <p className="text-xs text-gray-600 hidden sm:block">
-          Management Dashboard
-        </p>
-      </div>
-    </div>
-
-    <button
-      onClick={onClose}
-      className="lg:hidden p-2 rounded-xl hover:bg-white/80 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200 group"
-      aria-label="Close sidebar"
-    >
-      <X className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" />
-    </button>
-
-    {/* Decorative bottom border */}
-    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
-  </div>
-));
-
-SidebarHeader.displayName = "SidebarHeader";
-
-// Sidebar menu item component
-const SidebarMenuItem = memo(({ item, onItemClick, isCollapsed = false }) => {
-  const IconComponent = enhancedIconMap[item.icon] || Home;
+// Menu item component
+const MenuItem = memo(({ item, onClick, role }) => {
+  const IconComponent = iconMap[item.icon] || iconMap.dashboard;
+  const theme = roleThemes[role];
 
   return (
-    <li className="group">
+    <li>
       <NavLink
         to={item.path}
-        onClick={onItemClick}
+        onClick={onClick}
         className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
+          `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             isActive
-              ? "bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 shadow-sm border border-orange-200/50"
-              : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:shadow-sm"
+              ? `bg-gradient-to-r ${theme.activeBg} ${theme.textColor} shadow-sm ${theme.borderColor} border`
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
           }`
         }
+        title={item.description}
       >
         {({ isActive }) => (
           <>
-            {/* Active indicator */}
             <div
-              className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-orange-500 to-amber-500 rounded-r-full transition-all duration-300 ${
+              className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
                 isActive
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-2"
-              }`}
-            />
-
-            {/* Icon container */}
-            <div
-              className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                isActive
-                  ? "bg-orange-200/80 text-orange-700"
-                  : "bg-gray-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600"
+                  ? `bg-gradient-to-br ${theme.gradient} text-white shadow-sm`
+                  : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
               }`}
             >
               <IconComponent className="w-4 h-4" />
             </div>
-
-            {/* Menu item text */}
-            {!isCollapsed && (
-              <span className="flex-1 font-semibold truncate">{item.name}</span>
-            )}
-
-            {/* Badge for beta/new features */}
-            {item.badge && !isCollapsed && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+            <span className="flex-1 truncate">{item.name}</span>
+            {item.badge && (
+              <span
+                className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                  isActive
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-600"
+                }`}
+              >
                 {item.badge}
               </span>
             )}
-
-            {/* Chevron indicator for active items */}
-            {isActive && !isCollapsed && (
-              <ChevronRight className="w-4 h-4 text-orange-600 flex-shrink-0" />
-            )}
-
-            {/* Hover effect overlay */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform transition-transform duration-500 ${
-                isActive
-                  ? "translate-x-0"
-                  : "-translate-x-full group-hover:translate-x-full"
-              }`}
-            />
           </>
         )}
       </NavLink>
@@ -180,151 +62,174 @@ const SidebarMenuItem = memo(({ item, onItemClick, isCollapsed = false }) => {
   );
 });
 
-SidebarMenuItem.displayName = "SidebarMenuItem";
+MenuItem.displayName = "MenuItem";
 
-// Sidebar footer component
-const SidebarFooter = memo(({ user, onLogout }) => (
-  <div className="p-4 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/80 to-slate-50/80">
-    {user && (
-      <div className="mb-3 p-3 bg-white/60 rounded-lg">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {user.displayName || "Admin"}
-            </p>
-            <p className="text-xs text-gray-500 truncate">{user.email}</p>
-          </div>
+// Hotel selector component
+const HotelSelector = memo(
+  ({ selectedHotel, availableHotels, onHotelChange, role }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const theme = roleThemes[role];
+
+    if (!availableHotels?.length > 1) return null;
+
+    return (
+      <div className="p-3 border-t border-gray-200 bg-gray-50/50">
+        <div className="relative">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200 text-sm hover:bg-gray-50 transition-colors"
+          >
+            <span className="truncate">
+              {selectedHotel?.name || "Select Hotel"}
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {isOpen && (
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-32 overflow-y-auto z-50">
+              {availableHotels.map((hotel) => (
+                <button
+                  key={hotel.id}
+                  onClick={() => {
+                    onHotelChange(hotel);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gradient-to-r hover:${theme.bgGradient} first:rounded-t-lg last:rounded-b-lg transition-colors`}
+                >
+                  {hotel.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    )}
+    );
+  }
+);
 
-    <div className="text-center">
-      <p className="text-xs text-gray-500 mb-2">Version 2.0.1</p>
-      <div className="flex items-center justify-center gap-1 text-xs text-gray-400">
-        <Zap className="w-3 h-3" />
-        <span>Powered by React</span>
+HotelSelector.displayName = "HotelSelector";
+
+// User info component
+const UserInfo = memo(({ user, role }) => {
+  const theme = roleThemes[role];
+
+  if (!user) return null;
+
+  return (
+    <div className="flex items-center gap-2 p-2 bg-white rounded-lg mb-2">
+      <div
+        className={`w-6 h-6 bg-gradient-to-br ${theme.gradient} rounded-full flex items-center justify-center`}
+      >
+        <User className="w-3 h-3 text-white" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-gray-900 truncate">
+          {user.displayName || "User"}
+        </p>
+        <p className="text-xs text-gray-500 truncate">{user.email}</p>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
-SidebarFooter.displayName = "SidebarFooter";
+UserInfo.displayName = "UserInfo";
 
 // Main Sidebar component
-const Sidebar = memo(({ isOpen, onClose, admin = false }) => {
+const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
   const { hotelName } = useParams();
   const navigate = useNavigate();
   const { selectedHotel, user, availableHotels, selectHotel } =
     useHotelSelection();
 
-  const [isHotelDropdownOpen, setIsHotelDropdownOpen] = useState(false);
-  const hotelDropdownRef = useRef(null);
-
-  // Outside click handler for hotel dropdown
-  useOutsideClick(hotelDropdownRef, () => setIsHotelDropdownOpen(false));
-
-  // Memoized menu items
-  const menu = useMemo(() => {
-    return admin ? adminMenuItems(hotelName) : superAdminMenuItems;
-  }, [admin, hotelName]);
+  // Determine role and get configuration
+  const role = getRoleConfig(admin, captain);
+  const menuItems = useMemo(
+    () => getMenuItems(role, hotelName),
+    [role, hotelName]
+  );
 
   // Event handlers
   const handleItemClick = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const handleHotelSwitch = useCallback(
+  const handleHotelChange = useCallback(
     async (hotel) => {
       try {
         selectHotel(hotel);
-        setIsHotelDropdownOpen(false);
-        navigate(`/${hotel.id}/admin/dashboard`);
+        const basePath = role === "captain" ? "captain" : "admin";
+        navigate(`/${hotel.id}/${basePath}/dashboard`);
         toast.success(`Switched to ${hotel.name}`);
       } catch (error) {
-        console.error("Error switching hotel:", error);
-        toast.error("Failed to switch hotel. Please try again.");
+        console.error("Hotel switch error:", error);
+        toast.error("Failed to switch hotel");
       }
     },
-    [selectHotel, navigate]
+    [selectHotel, navigate, role]
   );
-
-  const toggleHotelDropdown = useCallback(() => {
-    setIsHotelDropdownOpen((prev) => !prev);
-  }, []);
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-all duration-300"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
-          aria-label="Close sidebar overlay"
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-full w-64 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 transform transition-all duration-300 ease-out z-50 ${
+        className={`fixed left-0 top-0 h-full w-64 bg-white shadow-lg border-r border-gray-200 transform transition-transform duration-300 z-50 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static lg:transform-none`}
-        aria-hidden={!isOpen}
+        } lg:translate-x-0 lg:static`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <SidebarHeader admin={admin} onClose={onClose} />
+          <SidebarHeader role={role} onClose={onClose} />
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-            <div className="px-3 sm:px-4">
-              <ul className="space-y-1">
-                {menu.map((item) => (
-                  <SidebarMenuItem
-                    key={item.name}
-                    item={item}
-                    onItemClick={handleItemClick}
-                  />
-                ))}
-              </ul>
-            </div>
+          <nav className="flex-1 overflow-y-auto py-3 px-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            <ul className="space-y-1">
+              {menuItems.map((item) => (
+                <MenuItem
+                  key={item.name}
+                  item={item}
+                  onClick={handleItemClick}
+                  role={role}
+                />
+              ))}
+            </ul>
           </nav>
 
+          {/* Hotel Selector */}
+          {(admin || captain) && (
+            <HotelSelector
+              selectedHotel={selectedHotel}
+              availableHotels={availableHotels}
+              onHotelChange={handleHotelChange}
+              role={role}
+            />
+          )}
+
           {/* Footer */}
-          <SidebarFooter user={user} />
+          <div className="p-3 border-t border-gray-200 bg-gray-50/50">
+            <UserInfo user={user} role={role} />
+            <div className="text-center">
+              <p className="text-xs text-gray-400 mb-1">Version 2.1.0</p>
+              <p className="text-xs text-gray-500">Restaurant Management</p>
+            </div>
+          </div>
         </div>
       </aside>
-
-      {/* Custom scrollbar styles */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
     </>
   );
 });
 
 Sidebar.displayName = "Sidebar";
-
-// Default props
-Sidebar.defaultProps = {
-  isOpen: false,
-  onClose: () => {},
-  admin: false,
-};
 
 export default Sidebar;

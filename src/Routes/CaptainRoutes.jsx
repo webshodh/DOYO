@@ -7,7 +7,7 @@ import CaptainMenuPage from "Pages/Captain/CaptainMenuPage";
 import CartPage from "Pages/Captain/CartPage";
 import CheckoutPage from "Pages/Captain/CheckoutPage";
 import OrderSuccessPage from "Pages/Captain/OrderSuccessPage";
-import AdminDashboardLayout from "Pages/AdminDashboardLayout";
+import AdminDashboardLayout from "layout/AdminDashboardLayout";
 
 const CaptainRoutes = () => {
   return (

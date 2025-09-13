@@ -27,6 +27,8 @@ import {
   Hash,
   CheckCircle,
   XCircle,
+  Lock,
+  UserCheck,
 } from "lucide-react";
 import Modal from "../Modal";
 import {
@@ -73,9 +75,11 @@ const ValidationInput = memo(
     className = "",
     ...props
   }) => {
+    const [showPassword, setShowPassword] = useState(false);
     const hasValue = value && value.toString().trim();
     const hasError = Boolean(error);
     const isValid = hasValue && !hasError;
+    const isPassword = type === "password";
 
     return (
       <div className="relative">
@@ -86,7 +90,7 @@ const ValidationInput = memo(
             </div>
           )}
           <input
-            type={type}
+            type={isPassword ? (showPassword ? "text" : "password") : type}
             value={value}
             onChange={onChange}
             placeholder={placeholder}
@@ -98,6 +102,7 @@ const ValidationInput = memo(
               focus:outline-none focus:ring-2 focus:ring-offset-2
               disabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60
               ${Icon ? "pl-12" : ""}
+              ${isPassword ? "pr-12" : ""}
               ${
                 hasError
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50"
@@ -109,20 +114,36 @@ const ValidationInput = memo(
             `}
             {...props}
           />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              disabled={disabled}
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              ) : (
+                <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* Validation icon */}
-        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-          {disabled && (
-            <Loader className="w-4 h-4 text-gray-400 animate-spin" />
-          )}
-          {!disabled && isValid && (
-            <CheckCircle className="w-4 h-4 text-green-500" />
-          )}
-          {!disabled && hasError && (
-            <XCircle className="w-4 h-4 text-red-500" />
-          )}
-        </div>
+        {!isPassword && (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            {disabled && (
+              <Loader className="w-4 h-4 text-gray-400 animate-spin" />
+            )}
+            {!disabled && isValid && (
+              <CheckCircle className="w-4 h-4 text-green-500" />
+            )}
+            {!disabled && hasError && (
+              <XCircle className="w-4 h-4 text-red-500" />
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -420,6 +441,7 @@ const CaptainFormModal = memo(
       experience: "",
       address: "",
       photoFile: null,
+      password: "",
     });
 
     const [errors, setErrors] = useState({});
@@ -449,6 +471,7 @@ const CaptainFormModal = memo(
               address: editCaptain.address || "",
               photoFile: null,
               existingPhotoUrl: editCaptain.photoUrl || null,
+              password: "", // Never populate password field for security
             }
           : {
               firstName: "",
@@ -460,6 +483,7 @@ const CaptainFormModal = memo(
               experience: "",
               address: "",
               photoFile: null,
+              password: "",
             };
 
         setFormData(initialData);
@@ -505,13 +529,19 @@ const CaptainFormModal = memo(
         "experience",
         "address",
       ];
+
+      // For new captains, password is required
+      if (!isEditMode) {
+        requiredFields.push("password");
+      }
+
       const hasAllRequired = requiredFields.every((field) =>
         formData[field]?.toString().trim()
       );
       const hasNoErrors = Object.values(errors).every((error) => !error);
 
       return hasAllRequired && hasNoErrors && !isSubmitting && !submitting;
-    }, [formData, errors, isSubmitting, submitting]);
+    }, [formData, errors, isSubmitting, submitting, isEditMode]);
 
     // Handle form submission
     const handleSubmit = useCallback(
@@ -566,6 +596,7 @@ const CaptainFormModal = memo(
         experience: "",
         address: "",
         photoFile: null,
+        password: "",
       });
       setErrors({});
       setIsDirty(false);
@@ -621,6 +652,65 @@ const CaptainFormModal = memo(
             disabled={isSubmitting || submitting}
           />
 
+          {/* Login Credentials Section */}
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Lock className="w-5 h-5 text-purple-600" />
+              <h4 className="text-sm font-semibold text-purple-900">
+                Login Credentials
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Email (used as login credential) */}
+              <FormField
+                label="Email Address"
+                error={errors.email}
+                required
+                helpText="Used for captain login"
+              >
+                <ValidationInput
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleFieldChange("email", e.target.value)}
+                  error={errors.email}
+                  placeholder="captain@example.com"
+                  disabled={isSubmitting || submitting}
+                  icon={Mail}
+                />
+              </FormField>
+
+              {/* Password */}
+              <FormField
+                label="Password"
+                error={errors.password}
+                required={!isEditMode}
+                helpText={
+                  isEditMode
+                    ? "Leave blank to keep current password"
+                    : "Minimum 6 characters"
+                }
+              >
+                <ValidationInput
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    handleFieldChange("password", e.target.value)
+                  }
+                  error={errors.password}
+                  placeholder={
+                    isEditMode
+                      ? "Enter new password (optional)"
+                      : "Enter password"
+                  }
+                  disabled={isSubmitting || submitting}
+                  maxLength={50}
+                  icon={Lock}
+                />
+              </FormField>
+            </div>
+          </div>
+
           {/* Form Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* First Name */}
@@ -657,24 +747,6 @@ const CaptainFormModal = memo(
                 disabled={isSubmitting || submitting}
                 maxLength={30}
                 icon={User}
-              />
-            </FormField>
-
-            {/* Email */}
-            <FormField
-              label="Email Address"
-              error={errors.email}
-              required
-              helpText="Professional email address"
-            >
-              <ValidationInput
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleFieldChange("email", e.target.value)}
-                error={errors.email}
-                placeholder="captain@example.com"
-                disabled={isSubmitting || submitting}
-                icon={Mail}
               />
             </FormField>
 

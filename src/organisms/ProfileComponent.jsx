@@ -29,8 +29,7 @@ import {
 } from "lucide-react";
 
 import { useHotelSelection } from "../context/HotelSelectionContext";
-import Navbar from "./NavBarComponent";
-import Sidebar from "./SideBarComponent";
+
 
 // Custom hook for form validation
 const useFormValidation = (initialErrors = {}) => {
@@ -719,17 +718,11 @@ const Profile = memo(() => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Navbar */}
-        <Navbar
-          onMenuToggle={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-          admin={true}
-        />
+      
 
         {/* Profile Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">

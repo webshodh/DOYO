@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components';
-import { colors } from '../theme/theme';
+import React from "react";
+import styled from "styled-components";
+import { colors } from "../theme/theme";
 const PageTitleContainer = styled.div`
   margin-bottom: 20px;
 `;
@@ -13,10 +13,11 @@ const PageTitleHeading = styled.h1`
   margin-top: 20px;
 `;
 
-function PageTitle({ pageTitle }) {
+function PageTitle({ pageTitle, description }) {
   return (
     <PageTitleContainer>
       <PageTitleHeading>{pageTitle}</PageTitleHeading>
+      <p className="text-gray-600 mt-1">{description}</p>
     </PageTitleContainer>
   );
 }

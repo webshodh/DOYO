@@ -1,5 +1,12 @@
+import OrderStatusBadge from "atoms/Badges/OrderStatusBadge";
 import StatusBadge from "atoms/Badges/StatusBadge";
-import { ActionsMenu, CaptainPhoto } from "Pages/Admin Dashboard/AddCaptain";
+import {
+  CheckCircle,
+  CheckCircle2,
+  ChefHat,
+  Package,
+  Utensils,
+} from "lucide-react";
 
 export const ViewCategoryColumns = [
   { header: "Sr.No", accessor: "srNo" },
@@ -385,16 +392,66 @@ export const ViewCaptainColumns = [
     accessor: "actions",
     sortable: false,
     width: "120px",
-    cell: (row, { onEdit, onDelete, onToggleStatus, loading }) => (
-      <ActionsMenu
-        captain={row}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onToggleStatus={onToggleStatus}
-        loading={loading}
-      />
-    ),
   },
 ];
-
-export default ViewCaptainColumns;
+export const orderStatuses = [
+  { value: "received", label: "Received", color: "blue", icon: Package },
+  {
+    value: "preparing",
+    label: "Preparing",
+    color: "yellow",
+    icon: ChefHat,
+  },
+  { value: "ready", label: "Ready", color: "green", icon: CheckCircle2 },
+  { value: "served", label: "Served", color: "purple", icon: Utensils },
+  {
+    value: "completed",
+    label: "Completed",
+    color: "gray",
+    icon: CheckCircle,
+  },
+];
+// Order columns configuration for DynamicTable
+export const orderColumns = [
+  {
+    header: "Order #",
+    accessor: "orderNumber",
+    sortable: true,
+    render: (value, item) => `#${value || item.id}`,
+  },
+  {
+    header: "Table",
+    accessor: "tableNumber",
+    sortable: true,
+    render: (value, item) => `Table ${value || item.tableNo || "N/A"}`,
+  },
+  {
+    header: "Items",
+    accessor: "totalItems",
+    sortable: true,
+    render: (value, item) =>
+      `${item.orderDetails?.totalItems || item.items?.length || 0} items`,
+  },
+  {
+    header: "Total",
+    accessor: "total",
+    sortable: true,
+    render: (value, item) => `₹${item.pricing?.total || value || 0}`,
+  },
+  {
+    header: "Status",
+    accessor: "status",
+    sortable: true,
+    render: (status, item) => (
+      <OrderStatusBadge status={status} orderStatuses={orderStatuses} />
+    ),
+  },
+  {
+    header: "Time",
+    accessor: "orderTime",
+    sortable: true,
+    render: (value, item) =>
+      item.timestamps?.orderPlacedLocal ||
+      (value ? new Date(value).toLocaleTimeString() : "N/A"),
+  },
+];

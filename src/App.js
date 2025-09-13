@@ -14,7 +14,7 @@ import { HotelSelectionProvider } from "./context/HotelSelectionContext";
 
 // Components
 import LoginPage from "./Pages/Login/LoginPage";
-import SplashScreen from "./Pages/SplashScreen";
+import SplashScreen from "./Pages/Screens/SplashScreen";
 import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
 import Profile from "./organisms/ProfileComponent";
 import AddCategory from "./Pages/Admin Dashboard/AddCategory";
@@ -32,9 +32,8 @@ import {
 import AddOffers from "./Pages/Admin Dashboard/AddOffers";
 import Offers from "./Pages/User/Offers";
 import LoadingSpinner from "./atoms/LoadingSpinner";
-import SettingsPage from "./Pages/Admin Dashboard/Setting";
-import AdminLayout from "./Pages/AdminDashboardLayout";
-import SuperAdminLayout from "./Pages/SuperAdminDashboardLayout";
+import AdminLayout from "./layout/AdminDashboardLayout";
+import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
 import OptionManager from "./Pages/Admin Dashboard/AddOptions";
 import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
 import ViewHotel from "./Pages/SuperAdminDashboard/HotelList";
@@ -43,6 +42,10 @@ import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
 import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
 import AddCaptain from "Pages/Admin Dashboard/AddCaptain";
+import CaptainDashboardLayout from "layout/CaptainDashboardLayout";
+import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
+import CaptainLogin from "Pages/Captain/CaptainLogin";
+import MyOrdersPage from "Pages/Captain/MyOrderPage";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -140,6 +143,14 @@ function App() {
               element={
                 <PublicRoute>
                   <Home />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/viewMenu/:hotelName/captain/login"
+              element={
+                <PublicRoute>
+                  <CaptainLogin />
                 </PublicRoute>
               }
             />
@@ -329,7 +340,7 @@ function App() {
                         path="settings"
                         element={
                           <AdminLayout>
-                            <SettingsPage />
+                            <Profile />
                           </AdminLayout>
                         }
                       />
@@ -350,69 +361,52 @@ function App() {
                 <ProtectedAdminRoute>
                   <HotelSelectionProvider>
                     <Routes>
-                      <Route path="home" element={<CaptainMenuPage />} />
-                      <Route path="checkout" element={<CheckoutPage />} />
+                      <Route
+                        path="dashboard"
+                        element={
+                          <CaptainDashboardLayout>
+                            <CaptainDashboard />
+                          </CaptainDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="home"
+                        element={
+                          <CaptainDashboardLayout>
+                            <CaptainMenuPage />
+                          </CaptainDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="checkout"
+                        element={
+                          <CaptainDashboardLayout>
+                            <CheckoutPage />
+                          </CaptainDashboardLayout>
+                        }
+                      />
                       <Route
                         path="kitchen"
                         element={
-                          <AdminLayout>
+                          <CaptainDashboardLayout>
                             <KitchenAdminPage />
-                          </AdminLayout>
+                          </CaptainDashboardLayout>
                         }
                       />
                       <Route
-                        path="add-category"
+                        path="my-orders"
                         element={
-                          <AdminLayout>
-                            <AddCategory />
-                          </AdminLayout>
+                          <CaptainDashboardLayout>
+                            <MyOrdersPage />
+                          </CaptainDashboardLayout>
                         }
                       />
-                      <Route
-                        path="add-special-category"
-                        element={
-                          <AdminLayout>
-                            <CategoryManager />
-                          </AdminLayout>
-                        }
-                      />
-                      <Route
-                        path="add-options"
-                        element={
-                          <AdminLayout>
-                            <OptionManager />
-                          </AdminLayout>
-                        }
-                      />
-                      <Route
-                        path="add-menu"
-                        element={
-                          <AdminLayout>
-                            <AddMenu />
-                          </AdminLayout>
-                        }
-                      />
-                      <Route
-                        path="add-offers"
-                        element={
-                          <AdminLayout>
-                            <AddOffers />
-                          </AdminLayout>
-                        }
-                      />
-                      <Route
-                        path="upload-data"
-                        element={
-                          <AdminLayout>
-                            <BulkUpload />
-                          </AdminLayout>
-                        }
-                      />
+
                       <Route
                         path="settings"
                         element={
                           <AdminLayout>
-                            <SettingsPage />
+                            <Profile />
                           </AdminLayout>
                         }
                       />

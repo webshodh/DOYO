@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ref, onValue } from "firebase/database";
 import { db } from "../../data/firebase/firebaseConfig";
-import { LoaderCircle, Calendar } from "lucide-react";
+import { LoaderCircle, Calendar, Users } from "lucide-react";
 import { useHotelSelection } from "../../context/HotelSelectionContext";
-import AdminDashboardLayout from "../AdminDashboardLayout";
+import AdminDashboardLayout from "../../layout/AdminDashboardLayout";
 import AddMenu from "./AddMenu";
 import { useCategoriesData, useMainCategoriesData, useMenuData } from "data";
 import StatCard from "components/Cards/StatCard";
 import useOptionsData from "data/useOptionsData";
-import { simplifyOptions } from "utility/ConvertOptions";
+
 import { Spinner } from "atoms";
 import ErrorState from "atoms/Messages/ErrorState";
 import OrderDetailsModal from "components/order-dashboard/OrderDetailsModal";
@@ -17,6 +17,7 @@ import OrderDetailsTable from "components/order-dashboard/OrderDetailsTable";
 import OrdersByCategory from "components/order-dashboard/OrdersByCategory";
 import TopMenuCards from "components/Cards/TopMenuCard";
 import OrdersByMenu from "components/order-dashboard/OrdersByMenu";
+import LoadingSpinner from "atoms/LoadingSpinner";
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -48,12 +49,10 @@ const AdminDashboard = () => {
   const { optionsData, totalOptionsCount, categories, optionTypes, error } =
     useOptionsData(hotelName);
 
-  console.log("categories1231", totalOptionsCount);
   const optionsCategoryCount = categories.length;
 
   const { mainCategoriesData, totalMainCategories } =
     useMainCategoriesData(hotelName);
-  console.log("mainCategoriesData_____", mainCategoriesData);
 
   // Helper functions for date ranges
   const getCurrentWeekRange = () => {
@@ -412,23 +411,7 @@ const AdminDashboard = () => {
               title="Total Menu Items"
               value={totalMenus || 0}
               color="bg-gradient-to-br from-blue-50 to-blue-100"
-              icon={
-                <div className="p-2 bg-blue-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -437,23 +420,7 @@ const AdminDashboard = () => {
               title="Total Categories"
               value={totalCategories || 0}
               color="bg-gradient-to-br from-green-50 to-green-100"
-              icon={
-                <div className="p-2 bg-green-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -462,23 +429,7 @@ const AdminDashboard = () => {
               title="Options Categories"
               value={optionsCategoryCount || 0}
               color="bg-gradient-to-br from-purple-50 to-purple-100"
-              icon={
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -487,23 +438,7 @@ const AdminDashboard = () => {
               title="Options for Options Categories"
               value={totalOptionsCount || 0}
               color="bg-gradient-to-br from-orange-50 to-orange-100"
-              icon={
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
         </div>
@@ -514,23 +449,7 @@ const AdminDashboard = () => {
               title="Total Orders"
               value={orderStats.totalOrders || 0}
               color="bg-gradient-to-br from-indigo-50 to-indigo-100"
-              icon={
-                <div className="p-2 bg-indigo-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -539,23 +458,7 @@ const AdminDashboard = () => {
               title="Completed Orders"
               value={orderStats.completedOrders || 0}
               color="bg-gradient-to-br from-emerald-50 to-emerald-100"
-              icon={
-                <div className="p-2 bg-emerald-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -564,23 +467,7 @@ const AdminDashboard = () => {
               title="Rejected Orders"
               value={orderStats.rejectedOrders || 0}
               color="bg-gradient-to-br from-red-50 to-red-100"
-              icon={
-                <div className="p-2 bg-red-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -589,23 +476,7 @@ const AdminDashboard = () => {
               title="Total Revenue"
               value={`₹${orderStats.totalRevenue?.toLocaleString() || 0}`}
               color="bg-gradient-to-br from-yellow-50 to-yellow-100"
-              icon={
-                <div className="p-2 bg-yellow-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
         </div>
@@ -680,14 +551,7 @@ const AdminDashboard = () => {
           </div>
         )}
         {/* Loading States */}
-        {(menuLoading || categoriesLoading) && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8">
-            <div className="flex items-center justify-center space-x-3">
-              <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-              <Spinner />
-            </div>
-          </div>
-        )}
+        {(menuLoading || categoriesLoading) && <LoadingSpinner />}
 
         {/* Error States */}
         {(menuError || categoriesError || error) && (
@@ -695,11 +559,11 @@ const AdminDashboard = () => {
         )}
 
         {/* AddMenu Component - Enhanced Container */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+        {/* <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
           <div className="p-0">
             <AddMenu onlyView={true} />
           </div>
-        </div>
+        </div> */}
         {/* Order Details Modal */}
         {showOrderDetails && selectedOrder && (
           <OrderDetailsModal

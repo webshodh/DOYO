@@ -4,16 +4,10 @@ import { ToastContainer } from "react-toastify";
 import {
   Plus,
   Tags,
-  Search,
   LoaderCircle,
   AlertCircle,
   TrendingUp,
   Grid,
-  List,
-  Filter,
-  Download,
-  Trash2,
-  Edit3,
 } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
 import { ViewCategoryColumns } from "../../Constants/Columns";
@@ -21,67 +15,16 @@ import SearchWithButton from "molecules/SearchWithAddButton";
 import { useCategory } from "../../customHooks/useCategory";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
+import NoSearchResults from "molecules/NoSearchResults";
+import StatCard from "components/Cards/StatCard";
+import PrimaryButton from "atoms/Buttons/PrimaryButton";
+import SearchWithResults from "molecules/SearchWithResults";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 // Lazy load heavy components
 const CategoryFormModal = React.lazy(() =>
   import("../../components/FormModals/CategoryFormModals")
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
-
-// Stats card component
-const StatsCard = memo(({ icon: Icon, label, value, color = "blue" }) => {
-  const colorClasses = {
-    blue: "bg-blue-50 text-blue-600 border-blue-200",
-    green: "bg-green-50 text-green-600 border-green-200",
-    orange: "bg-orange-50 text-orange-600 border-orange-200",
-    purple: "bg-purple-50 text-purple-600 border-purple-200",
-  };
-
-  return (
-    <div
-      className={`flex items-center gap-3 p-4 rounded-lg border ${colorClasses[color]}`}
-    >
-      <Icon className="w-5 h-5" />
-      <div>
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-lg font-bold">{value}</p>
-      </div>
-    </div>
-  );
-});
-
-StatsCard.displayName = "StatsCard";
-
-
-
-// No search results component
-const NoSearchResults = memo(({ searchTerm, onClearSearch, onAddNew }) => (
-  <EmptyState
-    icon={Search}
-    title="No Categories Found"
-    description={`No categories match your search for "${searchTerm}". Try adjusting your search terms or add a new category.`}
-    className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
-  >
-    <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-      <button
-        onClick={onClearSearch}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-      >
-        <LoaderCircle className="w-4 h-4" />
-        Clear Search
-      </button>
-
-      <button
-        onClick={onAddNew}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
-      >
-        <Plus className="w-4 h-4" />
-        Add Category
-      </button>
-    </div>
-  </EmptyState>
-));
-
-NoSearchResults.displayName = "NoSearchResults";
 
 // Action buttons component
 const ActionButtons = memo(
@@ -205,11 +148,6 @@ const AddCategory = memo(() => {
     handleSearchChange("");
   }, [handleSearchChange]);
 
-  const handleExport = useCallback(() => {
-    // Export logic here
-    console.log("Exporting categories...");
-  }, []);
-
   const handleRefresh = useCallback(() => {
     refreshCategories();
   }, [refreshCategories]);
@@ -217,24 +155,11 @@ const AddCategory = memo(() => {
   // Error state
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-red-800 mb-2">
-            Error Loading Categories
-          </h3>
-          <p className="text-red-600 mb-4">
-            {error.message || "Something went wrong"}
-          </p>
-          <button
-            onClick={handleRefresh}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-          >
-            <LoaderCircle className="w-4 h-4" />
-            Try Again
-          </button>
-        </div>
-      </div>
+      <ErrorMessage
+        error={error}
+        onRetry={handleRefresh}
+        title="Error Loading Categories"
+      />
     );
   }
 
@@ -246,7 +171,7 @@ const AddCategory = memo(() => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Category Form Modal */}
-      <Suspense fallback={<div>Loading modal...</div>}>
+      <Suspense fallback={<LoadingSpinner />}>
         <CategoryFormModal
           show={showModal}
           onClose={handleModalClose}
@@ -260,45 +185,41 @@ const AddCategory = memo(() => {
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div>
-            <PageTitle
-              pageTitle="Category Management"
-              className="text-2xl sm:text-3xl font-bold text-gray-900"
-            />
-            <p className="text-gray-600 mt-1">Manage your menu categories</p>
-          </div>
+          <PageTitle
+            pageTitle="Category Management"
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description="Manage your menu categories"
+          />
 
-          <ActionButtons
+          <PrimaryButton
             onAdd={handleAddClick}
-            onExport={handleExport}
-            onRefresh={handleRefresh}
+            btnText="Add Category"
             loading={loading}
-            exportEnabled={hasCategories}
           />
         </div>
 
         {/* Stats Cards */}
         {hasCategories && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatsCard
+            <StatCard
               icon={Tags}
               label="Total Categories"
               value={stats.total}
               color="blue"
             />
-            <StatsCard
+            <StatCard
               icon={TrendingUp}
               label="Active Categories"
               value={stats.active}
               color="green"
             />
-            <StatsCard
+            <StatCard
               icon={Grid}
               label="With Items"
               value={stats.withItems}
               color="orange"
             />
-            <StatsCard
+            <StatCard
               icon={Plus}
               label="Recent (7 days)"
               value={stats.recent}
@@ -309,37 +230,15 @@ const AddCategory = memo(() => {
 
         {/* Search and Filters */}
         {hasCategories && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <SearchWithButton
-                  searchTerm={searchTerm}
-                  onSearchChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search categories by name..."
-                  onlyView={true}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                {searchTerm ? (
-                  <>
-                    <span>
-                      Showing {filteredCategories.length} of {categoryCount}
-                    </span>
-                    <button
-                      onClick={handleClearSearch}
-                      className="text-orange-500 hover:text-orange-600 underline"
-                    >
-                      Clear
-                    </button>
-                  </>
-                ) : (
-                  <span>{categoryCount} total categories</span>
-                )}
-              </div>
-            </div>
-          </div>
+          <SearchWithResults
+            searchTerm={searchTerm}
+            onSearchChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search categories by name..."
+            totalCount={categoryCount}
+            filteredCount={filteredCategories.length}
+            onClearSearch={handleClearSearch}
+            totalLabel="total categories"
+          />
         )}
 
         {/* Content */}
@@ -363,6 +262,7 @@ const AddCategory = memo(() => {
                 </Suspense>
               ) : (
                 <NoSearchResults
+                  btnText="Add Category"
                   searchTerm={searchTerm}
                   onClearSearch={handleClearSearch}
                   onAddNew={handleAddClick}

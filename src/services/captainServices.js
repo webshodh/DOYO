@@ -1,4 +1,4 @@
-import { db, storage } from "../data/firebase/firebaseConfig";
+import { db, storage, auth } from "../data/firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 import {
@@ -7,6 +7,13 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import {
+  createUserWithEmailAndPassword,
+  updatePassword,
+  deleteUser,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import {
@@ -75,6 +82,109 @@ export const captainServices = {
     }
   },
 
+  // Create Firebase Auth user for captain
+  createCaptainAuthUser: async (email, password) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential.user;
+    } catch (error) {
+      console.error("Error creating captain auth user:", error);
+      throw error;
+    }
+  },
+
+  // Delete Firebase Auth user
+  deleteCaptainAuthUser: async (user) => {
+    try {
+      await deleteUser(user);
+    } catch (error) {
+      console.error("Error deleting captain auth user:", error);
+      throw error;
+    }
+  },
+
+  // Update captain password
+  updateCaptainPassword: async (user, newPassword) => {
+    try {
+      await updatePassword(user, newPassword);
+    } catch (error) {
+      console.error("Error updating captain password:", error);
+      throw error;
+    }
+  },
+
+  // Captain login
+  captainLogin: async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Check if user is a captain
+      const captainData = await captainServices.getCaptainByAuthId(user.uid);
+      if (!captainData) {
+        await signOut(auth);
+        throw new Error("Invalid captain credentials");
+      }
+
+      return {
+        user,
+        captainData,
+        hotelName: captainData.hotelName,
+      };
+    } catch (error) {
+      console.error("Error in captain login:", error);
+      throw error;
+    }
+  },
+
+  // Captain logout
+  captainLogout: async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error in captain logout:", error);
+      throw error;
+    }
+  },
+
+  // Get captain data by Firebase Auth ID
+  getCaptainByAuthId: async (authId) => {
+    try {
+      const captainsSnapshot = await get(ref(db, "captains"));
+      if (!captainsSnapshot.exists()) {
+        return null;
+      }
+
+      const captainsData = captainsSnapshot.val();
+
+      // Search through all hotels to find the captain
+      for (const [hotelName, hotelCaptains] of Object.entries(captainsData)) {
+        for (const [captainId, captainData] of Object.entries(hotelCaptains)) {
+          if (captainData.firebaseAuthId === authId) {
+            return {
+              ...captainData,
+              hotelName,
+              captainId,
+            };
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error getting captain by auth ID:", error);
+      return null;
+    }
+  },
+
   // Subscribe to captains changes with real-time updates
   subscribeToCaptains: (hotelName, callback) => {
     if (!hotelName) {
@@ -108,8 +218,10 @@ export const captainServices = {
     return unsubscribe;
   },
 
-  // Add new captain
+  // Add new captain with Firebase Auth
   addCaptain: async (hotelName, captainData, existingCaptains = []) => {
+    let authUser = null;
+
     try {
       // Validate captain data
       const validation = validateCaptainForm(captainData, existingCaptains);
@@ -134,6 +246,12 @@ export const captainServices = {
         return false;
       }
 
+      // Create Firebase Auth user first
+      authUser = await captainServices.createCaptainAuthUser(
+        captainData.email,
+        captainData.password
+      );
+
       // Sanitize and prepare captain data
       const sanitizedData = sanitizeCaptainData(captainData);
       const captainId = uid();
@@ -151,27 +269,65 @@ export const captainServices = {
         ...sanitizedData,
         captainId,
         photoUrl,
+        firebaseAuthId: authUser.uid,
         status: "active",
+        role: "captain",
+        hotelName,
         createdAt: new Date().toISOString(),
         createdBy: captainServices.getCurrentAdminId(),
       };
 
-      // Save to database
-      await set(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
-        finalCaptainData
-      );
+      // Save to database under hotels and also create a separate captains collection for easy lookup
+      await Promise.all([
+        set(
+          ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+          finalCaptainData
+        ),
+        set(ref(db, `/captains/${hotelName}/${captainId}`), {
+          ...finalCaptainData,
+          email: captainData.email, // Store email for login reference
+        }),
+      ]);
 
-      toast.success("Captain added successfully!", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
+      toast.success(
+        "Captain added successfully! Login credentials have been created.",
+        {
+          position: toast.POSITION.TOP_RIGHT,
+        }
+      );
 
       return true;
     } catch (error) {
       console.error("Error adding captain:", error);
-      toast.error("Error adding captain. Please try again.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
+
+      // Clean up Firebase Auth user if it was created but database save failed
+      if (authUser) {
+        try {
+          await captainServices.deleteCaptainAuthUser(authUser);
+        } catch (cleanupError) {
+          console.error("Error cleaning up auth user:", cleanupError);
+        }
+      }
+
+      // Handle specific Firebase Auth errors
+      if (error.code === "auth/email-already-in-use") {
+        toast.error("Email address is already registered", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else if (error.code === "auth/weak-password") {
+        toast.error("Password should be at least 6 characters", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else if (error.code === "auth/invalid-email") {
+        toast.error("Invalid email address", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error("Error adding captain. Please try again.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+
       return false;
     }
   },
@@ -211,6 +367,20 @@ export const captainServices = {
         return false;
       }
 
+      // Get existing captain data to get Firebase Auth ID
+      const existingCaptain = await get(
+        ref(db, `/hotels/${hotelName}/captains/${captainId}`)
+      );
+
+      if (!existingCaptain.exists()) {
+        toast.error("Captain not found", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return false;
+      }
+
+      const existingData = existingCaptain.val();
+
       // Sanitize and prepare updated data
       const sanitizedData = sanitizeCaptainData(captainData);
 
@@ -233,11 +403,34 @@ export const captainServices = {
         updatedBy: captainServices.getCurrentAdminId(),
       };
 
-      // Update in database
-      await update(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
-        updateData
-      );
+      // Update in both locations
+      await Promise.all([
+        update(
+          ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+          updateData
+        ),
+        update(ref(db, `/captains/${hotelName}/${captainId}`), {
+          ...updateData,
+          email: captainData.email || existingData.email,
+        }),
+      ]);
+
+      // Update password if provided
+      if (captainData.password && captainData.password.trim()) {
+        try {
+          // Note: To update password, we need the user to be signed in
+          // In a production app, you might want to send a password reset email instead
+          // or implement a different flow for admin-initiated password changes
+          toast.info(
+            "Password update requires captain to be signed in. Consider sending a password reset email.",
+            {
+              position: toast.POSITION.TOP_RIGHT,
+            }
+          );
+        } catch (passwordError) {
+          console.error("Error updating password:", passwordError);
+        }
+      }
 
       toast.success("Captain updated successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -275,10 +468,29 @@ export const captainServices = {
         await captainServices.deleteCaptainPhoto(hotelName, captain.captainId);
       }
 
-      // Delete from database
-      await remove(
-        ref(db, `/hotels/${hotelName}/captains/${captain.captainId}`)
-      );
+      // Delete from both database locations
+      await Promise.all([
+        remove(ref(db, `/hotels/${hotelName}/captains/${captain.captainId}`)),
+        remove(ref(db, `/captains/${hotelName}/${captain.captainId}`)),
+      ]);
+
+      // Note: Firebase Auth user deletion requires the user to be recently authenticated
+      // In a production app, you might want to implement a different strategy
+      // such as disabling the account instead of deleting it
+      if (captain.firebaseAuthId) {
+        try {
+          // This will only work if admin has appropriate permissions
+          // You might want to handle this through Firebase Admin SDK on your backend
+          toast.info(
+            "Captain removed from hotel. Auth account may need manual cleanup.",
+            {
+              position: toast.POSITION.TOP_RIGHT,
+            }
+          );
+        } catch (authError) {
+          console.error("Error deleting auth user:", authError);
+        }
+      }
 
       toast.success("Captain deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -395,11 +607,19 @@ export const captainServices = {
 
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
-      await update(ref(db, `/hotels/${hotelName}/captains/${captainId}`), {
-        status: newStatus,
-        updatedAt: new Date().toISOString(),
-        updatedBy: captainServices.getCurrentAdminId(),
-      });
+      // Update in both locations
+      await Promise.all([
+        update(ref(db, `/hotels/${hotelName}/captains/${captainId}`), {
+          status: newStatus,
+          updatedAt: new Date().toISOString(),
+          updatedBy: captainServices.getCurrentAdminId(),
+        }),
+        update(ref(db, `/captains/${hotelName}/${captainId}`), {
+          status: newStatus,
+          updatedAt: new Date().toISOString(),
+          updatedBy: captainServices.getCurrentAdminId(),
+        }),
+      ]);
 
       toast.success(`Captain status changed to ${newStatus}`, {
         position: toast.POSITION.TOP_RIGHT,
@@ -412,6 +632,27 @@ export const captainServices = {
         position: toast.POSITION.TOP_RIGHT,
       });
       return false;
+    }
+  },
+
+  // Check if user is authenticated captain
+  isAuthenticatedCaptain: () => {
+    const auth = getAuth();
+    return auth.currentUser !== null;
+  },
+
+  // Get current captain data
+  getCurrentCaptain: async () => {
+    try {
+      const auth = getAuth();
+      if (!auth.currentUser) {
+        return null;
+      }
+
+      return await captainServices.getCaptainByAuthId(auth.currentUser.uid);
+    } catch (error) {
+      console.error("Error getting current captain:", error);
+      return null;
     }
   },
 };

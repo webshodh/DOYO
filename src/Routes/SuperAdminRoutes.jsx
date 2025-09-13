@@ -4,7 +4,7 @@ import { AdminList, SuperAdminDashboard } from "Pages";
 import AddHotelWithAdmins from "Pages/SuperAdminDashboard/AddHotel";
 import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
 import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
-import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
+import SuperAdminDashboardLayout from "layout/SuperAdminDashboardLayout";
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 

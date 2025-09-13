@@ -41,7 +41,7 @@ export const offerServices = {
   },
 
   // Subscribe to offers changes with real-time updates
-  subscribeToOffers: (hotelName, callback) => {
+  subscribeToOffers: (hotelName, callback, errorCallback = null) => {
     if (!hotelName) {
       callback([]);
       return () => {};
@@ -76,14 +76,96 @@ export const offerServices = {
       },
       (error) => {
         console.error("Error fetching offers:", error);
-        toast.error("Error loading offers", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        if (errorCallback) {
+          errorCallback(error);
+        } else {
+          toast.error("Error loading offers", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
         callback([]);
       }
     );
 
     return unsubscribe;
+  },
+
+  // Sort offers based on different criteria
+  sortOffers: (offers, sortOrder = "default") => {
+    if (!Array.isArray(offers)) return [];
+
+    const sortedOffers = [...offers];
+
+    switch (sortOrder) {
+      case "name_asc":
+        return sortedOffers.sort((a, b) =>
+          (a.offerName || "").localeCompare(b.offerName || "")
+        );
+
+      case "name_desc":
+        return sortedOffers.sort((a, b) =>
+          (b.offerName || "").localeCompare(a.offerName || "")
+        );
+
+      case "date_asc":
+        return sortedOffers.sort(
+          (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+        );
+
+      case "date_desc":
+      case "newest":
+        return sortedOffers.sort(
+          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
+
+      case "expiry_asc":
+        return sortedOffers.sort((a, b) => {
+          const dateA = new Date(a.validUntil || "9999-12-31");
+          const dateB = new Date(b.validUntil || "9999-12-31");
+          return dateA - dateB;
+        });
+
+      case "expiry_desc":
+        return sortedOffers.sort((a, b) => {
+          const dateA = new Date(a.validUntil || "9999-12-31");
+          const dateB = new Date(b.validUntil || "9999-12-31");
+          return dateB - dateA;
+        });
+
+      case "discount_asc":
+        return sortedOffers.sort(
+          (a, b) => (a.discountValue || 0) - (b.discountValue || 0)
+        );
+
+      case "discount_desc":
+        return sortedOffers.sort(
+          (a, b) => (b.discountValue || 0) - (a.discountValue || 0)
+        );
+
+      case "usage_asc":
+        return sortedOffers.sort(
+          (a, b) => (a.currentUsageCount || 0) - (b.currentUsageCount || 0)
+        );
+
+      case "usage_desc":
+        return sortedOffers.sort(
+          (a, b) => (b.currentUsageCount || 0) - (a.currentUsageCount || 0)
+        );
+
+      case "status":
+        return sortedOffers.sort((a, b) => {
+          const statusA = a.isActive ? (isOfferExpired(a) ? 2 : 0) : 1;
+          const statusB = b.isActive ? (isOfferExpired(b) ? 2 : 0) : 1;
+          return statusA - statusB;
+        });
+
+      case "default":
+      default:
+        // Default sort by creation date (newest first)
+        return sortedOffers.sort(
+          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
+    }
   },
 
   // Add new offer
@@ -330,15 +412,100 @@ export const offerServices = {
       .filter((offer) => {
         const search = searchTerm.toLowerCase();
         return (
-          offer.offerName.toLowerCase().includes(search) ||
-          offer.offerDescription.toLowerCase().includes(search) ||
-          offer.offerType.toLowerCase().includes(search)
+          offer.offerName?.toLowerCase().includes(search) ||
+          offer.offerDescription?.toLowerCase().includes(search) ||
+          offer.offerType?.toLowerCase().includes(search) ||
+          offer.offerCode?.toLowerCase().includes(search)
         );
       })
       .map((offer, index) => ({
         ...offer,
         srNo: index + 1,
       }));
+  },
+
+  // Bulk operations for offers
+  bulkUpdateOffers: async (hotelName, offerIds, updateData) => {
+    try {
+      const hasPermission = await offerServices.checkAdminPermission(hotelName);
+      if (!hasPermission) {
+        toast.error(
+          "You do not have permission to modify offers for this hotel"
+        );
+        return false;
+      }
+
+      const confirmBulk = window.confirm(
+        `Are you sure you want to update ${offerIds.length} offers?`
+      );
+      if (!confirmBulk) return false;
+
+      const updates = {};
+      const timestamp = new Date().toISOString();
+      const adminId = offerServices.getCurrentAdminId();
+
+      offerIds.forEach((offerId) => {
+        Object.keys(updateData).forEach((key) => {
+          updates[`/hotels/${hotelName}/offers/${offerId}/${key}`] =
+            updateData[key];
+        });
+        updates[`/hotels/${hotelName}/offers/${offerId}/updatedAt`] = timestamp;
+        updates[`/hotels/${hotelName}/offers/${offerId}/updatedBy`] = adminId;
+      });
+
+      await update(ref(db), updates);
+
+      toast.success(`${offerIds.length} offers updated successfully!`);
+      return true;
+    } catch (error) {
+      console.error("Error bulk updating offers:", error);
+      toast.error("Error updating offers. Please try again.");
+      return false;
+    }
+  },
+
+  // Duplicate an existing offer
+  duplicateOffer: async (hotelName, offer) => {
+    try {
+      const hasPermission = await offerServices.checkAdminPermission(hotelName);
+      if (!hasPermission) {
+        toast.error("You do not have permission to add offers for this hotel");
+        return false;
+      }
+
+      const confirmDuplicate = window.confirm(
+        `Are you sure you want to create a copy of "${offer.offerName}"?`
+      );
+      if (!confirmDuplicate) return false;
+
+      const newOfferId = uid();
+      const duplicatedOffer = {
+        ...offer,
+        offerId: newOfferId,
+        offerName: `${offer.offerName} (Copy)`,
+        offerCode: `${offer.offerCode}_COPY_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        createdBy: offerServices.getCurrentAdminId(),
+        currentUsageCount: 0,
+        isActive: false, // Set as inactive by default
+      };
+
+      // Remove fields that shouldn't be duplicated
+      delete duplicatedOffer.updatedAt;
+      delete duplicatedOffer.updatedBy;
+
+      await set(
+        ref(db, `/hotels/${hotelName}/offers/${newOfferId}`),
+        duplicatedOffer
+      );
+
+      toast.success("Offer duplicated successfully!");
+      return true;
+    } catch (error) {
+      console.error("Error duplicating offer:", error);
+      toast.error("Error duplicating offer. Please try again.");
+      return false;
+    }
   },
 
   // Get offer statistics
