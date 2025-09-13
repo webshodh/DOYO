@@ -1,8 +1,7 @@
 import React, { memo } from "react";
 import { Filter, Search, Utensils, Award } from "lucide-react";
-import FilterBadge from "./FilterBadge";
+import FilterBadge from "../../atoms/Badges/FilterBadge";
 import { specialCategories } from "Constants/addMenuFormConfig";
-
 
 const ActiveFilters = memo(
   ({

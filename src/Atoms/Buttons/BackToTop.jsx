@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { colors } from '../theme/theme';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { colors } from "../../theme/theme";
 // Styled components
 const BackToTopButton = styled.a`
   position: fixed;
@@ -43,10 +43,10 @@ function BackToTop() {
       setScroll(window.scrollY);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    
+    window.addEventListener("scroll", handleScroll);
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -57,7 +57,7 @@ function BackToTop() {
   return (
     <BackToTopButton
       onClick={backToTop}
-      className={scroll > 100 ? 'active' : undefined}
+      className={scroll > 100 ? "active" : undefined}
     >
       <i className="bi bi-arrow-up-short"></i>
     </BackToTopButton>

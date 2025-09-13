@@ -23,8 +23,8 @@ import {
   Building,
 } from "lucide-react";
 
-import Sidebar from "components/SideBarComponent";
-import Navbar from "components/NavBarComponent";
+import Sidebar from "organisms/SideBarComponent";
+import Navbar from "organisms/NavBarComponent";
 
 // Layout context for child components
 const LayoutContext = createContext({

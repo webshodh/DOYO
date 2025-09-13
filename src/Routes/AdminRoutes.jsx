@@ -1,7 +1,7 @@
 // Routes/AdminRoutes.jsx
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Profile from "components/ProfileComponent";
+import Profile from "organisms/ProfileComponent";
 import { AdminDashboard } from "Pages";
 import AddCategory from "Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";

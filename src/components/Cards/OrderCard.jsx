@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Eye } from "lucide-react";
-import StatusBadge from "../Atoms/StatusBadge";
-import OrderActionButtons from "./OrderActionButtons";
+import StatusBadge from "../../atoms/Badges/StatusBadge";
+import OrderActionButtons from "../../atoms/Buttons/OrderActionButtons";
 
 const OrderCard = memo(({ order, onStatusChange, onViewDetails }) => {
   const status = order.kitchen?.status || order.status || "received";

@@ -5,7 +5,7 @@ import {
   Plus,
   Tags,
   Search,
-  RefreshCw,
+  LoaderCircle,
   AlertCircle,
   TrendingUp,
   Grid,
@@ -15,16 +15,16 @@ import {
   Trash2,
   Edit3,
 } from "lucide-react";
-import PageTitle from "../../Atoms/PageTitle";
+import PageTitle from "../../atoms/PageTitle";
 import { ViewCategoryColumns } from "../../Constants/Columns";
-import SearchWithButton from "components/SearchWithAddButton";
+import SearchWithButton from "molecules/SearchWithAddButton";
 import { useCategory } from "../../customHooks/useCategory";
-import LoadingSpinner from "../../Atoms/LoadingSpinner";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
 // Lazy load heavy components
 const CategoryFormModal = React.lazy(() =>
   import("../../components/FormModals/CategoryFormModals")
 );
-const DynamicTable = React.lazy(() => import("../../components/DynamicTable"));
+const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 // Stats card component
 const StatsCard = memo(({ icon: Icon, label, value, color = "blue" }) => {
@@ -77,7 +77,7 @@ const EmptyState = memo(
           className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
+            <LoaderCircle className="w-4 h-4 animate-spin" />
           ) : (
             <Plus className="w-4 h-4" />
           )}
@@ -103,7 +103,7 @@ const NoSearchResults = memo(({ searchTerm, onClearSearch, onAddNew }) => (
         onClick={onClearSearch}
         className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
       >
-        <RefreshCw className="w-4 h-4" />
+        <LoaderCircle className="w-4 h-4" />
         Clear Search
       </button>
 
@@ -267,7 +267,7 @@ const AddCategory = memo(() => {
             onClick={handleRefresh}
             className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
+            <LoaderCircle className="w-4 h-4" />
             Try Again
           </button>
         </div>

@@ -3,14 +3,14 @@ import { Clock, Users, Zap, AlertCircle } from "lucide-react";
 
 // Import all the extracted components
 import MenuModal from "../MenuModal";
-import PriorityBadge from "Atoms/PriorityBadge";
-import DiscountBadge from "Atoms/DiscountBadge";
+import PriorityBadge from "atoms/Badges/PriorityBadge";
+import DiscountBadge from "atoms/Badges/DiscountBadge";
 import MenuImage from "components/MenuImage";
-import CategoryIndicator from "components/CategoryIndicator";
-import SpiceLevelIndicator from "Atoms/SpiceLevelIndicator";
-import SpecialFeatures from "components/SpecialFeatures";
-import PriceDisplay from "Atoms/PriceDisplay";
-import ActionButton from "Atoms/ActionButton";
+import SpiceLevelIndicator from "atoms/Badges/SpiceLevelIndicator";
+import SpecialFeatures from "atoms/Badges/SpecialFeatures";
+import PriceDisplay from "atoms/PriceDisplay";
+import ActionButton from "atoms/Buttons/ActionButton";
+import CategoryBadge from "atoms/Badges/CategoryBadge";
 
 // Utility function for text truncation
 const truncateText = (text, maxLength = 12) => {
@@ -24,6 +24,7 @@ const HorizontalMenuCard = memo(
     const [show, setShow] = useState(false);
     const [modalData, setModalData] = useState(null);
     const [isButtonLoading, setIsButtonLoading] = useState(false);
+    const isVeg = item.categoryType === "Veg" || item.categoryType === "veg";
 
     // Memoized computed values
     const isAvailable = useMemo(
@@ -124,7 +125,21 @@ const HorizontalMenuCard = memo(
             {/* Content Container */}
             <div className="flex-1 p-2 flex flex-col justify-between relative min-w-0">
               {/* Category Indicator */}
-              <CategoryIndicator categoryType={item.categoryType} />
+              {isVeg ? (
+                <CategoryBadge
+                  categoryType="veg"
+                  variant="logo"
+                  position="absolute"
+                  size="md"
+                />
+              ) : (
+                <CategoryBadge
+                  categoryType="Non Veg"
+                  variant="logo"
+                  position="absolute"
+                  size="md"
+                />
+              )}
 
               {/* Top Section */}
               <div className="flex-1 pr-6">

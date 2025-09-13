@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import {
   validateCategoryForm,
   sanitizeCategoryName,
-} from "../Validation/categoryValidation";
+} from "../validation/categoryValidation";
 
 export const categoryServices = {
   // Get current admin ID

@@ -1,20 +1,20 @@
 // components/HomeView.jsx
 import React, { Suspense } from "react";
-import NavBar from "components/Navbar";
-import ActiveFilters from "components/ActiveFilters";
-import SpecialCategoriesFilter from "components/SpecialCategoriesFilter";
+import NavBar from "organisms/Navbar";
+import ActiveFilters from "components/Filters/ActiveFilters";
+import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
 import ResultsSummary from "components/ResultsSummary";
-import MenuCardSkeleton from "Atoms/MenuCardSkeleton";
-import LoadingSpinner from "Atoms/LoadingSpinner";
-import EmptyState from "components/EmptyState";
-import CategoryFilters from "components/CategoryFilters";
-import ErrorState from "components/ErrorState";
+import MenuCardSkeleton from "atoms/MenuCardSkeleton";
+import LoadingSpinner from "atoms/LoadingSpinner";
+import EmptyState from "atoms/Messages/EmptyState";
+import CategoryFilters from "components/Filters/CategoryFilters";
+import ErrorState from "atoms/Messages/ErrorState";
 
 // Lazy loaded components
 const FilterSortSearch = React.lazy(() =>
-  import("../components/FilterSortSearch")
+  import("../organisms/FilterSortSearch")
 );
-const CategoryTabs = React.lazy(() => import("../components/CategoryTab"));
+const CategoryTabs = React.lazy(() => import("../molecules/CategoryTab"));
 const HorizontalMenuCard = React.lazy(() =>
   import("../components/Cards/HorizontalMenuCard")
 );

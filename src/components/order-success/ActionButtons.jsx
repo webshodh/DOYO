@@ -1,6 +1,6 @@
 // components/order-success/ActionButtons.jsx
 import { Home } from "lucide-react";
-import CopyButton from "./CopyButton";
+import CopyButton from "../../atoms/Buttons/CopyButton";
 
 const ActionButtons = ({
   orderNumber,

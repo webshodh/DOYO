@@ -3,11 +3,10 @@ import { Clock } from "lucide-react";
 import { QUICK_INFO_COLOR_THEMES } from "Constants/Themes/quickInfoColorThemes";
 import { QUICK_INFO_SIZE_VARIANTS } from "Constants/Themes/quickInfoSizeVariants";
 import { LAYOUT_VARIANTS } from "Constants/Themes/layoutVariants";
-import LoadingSpinner from "Atoms/LoadingSpinner";
-import ErrorState from "components/ErrorState";
+import LoadingSpinner from "atoms/LoadingSpinner";
+import ErrorState from "atoms/Messages/ErrorState";
 
 // Import constants and components
-
 
 const QuickInfoCard = memo(
   forwardRef(
@@ -37,7 +36,8 @@ const QuickInfoCard = memo(
     ) => {
       // Memoized color theme
       const colors = useMemo(
-        () => QUICK_INFO_COLOR_THEMES[colorScheme] || QUICK_INFO_COLOR_THEMES.blue,
+        () =>
+          QUICK_INFO_COLOR_THEMES[colorScheme] || QUICK_INFO_COLOR_THEMES.blue,
         [colorScheme]
       );
 

@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Star } from "lucide-react";
-import { TagsContainer } from "Atoms/Tags";
+import { TagsContainer } from "atoms/Badges/Tags";
 
 const SpecialBadges = memo(({ modalData }) => {
   const hasDiscount = modalData.discount && modalData.discount > 0;

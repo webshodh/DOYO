@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from "react";
 import { Check, X } from "lucide-react";
-import InfoItemSkeleton from "../Atoms/InfoItemSkeleton";
+import InfoItemSkeleton from "../atoms/InfoItemSkeleton";
 
 const InfoItem = memo(
   ({

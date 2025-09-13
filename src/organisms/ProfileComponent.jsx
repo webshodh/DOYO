@@ -28,7 +28,7 @@ import {
   Settings,
 } from "lucide-react";
 
-import { useHotelSelection } from "../Context/HotelSelectionContext";
+import { useHotelSelection } from "../context/HotelSelectionContext";
 import Navbar from "./NavBarComponent";
 import Sidebar from "./SideBarComponent";
 

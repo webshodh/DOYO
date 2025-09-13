@@ -9,14 +9,14 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ToastContainer } from "react-toastify";
 
 // Context Providers
-import { HotelProvider } from "./Context/HotelContext";
-import { HotelSelectionProvider } from "./Context/HotelSelectionContext";
+import { HotelProvider } from "./context/HotelContext";
+import { HotelSelectionProvider } from "./context/HotelSelectionContext";
 
 // Components
 import LoginPage from "./Pages/Login/LoginPage";
 import SplashScreen from "./Pages/SplashScreen";
 import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
-import Profile from "./components/ProfileComponent";
+import Profile from "./organisms/ProfileComponent";
 import AddCategory from "./Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "./Pages/Admin Dashboard/AddMenu";
@@ -31,7 +31,7 @@ import {
 } from "./Pages";
 import AddOffers from "./Pages/Admin Dashboard/AddOffers";
 import Offers from "./Pages/User/Offers";
-import  LoadingSpinner  from "./Atoms/LoadingSpinner";
+import LoadingSpinner from "./atoms/LoadingSpinner";
 import SettingsPage from "./Pages/Admin Dashboard/Setting";
 import AdminLayout from "./Pages/AdminDashboardLayout";
 import SuperAdminLayout from "./Pages/SuperAdminDashboardLayout";

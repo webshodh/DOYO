@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useOffersData from "../../data/useOffersData";
-import CategoryTabs from "../../components/CategoryTab";
-import NavBar from "components/Navbar";
-import { Spinner } from "Atoms";
-import ErrorMessage from "Atoms/ErrorMessage";
+import CategoryTabs from "../../molecules/CategoryTab";
+import NavBar from "organisms/Navbar";
+import { Spinner } from "atoms";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 const Offers = () => {
   const { hotelName } = useParams();

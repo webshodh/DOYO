@@ -1,5 +1,5 @@
 // Routes/SuperAdminRoutes.jsx
-import Profile from "components/ProfileComponent";
+import Profile from "organisms/ProfileComponent";
 import { AdminList, SuperAdminDashboard } from "Pages";
 import AddHotelWithAdmins from "Pages/SuperAdminDashboard/AddHotel";
 import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
@@ -7,8 +7,6 @@ import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
 import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-
 
 const SuperAdminRoutes = () => {
   return (

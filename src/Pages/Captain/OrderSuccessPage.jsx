@@ -4,13 +4,13 @@ import React from "react";
 // Import reusable components
 import SuccessAnimation from "../../components/order-success/SuccessAnimation";
 import OrderDetailsGrid from "../../components/order-success/OrderDetailsGrid";
-import EstimatedTimeCard from "../../components/order-success/EstimatedTimeCard";
+import EstimatedTimeCard from "../../components/Cards/EstimatedTimeCard";
 import OrderProgress from "../../components/order-success/OrderProgress";
-import ImportantNotes from "../../components/order-success/ImportantNotes";
+import ImportantNotes from "../../atoms/Messages/ImportantNotes";
 import ActionButtons from "../../components/order-success/ActionButtons";
 import OrderTrackingReference from "../../components/order-success/OrderTrackingReference";
-import FooterMessage from "../../components/order-success/FooterMessage";
-import ErrorMessage from "Atoms/ErrorMessage";
+import FooterMessage from "../../atoms/Messages/FooterMessage";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 const OrderSuccessPage = ({ orderDetails, onGoHome, onCallStaff }) => {
   // Validate props

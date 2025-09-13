@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHotelSelection } from "../Context/HotelSelectionContext";
+import { useHotelSelection } from "../context/HotelSelectionContext";
 import { toast } from "react-toastify";
-import { Spinner } from "Atoms";
+import { Spinner } from "atoms";
 
 const HotelSplashScreen = () => {
   const navigate = useNavigate();

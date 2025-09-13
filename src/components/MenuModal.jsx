@@ -1,16 +1,20 @@
 import React, { useState, useCallback, useMemo, memo, useEffect } from "react";
 import { ChefHat, AlertCircle, Info, Shield } from "lucide-react";
-import CloseButton from "Atoms/CloseButton";
-import SpecialBadges from "Atoms/SpecialBadges";
-import ImageHeader from "./ImageHeader";
-import TitlePriceSection from "Atoms/TitlePriceSection";
-import TagsSection from "Atoms/TagsSection";
-import QuickInfoSection from "Atoms/QuickInfoSection";
-import DescriptionSection from "Atoms/DescriptionSection";
-import NutritionalSection from "Atoms/NutritionalSection";
-import DetailSectionGroup from "Atoms/DetailSectionGroup";
-import UnavailableNotice from "Atoms/UnavailableNotice";
-import { getAdditionalDetails, getDietaryItems, getPreparationItems } from "Constants/itemConfigurations";
+import CloseButton from "atoms/Buttons/CloseButton";
+import SpecialBadges from "atoms/Badges/SpecialBadges";
+import ImageHeader from "../atoms/Headers/ImageHeader";
+import TitlePriceSection from "molecules/Sections/TitlePriceSection";
+import TagsSection from "molecules/Sections/TagsSection";
+import QuickInfoSection from "molecules/Sections/QuickInfoSection";
+import DescriptionSection from "molecules/Sections/DescriptionSection";
+import NutritionalSection from "molecules/Sections/NutritionalSection";
+import DetailSectionGroup from "molecules/Sections/DetailSectionGroup";
+import UnavailableNotice from "atoms/Messages/UnavailableNotice";
+import {
+  getAdditionalDetails,
+  getDietaryItems,
+  getPreparationItems,
+} from "Constants/itemConfigurations";
 
 // Main MenuModal component
 const MenuModal = memo(

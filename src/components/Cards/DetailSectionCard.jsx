@@ -1,12 +1,11 @@
 import React, { useMemo, memo, forwardRef } from "react";
 import { AlertCircle, Info } from "lucide-react";
 import { DETAIL_SECTION_COLOR_THEMES } from "Constants/Themes/detailSectionColorThemes";
-import InfoItemSkeleton from "Atoms/InfoItemSkeleton";
+import InfoItemSkeleton from "atoms/InfoItemSkeleton";
 import InfoItem from "components/InfoItem";
 import { GRID_LAYOUTS } from "Constants/Themes/gridLayouts";
 
 // Import constants and components
-
 
 const DetailSectionCard = memo(
   forwardRef(
@@ -36,7 +35,9 @@ const DetailSectionCard = memo(
 
       // Memoized color theme
       const colors = useMemo(
-        () => DETAIL_SECTION_COLOR_THEMES[colorScheme] || DETAIL_SECTION_COLOR_THEMES.red,
+        () =>
+          DETAIL_SECTION_COLOR_THEMES[colorScheme] ||
+          DETAIL_SECTION_COLOR_THEMES.red,
         [colorScheme]
       );
 
@@ -169,7 +170,11 @@ const DetailSectionCard = memo(
                   isLoading={item.isLoading}
                   highlightValue={item.highlightValue}
                   icon={item.icon}
-                  onClick={onItemClick ? () => handleItemClick(item, data?.[item.key]) : undefined}
+                  onClick={
+                    onItemClick
+                      ? () => handleItemClick(item, data?.[item.key])
+                      : undefined
+                  }
                   testId={`info-item-${item.key}`}
                 />
               ))}

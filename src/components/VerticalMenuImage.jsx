@@ -1,7 +1,7 @@
 // Enhanced MenuImage component with LoadingSpinner
 import React, { useState, useCallback, useMemo, memo } from "react";
 import { ImageIcon, AlertCircle } from "lucide-react";
-import LoadingSpinner from "Atoms/LoadingSpinner";
+import LoadingSpinner from "atoms/LoadingSpinner";
 const VerticalMenuImage = memo(
   ({ imageUrl, menuName, onLoad, isUnavailable }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -56,4 +56,4 @@ const VerticalMenuImage = memo(
 
 VerticalMenuImage.displayName = "VerticalMenuImage";
 
-export default VerticalMenuImage
+export default VerticalMenuImage;

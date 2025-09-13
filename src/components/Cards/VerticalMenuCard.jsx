@@ -3,56 +3,14 @@ import { Clock, Users, Zap, Eye, AlertCircle } from "lucide-react";
 
 import MenuModal from "../MenuModal";
 import VerticalMenuImage from "components/VerticalMenuImage";
-import PriorityBadge from "Atoms/PriorityBadge";
-import DiscountBadge from "Atoms/DiscountBadge";
-import CategoryIndicator from "components/CategoryIndicator";
-import SpecialFeatures from "components/SpecialFeatures";
-import SpiceLevelIndicator from "Atoms/SpiceLevelIndicator";
-import PriceDisplay from "Atoms/PriceDisplay";
-import ActionButton from "Atoms/ActionButton";
+import PriorityBadge from "atoms/Badges/PriorityBadge";
+import DiscountBadge from "atoms/Badges/DiscountBadge";
+import SpecialFeatures from "atoms/Badges/SpecialFeatures";
+import SpiceLevelIndicator from "atoms/Badges/SpiceLevelIndicator";
+import PriceDisplay from "atoms/PriceDisplay";
+import ActionButton from "atoms/Buttons/ActionButton";
+import CategoryBadge from "atoms/Badges/CategoryBadge";
 
-// Import reusable components from previous extractions
-
-// Enhanced ActionButton for vertical layout
-// const VerticalActionButton = memo(
-//   ({ isAvailable, onClick, isLoading = false }) => {
-//     return (
-//       <button
-//         onClick={onClick}
-//         disabled={!isAvailable || isLoading}
-//         className={`w-full py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-//           isAvailable && !isLoading
-//             ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 focus:ring-orange-500"
-//             : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//         }`}
-//         aria-label={
-//           isAvailable ? "View menu item details" : "Item currently unavailable"
-//         }
-//       >
-//         {isLoading ? (
-//           <>
-//             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-//             Loading...
-//           </>
-//         ) : isAvailable ? (
-//           <>
-//             <Eye size={16} />
-//             View Details
-//           </>
-//         ) : (
-//           <>
-//             <AlertCircle size={16} />
-//             Unavailable
-//           </>
-//         )}
-//       </button>
-//     );
-//   }
-// );
-
-// VerticalActionButton.displayName = "VerticalActionButton";
-
-// Main VerticalMenuCard component
 const VerticalMenuCard = memo(
   ({
     item,
@@ -64,6 +22,7 @@ const VerticalMenuCard = memo(
     const [show, setShow] = useState(false);
     const [modalData, setModalData] = useState(null);
     const [isButtonLoading, setIsButtonLoading] = useState(false);
+    const isVeg = item.categoryType === "Veg" || item.categoryType === "veg";
 
     // Memoized computed values
     const isAvailable = useMemo(
@@ -156,7 +115,22 @@ const VerticalMenuCard = memo(
           {/* Overlay Badges */}
           <PriorityBadge item={item} />
           <DiscountBadge discount={item.discount} />
-          <CategoryIndicator categoryType={item.categoryType} />
+          {/* Category Indicator */}
+          {isVeg ? (
+            <CategoryBadge
+              categoryType="veg"
+              variant="logo"
+              position="absolute"
+              size="md"
+            />
+          ) : (
+            <CategoryBadge
+              categoryType="Non Veg"
+              variant="logo"
+              position="absolute"
+              size="md"
+            />
+          )}
 
           {/* Content Section */}
           <div className="p-4 space-y-3">

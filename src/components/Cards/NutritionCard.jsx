@@ -2,13 +2,12 @@ import React, { useMemo, memo, forwardRef } from "react";
 import { Activity } from "lucide-react";
 import { COLOR_THEMES } from "Constants/Themes/colorThemes";
 import { SIZE_VARIANTS } from "Constants/Themes/sizeVariants";
-import LoadingSpinner from "Atoms/LoadingSpinner";
-import ErrorState from "components/ErrorState";
-import IconContainer from "Atoms/IconContainer";
-import ValueDisplay from "Atoms/ValueDisplay";
+import LoadingSpinner from "atoms/LoadingSpinner";
+import ErrorState from "atoms/Messages/ErrorState";
+import IconContainer from "atoms/IconContainer";
+import ValueDisplay from "atoms/ValueDisplay";
 
 // Import constants and components
-
 
 // Main NutritionCard component with forwardRef
 const NutritionCard = memo(

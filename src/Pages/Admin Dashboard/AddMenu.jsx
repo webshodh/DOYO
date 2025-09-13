@@ -4,13 +4,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
 import { DynamicTable } from "components";
 import { ViewMenuColumns } from "Constants/Columns";
-import CategoryTabs from "components/CategoryTab";
-import { PageTitle, Spinner } from "Atoms";
-import SearchWithButton from "components/SearchWithAddButton";
+import CategoryTabs from "molecules/CategoryTab";
+import { PageTitle, Spinner } from "atoms";
+import SearchWithButton from "molecules/SearchWithAddButton";
 import MenuFormModal from "../../components/FormModals/MenuFormModal";
 import { useMenu } from "../../customHooks/menu";
 
-function AddMenu({onlyView}) {
+function AddMenu({ onlyView }) {
   const [show, setShow] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedMenuData, setEditedMenuData] = useState(null);

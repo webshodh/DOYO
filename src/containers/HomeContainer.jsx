@@ -5,7 +5,7 @@ import { useHomeData } from "../customHooks/useHomeData";
 import { useFiltering } from "../customHooks/useFiltering";
 import { useUIState } from "../customHooks/useUIState";
 import { specialCategories } from "../Constants/addMenuFormConfig";
-import HomeView from "../View/HomeView";
+import HomeView from "../view/HomeView";
 
 const HomeContainer = memo(() => {
   const { hotelName } = useParams();

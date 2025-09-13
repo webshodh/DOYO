@@ -1,12 +1,10 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { ArrowLeft, ShoppingCart, Info } from "lucide-react";
-import ErrorState from "components/ErrorState";
+import ErrorState from "atoms/Messages/ErrorState";
 import CartItem from "components/CartItem";
-import OrderSummary from "components/OrderSummary";
+import OrderSummary from "components/order-dashboard/OrderSummary";
 import InfoCard from "components/Cards/InfoCard";
-import EmptyState from "components/EmptyState";
-
-
+import EmptyState from "atoms/Messages/EmptyState";
 
 // Empty cart component using existing EmptyState
 const EmptyCart = ({ onGoBack }) => (

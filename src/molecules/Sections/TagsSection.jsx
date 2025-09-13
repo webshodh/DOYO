@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { TagsContainer } from "Atoms/Tags";
+import { TagsContainer } from "atoms/Badges/Tags";
 
 const TagsSection = memo(({ modalData }) => (
   <div className="space-y-3 mb-6">

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import LoadingSpinner from "../Atoms/LoadingSpinner";
+import LoadingSpinner from "../atoms/LoadingSpinner";
 
 const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL;
 

@@ -20,7 +20,7 @@ import {
   Hash,
 } from "lucide-react";
 import Modal from "../Modal";
-import { validateCategoryName } from "../../Validation/categoryValidation";
+import { validateCategoryName } from "../../validation/categoryValidation";
 
 // Form field component
 const FormField = memo(

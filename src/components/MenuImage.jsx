@@ -1,6 +1,6 @@
 import React, { useState, useCallback, memo } from "react";
 import { ImageIcon } from "lucide-react";
-import LoadingSpinner from "../Atoms/LoadingSpinner";
+import LoadingSpinner from "../atoms/LoadingSpinner";
 
 const MenuImage = memo(
   ({

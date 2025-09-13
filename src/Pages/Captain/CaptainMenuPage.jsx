@@ -6,7 +6,7 @@ import {
   ShoppingCart,
   Filter,
   X,
-  RefreshCw,
+  LoaderCircle,
   AlertCircle,
   Wifi,
   WifiOff,
@@ -215,7 +215,10 @@ const EmptyState = ({ hasFilters, onClearFilters, isLoading = false }) => (
   <div className="text-center py-16">
     <div className="mb-4">
       {isLoading ? (
-        <RefreshCw size={64} className="mx-auto text-gray-300 animate-spin" />
+        <LoaderCircle
+          size={64}
+          className="mx-auto text-gray-300 animate-spin"
+        />
       ) : (
         <ShoppingCart size={64} className="mx-auto text-gray-300" />
       )}
@@ -257,7 +260,7 @@ const ErrorState = ({ error, onRetry }) => (
         onClick={onRetry}
         className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
       >
-        <RefreshCw size={16} />
+        <LoaderCircle size={16} />
         Try Again
       </button>
     </div>

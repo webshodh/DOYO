@@ -2,21 +2,21 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ref, onValue } from "firebase/database";
 import { db } from "../../data/firebase/firebaseConfig";
-import { RefreshCw, Calendar } from "lucide-react";
-import { useHotelSelection } from "../../Context/HotelSelectionContext";
+import { LoaderCircle, Calendar } from "lucide-react";
+import { useHotelSelection } from "../../context/HotelSelectionContext";
 import AdminDashboardLayout from "../AdminDashboardLayout";
 import AddMenu from "./AddMenu";
 import { useCategoriesData, useMainCategoriesData, useMenuData } from "data";
-import StatCard from "Atoms/StatCard";
+import StatCard from "components/Cards/StatCard";
 import useOptionsData from "data/useOptionsData";
 import { simplifyOptions } from "utility/ConvertOptions";
-import { Spinner } from "Atoms";
-import ErrorState from "components/ErrorState";
-import OrderDetailsModal from "components/OrderDetailsModal";
-import OrderDetailsTable from "components/OrderDetailsTable";
-import OrdersByCategory from "components/OrdersByCategory";
+import { Spinner } from "atoms";
+import ErrorState from "atoms/Messages/ErrorState";
+import OrderDetailsModal from "components/order-dashboard/OrderDetailsModal";
+import OrderDetailsTable from "components/order-dashboard/OrderDetailsTable";
+import OrdersByCategory from "components/order-dashboard/OrdersByCategory";
 import TopMenuCards from "components/Cards/TopMenuCard";
-import OrdersByMenu from "components/OrdersByMenu";
+import OrdersByMenu from "components/order-dashboard/OrdersByMenu";
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -371,7 +371,7 @@ const AdminDashboard = () => {
                 onClick={() => window.location.reload()}
                 className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
-                <RefreshCw size={16} />
+                <LoaderCircle size={16} />
                 Refresh
               </button>
             </div>
@@ -618,7 +618,7 @@ const AdminDashboard = () => {
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
             <OrdersByCategory categoryData={categoryStats} />
           </div>
-<div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Quick Insights
             </h2>
@@ -661,12 +661,10 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-         
         </div>
         {/* Orders by Category and Quick Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-           {/* Orders by Menu */}
+          {/* Orders by Menu */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
             <OrdersByMenu menuData={menuStats} />
           </div>

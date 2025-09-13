@@ -1,14 +1,13 @@
 import React, { useCallback, useMemo, memo, forwardRef } from "react";
 import { AlertCircle } from "lucide-react";
-import DiscountBadge from "Atoms/DiscountBadge";
-import VegIndicator from "Atoms/VegIndicator";
-import PriceDisplay from "Atoms/PriceDisplay";
-import QuantityControls from "Atoms/QuantityControls";
-import AddToCartButton from "Atoms/AddToCartButton";
-import AvailabilityOverlay from "Atoms/AvailabilityOverlay";
+import DiscountBadge from "atoms/Badges/DiscountBadge";
+import PriceDisplay from "atoms/PriceDisplay";
+import QuantityControls from "../QuantityControls";
+import AddToCartButton from "atoms/Buttons/AddToCartButton";
+import AvailabilityOverlay from "atoms/Messages/AvailabilityOverlay";
+import CategoryBadge from "atoms/Badges/CategoryBadge";
 
 // Import reusable components
-
 
 // Main CaptainMenuCard component
 const CaptainMenuCard = memo(
@@ -131,9 +130,22 @@ const CaptainMenuCard = memo(
               </div>
 
               {/* Veg/Non-Veg Symbol */}
-              <div className="flex-shrink-0 ml-2">
-                <VegIndicator isVeg={isVeg} />
-              </div>
+              {/* Category Indicator */}
+              {isVeg ? (
+                <CategoryBadge
+                  categoryType="veg"
+                  variant="logo"
+                  position="absolute"
+                  size="md"
+                />
+              ) : (
+                <CategoryBadge
+                  categoryType="Non Veg"
+                  variant="logo"
+                  position="absolute"
+                  size="md"
+                />
+              )}
             </div>
 
             {/* Second Row: Price and Add to Cart Button */}

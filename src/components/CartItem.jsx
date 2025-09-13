@@ -1,8 +1,7 @@
-import PriceDisplay from "Atoms/PriceDisplay";
+import PriceDisplay from "atoms/PriceDisplay";
 import QuantityControls from "./QuantityControls";
-import VegIndicator from "Atoms/VegIndicator";
 import React, { memo } from "react";
-
+import CategoryBadge from "atoms/Badges/CategoryBadge";
 
 const CartItem = memo(({ item, onQuantityChange, isUpdating = false }) => {
   const isVeg = item.categoryType === "Veg" || item.categoryType === "veg";
@@ -14,7 +13,11 @@ const CartItem = memo(({ item, onQuantityChange, isUpdating = false }) => {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="font-semibold text-gray-800">{item.menuName}</h3>
-            <VegIndicator isVeg={isVeg} />
+            {isVeg ? (
+              <CategoryBadge categoryType="veg" variant="logo" />
+            ) : (
+              <CategoryBadge categoryType="Non Veg" variant="logo" />
+            )}
           </div>
 
           <PriceDisplay

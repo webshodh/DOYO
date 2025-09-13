@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from "react";
 import { Activity } from "lucide-react";
-import NutritionPanel from "./NutritionPanel";
+import NutritionPanel from "../../atoms/NutritionPanel";
 import { CaloriesCard } from "components/Cards/PreConfiguredCards";
 import NutritionCard from "components/Cards/NutritionCard";
 

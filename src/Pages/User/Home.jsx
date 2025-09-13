@@ -10,26 +10,24 @@ import { useParams, useLocation } from "react-router-dom";
 import { db } from "../../data/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { specialCategories } from "../../Constants/addMenuFormConfig";
-import ErrorState from "components/ErrorState";
-import NavBar from "components/Navbar";
-import ActiveFilters from "components/ActiveFilters";
-import SpecialCategoriesFilter from "components/SpecialCategoriesFilter";
+import ErrorState from "atoms/Messages/ErrorState";
+import NavBar from "organisms/Navbar";
+import ActiveFilters from "components/Filters/ActiveFilters";
+import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
 import ResultsSummary from "components/ResultsSummary";
-import MenuCardSkeleton from "Atoms/MenuCardSkeleton";
-import LoadingSpinner from "Atoms/LoadingSpinner";
-import EmptyState from "components/EmptyState";
+import MenuCardSkeleton from "atoms/MenuCardSkeleton";
+import LoadingSpinner from "atoms/LoadingSpinner";
+import EmptyState from "atoms/Messages/EmptyState";
 
 // Lazy load heavy components
-const Navbar = React.lazy(() => import("../../components/Navbar"));
+const Navbar = React.lazy(() => import("../../organisms/Navbar"));
 const FilterSortSearch = React.lazy(() =>
-  import("../../components/FilterSortSearch")
+  import("../../organisms/FilterSortSearch")
 );
-const CategoryTabs = React.lazy(() => import("../../components/CategoryTab"));
+const CategoryTabs = React.lazy(() => import("../../molecules/CategoryTab"));
 const HorizontalMenuCard = React.lazy(() =>
   import("../../components/Cards/HorizontalMenuCard")
 );
-
-
 
 // Main Home component
 const Home = memo(() => {

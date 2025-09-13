@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { FileText } from "lucide-react";
-import { SimpleIngredientsDisplay } from "Atoms/IngredientTag";
+import { SimpleIngredientsDisplay } from "atoms/Badges/IngredientTag";
 
 const DescriptionSection = memo(({ modalData }) => (
   <div className="mb-6">

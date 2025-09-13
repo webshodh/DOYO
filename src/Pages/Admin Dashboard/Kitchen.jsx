@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { db } from "../../data/firebase/firebaseConfig";
-import { RefreshCw, Calendar } from "lucide-react";
-import LoadingSpinner from "Atoms/LoadingSpinner";
+import { LoaderCircle, Calendar } from "lucide-react";
+import LoadingSpinner from "atoms/LoadingSpinner";
 import HeaderStats from "components/HeaderStats";
-import OrderFilters from "components/OrderFilters";
-import EmptyState from "components/EmptyState";
-import OrderCard from "components/OrderCard";
-import OrderDetailsModal from "components/OrderDetailsModal";
+import OrderFilters from "components/order-dashboard/OrderFilters";
+import EmptyState from "atoms/Messages/EmptyState";
+import OrderCard from "components/Cards/OrderCard";
+import OrderDetailsModal from "components/order-dashboard/OrderDetailsModal";
 import { useParams } from "react-router-dom";
 
 const KitchenAdminPage = () => {
@@ -280,7 +280,7 @@ const KitchenAdminPage = () => {
                 onClick={handleRefresh}
                 className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
-                <RefreshCw size={16} />
+                <LoaderCircle size={16} />
                 Refresh
               </button>
             </div>

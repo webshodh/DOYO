@@ -3,15 +3,13 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ref, push, set, get } from "firebase/database";
 import { db } from "../../data/firebase/firebaseConfig";
-import EmptyCartMessage from "Atoms/EmptyCartMessage";
-import CheckoutHeader from "Atoms/CheckoutHeader";
-import OrderNumberDisplay from "Atoms/OrderNumberDisplay";
-import TableNumberInput from "Atoms/TableNumberInput";
-import OrderSummary from "components/OrderSummary";
-import PlaceOrderButton from "Atoms/PlaceOrderButton";
-import OrderInfoAlert from "Atoms/OrderInfoAlert";
-
-
+import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
+import CheckoutHeader from "atoms/Headers/CheckoutHeader";
+import OrderNumberDisplay from "atoms/OrderNumberDisplay";
+import TableNumberInput from "atoms/TableNumberInput";
+import OrderSummary from "components/order-dashboard/OrderSummary";
+import PlaceOrderButton from "atoms/Buttons/PlaceOrderButton";
+import OrderInfoAlert from "atoms/Messages/OrderInfoAlert";
 
 const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   const [tableNumber, setTableNumber] = useState("");

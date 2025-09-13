@@ -7,7 +7,7 @@ import React, {
   memo,
 } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
-import { useHotelSelection } from "Context/HotelSelectionContext";
+import { useHotelSelection } from "context/HotelSelectionContext";
 import {
   Home,
   Users,

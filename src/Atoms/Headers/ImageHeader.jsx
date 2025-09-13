@@ -1,6 +1,6 @@
 import React, { useState, useCallback, memo } from "react";
 import { ChefHat, AlertCircle, CheckCircle, ImageIcon } from "lucide-react";
-import LoadingSpinner from "Atoms/LoadingSpinner";
+import LoadingSpinner from "atoms/LoadingSpinner";
 
 const ImageHeader = memo(
   ({ imageUrl, menuName, availability, isLoading = false }) => {

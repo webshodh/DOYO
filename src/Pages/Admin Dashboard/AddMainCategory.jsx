@@ -2,14 +2,14 @@
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import PageTitle from "../../Atoms/PageTitle";
+import PageTitle from "../../atoms/PageTitle";
 import { ViewCategoryColumns } from "../../Constants/Columns";
 import { DynamicTable } from "../../components";
-import SearchWithButton from "../../components/SearchWithAddButton";
+import SearchWithButton from "../../molecules/SearchWithAddButton";
 import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
 import { useCategoryManager } from "../../customHooks/mainCategory";
-import { Spinner } from "Atoms";
-import ErrorMessage from "Atoms/ErrorMessage";
+import { Spinner } from "atoms";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 const CategoryManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,7 +27,7 @@ const CategoryManager = () => {
     addCategory,
     updateCategory,
     deleteCategory,
-    hasCategories
+    hasCategories,
   } = useCategoryManager(hotelName);
 
   // Filter and format categories for table
@@ -84,12 +84,13 @@ const CategoryManager = () => {
       <div style={{ margin: "20px" }}>
         <PageTitle pageTitle="View Special Categories" />
         {hasCategories && (
-              <div className="text-sm text-gray-600">
-                {searchTerm
-                  ? `Showing ${filteredCategories.length} of ${categoryCount} categories`
-                  : `Total: ${categoryCount} categories`}gg
-              </div>
-            )}
+          <div className="text-sm text-gray-600">
+            {searchTerm
+              ? `Showing ${filteredCategories.length} of ${categoryCount} categories`
+              : `Total: ${categoryCount} categories`}
+            gg
+          </div>
+        )}
         <CategoryFormModal
           show={showModal}
           onClose={handleCloseModal}
