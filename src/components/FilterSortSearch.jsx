@@ -192,8 +192,6 @@ const SortDropdown = memo(({ onSort, currentSort, disabled = false }) => {
       { key: "default", label: "Default", icon: null },
       { key: "lowToHigh", label: "Price: Low to High", icon: SortAsc },
       { key: "highToLow", label: "Price: High to Low", icon: SortDesc },
-      { key: "nameAsc", label: "Name: A to Z", icon: SortAsc },
-      { key: "nameDesc", label: "Name: Z to A", icon: SortDesc },
     ],
     []
   );
@@ -493,20 +491,7 @@ const FilterSortSearch = memo(
               Reset
             </ActionButton>
           )}
-
-          {/* Home Button */}
-          {showHomeButton && (
-            <ActionButton
-              to="/"
-              variant="primary"
-              size="md"
-              icon={Home}
-              {...homeButtonProps}
-            >
-              <span className="hidden sm:inline">Home</span>
-            </ActionButton>
-          )}
-        </div>
+c        </div>
       </div>
     );
   }

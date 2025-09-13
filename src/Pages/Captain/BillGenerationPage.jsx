@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ref, get } from "firebase/database";
-import { db } from "../data/firebase/firebaseConfig";
-import ConsolidatedBill from "../components/billing/ConsolidatedBill";
+import { db } from "../../data/firebase/firebaseConfig";
 import { Search, Receipt, AlertCircle } from "lucide-react";
 
 const BillGenerationPage = () => {
@@ -134,16 +133,6 @@ const BillGenerationPage = () => {
             </div>
           )}
         </div>
-
-        {/* Bill Display */}
-        {sessionData && (
-          <ConsolidatedBill
-            sessionData={sessionData}
-            onPrint={handlePrint}
-            onDownload={handleDownload}
-            onShare={handleShare}
-          />
-        )}
 
         {/* No Results */}
         {!sessionData && !isLoading && tableNumber && !error && (
