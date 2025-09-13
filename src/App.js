@@ -42,6 +42,7 @@ import ViewSubscription from "./Pages/SuperAdminDashboard/Subcription";
 import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
 import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
+import AddCaptain from "Pages/Admin Dashboard/AddCaptain";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -244,7 +245,7 @@ function App() {
               }
             />
 
-            {/* Hotel-specific Admin Routes */}
+            {/* Admin Routes */}
             <Route
               path="/:hotelName/admin/*"
               element={
@@ -297,6 +298,14 @@ function App() {
                         element={
                           <AdminLayout>
                             <AddOffers />
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path="add-captain"
+                        element={
+                          <AdminLayout>
+                            <AddCaptain />
                           </AdminLayout>
                         }
                       />

@@ -3,27 +3,40 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import {
   Plus,
-  Tags,
+  Users,
   Search,
   LoaderCircle,
   AlertCircle,
   TrendingUp,
-  Grid,
-  List,
+  UserCheck,
+  UserX,
+  Clock,
   Filter,
   Download,
-  Trash2,
+  RefreshCw,
+  User,
+  Mail,
+  Phone,
+  CreditCard,
+  Calendar,
+  MapPin,
+  CheckCircle,
+  XCircle,
   Edit3,
+  Trash2,
+  MoreHorizontal,
 } from "lucide-react";
+
 import PageTitle from "../../atoms/PageTitle";
-import { ViewCategoryColumns } from "../../Constants/Columns";
+import { ViewCaptainColumns } from "../../Constants/Columns";
 import SearchWithButton from "molecules/SearchWithAddButton";
-import { useCategory } from "../../customHooks/useCategory";
+import { useCaptain } from "../../customHooks/useCaptain";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
+
 // Lazy load heavy components
-const CategoryFormModal = React.lazy(() =>
-  import("../../components/FormModals/CategoryFormModals")
+const CaptainFormModal = React.lazy(() =>
+  import("../../components/FormModals/CaptainFormModal")
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -34,6 +47,7 @@ const StatsCard = memo(({ icon: Icon, label, value, color = "blue" }) => {
     green: "bg-green-50 text-green-600 border-green-200",
     orange: "bg-orange-50 text-orange-600 border-orange-200",
     purple: "bg-purple-50 text-purple-600 border-purple-200",
+    red: "bg-red-50 text-red-600 border-red-200",
   };
 
   return (
@@ -51,14 +65,12 @@ const StatsCard = memo(({ icon: Icon, label, value, color = "blue" }) => {
 
 StatsCard.displayName = "StatsCard";
 
-
-
 // No search results component
 const NoSearchResults = memo(({ searchTerm, onClearSearch, onAddNew }) => (
   <EmptyState
     icon={Search}
-    title="No Categories Found"
-    description={`No categories match your search for "${searchTerm}". Try adjusting your search terms or add a new category.`}
+    title="No Captains Found"
+    description={`No captains match your search for "${searchTerm}". Try adjusting your search terms or add a new captain.`}
     className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
   >
     <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
@@ -75,7 +87,7 @@ const NoSearchResults = memo(({ searchTerm, onClearSearch, onAddNew }) => (
         className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
       >
         <Plus className="w-4 h-4" />
-        Add Category
+        Add Captain
       </button>
     </div>
   </EmptyState>
@@ -93,105 +105,194 @@ const ActionButtons = memo(
         className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
         <Plus className="w-4 h-4" />
-        <span className="hidden sm:inline">Add Category</span>
+        <span className="hidden sm:inline">Add Captain</span>
       </button>
+
+      <button
+        onClick={onRefresh}
+        disabled={loading}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-all duration-200 disabled:opacity-50"
+      >
+        <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+        <span className="hidden sm:inline">Refresh</span>
+      </button>
+
+      {exportEnabled && (
+        <button
+          onClick={onExport}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded-lg transition-all duration-200 disabled:opacity-50"
+        >
+          <Download className="w-4 h-4" />
+          <span className="hidden sm:inline">Export</span>
+        </button>
+      )}
     </div>
   )
 );
 
 ActionButtons.displayName = "ActionButtons";
+// Status Badge Component
 
-// Main AddCategory component
-const AddCategory = memo(() => {
+
+
+
+// Actions Menu Component
+export const ActionsMenu = ({
+  captain,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+  loading,
+}) => {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => onEdit(captain)}
+        disabled={loading}
+        className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors disabled:opacity-50"
+        title="Edit Captain"
+      >
+        <Edit3 className="w-4 h-4" />
+      </button>
+
+      <button
+        onClick={() => onToggleStatus(captain.captainId, captain.status)}
+        disabled={loading}
+        className={`p-1 rounded transition-colors disabled:opacity-50 ${
+          captain.status === "active"
+            ? "text-red-600 hover:text-red-800 hover:bg-red-50"
+            : "text-green-600 hover:text-green-800 hover:bg-green-50"
+        }`}
+        title={
+          captain.status === "active"
+            ? "Deactivate Captain"
+            : "Activate Captain"
+        }
+      >
+        {captain.status === "active" ? (
+          <XCircle className="w-4 h-4" />
+        ) : (
+          <CheckCircle className="w-4 h-4" />
+        )}
+      </button>
+
+      <button
+        onClick={() => onDelete(captain)}
+        disabled={loading}
+        className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+        title="Delete Captain"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+// Main AddCaptain component
+const AddCaptain = memo(() => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [viewMode, setViewMode] = useState("table"); // table, grid
+  const [editingCaptain, setEditingCaptain] = useState(null);
 
-  // Use custom hook for category management
+  // Use custom hook for captain management
   const {
-    categories,
-    filteredCategories,
+    captains,
+    filteredCaptains,
     searchTerm,
     loading,
     submitting,
     error,
     handleFormSubmit,
     handleSearchChange,
-    deleteCategory,
+    deleteCaptain,
+    toggleCaptainStatus,
     prepareForEdit,
-    refreshCategories,
-    categoryCount,
-    hasCategories,
+    refreshCaptains,
+    captainCount,
+    hasCaptains,
     hasSearchResults,
-  } = useCategory(hotelName);
+    activeCaptains,
+    inactiveCaptains,
+  } = useCaptain(hotelName);
 
   // Memoized calculations
-  const stats = useMemo(
-    () => ({
-      total: categoryCount,
-      active: categories.filter((cat) => cat.status === "active").length,
-      withItems: categories.filter((cat) => cat.itemCount > 0).length,
-      recent: categories.filter((cat) => {
-        const createdDate = new Date(cat.createdAt);
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        return createdDate > weekAgo;
-      }).length,
-    }),
-    [categories, categoryCount]
-  );
+  const stats = useMemo(() => {
+    const recentCount = captains.filter((captain) => {
+      const createdDate = new Date(captain.createdAt);
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      return createdDate > weekAgo;
+    }).length;
+
+    return {
+      total: captainCount,
+      active: activeCaptains,
+      inactive: inactiveCaptains,
+      recent: recentCount,
+    };
+  }, [captains, captainCount, activeCaptains, inactiveCaptains]);
 
   // Event handlers
   const handleAddClick = useCallback(() => {
-    setEditingCategory(null);
+    setEditingCaptain(null);
     setShowModal(true);
   }, []);
 
   const handleEditClick = useCallback(
-    async (category) => {
+    async (captain) => {
       try {
-        const categoryToEdit = await prepareForEdit(category);
-        if (categoryToEdit) {
-          setEditingCategory(categoryToEdit);
+        const captainToEdit = await prepareForEdit(captain);
+        if (captainToEdit) {
+          setEditingCaptain(captainToEdit);
           setShowModal(true);
         }
       } catch (error) {
-        console.error("Error preparing category for edit:", error);
+        console.error("Error preparing captain for edit:", error);
       }
     },
     [prepareForEdit]
   );
 
   const handleDeleteClick = useCallback(
-    async (category) => {
-      // Show confirmation dialog
+    async (captain) => {
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${captain.firstName} ${captain.lastName}"? This action cannot be undone.`
       );
 
       if (confirmed) {
         try {
-          await deleteCategory(category);
+          await deleteCaptain(captain);
         } catch (error) {
-          console.error("Error deleting category:", error);
+          console.error("Error deleting captain:", error);
         }
       }
     },
-    [deleteCategory]
+    [deleteCaptain]
+  );
+
+  const handleToggleStatus = useCallback(
+    async (captainId, currentStatus) => {
+      try {
+        await toggleCaptainStatus(captainId, currentStatus);
+      } catch (error) {
+        console.error("Error toggling captain status:", error);
+      }
+    },
+    [toggleCaptainStatus]
   );
 
   const handleModalClose = useCallback(() => {
     setShowModal(false);
-    setEditingCategory(null);
+    setEditingCaptain(null);
   }, []);
 
   const handleModalSubmit = useCallback(
-    async (categoryName, categoryId = null) => {
+    async (captainData, captainId = null) => {
       try {
-        const success = await handleFormSubmit(categoryName, categoryId);
+        const success = await handleFormSubmit(captainData, captainId);
         return success;
       } catch (error) {
         console.error("Error submitting form:", error);
@@ -206,13 +307,13 @@ const AddCategory = memo(() => {
   }, [handleSearchChange]);
 
   const handleExport = useCallback(() => {
-    // Export logic here
-    console.log("Exporting categories...");
+    console.log("Exporting captains...");
+    // Export logic here - could export to CSV/Excel
   }, []);
 
   const handleRefresh = useCallback(() => {
-    refreshCategories();
-  }, [refreshCategories]);
+    refreshCaptains();
+  }, [refreshCaptains]);
 
   // Error state
   if (error) {
@@ -221,7 +322,7 @@ const AddCategory = memo(() => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-red-800 mb-2">
-            Error Loading Categories
+            Error Loading Captains
           </h3>
           <p className="text-red-600 mb-4">
             {error.message || "Something went wrong"}
@@ -230,7 +331,7 @@ const AddCategory = memo(() => {
             onClick={handleRefresh}
             className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
           >
-            <LoaderCircle className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4" />
             Try Again
           </button>
         </div>
@@ -239,20 +340,21 @@ const AddCategory = memo(() => {
   }
 
   // Loading state
-  if (loading && !categories.length) {
-    return <LoadingSpinner size="lg" text="Loading categories..." />;
+  if (loading && !captains.length) {
+    return <LoadingSpinner size="lg" text="Loading captains..." />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Category Form Modal */}
+      {/* Captain Form Modal */}
       <Suspense fallback={<div>Loading modal...</div>}>
-        <CategoryFormModal
+        <CaptainFormModal
           show={showModal}
           onClose={handleModalClose}
           onSubmit={handleModalSubmit}
-          editCategory={editingCategory}
-          title={editingCategory ? "Edit Category" : "Add Category"}
+          editCaptain={editingCaptain}
+          existingCaptains={captains}
+          title={editingCaptain ? "Edit Captain" : "Add Captain"}
           submitting={submitting}
         />
       </Suspense>
@@ -262,10 +364,12 @@ const AddCategory = memo(() => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           <div>
             <PageTitle
-              pageTitle="Category Management"
+              pageTitle="Captain Management"
               className="text-2xl sm:text-3xl font-bold text-gray-900"
             />
-            <p className="text-gray-600 mt-1">Manage your menu categories</p>
+            <p className="text-gray-600 mt-1">
+              Manage your restaurant captains and service staff
+            </p>
           </div>
 
           <ActionButtons
@@ -273,33 +377,33 @@ const AddCategory = memo(() => {
             onExport={handleExport}
             onRefresh={handleRefresh}
             loading={loading}
-            exportEnabled={hasCategories}
+            exportEnabled={hasCaptains}
           />
         </div>
 
         {/* Stats Cards */}
-        {hasCategories && (
+        {hasCaptains && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatsCard
-              icon={Tags}
-              label="Total Categories"
+              icon={Users}
+              label="Total Captains"
               value={stats.total}
               color="blue"
             />
             <StatsCard
-              icon={TrendingUp}
-              label="Active Categories"
+              icon={UserCheck}
+              label="Active Captains"
               value={stats.active}
               color="green"
             />
             <StatsCard
-              icon={Grid}
-              label="With Items"
-              value={stats.withItems}
-              color="orange"
+              icon={UserX}
+              label="Inactive Captains"
+              value={stats.inactive}
+              color="red"
             />
             <StatsCard
-              icon={Plus}
+              icon={Clock}
               label="Recent (7 days)"
               value={stats.recent}
               color="purple"
@@ -308,14 +412,14 @@ const AddCategory = memo(() => {
         )}
 
         {/* Search and Filters */}
-        {hasCategories && (
+        {hasCaptains && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="flex-1 min-w-0">
                 <SearchWithButton
                   searchTerm={searchTerm}
                   onSearchChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search categories by name..."
+                  placeholder="Search captains by name, email, mobile, or Aadhar..."
                   onlyView={true}
                   className="w-full"
                 />
@@ -325,7 +429,7 @@ const AddCategory = memo(() => {
                 {searchTerm ? (
                   <>
                     <span>
-                      Showing {filteredCategories.length} of {categoryCount}
+                      Showing {filteredCaptains.length} of {captainCount}
                     </span>
                     <button
                       onClick={handleClearSearch}
@@ -335,7 +439,7 @@ const AddCategory = memo(() => {
                     </button>
                   </>
                 ) : (
-                  <span>{categoryCount} total categories</span>
+                  <span>{captainCount} total captains</span>
                 )}
               </div>
             </div>
@@ -344,17 +448,18 @@ const AddCategory = memo(() => {
 
         {/* Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {hasCategories ? (
+          {hasCaptains ? (
             <>
               {hasSearchResults ? (
                 <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
                   <DynamicTable
-                    columns={ViewCategoryColumns}
-                    data={filteredCategories}
+                    columns={ViewCaptainColumns}
+                    data={filteredCaptains}
                     onEdit={handleEditClick}
                     onDelete={handleDeleteClick}
+                    onToggleStatus={handleToggleStatus}
                     loading={submitting}
-                    emptyMessage="No categories match your search criteria"
+                    emptyMessage="No captains match your search criteria"
                     showPagination={true}
                     initialRowsPerPage={10}
                     sortable={true}
@@ -371,10 +476,10 @@ const AddCategory = memo(() => {
             </>
           ) : (
             <EmptyState
-              icon={Tags}
-              title="No Categories Yet"
-              description="Create your first category to start organizing your menu items. Categories help customers navigate your menu easily."
-              actionLabel="Add Your First Category"
+              icon={Users}
+              title="No Captains Yet"
+              description="Add your first captain to start managing your service staff. Captains help coordinate between kitchen and customers for better service."
+              actionLabel="Add Your First Captain"
               onAction={handleAddClick}
               loading={submitting}
             />
@@ -399,6 +504,6 @@ const AddCategory = memo(() => {
   );
 });
 
-AddCategory.displayName = "AddCategory";
+AddCaptain.displayName = "AddCaptain";
 
-export default AddCategory;
+export default AddCaptain;

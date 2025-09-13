@@ -30,6 +30,11 @@ export const adminMenuItems = (hotelName) => [
     path: `/${hotelName}/admin/add-offers`,
     icon: "offer",
   },
+  {
+    name: "Add Captain",
+    path: `/${hotelName}/admin/add-captain`,
+    icon: "offer",
+  },
   // {
   //   name: "Upload Data",
   //   path: `/${hotelName}/admin/upload-data`,

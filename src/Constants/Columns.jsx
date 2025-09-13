@@ -1,3 +1,6 @@
+import StatusBadge from "atoms/Badges/StatusBadge";
+import { ActionsMenu, CaptainPhoto } from "Pages/Admin Dashboard/AddCaptain";
+
 export const ViewCategoryColumns = [
   { header: "Sr.No", accessor: "srNo" },
   { header: "Category Name", accessor: "categoryName" },
@@ -265,3 +268,133 @@ export const ViewOffersColumns = [
     },
   },
 ];
+
+// Captain table columns configuration
+export const ViewCaptainColumns = [
+  {
+    header: "Sr.",
+    accessor: "srNo",
+    sortable: true,
+    width: "60px",
+    cell: (row) => (
+      <span className="font-medium text-gray-900">{row.srNo}</span>
+    ),
+  },
+
+  {
+    header: "Name",
+    accessor: "firstName",
+    sortable: true,
+    cell: (row) => (
+      <div className="flex flex-col">
+        <span className="font-semibold text-gray-900">
+          {row.firstName} {row.lastName}
+        </span>
+        <span className="text-xs text-gray-500 flex items-center gap-1">
+          {row.experience || 0} years exp.
+        </span>
+      </div>
+    ),
+  },
+  {
+    header: "Contact",
+    accessor: "mobileNo",
+    sortable: true,
+    cell: (row) => (
+      <div className="flex flex-col space-y-1">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <a href={`tel:${row.mobileNo}`} className="hover:text-blue-600">
+            {row.mobileNo}
+          </a>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "Email",
+    accessor: "email",
+    sortable: true,
+    cell: (row) => (
+      <div className="flex flex-col space-y-1">
+        <div className="flex items-center gap-2 text-sm">
+          <a
+            href={`mailto:${row.email}`}
+            className="text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            {row.email}
+          </a>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "Adhar No",
+    accessor: "adharNo",
+    sortable: false,
+    cell: (row) => (
+      <div className="flex flex-col space-y-1 text-xs">
+        <div className="flex items-center gap-1 text-gray-600">
+          <span>Aadhar: {row.adharNo}</span>
+        </div>
+        <div className="flex items-center gap-1 text-gray-600">
+          <span>PAN: {row.panNo}</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "Address",
+    accessor: "address",
+    sortable: false,
+    width: "200px",
+    cell: (row) => (
+      <div className="flex items-start gap-2">
+        <span
+          className="text-sm text-gray-600 line-clamp-2"
+          title={row.address}
+        >
+          {row.address}
+        </span>
+      </div>
+    ),
+  },
+  {
+    header: "Status",
+    accessor: "status",
+    sortable: true,
+    width: "100px",
+    cell: (row) => <StatusBadge status={row.status} />,
+  },
+  {
+    header: "Created",
+    accessor: "createdAt",
+    sortable: true,
+    width: "120px",
+    cell: (row) => (
+      <div className="text-sm text-gray-600">
+        {new Date(row.createdAt).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}
+      </div>
+    ),
+  },
+  {
+    header: "Actions",
+    accessor: "actions",
+    sortable: false,
+    width: "120px",
+    cell: (row, { onEdit, onDelete, onToggleStatus, loading }) => (
+      <ActionsMenu
+        captain={row}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onToggleStatus={onToggleStatus}
+        loading={loading}
+      />
+    ),
+  },
+];
+
+export default ViewCaptainColumns;
