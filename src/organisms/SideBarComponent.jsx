@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useMemo, memo } from "react";
+import React, { useCallback, useMemo, memo } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useHotelSelection } from "context/HotelSelectionContext";
-import { X, Building, User, ChevronDown } from "lucide-react";
+import { User } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   roleThemes,
@@ -10,8 +10,6 @@ import {
   getMenuItems,
 } from "../Constants/sideBarMenuConfig";
 import SidebarHeader from "atoms/Headers/SidebarHeader";
-
-
 
 // Menu item component
 const MenuItem = memo(({ item, onClick, role }) => {
@@ -63,55 +61,6 @@ const MenuItem = memo(({ item, onClick, role }) => {
 });
 
 MenuItem.displayName = "MenuItem";
-
-// Hotel selector component
-const HotelSelector = memo(
-  ({ selectedHotel, availableHotels, onHotelChange, role }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const theme = roleThemes[role];
-
-    if (!availableHotels?.length > 1) return null;
-
-    return (
-      <div className="p-3 border-t border-gray-200 bg-gray-50/50">
-        <div className="relative">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200 text-sm hover:bg-gray-50 transition-colors"
-          >
-            <span className="truncate">
-              {selectedHotel?.name || "Select Hotel"}
-            </span>
-            <ChevronDown
-              className={`w-4 h-4 transition-transform ${
-                isOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          {isOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-32 overflow-y-auto z-50">
-              {availableHotels.map((hotel) => (
-                <button
-                  key={hotel.id}
-                  onClick={() => {
-                    onHotelChange(hotel);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gradient-to-r hover:${theme.bgGradient} first:rounded-t-lg last:rounded-b-lg transition-colors`}
-                >
-                  {hotel.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-);
-
-HotelSelector.displayName = "HotelSelector";
 
 // User info component
 const UserInfo = memo(({ user, role }) => {
@@ -205,16 +154,6 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
               ))}
             </ul>
           </nav>
-
-          {/* Hotel Selector */}
-          {(admin || captain) && (
-            <HotelSelector
-              selectedHotel={selectedHotel}
-              availableHotels={availableHotels}
-              onHotelChange={handleHotelChange}
-              role={role}
-            />
-          )}
 
           {/* Footer */}
           <div className="p-3 border-t border-gray-200 bg-gray-50/50">

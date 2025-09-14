@@ -136,28 +136,6 @@ const OrderDetailsModal = ({
               <X className="w-6 h-6 text-gray-500" />
             </button>
           </div>
-
-          {/* Status Update Bar */}
-          <div className="mt-4 flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">
-              Update Status:
-            </span>
-            <select
-              value={order.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={isUpdatingStatus}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-            >
-              {orderStatuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-            {isUpdatingStatus && (
-              <span className="text-sm text-blue-600">Updating...</span>
-            )}
-          </div>
         </div>
 
         {/* Content */}
