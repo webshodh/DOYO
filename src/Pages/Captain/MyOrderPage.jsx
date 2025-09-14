@@ -30,43 +30,8 @@ import OrderDetailsModal from "./OrderDetailsModal";
 
 // Constants
 import { ORDER_STATUSES } from "../../Constants/Columns";
+import TimePeriodSelector from "atoms/TimePeriodSelector";
 
-/**
- * Time Period Tabs Component
- * Consistent UI for time period selection across the application
- */
-const TimePeriodTabs = memo(({ selectedTimePeriod, onTimePeriodChange }) => {
-  const periods = [
-    { key: "daily", label: "Today" },
-    { key: "weekly", label: "This Week" },
-    { key: "monthly", label: "This Month" },
-    { key: "total", label: "All Time" },
-  ];
-
-  return (
-    <div className="flex gap-2 flex-wrap">
-      {periods.map((period) => (
-        <button
-          key={period.key}
-          onClick={() => onTimePeriodChange(period.key)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            selectedTimePeriod === period.key
-              ? "bg-orange-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          {period.label}
-        </button>
-      ))}
-    </div>
-  );
-});
-TimePeriodTabs.displayName = "TimePeriodTabs";
-
-/**
- * Main MyOrdersPage Component
- * Provides order management interface for captains with consistent data handling
- */
 const MyOrdersPage = () => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
@@ -282,50 +247,23 @@ const MyOrdersPage = () => {
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description="Manage and update existing orders"
           />
-
-          <div className="flex items-center gap-4">
-            {/* Date picker - only show for daily view */}
-            {selectedTimePeriod === "daily" && (
-              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
-                <Calendar size={16} className="text-gray-500" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="bg-transparent border-none focus:outline-none text-sm"
-                />
-              </div>
-            )}
-
-            {/* Refresh button */}
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing || submitting}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
-            >
-              <LoaderCircle
-                size={16}
-                className={isRefreshing || submitting ? "animate-spin" : ""}
-              />
-              Refresh
-            </button>
-          </div>
         </div>
-
         {/* Time Period Navigation */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <TimePeriodTabs
-              selectedTimePeriod={selectedTimePeriod}
-              onTimePeriodChange={handleTimePeriodChange}
-            />
-            <div className="text-sm text-gray-600 font-medium">
-              {periodDisplayText}
-            </div>
-          </div>
+          <TimePeriodSelector
+            selectedTimePeriod={selectedTimePeriod}
+            onTimePeriodChange={handleTimePeriodChange}
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            variant="default"
+            showDatePicker={true}
+            className="mb-4"
+            disableFutureDates={true}
+            datePickerProps={{
+              placeholder: "Select a date to view orders",
+            }}
+          />
         </div>
-
         {/* Order Statistics Cards */}
         {hasOrders && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">

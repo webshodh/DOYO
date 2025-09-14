@@ -320,28 +320,6 @@ const CaptainDashboard = memo(() => {
                       columns={orderColumns}
                       data={filteredOrders}
                       onView={handleViewOrder}
-                      customActions={[
-                        {
-                          label: "Update Status",
-                          icon: Edit3,
-                          onClick: (order) => {
-                            // Create status update functionality
-                            const newStatus = prompt(
-                              `Update status for order ${
-                                order.orderNumber || order.id
-                              }:`,
-                              order.normalizedStatus
-                            );
-                            if (
-                              newStatus &&
-                              ORDER_STATUSES.find((s) => s.value === newStatus)
-                            ) {
-                              handleOrderStatusUpdate(order.id, newStatus);
-                            }
-                          },
-                          variant: "primary",
-                        },
-                      ]}
                       loading={ordersLoading}
                       emptyMessage="No orders match your search criteria"
                       showPagination={true}
