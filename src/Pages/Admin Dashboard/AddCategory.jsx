@@ -1,21 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import "../../styles/AddCategory.css";
-import { PageTitle } from "../../Atoms";
+import {
+  Plus,
+  Tags,
+  LoaderCircle,
+  AlertCircle,
+  TrendingUp,
+  Grid,
+} from "lucide-react";
+import PageTitle from "../../atoms/PageTitle";
 import { ViewCategoryColumns } from "../../Constants/Columns";
-import { DynamicTable } from "../../components";
-import { useParams } from "react-router-dom";
-import SearchWithButton from "components/SearchWithAddButton";
-import CategoryFormModal from "../../components/FormModals/CategoryFormModals";
+import SearchWithButton from "molecules/SearchWithAddButton";
 import { useCategory } from "../../customHooks/useCategory";
-import { Spinner } from "react-bootstrap";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
+import EmptyState from "atoms/Messages/EmptyState";
+import NoSearchResults from "molecules/NoSearchResults";
+import StatCard from "components/Cards/StatCard";
+import PrimaryButton from "atoms/Buttons/PrimaryButton";
+import SearchWithResults from "molecules/SearchWithResults";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
+// Lazy load heavy components
+const CategoryFormModal = React.lazy(() =>
+  import("../../components/FormModals/CategoryFormModals")
+);
+const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
-function AddCategory() {
+// Main AddCategory component
+const AddCategory = memo(() => {
+  const navigate = useNavigate();
+  const { hotelName } = useParams();
+
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-
-  const { hotelName } = useParams();
+  const [viewMode, setViewMode] = useState("table"); // table, grid
 
   // Use custom hook for category management
   const {
@@ -24,56 +43,117 @@ function AddCategory() {
     searchTerm,
     loading,
     submitting,
+    error,
     handleFormSubmit,
     handleSearchChange,
     deleteCategory,
     prepareForEdit,
+    refreshCategories,
     categoryCount,
     hasCategories,
     hasSearchResults,
   } = useCategory(hotelName);
 
-  // Handle add button click
-  const handleAddClick = () => {
+  // Memoized calculations
+  const stats = useMemo(
+    () => ({
+      total: categoryCount,
+      active: categories.filter((cat) => cat.status === "active").length,
+      withItems: categories.filter((cat) => cat.itemCount > 0).length,
+      recent: categories.filter((cat) => {
+        const createdDate = new Date(cat.createdAt);
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return createdDate > weekAgo;
+      }).length,
+    }),
+    [categories, categoryCount]
+  );
+
+  // Event handlers
+  const handleAddClick = useCallback(() => {
     setEditingCategory(null);
     setShowModal(true);
-  };
+  }, []);
 
-  // Handle edit button click
-  const handleEditClick = async (category) => {
-    const categoryToEdit = await prepareForEdit(category);
-    if (categoryToEdit) {
-      setEditingCategory(categoryToEdit);
-      setShowModal(true);
-    }
-  };
+  const handleEditClick = useCallback(
+    async (category) => {
+      try {
+        const categoryToEdit = await prepareForEdit(category);
+        if (categoryToEdit) {
+          setEditingCategory(categoryToEdit);
+          setShowModal(true);
+        }
+      } catch (error) {
+        console.error("Error preparing category for edit:", error);
+      }
+    },
+    [prepareForEdit]
+  );
 
-  // Handle delete button click
-  const handleDeleteClick = async (category) => {
-    await deleteCategory(category);
-  };
+  const handleDeleteClick = useCallback(
+    async (category) => {
+      // Show confirmation dialog
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`
+      );
 
-  // Handle modal close
-  const handleModalClose = () => {
+      if (confirmed) {
+        try {
+          await deleteCategory(category);
+        } catch (error) {
+          console.error("Error deleting category:", error);
+        }
+      }
+    },
+    [deleteCategory]
+  );
+
+  const handleModalClose = useCallback(() => {
     setShowModal(false);
     setEditingCategory(null);
-  };
+  }, []);
 
-  // Handle form submission from modal
-  const handleModalSubmit = async (categoryName, categoryId = null) => {
-    const success = await handleFormSubmit(categoryName, categoryId);
-    return success;
-  };
+  const handleModalSubmit = useCallback(
+    async (categoryName, categoryId = null) => {
+      try {
+        const success = await handleFormSubmit(categoryName, categoryId);
+        return success;
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        return false;
+      }
+    },
+    [handleFormSubmit]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    handleSearchChange("");
+  }, [handleSearchChange]);
+
+  const handleRefresh = useCallback(() => {
+    refreshCategories();
+  }, [refreshCategories]);
+
+  // Error state
+  if (error) {
+    return (
+      <ErrorMessage
+        error={error}
+        onRetry={handleRefresh}
+        title="Error Loading Categories"
+      />
+    );
+  }
 
   // Loading state
-  if (loading) {
-    <Spinner />;
+  if (loading && !categories.length) {
+    return <LoadingSpinner size="lg" text="Loading categories..." />;
   }
 
   return (
-    <>
-      <div style={{ margin: "20px" }}>
-        {/* Category Form Modal */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Category Form Modal */}
+      <Suspense fallback={<LoadingSpinner />}>
         <CategoryFormModal
           show={showModal}
           onClose={handleModalClose}
@@ -82,86 +162,125 @@ function AddCategory() {
           title={editingCategory ? "Edit Category" : "Add Category"}
           submitting={submitting}
         />
+      </Suspense>
 
-        <div style={{ width: "100%" }}>
-          {/* Page Title with Stats */}
-          <div className="d-flex justify-between align-items-center mb-3">
-            <PageTitle pageTitle="View Categories" />
-            {hasCategories && (
-              <div className="text-sm text-gray-600">
-                {searchTerm
-                  ? `Showing ${filteredCategories.length} of ${categoryCount} categories`
-                  : `Total: ${categoryCount} categories`}
-              </div>
-            )}
-          </div>
-          {/* Search and Add Button */}
-          <div className="mb-4">
-            <SearchWithButton
-              searchTerm={searchTerm}
-              onSearchChange={(e) => handleSearchChange(e.target.value)}
-              buttonText="Add Category"
-              onButtonClick={handleAddClick}
-              disabled={submitting}
-              placeholder="Search categories..."
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+          <PageTitle
+            pageTitle="Category Management"
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description="Manage your menu categories"
+          />
+
+          <PrimaryButton
+            onAdd={handleAddClick}
+            btnText="Add Category"
+            loading={loading}
+          />
+        </div>
+
+        {/* Stats Cards */}
+        {hasCategories && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Tags}
+              label="Total Categories"
+              value={stats.total}
+              color="blue"
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Active Categories"
+              value={stats.active}
+              color="green"
+            />
+            <StatCard
+              icon={Grid}
+              label="With Items"
+              value={stats.withItems}
+              color="orange"
+            />
+            <StatCard
+              icon={Plus}
+              label="Recent (7 days)"
+              value={stats.recent}
+              color="purple"
             />
           </div>
+        )}
 
-          {/* Categories Table */}
+        {/* Search and Filters */}
+        {hasCategories && (
+          <SearchWithResults
+            searchTerm={searchTerm}
+            onSearchChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search categories by name..."
+            totalCount={categoryCount}
+            filteredCount={filteredCategories.length}
+            onClearSearch={handleClearSearch}
+            totalLabel="total categories"
+          />
+        )}
+
+        {/* Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {hasCategories ? (
             <>
               {hasSearchResults ? (
-                <DynamicTable
-                  columns={ViewCategoryColumns}
-                  data={filteredCategories}
-                  onEdit={handleEditClick}
-                  onDelete={handleDeleteClick}
-                  loading={submitting}
-                />
+                <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
+                  <DynamicTable
+                    columns={ViewCategoryColumns}
+                    data={filteredCategories}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteClick}
+                    loading={submitting}
+                    emptyMessage="No categories match your search criteria"
+                    showPagination={true}
+                    initialRowsPerPage={10}
+                    sortable={true}
+                    className="border-0"
+                  />
+                </Suspense>
               ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 mb-2">
-                    <i className="fas fa-search fa-3x"></i>
-                  </div>
-                  <h5 className="text-gray-600">No categories found</h5>
-                  <p className="text-gray-500">
-                    No categories match your search "{searchTerm}"
-                  </p>
-                  <button
-                    className="btn btn-outline-primary mt-2"
-                    onClick={() => handleSearchChange("")}
-                  >
-                    Clear Search
-                  </button>
-                </div>
+                <NoSearchResults
+                  btnText="Add Category"
+                  searchTerm={searchTerm}
+                  onClearSearch={handleClearSearch}
+                  onAddNew={handleAddClick}
+                />
               )}
             </>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-4">
-                <i className="fas fa-tags fa-4x"></i>
-              </div>
-              <h5 className="text-gray-600 mb-2">No Categories Found</h5>
-              <p className="text-gray-500 mb-4">
-                Get started by adding your first category
-              </p>
-              <button
-                className="btn btn-primary"
-                onClick={handleAddClick}
-                disabled={submitting}
-              >
-                <i className="fas fa-plus me-2"></i>
-                Add Your First Category
-              </button>
-            </div>
+            <EmptyState
+              icon={Tags}
+              title="No Categories Yet"
+              description="Create your first category to start organizing your menu items. Categories help customers navigate your menu easily."
+              actionLabel="Add Your First Category"
+              onAction={handleAddClick}
+              loading={submitting}
+            />
           )}
         </div>
       </div>
 
       {/* Toast Container */}
-      <ToastContainer />
-    </>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
   );
-}
+});
+
+AddCategory.displayName = "AddCategory";
 
 export default AddCategory;

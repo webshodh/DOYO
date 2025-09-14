@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
-import PageTitle from "../../Atoms/PageTitle";
-import { validateOfferForm } from "../../Validation/offeresValidation";
+import PageTitle from "../../atoms/PageTitle";
+import { validateOfferForm } from "../../validation/offeresValidation";
 
 const OffersFormModal = ({
   show,
@@ -153,9 +153,7 @@ const OffersFormModal = ({
 
   return (
     <Modal title={title} handleClose={handleClose}>
-      <div
-        className="p-6 bg-white rounded-lg shadow-md"
-      >
+      <div className="p-6 bg-white rounded-lg shadow-md">
         <PageTitle pageTitle={isEditMode ? "Edit Offer" : "Add Offer"} />
 
         <form onSubmit={handleSubmit}>

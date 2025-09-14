@@ -13,12 +13,12 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import { HotelProvider } from "./Context/HotelContext";
+import { HotelProvider } from "./context/HotelContext";
 // Inject colors into CSS
 import { injectColorsIntoCSS } from "./theme/InjectColors";
-import { AuthProvider } from "./Context/AuthContext";
-import { UserAuthProvider } from "./Context/UserAuthContext";
-import { UserProvider } from "./Context/UserContext";
+import { AuthProvider } from "./context/AuthContext";
+import { UserAuthProvider } from "./context/UserAuthContext";
+import { UserProvider } from "./context/UserContext";
 injectColorsIntoCSS();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

@@ -5,7 +5,7 @@ import {
   validateEmail,
   validateContact,
   validatePassword,
-} from "../Validation/hotelValidation";
+} from "../validation/hotelValidation";
 import { hotelFormConfig } from "Constants/addHotelFormConfig";
 
 const useHotel = () => {

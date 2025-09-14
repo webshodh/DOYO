@@ -12,7 +12,7 @@ import {
   validateEmail,
   validateContact,
   validatePassword,
-} from "../../Validation/hotelValidation";
+} from "../../validation/hotelValidation";
 import { FormSection } from "utility/FormUtilityFunctions";
 import { hotelFormConfig } from "Constants/addHotelFormConfig";
 import useHotel from "../../customHooks/useHotel";
@@ -172,9 +172,9 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
                               admin.email?.trim() && !validateEmail(admin.email)
                                 ? "border-red-300 focus:border-red-500"
                                 : admin.email?.trim() &&
-                                    validateEmail(admin.email)
-                                  ? "border-green-300 focus:border-purple-500"
-                                  : "border-gray-300 focus:border-purple-500"
+                                  validateEmail(admin.email)
+                                ? "border-green-300 focus:border-purple-500"
+                                : "border-gray-300 focus:border-purple-500"
                             } ${
                               submitting
                                 ? "bg-gray-100 cursor-not-allowed"
@@ -443,8 +443,8 @@ const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
                       {submitting
                         ? "Saving..."
                         : editMode
-                          ? "Update Restaurant"
-                          : "Create Restaurant"}
+                        ? "Update Restaurant"
+                        : "Create Restaurant"}
                     </button>
                   </div>
                 </div>

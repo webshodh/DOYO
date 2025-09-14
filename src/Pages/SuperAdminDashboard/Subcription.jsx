@@ -2,32 +2,36 @@ import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useData from "../../data/useData";
-import { PageTitle } from "../../Atoms";
+import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
-import { hotelsListColumn, hotelsSubscriptionListColumn } from "../../Constants/Columns";
+import {
+  hotelsListColumn,
+  hotelsSubscriptionListColumn,
+} from "../../Constants/Columns";
 import { db } from "../../data/firebase/firebaseConfig";
 import { ref, update, get, remove } from "firebase/database";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import HotelEditForm from "./AddHotel"; // Import the separate component
-import ErrorMessage from "Atoms/ErrorMessage";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { Spinner } from "react-bootstrap";
-import SearchWithButton from "components/SearchWithAddButton";
+import SearchWithButton from "molecules/SearchWithAddButton";
 
 const ViewHotelSubscription = () => {
   const { data, loading, error, refetch } = useData("/hotels/");
-  
+
   const [editingHotel, setEditingHotel] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [submitting, setSubmitting] = useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate();
   // Convert data to an array and add serial numbers + process hotel data
   const hotelsDataArray = Object.entries(data || {}).map(
     ([id, hotel], index) => ({
       srNo: index + 1,
       id,
       ...hotel,
-      hotelName: hotel.info?.businessName || hotel.hotelName || "No Name provided",
+      hotelName:
+        hotel.info?.businessName || hotel.hotelName || "No Name provided",
       ownerName: hotel.info?.admin?.name || hotel.ownerName || "N/A",
       district: hotel.info?.district || hotel.district || "N/A",
       state: hotel.info?.state || hotel.state || "N/A",
@@ -57,17 +61,19 @@ const navigate = useNavigate();
       email: hotel.info?.admin?.email || hotel.email || "N/A",
 
       // Format cuisine type
-      cuisineType: hotel.info?.businessType || hotel.cuisineType || "Not specified",
+      cuisineType:
+        hotel.info?.businessType || hotel.cuisineType || "Not specified",
     })
   );
 
   // Filter hotels based on search term
-  const filteredHotels = hotelsDataArray.filter((hotel) =>
-    hotel.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hotel.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hotel.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hotel.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hotel.cuisineType.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredHotels = hotelsDataArray.filter(
+    (hotel) =>
+      hotel.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotel.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotel.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotel.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotel.cuisineType.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const hotelCount = hotelsDataArray.length;
@@ -84,7 +90,7 @@ const navigate = useNavigate();
   // Handle add button click
   const handleAddClick = () => {
     // Navigate to add hotel page or open modal
-   navigate('/super-admin/add-hotel')
+    navigate("/super-admin/add-hotel");
   };
 
   // Function to toggle hotel status (Active/Inactive)
@@ -102,7 +108,7 @@ const navigate = useNavigate();
 
         // Update only the status field, preserve everything else
         await update(itemRef, {
-          'info.status': newStatus,
+          "info.status": newStatus,
           updatedAt: new Date().toISOString(),
         });
 
@@ -183,8 +189,6 @@ const navigate = useNavigate();
     setEditingHotel(null);
   };
 
- 
-
   const columns = hotelsSubscriptionListColumn;
 
   // Loading state
@@ -200,8 +204,6 @@ const navigate = useNavigate();
   return (
     <>
       <div style={{ margin: "20px" }}>
-        
-
         <div style={{ width: "100%" }}>
           {/* Page Title with Stats */}
           <div className="d-flex justify-between align-items-center mb-3">
@@ -231,7 +233,11 @@ const navigate = useNavigate();
                   <div className="card-body text-center">
                     <h5 className="card-title text-success">Active Hotels</h5>
                     <h3 className="text-success">
-                      {filteredHotels.filter((hotel) => hotel.status === "Active").length}
+                      {
+                        filteredHotels.filter(
+                          (hotel) => hotel.status === "Active"
+                        ).length
+                      }
                     </h3>
                   </div>
                 </div>
@@ -241,7 +247,11 @@ const navigate = useNavigate();
                   <div className="card-body text-center">
                     <h5 className="card-title text-danger">Inactive Hotels</h5>
                     <h3 className="text-danger">
-                      {filteredHotels.filter((hotel) => hotel.status === "Inactive").length}
+                      {
+                        filteredHotels.filter(
+                          (hotel) => hotel.status === "Inactive"
+                        ).length
+                      }
                     </h3>
                   </div>
                 </div>
@@ -254,7 +264,6 @@ const navigate = useNavigate();
             <SearchWithButton
               searchTerm={searchTerm}
               onSearchChange={(e) => handleSearchChange(e.target.value)}
-            
               disabled={submitting}
               placeholder="Search hotels by name, owner, location, or type..."
             />
@@ -267,7 +276,6 @@ const navigate = useNavigate();
                 <DynamicTable
                   columns={columns}
                   data={filteredHotels}
-               
                   loading={submitting}
                 />
               ) : (

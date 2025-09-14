@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useHotelSelection } from "../../Context/HotelSelectionContext";
-import StatCard from "Atoms/StatCard";
-import { Spinner } from "Atoms";
-import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
+import { useHotelSelection } from "../../context/HotelSelectionContext";
+import StatCard from "components/Cards/StatCard";
+import { Spinner } from "atoms";
+import SuperAdminDashboardLayout from "layout/SuperAdminDashboardLayout";
 import useHotelData from "../../data/useHotelData"; // Import the hook
 import {
   FaHotel,
@@ -19,7 +19,8 @@ import {
   FaGlassCheers,
   FaBuilding,
 } from "react-icons/fa";
-import ErrorMessage from "Atoms/ErrorMessage";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { Users } from "lucide-react";
 
 const SuperAdminDashboard = () => {
   // Use the custom hook to get hotel data
@@ -248,11 +249,7 @@ const SuperAdminDashboard = () => {
                   title="Total Hotels"
                   value={calculatedStats.totalHotels}
                   color="bg-gradient-to-br from-blue-50 to-blue-100"
-                  icon={
-                    <div className="p-2 bg-blue-500 rounded-lg">
-                      <FaHotel className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
 
@@ -261,11 +258,7 @@ const SuperAdminDashboard = () => {
                   title="Total Cafes"
                   value={calculatedStats.totalCafes}
                   color="bg-gradient-to-br from-green-50 to-green-100"
-                  icon={
-                    <div className="p-2 bg-green-500 rounded-lg">
-                      <FaCoffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
               <div className="transform hover:scale-105 transition-all duration-300">
@@ -273,11 +266,7 @@ const SuperAdminDashboard = () => {
                   title="Total Dhaba"
                   value={calculatedStats.totalDhaba}
                   color="bg-gradient-to-br from-green-50 to-green-100"
-                  icon={
-                    <div className="p-2 bg-green-500 rounded-lg">
-                      <FaCoffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
 
@@ -286,11 +275,7 @@ const SuperAdminDashboard = () => {
                   title="Total Restaurants"
                   value={calculatedStats.totalRestaurants}
                   color="bg-gradient-to-br from-orange-50 to-orange-100"
-                  icon={
-                    <div className="p-2 bg-orange-500 rounded-lg">
-                      <FaUtensils className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
 
@@ -299,11 +284,7 @@ const SuperAdminDashboard = () => {
                   title="Total Bars"
                   value={calculatedStats.totalBars}
                   color="bg-gradient-to-br from-purple-50 to-purple-100"
-                  icon={
-                    <div className="p-2 bg-purple-500 rounded-lg">
-                      <FaGlassCheers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
             </div>
@@ -315,11 +296,7 @@ const SuperAdminDashboard = () => {
                   title="States Covered"
                   value={calculatedStats.totalStates}
                   color="bg-gradient-to-br from-indigo-50 to-indigo-100"
-                  icon={
-                    <div className="p-2 bg-indigo-500 rounded-lg">
-                      <FaMapMarkerAlt className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
 
@@ -328,11 +305,7 @@ const SuperAdminDashboard = () => {
                   title="Districts Covered"
                   value={calculatedStats.totalDistricts}
                   color="bg-gradient-to-br from-teal-50 to-teal-100"
-                  icon={
-                    <div className="p-2 bg-teal-500 rounded-lg">
-                      <FaCity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
 
@@ -341,11 +314,7 @@ const SuperAdminDashboard = () => {
                   title="Cities Covered"
                   value={calculatedStats.totalCities}
                   color="bg-gradient-to-br from-rose-50 to-rose-100"
-                  icon={
-                    <div className="p-2 bg-rose-500 rounded-lg">
-                      <FaBuilding className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                  }
+                  icon={Users}
                 />
               </div>
             </div>

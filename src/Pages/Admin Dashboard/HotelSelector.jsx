@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAdminData from "../../data/useAdminData";
-import { Spinner } from "Atoms";
-import ErrorMessage from "Atoms/ErrorMessage";
+import { Spinner } from "atoms";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 const HotelSelector = ({ adminId, selectedHotelName, onHotelSelect }) => {
   const [isOpen, setIsOpen] = useState(false);

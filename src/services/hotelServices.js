@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { set, ref, get } from "firebase/database";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
-import { validateHotelForm } from "../Validation/hotelValidation";
+import { validateHotelForm } from "../validation/hotelValidation";
 
 // Hotel Services - Updated to support single admin per hotel with multiple hotel assignments
 export const hotelServices = {

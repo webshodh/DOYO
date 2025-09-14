@@ -1,20 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { useHotelSelection } from "../../Context/HotelSelectionContext";
-import AdminDashboardLayout from "../AdminDashboardLayout";
-import AddMenu from "./AddMenu";
-import { useCategoriesData, useMainCategoriesData, useMenuData } from "data";
-import StatCard from "Atoms/StatCard";
-import useOptionsData from "data/useOptionsData";
-import { simplifyOptions } from "utility/ConvertOptions";
-import { Spinner } from "Atoms";
+import { BarChart3, ShoppingBag, Users } from "lucide-react";
 
+// Hooks and utilities
+import { useOrderData } from "../../customHooks/useOrder";
+import {
+  useCategoriesData,
+  useMainCategoriesData,
+  useMenuData,
+} from "../../data";
+import useOptionsData from "../../data/useOptionsData";
+
+// Context
+import { useHotelSelection } from "../../context/HotelSelectionContext";
+
+// Layout and UI components
+import AdminDashboardLayout from "../../layout/AdminDashboardLayout";
+import StatCard from "../../components/Cards/StatCard";
+import TopMenuCards from "../../components/Cards/TopMenuCard";
+import { DynamicTable } from "../../components";
+import { OrderInsights } from "../../molecules/OrderInsights";
+import TimePeriodSelector from "../../atoms/TimePeriodSelector";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
+import ErrorState from "../../atoms/Messages/ErrorState";
+import OrderDetailsModal from "../../components/order-dashboard/OrderDetailsModal";
+import OrderDetailsTable from "../../components/order-dashboard/OrderDetailsTable";
+
+// Constants
+import {
+  OrdersByCategoryColumn,
+  OrdersByMenuColumn,
+} from "../../Constants/Columns";
+
+/**
+ * Admin Dashboard Component
+ * Provides comprehensive analytics and management interface for hotel orders
+ */
 const AdminDashboard = () => {
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
 
+  // Modal state
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+
+  // Enhanced order data hook with menu data for analytics
   const {
+    orders,
+    filteredOrders,
+    timeFilteredOrders,
     menuData,
+    orderStats,
+    menuAnalytics,
+    categoryAnalytics,
+    loading,
+    error,
+    selectedDate,
+    selectedTimePeriod,
+    handleDateChange,
+    handleTimePeriodChange,
+    periodDisplayText,
+    hasOrders,
+    updateOrderStatus,
+  } = useOrderData(hotelName, {
+    includeMenuData: true,
+    defaultTimePeriod: "daily",
+  });
+
+  // Menu and category management data
+  const {
+    menuData: managementMenuData,
     totalMenus,
     loading: menuLoading,
     error: menuError,
@@ -27,19 +82,37 @@ const AdminDashboard = () => {
     error: categoriesError,
   } = useCategoriesData(hotelName);
 
-  const { optionsData, totalOptionsCount, categories, optionTypes, error } =
-    useOptionsData(hotelName);
+  const {
+    optionsData,
+    totalOptionsCount,
+    categories,
+    optionTypes,
+    error: optionsError,
+  } = useOptionsData(hotelName);
 
-  console.log("categories1231", totalOptionsCount);
-  const optionsCategoryCount = categories.length;
+  // Derived values
+  const optionsCategoryCount = categories?.length || 0;
+  const { totalMainCategories } = useMainCategoriesData(hotelName);
 
-  const { mainCategoriesData, totalMainCategories } =
-    useMainCategoriesData(hotelName);
-  console.log("mainCategoriesData_____", mainCategoriesData);
+  // Event handlers
+  const handleViewDetails = useCallback((order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  }, []);
 
+  const handleCloseDetails = useCallback(() => {
+    setShowOrderDetails(false);
+    setSelectedOrder(null);
+  }, []);
+
+  // Loading state for menu management data
+  const isMenuManagementLoading = menuLoading || categoriesLoading;
+
+  // Error state for menu management data
+  const menuManagementError = menuError || categoriesError || optionsError;
+console.log("menuAnalytics.topMenus", menuAnalytics.topMenus)
   return (
     <AdminDashboardLayout>
-      {/* Dashboard Content - Now properly contained within layout */}
       <div className="space-y-6 sm:space-y-8">
         {/* Header Section */}
         <div>
@@ -57,30 +130,46 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Grid - Enhanced Responsive Design */}
+        {/* Analytics Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Order Analytics
+              </h2>
+              <p className="text-gray-600">
+                Comprehensive insights and performance metrics
+              </p>
+            </div>
+          </div>
+
+          {/* Time Period Navigation */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <TimePeriodSelector
+              selectedTimePeriod={selectedTimePeriod}
+              onTimePeriodChange={handleTimePeriodChange}
+              selectedDate={selectedDate}
+              onDateChange={handleDateChange}
+              variant="default"
+              showDatePicker={true}
+              className="mb-6"
+            />
+
+            {/* Period Display Text */}
+            <div className="mt-4 text-sm text-gray-600 font-medium">
+              {periodDisplayText}
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Management Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title="Total Menu Items"
               value={totalMenus || 0}
               color="bg-gradient-to-br from-blue-50 to-blue-100"
-              icon={
-                <div className="p-2 bg-blue-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
@@ -89,127 +178,213 @@ const AdminDashboard = () => {
               title="Total Categories"
               value={totalCategories || 0}
               color="bg-gradient-to-br from-green-50 to-green-100"
-              icon={
-                <div className="p-2 bg-green-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title="Options Categories"
-              value={optionsCategoryCount || 0}
+              value={optionsCategoryCount}
               color="bg-gradient-to-br from-purple-50 to-purple-100"
-              icon={
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
 
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
-              title="Options for Options Categories"
+              title="Total Options"
               value={totalOptionsCount || 0}
               color="bg-gradient-to-br from-orange-50 to-orange-100"
-              icon={
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              }
+              icon={Users}
             />
           </div>
         </div>
 
-        {/* Loading States */}
-        {(menuLoading || categoriesLoading) && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8">
-            <div className="flex items-center justify-center space-x-3">
-              <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-              <Spinner />
+        {/* Order Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Total Orders"
+              value={orderStats.total}
+              color="bg-gradient-to-br from-indigo-50 to-indigo-100"
+              icon={Users}
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Completed Orders"
+              value={orderStats.completed}
+              color="bg-gradient-to-br from-emerald-50 to-emerald-100"
+              icon={Users}
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Rejected Orders"
+              value={orderStats.rejected}
+              color="bg-gradient-to-br from-red-50 to-red-100"
+              icon={Users}
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              title="Total Revenue"
+              value={`₹${orderStats.totalRevenue?.toLocaleString() || 0}`}
+              color="bg-gradient-to-br from-yellow-50 to-yellow-100"
+              icon={Users}
+            />
+          </div>
+        </div>
+
+        {/* Top Menu Items */}
+        {menuAnalytics.topMenus.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+            <TopMenuCards
+              topMenus={menuAnalytics.topMenus}
+              title="Top Performing Menu Items"
+            />
+          </div>
+        )}
+
+        {/* Analytics Tables and Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Orders by Category */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <BarChart3 className="w-5 h-5 text-blue-500" />
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Orders by Category
+                </h2>
+              </div>
+
+              <DynamicTable
+                columns={OrdersByCategoryColumn}
+                data={categoryAnalytics.categoryStats}
+                showPagination={false}
+                showRowsPerPage={false}
+                emptyMessage="No category data available"
+                className="border-0 shadow-none"
+                headerClassName="bg-gradient-to-r from-blue-500 to-blue-600"
+              />
             </div>
+          </div>
+
+          {/* Order Insights */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
+            <OrderInsights analytics={orderStats} />
+          </div>
+        </div>
+
+        {/* Orders by Menu */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <ShoppingBag className="w-5 h-5 text-purple-500" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Orders by Menu
+            </h2>
+          </div>
+
+          <DynamicTable
+            columns={OrdersByMenuColumn}
+            data={menuAnalytics.menuStats}
+            showPagination={menuAnalytics.menuStats.length > 10}
+            showRowsPerPage={menuAnalytics.menuStats.length > 10}
+            initialRowsPerPage={10}
+            rowsPerPageOptions={[5, 10, 15, 20]}
+            emptyMessage="No menu data available"
+            className="border-0 shadow-none"
+            headerClassName="bg-gradient-to-r from-purple-500 to-purple-600"
+            sortable={true}
+            onSort={(sortConfig) => {
+              // Optional: Handle sorting if needed
+              console.log("Sort config:", sortConfig);
+            }}
+          />
+        </div>
+
+        {/* Recent Orders Table */}
+        {hasOrders && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-gray-700" />
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Recent Orders
+                  </h2>
+                </div>
+                <div className="text-sm text-gray-600">
+                  Showing {timeFilteredOrders.length} of {orders.length} orders
+                </div>
+              </div>
+
+              <OrderDetailsTable
+                orders={timeFilteredOrders}
+                onViewDetails={handleViewDetails}
+                onUpdateStatus={updateOrderStatus}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Loading States */}
+        {(loading || isMenuManagementLoading) && (
+          <div className="flex items-center justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading dashboard data..." />
           </div>
         )}
 
         {/* Error States */}
-        {(menuError || categoriesError || error) && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <svg
-                  className="w-6 h-6 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        {(error || menuManagementError) && (
+          <div className="py-8">
+            <ErrorState
+              size="md"
+              message={error || menuManagementError}
+              title="Dashboard Error"
+              showRetry={true}
+              onRetry={() => window.location.reload()}
+            />
+          </div>
+        )}
+
+        {/* Empty State - No Orders */}
+        {!loading && !error && !hasOrders && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-12">
+            <div className="text-center">
+              <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No Orders Yet
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Your dashboard will come alive once you start receiving orders.
+                Check your menu setup and ensure everything is configured
+                correctly.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-red-800 font-semibold mb-1">
-                  Error Loading Data
-                </h3>
-                <p className="text-red-600 text-sm">
-                  {menuError ||
-                    categoriesError ||
-                    error ||
-                    "An unexpected error occurred. Please try again."}
-                </p>
+                  Refresh Dashboard
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* AddMenu Component - Enhanced Container */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-          <div className="p-0">
-            <AddMenu onlyView={true} />
-          </div>
-        </div>
+        {/* Order Details Modal */}
+        {showOrderDetails && selectedOrder && (
+          <OrderDetailsModal
+            order={selectedOrder}
+            onClose={handleCloseDetails}
+            onUpdateStatus={updateOrderStatus}
+          />
+        )}
       </div>
     </AdminDashboardLayout>
   );

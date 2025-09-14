@@ -1,21 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import "../../styles/AddOffers.css";
-import { PageTitle } from "../../Atoms";
+import {
+  Plus,
+  Tags,
+  LoaderCircle,
+  AlertCircle,
+  TrendingUp,
+  Clock,
+  DollarSign,
+} from "lucide-react";
+import PageTitle from "../../atoms/PageTitle";
 import { ViewOffersColumns } from "../../Constants/Columns";
-import { DynamicTable } from "../../components";
-import { useParams } from "react-router-dom";
-import SearchWithButton from "components/SearchWithAddButton";
-import OffersFormModal from "../../components/FormModals/OffersFormModal";
 import { useOffers } from "../../customHooks/useOffers";
-import { Spinner } from "react-bootstrap";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
+import EmptyState from "atoms/Messages/EmptyState";
+import NoSearchResults from "molecules/NoSearchResults";
+import StatCard from "components/Cards/StatCard";
+import PrimaryButton from "atoms/Buttons/PrimaryButton";
+import SearchWithResults from "molecules/SearchWithResults";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 
-function AddOffers() {
+// Lazy load heavy components
+const OffersFormModal = React.lazy(() =>
+  import("../../components/FormModals/OffersFormModal")
+);
+const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+
+// Main AddOffers component
+const AddOffers = memo(() => {
+  const navigate = useNavigate();
+  const { hotelName } = useParams();
+
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
-
-  const { hotelName } = useParams();
 
   // Use custom hook for offers management
   const {
@@ -24,62 +43,132 @@ function AddOffers() {
     searchTerm,
     loading,
     submitting,
+    error,
     handleFormSubmit,
     handleSearchChange,
     deleteOffer,
     prepareForEdit,
+    refreshOffers,
     offerCount,
     hasOffers,
     hasSearchResults,
     toggleOfferStatus,
   } = useOffers(hotelName);
 
-  // Handle add button click
-  const handleAddClick = () => {
+  // Memoized calculations
+  const stats = useMemo(
+    () => ({
+      total: offerCount,
+      active: offers.filter((offer) => offer.status === "active").length,
+      expired: offers.filter((offer) => {
+        const expiry = new Date(offer.expiryDate);
+        return expiry < new Date();
+      }).length,
+      recent: offers.filter((offer) => {
+        const createdDate = new Date(offer.createdAt);
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return createdDate > weekAgo;
+      }).length,
+    }),
+    [offers, offerCount]
+  );
+
+  // Event handlers
+  const handleAddClick = useCallback(() => {
     setEditingOffer(null);
     setShowModal(true);
-  };
+  }, []);
 
-  // Handle edit button click
-  const handleEditClick = async (offer) => {
-    const offerToEdit = await prepareForEdit(offer);
-    if (offerToEdit) {
-      setEditingOffer(offerToEdit);
-      setShowModal(true);
-    }
-  };
+  const handleEditClick = useCallback(
+    async (offer) => {
+      try {
+        const offerToEdit = await prepareForEdit(offer);
+        if (offerToEdit) {
+          setEditingOffer(offerToEdit);
+          setShowModal(true);
+        }
+      } catch (error) {
+        console.error("Error preparing offer for edit:", error);
+      }
+    },
+    [prepareForEdit]
+  );
 
-  // Handle delete button click
-  const handleDeleteClick = async (offer) => {
-    await deleteOffer(offer);
-  };
+  const handleDeleteClick = useCallback(
+    async (offer) => {
+      // Show confirmation dialog
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${offer.title}"? This action cannot be undone.`
+      );
 
-  // Handle status toggle
-  const handleStatusToggle = async (offer) => {
-    await toggleOfferStatus(offer);
-  };
+      if (confirmed) {
+        try {
+          await deleteOffer(offer);
+        } catch (error) {
+          console.error("Error deleting offer:", error);
+        }
+      }
+    },
+    [deleteOffer]
+  );
 
-  // Handle modal close
-  const handleModalClose = () => {
+  const handleStatusToggle = useCallback(
+    async (offer) => {
+      try {
+        await toggleOfferStatus(offer);
+      } catch (error) {
+        console.error("Error toggling offer status:", error);
+      }
+    },
+    [toggleOfferStatus]
+  );
+
+  const handleModalClose = useCallback(() => {
     setShowModal(false);
     setEditingOffer(null);
-  };
+  }, []);
 
-  // Handle form submission from modal
-  const handleModalSubmit = async (offerData, offerId = null) => {
-    const success = await handleFormSubmit(offerData, offerId);
-    return success;
-  };
+  const handleModalSubmit = useCallback(
+    async (offerData, offerId = null) => {
+      try {
+        const success = await handleFormSubmit(offerData, offerId);
+        return success;
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        return false;
+      }
+    },
+    [handleFormSubmit]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    handleSearchChange("");
+  }, [handleSearchChange]);
+
+  const handleRefresh = useCallback(() => {
+    refreshOffers();
+  }, [refreshOffers]);
+
+  // Error state
+  if (error) {
+    return (
+      <ErrorMessage
+        error={error}
+        onRetry={handleRefresh}
+        title="Error Loading Offers"
+      />
+    );
+  }
 
   // Loading state
-  if (loading) {
-    <Spinner />;
+  if (loading && !offers.length) {
+    return <LoadingSpinner size="lg" text="Loading offers..." />;
   }
 
   return (
-    <>
-      <div style={{ margin: "20px" }}>
-        {/* Offers Form Modal */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Offers Form Modal */}
+      <Suspense fallback={<LoadingSpinner />}>
         <OffersFormModal
           show={showModal}
           onClose={handleModalClose}
@@ -89,88 +178,126 @@ function AddOffers() {
           submitting={submitting}
           hotelName={hotelName}
         />
+      </Suspense>
 
-        <div style={{ width: "100%" }}>
-          {/* Page Title with Stats */}
-          <div className="d-flex justify-between align-items-center mb-3">
-            <PageTitle pageTitle="View Offers" />
-            {hasOffers && (
-              <div className="text-sm text-gray-600">
-                {searchTerm
-                  ? `Showing ${filteredOffers.length} of ${offerCount} offers`
-                  : `Total: ${offerCount} offers`}
-              </div>
-            )}
-          </div>
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+          <PageTitle
+            pageTitle="Offers Management"
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description="Manage your promotional offers"
+          />
 
-          {/* Search and Add Button */}
-          <div className="mb-4">
-            <SearchWithButton
-              searchTerm={searchTerm}
-              onSearchChange={(e) => handleSearchChange(e.target.value)}
-              buttonText="Add Offer"
-              onButtonClick={handleAddClick}
-              disabled={submitting}
-              placeholder="Search offers..."
+          <PrimaryButton
+            onAdd={handleAddClick}
+            btnText="Add Offer"
+            loading={loading}
+          />
+        </div>
+
+        {/* Stats Cards */}
+        {hasOffers && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Tags}
+              title="Total Offers"
+              value={stats.total}
+              color="blue"
+            />
+            <StatCard
+              icon={TrendingUp}
+              title="Active Offers"
+              value={stats.active}
+              color="green"
+            />
+            <StatCard
+              icon={Clock}
+              title="Expired Offers"
+              value={stats.expired}
+              color="red"
+            />
+            <StatCard
+              icon={Plus}
+              title="Recent (7 days)"
+              value={stats.recent}
+              color="purple"
             />
           </div>
+        )}
 
-          {/* Offers Table */}
+        {/* Search and Filters */}
+        {hasOffers && (
+          <SearchWithResults
+            searchTerm={searchTerm}
+            onSearchChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search offers by title, description, or type..."
+            totalCount={offerCount}
+            filteredCount={filteredOffers.length}
+            onClearSearch={handleClearSearch}
+            totalLabel="total offers"
+          />
+        )}
+
+        {/* Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {hasOffers ? (
             <>
               {hasSearchResults ? (
-                <DynamicTable
-                  columns={ViewOffersColumns}
-                  data={filteredOffers}
-                  onEdit={handleEditClick}
-                  onDelete={handleDeleteClick}
-                  onToggleStatus={handleStatusToggle}
-                  loading={submitting}
-                />
+                <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
+                  <DynamicTable
+                    columns={ViewOffersColumns}
+                    data={filteredOffers}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteClick}
+                    onToggleStatus={handleStatusToggle}
+                    loading={submitting}
+                    emptyMessage="No offers match your search criteria"
+                    showPagination={true}
+                    initialRowsPerPage={10}
+                    sortable={true}
+                    className="border-0"
+                  />
+                </Suspense>
               ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 mb-2">
-                    <i className="fas fa-search fa-3x"></i>
-                  </div>
-                  <h5 className="text-gray-600">No offers found</h5>
-                  <p className="text-gray-500">
-                    No offers match your search "{searchTerm}"
-                  </p>
-                  <button
-                    className="btn btn-outline-primary mt-2"
-                    onClick={() => handleSearchChange("")}
-                  >
-                    Clear Search
-                  </button>
-                </div>
+                <NoSearchResults
+                  btnText="Add Offer"
+                  searchTerm={searchTerm}
+                  onClearSearch={handleClearSearch}
+                  onAddNew={handleAddClick}
+                />
               )}
             </>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-4">
-                <i className="fas fa-tags fa-4x"></i>
-              </div>
-              <h5 className="text-gray-600 mb-2">No Offers Found</h5>
-              <p className="text-gray-500 mb-4">
-                Get started by adding your first offer
-              </p>
-              <button
-                className="btn btn-primary"
-                onClick={handleAddClick}
-                disabled={submitting}
-              >
-                <i className="fas fa-plus me-2"></i>
-                Add Your First Offer
-              </button>
-            </div>
+            <EmptyState
+              icon={Tags}
+              title="No Offers Yet"
+              description="Create your first promotional offer to attract more customers. Offers help boost sales and customer engagement."
+              actionLabel="Add Your First Offer"
+              onAction={handleAddClick}
+              loading={submitting}
+            />
           )}
         </div>
       </div>
 
       {/* Toast Container */}
-      <ToastContainer />
-    </>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
   );
-}
+});
+
+AddOffers.displayName = "AddOffers";
 
 export default AddOffers;

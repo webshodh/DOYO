@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,21 +6,20 @@ import {
   Navigate,
 } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useState, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 
 // Context Providers
-import { HotelProvider } from "./Context/HotelContext";
-import { HotelSelectionProvider } from "./Context/HotelSelectionContext";
+import { HotelProvider } from "./context/HotelContext";
+import { HotelSelectionProvider } from "./context/HotelSelectionContext";
 
 // Components
 import LoginPage from "./Pages/Login/LoginPage";
-import HotelSplashScreen from "./Pages/SplashScreen";
+import SplashScreen from "./Pages/Screens/SplashScreen";
 import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
-import Profile from "./components/ProfileComponent";
-import AddCategory from "Pages/Admin Dashboard/AddCategory";
-import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";
-import AddMenu from "Pages/Admin Dashboard/AddMenu";
+import Profile from "./organisms/ProfileComponent";
+import AddCategory from "./Pages/Admin Dashboard/AddCategory";
+import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
+import AddMenu from "./Pages/Admin Dashboard/AddMenu";
 import {
   AddHotel,
   AdminList,
@@ -29,22 +28,29 @@ import {
   NotFound,
   SignupPage,
   SuperAdminDashboard,
-} from "Pages";
-import AddOffers from "Pages/Admin Dashboard/AddOffers";
-import Offers from "Pages/User/Offers";
-import { Spinner } from "Atoms";
-import SettingsPage from "Pages/Admin Dashboard/Setting";
-import AdminDashboardLayout from "./Pages/AdminDashboardLayout";
-import SuperAdminDashboardLayout from "Pages/SuperAdminDashboardLayout";
-import AddOption from "Pages/Admin Dashboard/AddOptions";
-import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
-import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
-import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
+} from "./Pages";
+import AddOffers from "./Pages/Admin Dashboard/AddOffers";
+import Offers from "./Pages/User/Offers";
+import LoadingSpinner from "./atoms/LoadingSpinner";
+import AdminLayout from "./layout/AdminDashboardLayout";
+import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
+import OptionManager from "./Pages/Admin Dashboard/AddOptions";
+import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
+import ViewHotel from "./Pages/SuperAdminDashboard/HotelList";
+import ViewSubscription from "./Pages/SuperAdminDashboard/Subcription";
+import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
+import CheckoutPage from "./Pages/Captain/CheckoutPage";
+import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
+import AddCaptain from "Pages/Admin Dashboard/AddCaptain";
+import CaptainDashboardLayout from "layout/CaptainDashboardLayout";
+import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
+import CaptainLogin from "Pages/Captain/CaptainLogin";
+import MyOrdersPage from "Pages/Captain/MyOrderPage";
 
-// Super Admin credentials (same as in login page)
+// Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
 
-// Protected Route Component for Regular Admin
+// Protected Route Component for Admin
 const ProtectedAdminRoute = ({
   children,
   requiresAuth = true,
@@ -59,28 +65,22 @@ const ProtectedAdminRoute = ({
       setUser(currentUser);
       setLoading(false);
     });
-
     return unsubscribe;
   }, [auth]);
 
-  if (loading) {
-    return <Spinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (requiresAuth && !user) {
     return <Navigate to={redirectTo} replace />;
   }
 
   if (!requiresAuth && user) {
-    // If user is super admin, redirect to super admin dashboard
     if (user.email === SUPER_ADMIN_EMAIL) {
       return <Navigate to="/super-admin/dashboard" replace />;
     }
-    // Regular admin goes to hotel selection
     return <Navigate to="/admin/hotel-select" replace />;
   }
 
-  // Block super admin from accessing admin routes
   if (user && user.email === SUPER_ADMIN_EMAIL) {
     return <Navigate to="/super-admin/dashboard" replace />;
   }
@@ -103,28 +103,22 @@ const ProtectedSuperAdminRoute = ({
       setUser(currentUser);
       setLoading(false);
     });
-
     return unsubscribe;
   }, [auth]);
 
-  if (loading) {
-    return <Spinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (requiresAuth && !user) {
     return <Navigate to={redirectTo} replace />;
   }
 
   if (!requiresAuth && user) {
-    // If already logged in, redirect based on user type
     if (user.email === SUPER_ADMIN_EMAIL) {
       return <Navigate to="/super-admin/dashboard" replace />;
-    } else {
-      return <Navigate to="/super-admin/login" replace />;
     }
+    return <Navigate to="/admin/hotel-select" replace />;
   }
 
-  // Block regular admin from accessing super admin routes
   if (user && user.email !== SUPER_ADMIN_EMAIL) {
     return <Navigate to="/not-authorized" replace />;
   }
@@ -132,7 +126,7 @@ const ProtectedSuperAdminRoute = ({
   return children;
 };
 
-// Public Route Component (no auth required)
+// Public Route Component
 const PublicRoute = ({ children }) => {
   return children;
 };
@@ -143,12 +137,20 @@ function App() {
       <HotelProvider>
         <div className="App">
           <Routes>
-            {/* Public Routes - No authentication required */}
+            {/* Public Routes */}
             <Route
               path="/viewMenu/:hotelName/home"
               element={
                 <PublicRoute>
                   <Home />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/viewMenu/:hotelName/captain/login"
+              element={
+                <PublicRoute>
+                  <CaptainLogin />
                 </PublicRoute>
               }
             />
@@ -161,7 +163,7 @@ function App() {
               }
             />
 
-            {/* Admin Login Routes */}
+            {/* Admin Login */}
             <Route
               path="/admin/login"
               element={
@@ -171,19 +173,29 @@ function App() {
               }
             />
 
-            {/* Admin Hotel Selection (with splash screen) */}
+            {/* Admin Hotel Selection */}
             <Route
               path="/admin/hotel-select"
               element={
                 <ProtectedAdminRoute>
                   <HotelSelectionProvider>
-                    <HotelSplashScreen />
+                    <SplashScreen />
                   </HotelSelectionProvider>
                 </ProtectedAdminRoute>
               }
             />
 
-            {/* Super Admin Routes - NO HotelSelectionProvider, NO Splash Screen */}
+            {/* Super Admin Login */}
+            <Route
+              path="/super-admin/login"
+              element={
+                <ProtectedSuperAdminRoute requiresAuth={false}>
+                  <LoginPage />
+                </ProtectedSuperAdminRoute>
+              }
+            />
+
+            {/* Super Admin Routes */}
             <Route
               path="/super-admin/*"
               element={
@@ -192,53 +204,48 @@ function App() {
                     <Routes>
                       <Route
                         path="dashboard"
-                        element={
-                          // <SuperAdminDashboardLayout>
-                          <SuperAdminDashboard />
-                          // </SuperAdminDashboardLayout>
-                        }
+                        element={<SuperAdminDashboard />}
                       />
                       <Route
                         path="profile"
                         element={
-                          <SuperAdminDashboardLayout>
+                          <SuperAdminLayout>
                             <Profile />
-                          </SuperAdminDashboardLayout>
+                          </SuperAdminLayout>
                         }
                       />
                       <Route
                         path="add-hotel"
                         element={
-                          <SuperAdminDashboardLayout>
+                          <SuperAdminLayout>
                             <AddHotel />
-                          </SuperAdminDashboardLayout>
+                          </SuperAdminLayout>
                         }
                       />
                       <Route
                         path="view-admin"
                         element={
-                          <SuperAdminDashboardLayout>
+                          <SuperAdminLayout>
                             <AdminList />
-                          </SuperAdminDashboardLayout>
+                          </SuperAdminLayout>
                         }
                       />
                       <Route
                         path="view-hotel"
                         element={
-                          <SuperAdminDashboardLayout>
+                          <SuperAdminLayout>
                             <ViewHotel />
-                          </SuperAdminDashboardLayout>
+                          </SuperAdminLayout>
                         }
                       />
-                       <Route
+                      <Route
                         path="view-hotel-subscriptions"
                         element={
-                          <SuperAdminDashboardLayout>
-                            <ViewHotelSubscription />
-                          </SuperAdminDashboardLayout>
+                          <SuperAdminLayout>
+                            <ViewSubscription />
+                          </SuperAdminLayout>
                         }
                       />
-                      {/* Redirect to dashboard if no specific route matches */}
                       <Route
                         path=""
                         element={<Navigate to="dashboard" replace />}
@@ -249,7 +256,7 @@ function App() {
               }
             />
 
-            {/* Hotel-specific Admin Routes - WITH HotelSelectionProvider */}
+            {/* Admin Routes */}
             <Route
               path="/:hotelName/admin/*"
               element={
@@ -257,76 +264,154 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
+
                       <Route
                         path="profile"
                         element={
-                          <AdminDashboardLayout>
+                          <AdminLayout>
                             <Profile />
-                          </AdminDashboardLayout>
+                          </AdminLayout>
                         }
                       />
                       <Route
                         path="add-category"
                         element={
-                          <AdminDashboardLayout>
+                          <AdminLayout>
                             <AddCategory />
-                          </AdminDashboardLayout>
+                          </AdminLayout>
                         }
                       />
                       <Route
                         path="add-special-category"
                         element={
-                          <AdminDashboardLayout>
+                          <AdminLayout>
                             <CategoryManager />
-                          </AdminDashboardLayout>
+                          </AdminLayout>
                         }
                       />
                       <Route
                         path="add-options"
                         element={
-                          <AdminDashboardLayout>
-                            <AddOption />
-                          </AdminDashboardLayout>
+                          <AdminLayout>
+                            <OptionManager />
+                          </AdminLayout>
                         }
                       />
                       <Route
                         path="add-menu"
                         element={
-                          <AdminDashboardLayout>
+                          <AdminLayout>
                             <AddMenu />
-                          </AdminDashboardLayout>
+                          </AdminLayout>
                         }
                       />
                       <Route
                         path="add-offers"
                         element={
-                          <AdminDashboardLayout>
+                          <AdminLayout>
                             <AddOffers />
-                          </AdminDashboardLayout>
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path="add-captain"
+                        element={
+                          <AdminLayout>
+                            <AddCaptain />
+                          </AdminLayout>
                         }
                       />
                       <Route
                         path="upload-data"
                         element={
-                          <AdminDashboardLayout>
-                            <BulkMenuUpload />
-                          </AdminDashboardLayout>
+                          <AdminLayout>
+                            <BulkUpload />
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path="kitchen"
+                        element={
+                          <AdminLayout>
+                            <KitchenAdminPage />
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path="settings"
+                        element={
+                          <AdminLayout>
+                            <Profile />
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path=""
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </HotelSelectionProvider>
+                </ProtectedAdminRoute>
+              }
+            />
+
+            {/* Captain Routes */}
+            <Route
+              path="/viewMenu/:hotelName/captain/*"
+              element={
+                <ProtectedAdminRoute>
+                  <HotelSelectionProvider>
+                    <Routes>
+                      <Route
+                        path="dashboard"
+                        element={
+                          <CaptainDashboardLayout>
+                            <CaptainDashboard />
+                          </CaptainDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="home"
+                        element={
+                          <CaptainDashboardLayout>
+                            <CaptainMenuPage />
+                          </CaptainDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="checkout"
+                        element={
+                          <CaptainDashboardLayout>
+                            <CheckoutPage />
+                          </CaptainDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="kitchen"
+                        element={
+                          <CaptainDashboardLayout>
+                            <KitchenAdminPage />
+                          </CaptainDashboardLayout>
+                        }
+                      />
+                      <Route
+                        path="my-orders"
+                        element={
+                          <CaptainDashboardLayout>
+                            <MyOrdersPage />
+                          </CaptainDashboardLayout>
                         }
                       />
 
                       <Route
                         path="settings"
                         element={
-                          <AdminDashboardLayout>
-                            <SettingsPage />
-                          </AdminDashboardLayout>
+                          <AdminLayout>
+                            <Profile />
+                          </AdminLayout>
                         }
                       />
-                      {/* Redirect to dashboard if no specific route matches */}
-                      <Route
-                        path=""
-                        element={<Navigate to="dashboard" replace />}
-                      />
+                      <Route path="" element={<Navigate to="home" replace />} />
                     </Routes>
                   </HotelSelectionProvider>
                 </ProtectedAdminRoute>
@@ -374,24 +459,19 @@ const AuthBasedRedirect = () => {
       setUser(currentUser);
       setLoading(false);
     });
-
     return unsubscribe;
   }, [auth]);
 
-  if (loading) {
-    return <Spinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (!user) {
-    // Not authenticated, redirect to admin login
     return <Navigate to="/admin/login" replace />;
   }
 
-  // Authenticated user, redirect based on role
   if (user.email === SUPER_ADMIN_EMAIL) {
     return <Navigate to="/super-admin/dashboard" replace />;
   } else {
-    return <Navigate to="/super-admin/login" replace />;
+    return <Navigate to="/admin/hotel-select" replace />;
   }
 };
 

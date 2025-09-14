@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import {
   validateMenuForm,
   calculateFinalPrice,
-} from "../Validation/menuValidation";
+} from "../validation/menuValidation";
 
 export const menuServices = {
   // Check if user has permission to manage hotel menus
