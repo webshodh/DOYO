@@ -1,253 +1,234 @@
 // src/constants/menuConfig.js
+import {
+  Home,
+  Users,
+  Settings,
+  Building,
+  Plus,
+  Star,
+  BookOpen,
+  Tag,
+  ChefHat,
+  Upload,
+  Eye,
+  CreditCard,
+  UtensilsCrossed,
+  ClipboardList,
+  Receipt,
+  MessageSquare,
+  BarChart3,
+  TableProperties,
+  ShoppingCart,
+  UserPlus,
+} from "lucide-react";
+
+// Role-based theme configurations
+export const roleThemes = {
+  admin: {
+    title: "Admin Panel",
+    subtitle: "Hotel Management",
+    gradient: "from-orange-500 to-amber-500",
+    bgGradient: "from-orange-50 to-amber-50",
+    iconBg: "from-orange-200 to-amber-200",
+    activeBg: "from-orange-100 to-amber-100",
+    textColor: "text-orange-800",
+    borderColor: "border-orange-200",
+  },
+  superAdmin: {
+    title: "Super Admin",
+    subtitle: "System Control",
+    gradient: "from-blue-600 to-indigo-600",
+    bgGradient: "from-blue-50 to-indigo-50",
+    iconBg: "from-blue-200 to-indigo-200",
+    activeBg: "from-blue-100 to-indigo-100",
+    textColor: "text-blue-800",
+    borderColor: "border-blue-200",
+  },
+  captain: {
+    title: "Captain Panel",
+    subtitle: "Floor Management",
+    gradient: "from-green-500 to-emerald-500",
+    bgGradient: "from-green-50 to-emerald-50",
+    iconBg: "from-green-200 to-emerald-200",
+    activeBg: "from-green-100 to-emerald-100",
+    textColor: "text-green-800",
+    borderColor: "border-green-200",
+  },
+};
+
+// Admin menu items
 export const adminMenuItems = (hotelName) => [
   {
     name: "Dashboard",
     path: `/${hotelName}/admin/dashboard`,
     icon: "dashboard",
+    description: "Overview and analytics",
   },
+ 
   {
     name: "Add Category",
     path: `/${hotelName}/admin/add-category`,
     icon: "category",
+    description: "Manage food categories",
   },
-  // {
-  //   name: "Add Special Category",
-  //   path: `/${hotelName}/admin/add-special-category`,
-  //   icon: "star",
-  // },
   {
     name: "Add Options",
     path: `/${hotelName}/admin/add-options`,
-    icon: "star",
+    icon: "options",
+    description: "Menu customization options",
   },
   {
     name: "Add Menu",
     path: `/${hotelName}/admin/add-menu`,
     icon: "menu",
+    description: "Create menu items",
   },
   {
     name: "Add Offers",
     path: `/${hotelName}/admin/add-offers`,
-    icon: "offer",
+    icon: "offers",
+    description: "Promotional deals",
   },
   {
     name: "Add Captain",
     path: `/${hotelName}/admin/add-captain`,
-    icon: "offer",
+    icon: "addUser",
+    description: "Manage staff members",
   },
   // {
-  //   name: "Upload Data",
-  //   path: `/${hotelName}/admin/upload-data`,
-  //   icon: "upload",
+  //   name: "Kitchen",
+  //   path: `/${hotelName}/admin/kitchen`,
+  //   icon: "kitchen",
+  //   description: "Kitchen operations",
   // },
-  {
-    name: "Kitchen",
-    path: `/${hotelName}/admin/kitchen`,
-    icon: "offer",
-  },
   {
     name: "Preview",
     path: `/viewMenu/${hotelName}/home`,
     icon: "preview",
+    description: "View customer menu",
   },
   {
     name: "Settings",
-    path: `/${hotelName}/admin/settings`,
+    path: `/${hotelName}/admin/profile`,
     icon: "settings",
+    description: "System configuration",
   },
 ];
 
+// Super Admin menu items
 export const superAdminMenuItems = [
   {
     name: "Dashboard",
-    path: `/super-admin/dashboard`,
+    path: "/super-admin/dashboard",
     icon: "dashboard",
+    description: "System overview",
   },
   {
     name: "Add Hotels",
-    path: `/super-admin/view-hotel`,
-    icon: "settings",
+    path: "/super-admin/view-hotel",
+    icon: "hotels",
+    description: "Manage properties",
   },
   {
     name: "View Admins",
-    path: `/super-admin/view-admin`,
+    path: "/super-admin/view-admin",
     icon: "users",
+    description: "Administrator accounts",
   },
   {
     name: "Subscriptions",
-    path: `/super-admin/view-hotel-subscriptions`,
-    icon: "hotel",
+    path: "/super-admin/view-hotel-subscriptions",
+    icon: "subscriptions",
+    description: "Billing and plans",
   },
 ];
 
-// Centralized icon map
+// Captain menu items
+export const captainMenuItems = (hotelName) => [
+  {
+    name: "Dashboard",
+    path: `/viewMenu/${hotelName}/captain/dashboard`,
+    icon: "dashboard",
+    description: "Floor overview",
+  },
+  {
+    name: "Tables",
+    path: `/viewMenu/${hotelName}/captain/tables`,
+    icon: "tables",
+    description: "Table management",
+  },
+  {
+    name: "Add Order",
+    path: `/viewMenu/${hotelName}/captain/home`,
+    icon: "addOrder",
+    description: "Take new orders",
+  },
+  {
+    name: "My Orders",
+    path: `/viewMenu/${hotelName}/captain/my-orders`,
+    icon: "orders",
+    description: "Track active orders",
+  },
+
+  // {
+  //   name: "Kitchen",
+  //   path: `/viewMenu/${hotelName}/captain/kitchen`,
+  //   icon: "kitchen",
+  //   description: "Kitchen communication",
+  // },
+  {
+    name: "Bills",
+    path: `/viewMenu/${hotelName}/captain/bills`,
+    icon: "bills",
+    description: "Payment processing",
+  },
+];
+
+// Centralized icon mapping with modern Lucide icons
 export const iconMap = {
-  dashboard: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M8 5a2 2 0 012-2h4a2 2 0 012 2v4H8V5z"
-      />
-    </svg>
-  ),
-  category: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-      />
-    </svg>
-  ),
-  star: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-      />
-    </svg>
-  ),
-  menu: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-      />
-    </svg>
-  ),
-  offer: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-      />
-    </svg>
-  ),
-  upload: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-      />
-    </svg>
-  ),
-  preview: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-      />
-    </svg>
-  ),
-  settings: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-    </svg>
-  ),
-  hotel: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-      />
-    </svg>
-  ),
-  users: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z"
-      />
-    </svg>
-  ),
+  // Common icons
+  dashboard: Home,
+  settings: Settings,
+  users: Users,
+
+  // Admin specific
+  category: BookOpen,
+  options: Star,
+  menu: UtensilsCrossed,
+  offers: Tag,
+  addUser: UserPlus,
+  kitchen: ChefHat,
+  preview: Eye,
+  upload: Upload,
+
+  // Super Admin specific
+  hotels: Building,
+  subscriptions: CreditCard,
+
+  // Captain specific
+  tables: TableProperties,
+  addOrder: Plus,
+  orders: ClipboardList,
+  bills: Receipt,
+  messages: MessageSquare,
+};
+
+// Get role configuration
+export const getRoleConfig = (admin = false, captain = false) => {
+  if (captain) return "captain";
+  if (admin) return "admin";
+  return "superAdmin";
+};
+
+// Get menu items based on role
+export const getMenuItems = (role, hotelName = null) => {
+  switch (role) {
+    case "admin":
+      return adminMenuItems(hotelName);
+    case "captain":
+      return captainMenuItems(hotelName);
+    case "superAdmin":
+    default:
+      return superAdminMenuItems;
+  }
 };

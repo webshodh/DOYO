@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHotelSelection } from "../context/HotelSelectionContext";
+import { useHotelSelection } from "../../context/HotelSelectionContext";
 import { toast } from "react-toastify";
 import { Spinner } from "atoms";
 

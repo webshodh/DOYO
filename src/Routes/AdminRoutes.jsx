@@ -10,7 +10,7 @@ import AddOffers from "Pages/Admin Dashboard/AddOffers";
 import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
 import KitchenAdminPage from "Pages/Admin Dashboard/Kitchen";
 import SettingsPage from "Pages/Admin Dashboard/Setting";
-import AdminDashboardLayout from "Pages/AdminDashboardLayout";
+import AdminDashboardLayout from "layout/AdminDashboardLayout";
 import AddOption from "Pages/Admin Dashboard/AddOptions";
 
 const AdminRoutes = () => {

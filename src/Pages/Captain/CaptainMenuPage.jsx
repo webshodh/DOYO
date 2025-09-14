@@ -10,6 +10,8 @@ import {
   AlertCircle,
   Wifi,
   WifiOff,
+  ArrowLeft,
+  BarChart3,
 } from "lucide-react";
 
 import CaptainMenuCard from "components/Cards/CaptainMenuCard";
@@ -60,7 +62,50 @@ const CartButton = ({
   );
 };
 
-// Separate component for category filters
+// Header component with navigation
+const MenuHeader = ({ hotelName, onGoToDashboard, cartInfo }) => (
+  <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+    <div className="px-4 py-3">
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onGoToDashboard}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            title="Back to Dashboard"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800">
+              Create New Order
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-500">
+              {hotelName && `${hotelName} • `}Select items for your order
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onGoToDashboard}
+            className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Dashboard
+          </button>
+
+          <CartButton
+            totalItems={cartInfo.totalItems}
+            totalAmount={cartInfo.totalAmount}
+            onGoToCart={cartInfo.onGoToCart}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Category filters component
 const CategoryFilters = ({
   categories,
   selectedCategory,
@@ -87,7 +132,7 @@ const CategoryFilters = ({
   </div>
 );
 
-// Separate component for special category filters
+// Special category filters component
 const SpecialCategoryFilters = ({
   categories,
   selectedFilters,
@@ -132,7 +177,7 @@ const SpecialCategoryFilters = ({
   </div>
 );
 
-// Separate component for active filters display
+// Active filters display component
 const ActiveFiltersDisplay = ({
   selectedFilters,
   selectedCategory,
@@ -210,7 +255,7 @@ const ActiveFiltersDisplay = ({
   );
 };
 
-// Separate component for empty state
+// Empty state component
 const EmptyState = ({ hasFilters, onClearFilters, isLoading = false }) => (
   <div className="text-center py-16">
     <div className="mb-4">
@@ -242,7 +287,7 @@ const EmptyState = ({ hasFilters, onClearFilters, isLoading = false }) => (
   </div>
 );
 
-// Separate component for error state
+// Error state component
 const ErrorState = ({ error, onRetry }) => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
     <div className="text-center max-w-md">
@@ -636,6 +681,10 @@ const CaptainMenuPage = () => {
     setOrderSuccessData(null);
   }, []);
 
+  const handleGoToDashboard = useCallback(() => {
+    navigate("/captain/dashboard");
+  }, [navigate]);
+
   const handleRetry = useCallback(() => {
     setRetryCount((prev) => prev + 1);
   }, []);
@@ -688,106 +737,94 @@ const CaptainMenuPage = () => {
       {/* Connection Status */}
       <ConnectionStatus isOnline={isOnline} />
 
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
-        <div className="px-4 py-3">
-          {/* Top Header - Cart and Title */}
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold text-gray-800">
-                Captain Menu
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-500">
-                {isLoading
-                  ? "Loading..."
-                  : `${filteredMenuItems.length} items available`}
-              </p>
-            </div>
+      {/* Header */}
+      <MenuHeader
+        hotelName={hotelName}
+        onGoToDashboard={handleGoToDashboard}
+        cartInfo={{
+          totalItems: cartCalculations.totalItems,
+          totalAmount: cartCalculations.totalAmount,
+          onGoToCart: handleGoToCart,
+        }}
+      />
 
-            <CartButton
-              totalItems={cartCalculations.totalItems}
-              totalAmount={cartCalculations.totalAmount}
-              onGoToCart={handleGoToCart}
-            />
-          </div>
+      <div className="px-4 py-3">
+        {/* Search Bar */}
+        <div className="mb-3">
+          <FilterSortSearch
+            searchTerm={searchTerm}
+            handleSearch={handleSearch}
+            handleSort={handleSort}
+          />
+        </div>
 
-          {/* Search Bar */}
-          <div className="mb-3">
-            <FilterSortSearch
-              searchTerm={searchTerm}
-              handleSearch={handleSearch}
-              handleSort={handleSort}
-            />
-          </div>
-
-          {/* Mobile Filter Toggle */}
-          <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-            >
-              <Filter size={16} />
-              Filters
-              {hasActiveFilters && (
-                <span className="bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                  !
-                </span>
-              )}
-            </button>
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearAllFilters}
-                className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
-              >
-                Clear All
-              </button>
-            )}
-          </div>
-
-          {/* Filters Section */}
-          <div
-            className={`${
-              showFilters ? "block" : "hidden"
-            } md:block space-y-4 animate-fadeIn`}
+        {/* Mobile Filter Toggle */}
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
           >
-            {/* Category Filter */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2 md:hidden">
-                Categories
-              </h3>
-              <CategoryFilters
-                categories={dynamicCategories}
-                selectedCategory={selectedCategory}
-                onCategorySelect={handleCategoryFilter}
-              />
-            </div>
-
-            {/* Special Categories Filter */}
-            {availableSpecialCategories.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  Special Categories
-                </h3>
-                <SpecialCategoryFilters
-                  categories={availableSpecialCategories}
-                  selectedFilters={selectedSpecialFilters}
-                  counts={specialCategoryCounts}
-                  onToggleFilter={handleSpecialFilterToggle}
-                />
-              </div>
+            <Filter size={16} />
+            Filters
+            {hasActiveFilters && (
+              <span className="bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                !
+              </span>
             )}
+          </button>
 
-            {/* Active Filters Display - Desktop */}
-            <div className="hidden md:block">
-              <ActiveFiltersDisplay
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
+
+        {/* Filters Section */}
+        <div
+          className={`${
+            showFilters ? "block" : "hidden"
+          } md:block space-y-4 animate-fadeIn`}
+        >
+          {/* Category Filter */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2 md:hidden">
+              Categories
+            </h3>
+            <CategoryFilters
+              categories={dynamicCategories}
+              selectedCategory={selectedCategory}
+              onCategorySelect={handleCategoryFilter}
+            />
+          </div>
+
+          {/* Special Categories Filter */}
+          {availableSpecialCategories.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                Special Categories
+              </h3>
+              <SpecialCategoryFilters
+                categories={availableSpecialCategories}
                 selectedFilters={selectedSpecialFilters}
-                selectedCategory={selectedCategory}
-                selectedMainCategory={selectedMainCategory}
-                onRemoveFilter={handleRemoveFilter}
-                onClearAll={clearAllFilters}
+                counts={specialCategoryCounts}
+                onToggleFilter={handleSpecialFilterToggle}
               />
             </div>
+          )}
+
+          {/* Active Filters Display - Desktop */}
+          <div className="hidden md:block">
+            <ActiveFiltersDisplay
+              selectedFilters={selectedSpecialFilters}
+              selectedCategory={selectedCategory}
+              selectedMainCategory={selectedMainCategory}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAll={clearAllFilters}
+            />
           </div>
         </div>
       </div>

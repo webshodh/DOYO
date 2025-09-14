@@ -1,121 +1,199 @@
-import React, { memo } from "react";
-import { Eye } from "lucide-react";
-import StatusBadge from "../../atoms/Badges/StatusBadge";
-import OrderActionButtons from "../../atoms/Buttons/OrderActionButtons";
+import LoadingSpinner from "atoms/LoadingSpinner";
+import { ORDER_STATUSES } from "Constants/Columns";
+import {
+  Clock,
+  DollarSign,
+  Edit,
+  Eye,
+  Package,
+  Trash2,
+  User,
+} from "lucide-react";
 
-const OrderCard = memo(({ order, onStatusChange, onViewDetails }) => {
-  const status = order.kitchen?.status || order.status || "received";
+// Order Card Component
+const OrderCard = ({
+  order,
+  onEdit,
+  onView,
+  onUpdateStatus,
+  onDelete,
+  isUpdating,
+}) => {
+  const statusConfig =
+    ORDER_STATUSES.find((s) => s.value === order.status) || ORDER_STATUSES;
+  const StatusIcon = statusConfig.icon;
 
-  const formatTime = (timestamp) => {
-    if (!timestamp) return "N/A";
-    return new Date(timestamp).toLocaleTimeString("en-IN", {
-      hour12: true,
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getTimeDifference = (startTime) => {
-    if (!startTime) return "";
-    const diff = Date.now() - new Date(startTime).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 60) {
-      return `${minutes}m ago`;
+  const handleStatusChange = (newStatus) => {
+    if (newStatus !== order.status && !isUpdating) {
+      onUpdateStatus(order.id, newStatus);
     }
-    const hours = Math.floor(minutes / 60);
-    return `${hours}h ${minutes % 60}m ago`;
   };
+
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return "N/A";
+    try {
+      return new Date(dateTime).toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Invalid Date";
+    }
+  };
+
+  // Conditional rendering logic for action buttons
+  const isOrderCompleted = order.status === "completed";
+  const canEditAndDelete = order.status === "received";
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      {/* Header */}
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-10 h-10 rounded-full bg-${statusConfig.color}-100 flex items-center justify-center`}
+          >
+            <StatusIcon className={`w-5 h-5 text-${statusConfig.color}-600`} />
+          </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Order #{order.orderNumber}
+              Order #{order.orderNumber || order.id}
             </h3>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span>
-                Table {order.tableNumber || order.customerInfo?.tableNumber}
-              </span>
-              <span>{formatTime(order.timestamps?.orderPlaced)}</span>
-              <span>{getTimeDifference(order.timestamps?.orderPlaced)}</span>
-            </div>
+            <p className="text-sm text-gray-600">
+              Table {order.tableNumber} •{" "}
+              {formatDateTime(order.timestamps?.orderPlaced)}
+            </p>
           </div>
-          <StatusBadge status={status} />
         </div>
+
         <div className="flex items-center gap-2">
+          {/* View button - always visible */}
           <button
-            onClick={() => onViewDetails(order)}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            onClick={() => onView(order)}
+            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
             title="View Details"
           >
-            <Eye size={16} />
+            <Eye className="w-4 h-4" />
           </button>
+
+          {/* Edit button - only visible when status is "received" */}
+          {canEditAndDelete && (
+            <button
+              onClick={() => onEdit(order)}
+              className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors"
+              title="Edit Order"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Delete button - only visible when status is "received" */}
+          {canEditAndDelete && (
+            <button
+              onClick={() => onDelete(order.id)}
+              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+              title="Cancel Order"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Order Items Summary */}
-      <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Order Details */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <Package className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-sm text-gray-600">
-              Items ({order.orderDetails?.totalItems})
-            </p>
-            <div className="space-y-1">
-              {order.items?.slice(0, 2).map((item, index) => (
-                <p key={index} className="text-sm font-medium text-gray-800">
-                  {item.quantity}× {item.menuName}
-                </p>
-              ))}
-              {order.items?.length > 2 && (
-                <p className="text-sm text-gray-500">
-                  +{order.items.length - 2} more items
-                </p>
-              )}
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Total Amount</p>
-            <p className="text-lg font-bold text-gray-900">
-              ₹{order.pricing?.total || 0}
+            <p className="text-xs text-gray-500">Items</p>
+            <p className="font-semibold">
+              {order.orderDetails?.totalItems || order.items?.length || 0}
             </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <DollarSign className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-sm text-gray-600">Categories</p>
-            <div className="flex flex-wrap gap-1">
-              {order.orderSummary?.categories
-                ?.slice(0, 3)
-                .map((category, index) => (
-                  <span
-                    key={index}
-                    className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
-                  >
-                    {category}
-                  </span>
-                ))}
-            </div>
+            <p className="text-xs text-gray-500">Total</p>
+            <p className="font-semibold">
+              ₹{order.pricing?.total || order.total || 0}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500">Estimated</p>
+            <p className="font-semibold text-xs">
+              {order.timestamps?.estimatedReadyLocal || "25-30 mins"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500">Type</p>
+            <p className="font-semibold text-xs">
+              {order.customerInfo?.orderType || "Dine-in"}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <OrderActionButtons
-        status={status}
-        orderId={order.id}
-        onStatusChange={onStatusChange}
-      />
-
-      {/* Rejection Reason */}
-      {status === "rejected" && order.kitchen?.rejectionReason && (
-        <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mt-2">
-          Reason: {order.kitchen.rejectionReason}
+      {/* Items Preview */}
+      {order.items && order.items.length > 0 && (
+        <div className="mb-4">
+          <p className="text-sm font-medium text-gray-700 mb-2">Items:</p>
+          <div className="flex flex-wrap gap-2">
+            {order.items.slice(0, 3).map((item, index) => (
+              <span
+                key={index}
+                className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
+              >
+                {item.quantity}x {item.menuName}
+              </span>
+            ))}
+            {order.items.length > 3 && (
+              <span className="px-2 py-1 bg-gray-200 text-gray-600 rounded-full text-xs">
+                +{order.items.length - 3} more
+              </span>
+            )}
+          </div>
         </div>
       )}
+
+      {/* Status Update */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Status:</span>
+          <select
+            value={order.status}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            disabled={isUpdating || isOrderCompleted}
+            className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {ORDER_STATUSES.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {isUpdating && (
+          <span className="text-xs text-blue-600 flex items-center gap-1">
+            <LoadingSpinner size="sm" text="Updating..." />
+          </span>
+        )}
+      </div>
     </div>
   );
-});
-
-OrderCard.displayName = "OrderCard";
+};
 
 export default OrderCard;
