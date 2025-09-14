@@ -6,11 +6,11 @@ const SpecialCategoriesFilter = memo(
     if (!categories.length) return null;
 
     return (
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <div className="mb-2">
+        {/* <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
           <Star className="w-4 h-4 text-orange-500" />
           Special Categories
-        </h3>
+        </h3> */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category) => {
             const isSelected = selectedFilters.includes(category.name);

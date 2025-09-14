@@ -9,119 +9,8 @@ import {
   X,
   Check,
 } from "lucide-react";
-
-// Tab button component with enhanced styling
-const TabButton = memo(
-  ({
-    label,
-    count,
-    isActive,
-    onClick,
-    type,
-    disabled = false,
-    className = "",
-  }) => {
-    // Theme configuration for different tab types
-    const themes = {
-      all: {
-        active:
-          "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg",
-        inactive:
-          "bg-white border-2 border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400",
-        icon: Grid3x3,
-      },
-      main: {
-        active:
-          "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg",
-        inactive:
-          "bg-white border-2 border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400",
-        icon: Star,
-      },
-      special: {
-        active:
-          "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg",
-        inactive:
-          "bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400",
-        icon: Zap,
-      },
-      regular: {
-        active:
-          "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg",
-        inactive:
-          "bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400",
-        icon: Filter,
-      },
-    };
-
-    const theme = themes[type] || themes.regular;
-    const IconComponent = theme.icon;
-
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        className={`
-        relative flex items-center gap-2 px-2 py-3 min-w-max font-medium text-sm
-        rounded-full transition-all duration-300 ease-in-out transform
-        ${isActive ? theme.active : theme.inactive}
-        ${
-          disabled
-            ? "opacity-50 cursor-not-allowed"
-            : "hover:scale-105 active:scale-95"
-        }
-        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50
-        ${className}
-      `}
-        aria-pressed={isActive}
-        aria-label={`${label} category with ${count} items`}
-      >
-        
-        <span className="font-semibold">{label}</span>
-        {count !== undefined && (
-          <span
-            className={`
-          px-2 py-0.5 rounded-full text-xs font-bold
-          ${isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"}
-        `}
-          >
-            {count}
-          </span>
-        )}
-
-        {/* Active indicator */}
-        {isActive && (
-          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full opacity-90" />
-        )}
-      </button>
-    );
-  }
-);
-
-TabButton.displayName = "TabButton";
-
-// Scroll navigation buttons
-const ScrollButton = memo(
-  ({ direction, onClick, disabled, className = "" }) => {
-    const Icon = direction === "left" ? ChevronLeft : ChevronRight;
-
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        className={`
-        flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md
-        border border-gray-200 hover:bg-gray-50 transition-colors duration-200
-        disabled:opacity-50 disabled:cursor-not-allowed ${className}
-      `}
-        aria-label={`Scroll ${direction}`}
-      >
-        <Icon className="w-4 h-4 text-gray-600" />
-      </button>
-    );
-  }
-);
-
-ScrollButton.displayName = "ScrollButton";
+import TabButton from "atoms/Buttons/TabButton";
+import ScrollButton from "atoms/Buttons/ScrollButton";
 
 // Enhanced CategoryTabs component
 const CategoryTabs = memo(
@@ -416,9 +305,9 @@ const CategoryTabs = memo(
           <div
             id="category-tabs-container"
             className={`
-            overflow-x-auto scrollbar-hide p-4
+            overflow-x-auto scrollbar-hide p-2
             ${layout === "horizontal" ? "pb-2" : ""}
-            ${showScrollButtons ? "px-12" : "px-4"}
+            ${showScrollButtons ? "px-12" : "px-2"}
           `}
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >

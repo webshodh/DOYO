@@ -316,19 +316,20 @@ const Home = memo(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar for non-admin users */}
       {!isAdmin && (
         <Suspense fallback={<div className="h-16 bg-white border-b" />}>
-          <div className="sticky top-0 z-50">
+          <div className="sticky top-0 z-50 shadow-sm">
             <NavBar hotelName={hotelName} title={hotelName} admin={false} />
           </div>
         </Suspense>
       )}
 
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Search and Sort */}
-        <div className="mb-6">
+      {/* Sticky Filters & Tabs */}
+      <div className="sticky top-12 z-50 bg-gray-50 border-b">
+        <div className="container mx-auto px-3 py-3 max-w-7xl space-y-3">
+          {/* Search and Sort */}
           <Suspense
             fallback={
               <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
@@ -343,34 +344,32 @@ const Home = memo(() => {
               className="w-full"
             />
           </Suspense>
-        </div>
 
-        {/* Active Filters */}
-        <ActiveFilters
-          specialFilters={selectedSpecialFilters}
-          category={selectedCategory}
-          mainCategory={selectedMainCategory}
-          searchTerm={searchTerm}
-          onRemoveSpecial={removeSpecialFilter}
-          onRemoveCategory={removeCategoryFilter}
-          onRemoveMainCategory={removeMainCategoryFilter}
-          onClearSearch={clearSearch}
-          onClearAll={clearAllFilters}
-        />
+          {/* Active Filters */}
+          <ActiveFilters
+            specialFilters={selectedSpecialFilters}
+            category={selectedCategory}
+            mainCategory={selectedMainCategory}
+            searchTerm={searchTerm}
+            onRemoveSpecial={removeSpecialFilter}
+            onRemoveCategory={removeCategoryFilter}
+            onRemoveMainCategory={removeMainCategoryFilter}
+            onClearSearch={clearSearch}
+            onClearAll={clearAllFilters}
+          />
 
-        {/* Special Categories Filter */}
-        <SpecialCategoriesFilter
-          categories={availableSpecialCategories}
-          selectedFilters={selectedSpecialFilters}
-          onToggle={handleSpecialFilterToggle}
-          counts={specialCategoryCounts}
-        />
+          {/* Special Categories Filter */}
+          <SpecialCategoriesFilter
+            categories={availableSpecialCategories}
+            selectedFilters={selectedSpecialFilters}
+            onToggle={handleSpecialFilterToggle}
+            counts={specialCategoryCounts}
+          />
 
-        {/* Category Tabs */}
-        <div className="mb-6">
+          {/* Category Tabs */}
           <Suspense
             fallback={
-              <div className="h-16 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
             }
           >
             <CategoryTabs
@@ -385,69 +384,64 @@ const Home = memo(() => {
             />
           </Suspense>
         </div>
+      </div>
 
-        {/* Results Summary */}
-        <ResultsSummary
-          totalResults={menus.length}
-          filteredResults={filteredAndSortedMenus.length}
-          hasFilters={hasActiveFilters}
-          viewMode={viewMode}
-          onViewModeChange={changeViewMode}
-        />
+      {/* Scrollable Menu Section */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-3 py-6 max-w-7xl">
+          {/* Results Summary */}
+          <ResultsSummary
+            totalResults={menus.length}
+            filteredResults={filteredAndSortedMenus.length}
+            hasFilters={hasActiveFilters}
+            viewMode={viewMode}
+            onViewModeChange={changeViewMode}
+          />
 
-        {/* Menu Items */}
-        {loading ? (
-          <div
-            className={`grid gap-4 ${
-              viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                : "grid-cols-1"
-            }`}
-          >
-            {Array.from({ length: 8 }).map((_, index) => (
-              <MenuCardSkeleton key={index} />
-            ))}
-          </div>
-        ) : filteredAndSortedMenus.length > 0 ? (
-          <Suspense fallback={<LoadingSpinner text="Loading menu items..." />}>
+          {/* Menu Items */}
+          {loading ? (
             <div
               className={`grid gap-4 ${
                 viewMode === "grid"
                   ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                  : "grid-cols-1 max-w-4xl mx-auto"
+                  : "grid-cols-1"
               }`}
             >
-              {filteredAndSortedMenus.map((item) => (
-                <div key={item.id || item.menuId} className="w-full">
-                  <HorizontalMenuCard
-                    item={item}
-                    onAddToCart={(item, quantity) => {
-                      // Handle add to cart
-                      console.log("Add to cart:", item, quantity);
-                    }}
-                  />
-                </div>
+              {Array.from({ length: 8 }).map((_, index) => (
+                <MenuCardSkeleton key={index} />
               ))}
             </div>
-          </Suspense>
-        ) : (
-          <EmptyState
-            hasActiveFilters={hasActiveFilters}
-            onClearFilters={clearAllFilters}
-          />
-        )}
+          ) : filteredAndSortedMenus.length > 0 ? (
+            <Suspense
+              fallback={<LoadingSpinner text="Loading menu items..." />}
+            >
+              <div
+                className={`grid gap-4 ${
+                  viewMode === "grid"
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    : "grid-cols-1 max-w-4xl mx-auto"
+                }`}
+              >
+                {filteredAndSortedMenus.map((item) => (
+                  <div key={item.id || item.menuId} className="w-full">
+                    <HorizontalMenuCard
+                      item={item}
+                      onAddToCart={(item, quantity) => {
+                        console.log("Add to cart:", item, quantity);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </Suspense>
+          ) : (
+            <EmptyState
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearAllFilters}
+            />
+          )}
+        </div>
       </div>
-
-      {/* Custom scrollbar styles */}
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 });
