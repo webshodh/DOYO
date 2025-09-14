@@ -264,6 +264,7 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
+
                       <Route
                         path="profile"
                         element={

@@ -5,8 +5,10 @@ import {
   CheckCircle2,
   ChefHat,
   Package,
+  ShoppingBag,
   Utensils,
 } from "lucide-react";
+import { useMemo } from "react";
 
 export const ViewCategoryColumns = [
   { header: "Sr.No", accessor: "srNo" },
@@ -453,5 +455,118 @@ export const orderColumns = [
     render: (value, item) =>
       item.timestamps?.orderPlacedLocal ||
       (value ? new Date(value).toLocaleTimeString() : "N/A"),
+  },
+];
+
+// Order status configuration
+export const ORDER_STATUSES = [
+  { value: "received", label: "Received", color: "blue", icon: Package },
+  //   { value: "preparing", label: "Preparing", color: "yellow", icon: ChefHat },
+  //   { value: "ready", label: "Ready", color: "green", icon: CheckCircle },
+  //   { value: "served", label: "Served", color: "purple", icon: Utensils },
+  { value: "completed", label: "Completed", color: "gray", icon: CheckCircle },
+];
+
+// Define table columns configuration
+export const OrdersByCategoryColumn = [
+  {
+    header: "Category",
+    accessor: "category",
+    render: (value, item) => (
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+          <Utensils className="w-4 h-4 text-blue-600" />
+        </div>
+        <div>
+          <p className="font-medium text-gray-900">{value}</p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "Revenue",
+    accessor: "revenue",
+    render: (value) => (
+      <span className="text-sm text-gray-600">₹{value?.toLocaleString()}</span>
+    ),
+  },
+  {
+    header: "Orders",
+    accessor: "orderCount",
+    render: (value) => (
+      <span className="font-semibold text-gray-900">{value} orders</span>
+    ),
+  },
+  {
+    header: "Percentage",
+    accessor: "percentage",
+    render: (value) => (
+      <div className="flex items-center gap-2">
+        <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all duration-300"
+            style={{ width: `${value}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-500 min-w-[40px]">
+          {value.toFixed(1)}%
+        </span>
+      </div>
+    ),
+  },
+];
+
+export const OrdersByMenuColumn = [
+  {
+    header: "Menu Item",
+    accessor: "menuName",
+    sortable: true,
+    render: (value, item) => (
+      <div className="flex items-center gap-3">
+        
+        {!item.imageUrl && (
+          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <ShoppingBag className="w-5 h-5 text-purple-600" />
+          </div>
+        )}
+        <div>
+          <p className="font-medium text-gray-900">{value}</p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: "Revenue",
+    accessor: "revenue",
+    sortable: true,
+    render: (value) => (
+      <span className="text-sm text-gray-600">₹{value?.toLocaleString()}</span>
+    ),
+  },
+  {
+    header: "Orders",
+    accessor: "orderCount",
+    sortable: true,
+    render: (value) => (
+      <span className="font-semibold text-gray-900">{value} orders</span>
+    ),
+  },
+  {
+    header: "Percentage",
+    accessor: "percentage",
+    sortable: true,
+    render: (value) => (
+      <div className="flex items-center gap-2">
+        <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-purple-500 rounded-full transition-all duration-300"
+            style={{ width: `${value}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-500 min-w-[40px]">
+          {value.toFixed(1)}%
+        </span>
+      </div>
+    ),
   },
 ];

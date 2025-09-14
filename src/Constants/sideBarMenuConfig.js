@@ -64,6 +64,7 @@ export const adminMenuItems = (hotelName) => [
     icon: "dashboard",
     description: "Overview and analytics",
   },
+ 
   {
     name: "Add Category",
     path: `/${hotelName}/admin/add-category`,
@@ -94,12 +95,12 @@ export const adminMenuItems = (hotelName) => [
     icon: "addUser",
     description: "Manage staff members",
   },
-  {
-    name: "Kitchen",
-    path: `/${hotelName}/admin/kitchen`,
-    icon: "kitchen",
-    description: "Kitchen operations",
-  },
+  // {
+  //   name: "Kitchen",
+  //   path: `/${hotelName}/admin/kitchen`,
+  //   icon: "kitchen",
+  //   description: "Kitchen operations",
+  // },
   {
     name: "Preview",
     path: `/viewMenu/${hotelName}/home`,
@@ -169,12 +170,12 @@ export const captainMenuItems = (hotelName) => [
     description: "Track active orders",
   },
 
-  {
-    name: "Kitchen",
-    path: `/viewMenu/${hotelName}/captain/kitchen`,
-    icon: "kitchen",
-    description: "Kitchen communication",
-  },
+  // {
+  //   name: "Kitchen",
+  //   path: `/viewMenu/${hotelName}/captain/kitchen`,
+  //   icon: "kitchen",
+  //   description: "Kitchen communication",
+  // },
   {
     name: "Bills",
     path: `/viewMenu/${hotelName}/captain/bills`,
