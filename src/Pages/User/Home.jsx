@@ -321,13 +321,24 @@ const Home = memo(() => {
       {!isAdmin && (
         <Suspense fallback={<div className="h-16 bg-white border-b" />}>
           <div className="sticky top-0 z-50 shadow-sm">
-            <NavBar hotelName={hotelName} title={hotelName} admin={false} />
+            <NavBar
+              title={hotelName}
+              admin={false}
+              hotelName={hotelName}
+              home
+              offers
+              socialLinks={{
+                instagram: "https://instagram.com/yourpage",
+                facebook: "https://facebook.com/yourpage",
+                google: "https://g.page/yourpage",
+              }}
+            />
           </div>
         </Suspense>
       )}
 
       {/* Sticky Filters & Tabs */}
-      <div className="sticky top-12 z-50 bg-gray-50 border-b">
+      <div className="sticky top-12 z-40 bg-gray-50 border-b">
         <div className="container mx-auto px-3 py-3 max-w-7xl space-y-3">
           {/* Search and Sort */}
           <Suspense
