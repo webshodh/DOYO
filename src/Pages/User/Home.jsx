@@ -18,6 +18,7 @@ import ResultsSummary from "components/ResultsSummary";
 import MenuCardSkeleton from "atoms/MenuCardSkeleton";
 import LoadingSpinner from "atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
+import { Filter } from "lucide-react";
 
 // Lazy load heavy components
 const Navbar = React.lazy(() => import("../../organisms/Navbar"));
@@ -47,6 +48,7 @@ const Home = memo(() => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSpecialFilters, setSelectedSpecialFilters] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   // UI states
   const [viewMode, setViewMode] = useState("grid");
@@ -355,51 +357,68 @@ const Home = memo(() => {
               className="w-full"
             />
           </Suspense>
+          {/* Mobile Filter Toggle */}
+          <div className="flex items-center justify-between mb-1">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <Filter size={16} />
+              Filters
+              {hasActiveFilters && (
+                <span className="bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                  !
+                </span>
+              )}
+            </button>
 
-          {/* Active Filters */}
-          <ActiveFilters
-            specialFilters={selectedSpecialFilters}
-            category={selectedCategory}
-            mainCategory={selectedMainCategory}
-            searchTerm={searchTerm}
-            onRemoveSpecial={removeSpecialFilter}
-            onRemoveCategory={removeCategoryFilter}
-            onRemoveMainCategory={removeMainCategoryFilter}
-            onClearSearch={clearSearch}
-            onClearAll={clearAllFilters}
-          />
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
 
-          {/* Special Categories Filter */}
-          <SpecialCategoriesFilter
-            categories={availableSpecialCategories}
-            selectedFilters={selectedSpecialFilters}
-            onToggle={handleSpecialFilterToggle}
-            counts={specialCategoryCounts}
-          />
-
-          {/* Category Tabs */}
-          <Suspense
-            fallback={
-              <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
-            }
+          <div
+            className={`${
+              showFilters ? "block" : "hidden"
+            } md:block space-y-4 animate-fadeIn`}
           >
-            <CategoryTabs
-              categories={categories}
-              mainCategories={mainCategories}
-              menuCountsByCategory={menuCountsByCategory}
-              menuCountsByMainCategory={menuCountsByMainCategory}
-              handleCategoryFilter={handleCategoryFilter}
-              initialActiveTab={
-                selectedCategory || selectedMainCategory || "All"
-              }
+            {/* Special Categories Filter */}
+            <SpecialCategoriesFilter
+              categories={availableSpecialCategories}
+              selectedFilters={selectedSpecialFilters}
+              onToggle={handleSpecialFilterToggle}
+              counts={specialCategoryCounts}
             />
-          </Suspense>
+
+            {/* Category Tabs */}
+            <Suspense
+              fallback={
+                <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
+              }
+            >
+              <CategoryTabs
+                categories={categories}
+                mainCategories={mainCategories}
+                menuCountsByCategory={menuCountsByCategory}
+                menuCountsByMainCategory={menuCountsByMainCategory}
+                handleCategoryFilter={handleCategoryFilter}
+                initialActiveTab={
+                  selectedCategory || selectedMainCategory || "All"
+                }
+              />
+            </Suspense>
+          </div>
         </div>
       </div>
 
       {/* Scrollable Menu Section */}
       <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-3 py-6 max-w-7xl">
+        <div className="container mx-auto px-3 py-3 max-w-7xl">
           {/* Results Summary */}
           <ResultsSummary
             totalResults={menus.length}

@@ -10,6 +10,7 @@ const OrderSummary = memo(
     onCheckout,
     isProcessing = false,
     showDeliveryInfo = true,
+    isCheckout,
   }) => (
     <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">
@@ -32,25 +33,27 @@ const OrderSummary = memo(
           </div>
         </div>
       </div>
-
-      <button
-        onClick={onCheckout}
-        disabled={isProcessing}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-      >
-        {isProcessing ? (
-          <>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            Processing...
-          </>
-        ) : (
-          <>
-            <CheckCircle size={20} />
-            Proceed to Checkout
-          </>
-        )}
-      </button>
-
+      {!isCheckout ? (
+        <button
+          onClick={onCheckout}
+          disabled={isProcessing}
+          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+        >
+          {isProcessing ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              Processing...
+            </>
+          ) : (
+            <>
+              <CheckCircle size={20} />
+              Proceed to Checkout
+            </>
+          )}
+        </button>
+      ) : (
+        ""
+      )}
       {showDeliveryInfo && (
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-start gap-2">

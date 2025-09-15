@@ -369,6 +369,8 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           taxAmount={getTaxAmount()}
           taxPercentage={18}
           finalTotal={getFinalTotal()}
+          // grandTotal={cartCalculations.grandTotal}
+          isCheckout={true}
         />
 
         {/* Place Order Button */}

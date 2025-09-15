@@ -1,25 +1,7 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  memo,
-  Suspense,
-} from "react";
+import React, { useState, useEffect, useCallback, memo, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import {
-  Clock,
-  ChefHat,
-  AlertCircle,
-  CheckCircle,
-  Package,
-  Eye,
-  Utensils,
-  CheckCircle2,
-  Plus,
-  Edit3,
-} from "lucide-react";
+import { Clock, AlertCircle, CheckCircle, Package, Plus } from "lucide-react";
 
 // Services and utilities
 import { captainServices } from "../../services/captainServices";
@@ -40,33 +22,11 @@ import SearchWithResults from "../../molecules/SearchWithResults";
 import ErrorMessage from "../../atoms/Messages/ErrorMessage";
 import WelcomeSection from "../../molecules/Sections/WelcomeSection";
 import OrderStatusBadge from "../../atoms/Badges/OrderStatusBadge";
+import QuickActions from "atoms/Buttons/QuickActions";
 
 // Lazy load heavy components
 const OrderDetailsModal = React.lazy(() => import("./OrderDetailsModal"));
 
-/**
- * Quick Actions component for common captain operations
- */
-const QuickActions = memo(({ onCreateOrder }) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-    <div className="flex flex-wrap gap-3">
-      <button
-        onClick={onCreateOrder}
-        className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-      >
-        <Plus className="w-4 h-4" />
-        New Order
-      </button>
-    </div>
-  </div>
-));
-QuickActions.displayName = "QuickActions";
-
-/**
- * Main Captain Dashboard Component
- * Provides order management interface with consistent data handling
- */
 const CaptainDashboard = memo(() => {
   const navigate = useNavigate();
 
@@ -244,7 +204,7 @@ const CaptainDashboard = memo(() => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle="Orders Management"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
@@ -253,10 +213,10 @@ const CaptainDashboard = memo(() => {
         </div>
 
         {/* Welcome Section */}
-        <WelcomeSection firstName={captain.firstName} />
+        {/* <WelcomeSection firstName={captain.firstName} /> */}
 
         {/* Quick Actions */}
-        <QuickActions onCreateOrder={handleCreateOrder} />
+        {/* <QuickActions onCreateOrder={handleCreateOrder} /> */}
 
         {/* Order Statistics Cards */}
         {hasOrders && (

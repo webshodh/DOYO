@@ -51,7 +51,7 @@ const OrderCard = ({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       {/* Header */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-full bg-${statusConfig.color}-100 flex items-center justify-center`}
@@ -63,7 +63,6 @@ const OrderCard = ({
               Order #{order.orderNumber || order.id}
             </h3>
             <p className="text-sm text-gray-600">
-              Table {order.tableNumber} •{" "}
               {formatDateTime(order.timestamps?.orderPlaced)}
             </p>
           </div>
@@ -104,9 +103,14 @@ const OrderCard = ({
       </div>
 
       {/* Order Details */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-3 lg:grid-cols-4 gap-4 mb-2">
         <div className="flex items-center gap-2">
-          <Package className="w-4 h-4 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500">Table</p>
+            <p className="font-semibold">{order.tableNumber}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           <div>
             <p className="text-xs text-gray-500">Items</p>
             <p className="font-semibold">
@@ -116,31 +120,10 @@ const OrderCard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500">Total</p>
             <p className="font-semibold">
               ₹{order.pricing?.total || order.total || 0}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="text-xs text-gray-500">Estimated</p>
-            <p className="font-semibold text-xs">
-              {order.timestamps?.estimatedReadyLocal || "25-30 mins"}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="text-xs text-gray-500">Type</p>
-            <p className="font-semibold text-xs">
-              {order.customerInfo?.orderType || "Dine-in"}
             </p>
           </div>
         </div>

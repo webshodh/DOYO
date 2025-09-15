@@ -250,7 +250,7 @@ const AddOption = memo(() => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle="Options Manager"
             className="text-2xl sm:text-3xl font-bold text-gray-900"

@@ -70,7 +70,7 @@ const CaptainDashboardLayout = ({ children }) => {
           {/* Main content */}
           <main className="flex-1 overflow-hidden">
             <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-orange-400/50 scrollbar-track-transparent">
-              <div className="px-4 sm:px-6 lg:px-8 py-6">
+              <div >
                 <div className="max-w-7xl mx-auto">{children}</div>
               </div>
             </div>

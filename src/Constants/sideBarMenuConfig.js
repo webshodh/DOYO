@@ -151,12 +151,12 @@ export const captainMenuItems = (hotelName) => [
     icon: "dashboard",
     description: "Floor overview",
   },
-  {
-    name: "Tables",
-    path: `/viewMenu/${hotelName}/captain/tables`,
-    icon: "tables",
-    description: "Table management",
-  },
+  // {
+  //   name: "Tables",
+  //   path: `/viewMenu/${hotelName}/captain/tables`,
+  //   icon: "tables",
+  //   description: "Table management",
+  // },
   {
     name: "Add Order",
     path: `/viewMenu/${hotelName}/captain/home`,
