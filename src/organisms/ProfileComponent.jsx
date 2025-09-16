@@ -30,8 +30,7 @@ import {
 
 import { useHotelSelection } from "../context/HotelSelectionContext";
 
-
-// Custom hook for form validation
+// Custom hook for form validation (unchanged)
 const useFormValidation = (initialErrors = {}) => {
   const [errors, setErrors] = useState(initialErrors);
 
@@ -56,7 +55,7 @@ const useFormValidation = (initialErrors = {}) => {
   return { errors, setError, clearError, clearAllErrors, hasErrors };
 };
 
-// Password strength indicator component
+// Enhanced Password strength indicator component
 const PasswordStrength = memo(({ password }) => {
   const strength = useMemo(() => {
     if (!password) return 0;
@@ -106,11 +105,11 @@ const PasswordStrength = memo(({ password }) => {
   if (!password) return null;
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 sm:mt-3">
       <div className="flex items-center gap-2 mb-1">
-        <div className="flex-1 bg-gray-200 rounded-full h-2">
+        <div className="flex-1 bg-gray-200 rounded-full h-1.5 sm:h-2">
           <div
-            className={`h-2 rounded-full transition-all duration-300 ${getStrengthColor()}`}
+            className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${getStrengthColor()}`}
             style={{ width: `${(strength / 5) * 100}%` }}
           />
         </div>
@@ -134,7 +133,7 @@ const PasswordStrength = memo(({ password }) => {
 
 PasswordStrength.displayName = "PasswordStrength";
 
-// Form field component
+// Enhanced Form field component
 const FormField = memo(
   ({
     label,
@@ -158,7 +157,7 @@ const FormField = memo(
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <div className="flex items-center gap-2">
             {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-            {label}
+            <span className="text-sm sm:text-base">{label}</span>
             {required && <span className="text-red-500">*</span>}
           </div>
         </label>
@@ -172,7 +171,7 @@ const FormField = memo(
             onChange={onChange}
             placeholder={placeholder}
             disabled={disabled}
-            className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 ${
+            className={`w-full px-3 sm:px-4 py-3 sm:py-3.5 text-base border rounded-lg transition-all duration-200 min-h-[44px] ${
               disabled
                 ? "bg-gray-50 text-gray-500 cursor-not-allowed"
                 : "bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -186,7 +185,7 @@ const FormField = memo(
             <button
               type="button"
               onClick={onPasswordToggle}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               {showPassword ? (
                 <EyeOff className="w-5 h-5" />
@@ -197,9 +196,9 @@ const FormField = memo(
           )}
         </div>
         {error && (
-          <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-            <AlertCircle className="w-4 h-4" />
-            {error}
+          <div className="flex items-start gap-2 mt-2 text-red-600 text-sm">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span className="break-words">{error}</span>
           </div>
         )}
         {children}
@@ -210,7 +209,7 @@ const FormField = memo(
 
 FormField.displayName = "FormField";
 
-// Profile header component
+// Enhanced Profile header component
 const ProfileHeader = memo(({ profileData, selectedHotel }) => {
   const getUserInitials = useCallback(() => {
     if (profileData.displayName) {
@@ -227,39 +226,43 @@ const ProfileHeader = memo(({ profileData, selectedHotel }) => {
   }, [profileData]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <div className="relative group">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+        <div className="relative group flex-shrink-0">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold shadow-lg">
             {getUserInitials()}
           </div>
           <button className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Camera className="w-6 h-6 text-white" />
+            <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
         </div>
 
-        <div className="flex-1 text-center sm:text-left">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+        <div className="flex-1 text-center sm:text-left min-w-0">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 truncate">
             {profileData.displayName || "User"}
           </h2>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-gray-600 mb-2">
+          <div className="flex flex-col gap-2 text-gray-600 mb-2">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <Mail className="w-4 h-4" />
-              <span>{profileData.email}</span>
+              <Mail className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm sm:text-base truncate">
+                {profileData.email}
+              </span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <Shield className="w-4 h-4" />
+              <Shield className="w-4 h-4 flex-shrink-0" />
               <span>{profileData.role}</span>
             </div>
             <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <Building className="w-4 h-4" />
-              <span>{selectedHotel?.name || "No hotel selected"}</span>
+              <Building className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">
+                {selectedHotel?.name || "No hotel selected"}
+              </span>
             </div>
             {profileData.joinDate && (
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
                   Joined {new Date(profileData.joinDate).toLocaleDateString()}
                 </span>
@@ -274,23 +277,24 @@ const ProfileHeader = memo(({ profileData, selectedHotel }) => {
 
 ProfileHeader.displayName = "ProfileHeader";
 
-// Tab navigation component
+// Enhanced Tab navigation component
 const TabNavigation = memo(({ activeTab, onTabChange, tabs }) => (
-  <div className="border-b border-gray-200 mb-6">
-    <nav className="flex space-x-8 overflow-x-auto">
+  <div className="border-b border-gray-200 mb-4 sm:mb-6">
+    <nav className="flex space-x-1 sm:space-x-8 overflow-x-auto pb-2 sm:pb-0 -mb-px scrollbar-hide">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
+          className={`py-3 sm:py-4 px-3 sm:px-2 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 min-w-[120px] sm:min-w-0 flex-shrink-0 ${
             activeTab === tab.id
               ? "border-orange-500 text-orange-600"
               : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
           </div>
         </button>
       ))}
@@ -300,11 +304,11 @@ const TabNavigation = memo(({ activeTab, onTabChange, tabs }) => (
 
 TabNavigation.displayName = "TabNavigation";
 
-// Profile form component
+// Enhanced Profile form component
 const ProfileForm = memo(
   ({ profileData, onChange, onSubmit, loading, errors }) => (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <FormField
           label="Display Name"
           type="text"
@@ -316,6 +320,7 @@ const ProfileForm = memo(
           disabled={loading}
           icon={User}
           required
+          className="lg:col-span-1"
         />
 
         <FormField
@@ -329,6 +334,7 @@ const ProfileForm = memo(
           disabled={loading}
           icon={Mail}
           required
+          className="lg:col-span-1"
         />
 
         <FormField
@@ -341,6 +347,7 @@ const ProfileForm = memo(
           placeholder="Enter your phone number"
           disabled={loading}
           icon={Phone}
+          className="lg:col-span-1"
         />
 
         <FormField
@@ -351,24 +358,25 @@ const ProfileForm = memo(
           onChange={() => {}}
           disabled={true}
           icon={Shield}
+          className="lg:col-span-1"
         />
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-stretch sm:justify-end pt-4 sm:pt-6">
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-3 min-h-[44px] bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
         >
           {loading ? (
             <>
               <Loader className="w-4 h-4 animate-spin" />
-              Updating...
+              <span>Updating...</span>
             </>
           ) : (
             <>
               <Save className="w-4 h-4" />
-              Update Profile
+              <span>Update Profile</span>
             </>
           )}
         </button>
@@ -379,7 +387,7 @@ const ProfileForm = memo(
 
 ProfileForm.displayName = "ProfileForm";
 
-// Password form component
+// Enhanced Password form component
 const PasswordForm = memo(
   ({
     passwordData,
@@ -390,8 +398,8 @@ const PasswordForm = memo(
     showPasswords,
     onTogglePassword,
   }) => (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <div className="max-w-md space-y-6">
+    <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
+      <div className="max-w-full sm:max-w-md space-y-4 sm:space-y-6">
         <FormField
           label="Current Password"
           name="currentPassword"
@@ -440,21 +448,21 @@ const PasswordForm = memo(
         />
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-stretch sm:justify-end pt-4 sm:pt-6">
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-3 min-h-[44px] bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
         >
           {loading ? (
             <>
               <Loader className="w-4 h-4 animate-spin" />
-              Updating...
+              <span>Updating...</span>
             </>
           ) : (
             <>
               <Shield className="w-4 h-4" />
-              Update Password
+              <span>Update Password</span>
             </>
           )}
         </button>
@@ -465,7 +473,7 @@ const PasswordForm = memo(
 
 PasswordForm.displayName = "PasswordForm";
 
-// Main Profile component
+// Main Profile component with enhanced mobile responsiveness
 const Profile = memo(() => {
   const { hotelId } = useParams();
   const navigate = useNavigate();
@@ -570,7 +578,7 @@ const Profile = memo(() => {
     setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
   }, []);
 
-  // Validation functions
+  // Validation functions (unchanged for brevity)
   const validateProfileForm = useCallback(() => {
     clearAllErrors();
     let isValid = true;
@@ -622,7 +630,7 @@ const Profile = memo(() => {
     return isValid;
   }, [passwordData, setError, clearAllErrors]);
 
-  // Form submission handlers
+  // Form submission handlers (unchanged for brevity)
   const handleUpdateProfile = useCallback(
     async (e) => {
       e.preventDefault();
@@ -718,35 +726,33 @@ const Profile = memo(() => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
-      
-
         {/* Profile Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-2 sm:p-2 lg:p-4">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            <div className="mb-4 sm:mb-6 lg:mb-8 px-2 sm:px-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 Profile Settings
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Manage your account settings and preferences
               </p>
             </div>
 
             {/* Profile Header */}
-            <ProfileHeader
-              profileData={profileData}
-              selectedHotel={selectedHotel}
-            />
+            <div className="mb-4 sm:mb-6">
+              <ProfileHeader
+                profileData={profileData}
+                selectedHotel={selectedHotel}
+              />
+            </div>
 
             {/* Main Content Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 mx-1 sm:mx-0">
               {/* Tab Navigation */}
-              <div className="px-6 pt-6">
+              <div className="px-2 sm:px-4 lg:px-6 pt-4 sm:pt-6">
                 <TabNavigation
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
@@ -755,33 +761,39 @@ const Profile = memo(() => {
               </div>
 
               {/* Tab Content */}
-              <div className="px-6 pb-6">
+              <div className="px-2 sm:px-4 lg:px-6 pb-4 sm:pb-6">
                 {activeTab === "profile" && (
-                  <ProfileForm
-                    profileData={profileData}
-                    onChange={handleProfileChange}
-                    onSubmit={handleUpdateProfile}
-                    loading={loading}
-                    errors={errors}
-                  />
+                  <div className="mt-4 sm:mt-6">
+                    <ProfileForm
+                      profileData={profileData}
+                      onChange={handleProfileChange}
+                      onSubmit={handleUpdateProfile}
+                      loading={loading}
+                      errors={errors}
+                    />
+                  </div>
                 )}
 
                 {activeTab === "password" && (
-                  <PasswordForm
-                    passwordData={passwordData}
-                    onChange={handlePasswordChange}
-                    onSubmit={handleUpdatePassword}
-                    loading={loading}
-                    errors={errors}
-                    showPasswords={showPasswords}
-                    onTogglePassword={togglePasswordVisibility}
-                  />
+                  <div className="mt-4 sm:mt-6">
+                    <PasswordForm
+                      passwordData={passwordData}
+                      onChange={handlePasswordChange}
+                      onSubmit={handleUpdatePassword}
+                      loading={loading}
+                      errors={errors}
+                      showPasswords={showPasswords}
+                      onTogglePassword={togglePasswordVisibility}
+                    />
+                  </div>
                 )}
 
                 {activeTab === "settings" && (
-                  <div className="py-8 text-center text-gray-500">
-                    <Settings className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>Account settings coming soon...</p>
+                  <div className="py-6 sm:py-8 text-center text-gray-500">
+                    <Settings className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-400" />
+                    <p className="text-sm sm:text-base">
+                      Account settings coming soon...
+                    </p>
                   </div>
                 )}
               </div>

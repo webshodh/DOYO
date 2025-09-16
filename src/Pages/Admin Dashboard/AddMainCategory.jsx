@@ -175,7 +175,7 @@ const AddMainCategory = memo(() => {
         />
       </Suspense>
 
-      <div className="container mx-auto px-4 py-6">
+      <div>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle

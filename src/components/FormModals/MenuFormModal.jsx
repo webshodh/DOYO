@@ -413,12 +413,11 @@ const MenuFormModal = ({
                 ))}
 
                 {/* Form Actions */}
-                <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
                     <AlertCircle className="w-4 h-4" />
                     <span>* Required fields</span>
                   </div>
-
+                <div className="flex items-center justify-between pt-6 border-t border-gray-200">
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
@@ -439,8 +438,8 @@ const MenuFormModal = ({
                       {isSubmitting
                         ? "Saving..."
                         : editMode
-                        ? "Update Menu Item"
-                        : "Create Menu Item"}
+                        ? "Update"
+                        : "Create"}
                     </button>
                   </div>
                 </div>
