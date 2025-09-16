@@ -110,7 +110,7 @@ const AdminDashboard = () => {
 
   // Error state for menu management data
   const menuManagementError = menuError || categoriesError || optionsError;
-console.log("menuAnalytics.topMenus", menuAnalytics.topMenus)
+  console.log("menuAnalytics.topMenus", menuAnalytics.topMenus);
   return (
     <AdminDashboardLayout>
       <div className="space-y-6 sm:space-y-8">
@@ -144,21 +144,20 @@ console.log("menuAnalytics.topMenus", menuAnalytics.topMenus)
           </div>
 
           {/* Time Period Navigation */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <TimePeriodSelector
-              selectedTimePeriod={selectedTimePeriod}
-              onTimePeriodChange={handleTimePeriodChange}
-              selectedDate={selectedDate}
-              onDateChange={handleDateChange}
-              variant="default"
-              showDatePicker={true}
-              className="mb-6"
-            />
 
-            {/* Period Display Text */}
-            <div className="mt-4 text-sm text-gray-600 font-medium">
-              {periodDisplayText}
-            </div>
+          <TimePeriodSelector
+            selectedTimePeriod={selectedTimePeriod}
+            onTimePeriodChange={handleTimePeriodChange}
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            variant="default"
+            showDatePicker={true}
+            className="mb-6"
+          />
+
+          {/* Period Display Text */}
+          <div className="mt-4 text-sm text-gray-600 font-medium">
+            {periodDisplayText}
           </div>
         </div>
 
@@ -275,9 +274,8 @@ console.log("menuAnalytics.topMenus", menuAnalytics.topMenus)
           </div>
 
           {/* Order Insights */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
-            <OrderInsights analytics={orderStats} />
-          </div>
+
+          <OrderInsights analytics={orderStats} />
         </div>
 
         {/* Orders by Menu */}
@@ -298,12 +296,6 @@ console.log("menuAnalytics.topMenus", menuAnalytics.topMenus)
             rowsPerPageOptions={[5, 10, 15, 20]}
             emptyMessage="No menu data available"
             className="border-0 shadow-none"
-            headerClassName="bg-gradient-to-r from-purple-500 to-purple-600"
-            sortable={true}
-            onSort={(sortConfig) => {
-              // Optional: Handle sorting if needed
-              console.log("Sort config:", sortConfig);
-            }}
           />
         </div>
 

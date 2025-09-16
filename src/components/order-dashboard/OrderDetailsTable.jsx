@@ -64,15 +64,8 @@ const OrderDetailsTable = memo(({ orders, onViewDetails }) => {
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+    <div>
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-        </div>
         <div className="flex gap-4">
           <div className="flex-1 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

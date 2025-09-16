@@ -285,19 +285,6 @@ const EditOrderModal = ({
               activeTab === "add" ? "block" : "hidden"
             } md:block flex-1 p-4 sm:p-6 overflow-y-auto`}
           >
-            <div className="flex items-center gap-2 mb-4 md:hidden">
-              <button
-                onClick={() => setActiveTab("current")}
-                className="p-1 hover:bg-gray-100 rounded touch-manipulation"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h3 className="text-lg font-semibold">Add Items</h3>
-            </div>
-            <h3 className="text-lg font-semibold mb-4 hidden md:block">
-              Add Items
-            </h3>
-
             {/* Search */}
             <div className="mb-4">
               <div className="relative">
