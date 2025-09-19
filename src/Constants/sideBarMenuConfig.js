@@ -64,31 +64,37 @@ export const adminMenuItems = (hotelName) => [
     icon: "dashboard",
     description: "Overview and analytics",
   },
- 
+  {
+    name: "Order Dashboard",
+    path: `/${hotelName}/admin/order-dashboard`,
+    icon: "dashboard",
+    description: "Overview and analytics",
+  },
+
   {
     name: "Add Category",
     path: `/${hotelName}/admin/add-category`,
     icon: "category",
     description: "Manage food categories",
   },
-  {
-    name: "Add Options",
-    path: `/${hotelName}/admin/add-options`,
-    icon: "options",
-    description: "Menu customization options",
-  },
+  // {
+  //   name: "Add Options",
+  //   path: `/${hotelName}/admin/add-options`,
+  //   icon: "options",
+  //   description: "Menu customization options",
+  // },
   {
     name: "Add Menu",
     path: `/${hotelName}/admin/add-menu`,
     icon: "menu",
     description: "Create menu items",
   },
-  {
-    name: "Add Offers",
-    path: `/${hotelName}/admin/add-offers`,
-    icon: "offers",
-    description: "Promotional deals",
-  },
+  // {
+  //   name: "Add Offers",
+  //   path: `/${hotelName}/admin/add-offers`,
+  //   icon: "offers",
+  //   description: "Promotional deals",
+  // },
   {
     name: "Add Captain",
     path: `/${hotelName}/admin/add-captain`,
@@ -176,12 +182,12 @@ export const captainMenuItems = (hotelName) => [
   //   icon: "kitchen",
   //   description: "Kitchen communication",
   // },
-  {
-    name: "Bills",
-    path: `/viewMenu/${hotelName}/captain/bills`,
-    icon: "bills",
-    description: "Payment processing",
-  },
+  // {
+  //   name: "Bills",
+  //   path: `/viewMenu/${hotelName}/captain/bills`,
+  //   icon: "bills",
+  //   description: "Payment processing",
+  // },
 ];
 
 // Centralized icon mapping with modern Lucide icons

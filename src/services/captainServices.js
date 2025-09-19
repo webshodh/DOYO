@@ -155,25 +155,30 @@ export const captainServices = {
     }
   },
 
-  // Get captain data by Firebase Auth ID
+  // Get captain data by Firebase Auth ID - UPDATED to search through hotels only
   getCaptainByAuthId: async (authId) => {
     try {
-      const captainsSnapshot = await get(ref(db, "captains"));
-      if (!captainsSnapshot.exists()) {
+      // Get all hotels first
+      const hotelsSnapshot = await get(ref(db, "hotels"));
+      if (!hotelsSnapshot.exists()) {
         return null;
       }
 
-      const captainsData = captainsSnapshot.val();
+      const hotelsData = hotelsSnapshot.val();
 
       // Search through all hotels to find the captain
-      for (const [hotelName, hotelCaptains] of Object.entries(captainsData)) {
-        for (const [captainId, captainData] of Object.entries(hotelCaptains)) {
-          if (captainData.firebaseAuthId === authId) {
-            return {
-              ...captainData,
-              hotelName,
-              captainId,
-            };
+      for (const [hotelName, hotelData] of Object.entries(hotelsData)) {
+        if (hotelData.captains) {
+          for (const [captainId, captainData] of Object.entries(
+            hotelData.captains
+          )) {
+            if (captainData.firebaseAuthId === authId) {
+              return {
+                ...captainData,
+                hotelName,
+                captainId,
+              };
+            }
           }
         }
       }
@@ -218,7 +223,7 @@ export const captainServices = {
     return unsubscribe;
   },
 
-  // Add new captain with Firebase Auth
+  // Add new captain with Firebase Auth - UPDATED to remove separate collection
   addCaptain: async (hotelName, captainData, existingCaptains = []) => {
     let authUser = null;
 
@@ -273,21 +278,16 @@ export const captainServices = {
         status: "active",
         role: "captain",
         hotelName,
+        email: captainData.email, // Store email for login reference
         createdAt: new Date().toISOString(),
         createdBy: captainServices.getCurrentAdminId(),
       };
 
-      // Save to database under hotels and also create a separate captains collection for easy lookup
-      await Promise.all([
-        set(
-          ref(db, `/hotels/${hotelName}/captains/${captainId}`),
-          finalCaptainData
-        ),
-        set(ref(db, `/captains/${hotelName}/${captainId}`), {
-          ...finalCaptainData,
-          email: captainData.email, // Store email for login reference
-        }),
-      ]);
+      // Save to database under hotels only
+      await set(
+        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+        finalCaptainData
+      );
 
       toast.success(
         "Captain added successfully! Login credentials have been created.",
@@ -332,7 +332,7 @@ export const captainServices = {
     }
   },
 
-  // Update existing captain
+  // Update existing captain - UPDATED to remove separate collection
   updateCaptain: async (
     hotelName,
     captainId,
@@ -399,21 +399,16 @@ export const captainServices = {
       const updateData = {
         ...sanitizedData,
         photoUrl,
+        email: captainData.email || existingData.email, // Preserve email for login
         updatedAt: new Date().toISOString(),
         updatedBy: captainServices.getCurrentAdminId(),
       };
 
-      // Update in both locations
-      await Promise.all([
-        update(
-          ref(db, `/hotels/${hotelName}/captains/${captainId}`),
-          updateData
-        ),
-        update(ref(db, `/captains/${hotelName}/${captainId}`), {
-          ...updateData,
-          email: captainData.email || existingData.email,
-        }),
-      ]);
+      // Update in hotels collection only
+      await update(
+        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+        updateData
+      );
 
       // Update password if provided
       if (captainData.password && captainData.password.trim()) {
@@ -446,7 +441,7 @@ export const captainServices = {
     }
   },
 
-  // Delete captain
+  // Delete captain - UPDATED to remove separate collection
   deleteCaptain: async (hotelName, captain) => {
     try {
       // Check permissions
@@ -468,11 +463,10 @@ export const captainServices = {
         await captainServices.deleteCaptainPhoto(hotelName, captain.captainId);
       }
 
-      // Delete from both database locations
-      await Promise.all([
-        remove(ref(db, `/hotels/${hotelName}/captains/${captain.captainId}`)),
-        remove(ref(db, `/captains/${hotelName}/${captain.captainId}`)),
-      ]);
+      // Delete from hotels collection only
+      await remove(
+        ref(db, `/hotels/${hotelName}/captains/${captain.captainId}`)
+      );
 
       // Note: Firebase Auth user deletion requires the user to be recently authenticated
       // In a production app, you might want to implement a different strategy
@@ -592,7 +586,7 @@ export const captainServices = {
     }
   },
 
-  // Toggle captain status
+  // Toggle captain status - UPDATED to remove separate collection
   toggleCaptainStatus: async (hotelName, captainId, currentStatus) => {
     try {
       const hasPermission = await captainServices.checkAdminPermission(
@@ -607,19 +601,12 @@ export const captainServices = {
 
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
-      // Update in both locations
-      await Promise.all([
-        update(ref(db, `/hotels/${hotelName}/captains/${captainId}`), {
-          status: newStatus,
-          updatedAt: new Date().toISOString(),
-          updatedBy: captainServices.getCurrentAdminId(),
-        }),
-        update(ref(db, `/captains/${hotelName}/${captainId}`), {
-          status: newStatus,
-          updatedAt: new Date().toISOString(),
-          updatedBy: captainServices.getCurrentAdminId(),
-        }),
-      ]);
+      // Update in hotels collection only
+      await update(ref(db, `/hotels/${hotelName}/captains/${captainId}`), {
+        status: newStatus,
+        updatedAt: new Date().toISOString(),
+        updatedBy: captainServices.getCurrentAdminId(),
+      });
 
       toast.success(`Captain status changed to ${newStatus}`, {
         position: toast.POSITION.TOP_RIGHT,

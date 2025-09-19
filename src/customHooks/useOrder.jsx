@@ -1,4 +1,3 @@
-// hooks/useOrderData.js
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ref, onValue, update, remove, get } from "firebase/database";
 import { db } from "../data/firebase/firebaseConfig";
@@ -7,6 +6,7 @@ import { toast } from "react-toastify";
 /**
  * Enhanced hook for consistent order data management across the application
  * Compatible with AdminDashboard, CaptainDashboard, and MyOrders pages
+ * Simplified to only track: received, completed, and rejected orders
  */
 export const useOrderData = (hotelName, options = {}) => {
   const {
@@ -44,26 +44,62 @@ export const useOrderData = (hotelName, options = {}) => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Enhanced data normalization function
+  // Enhanced and consistent data normalization function
   const normalizeOrderData = useCallback((rawData) => {
     if (!rawData) return [];
 
     return Object.entries(rawData).map(([key, value]) => {
-      // Handle different timestamp formats
+      // Handle different timestamp formats with better fallbacks
       const orderTimestamp =
         value.timestamps?.orderPlaced ||
         value.orderTime ||
         value.createdAt ||
         value.timestamp ||
         value.orderTimestamp ||
-        new Date().toISOString();
+        Date.now();
 
-      // Normalize status with fallbacks
-      const normalizedStatus =
+      // Ensure timestamp is in ISO format
+      const normalizedTimestamp = new Date(orderTimestamp).toISOString();
+
+      // Simplified status mapping - only 3 statuses
+      let normalizedStatus =
         value.kitchen?.status ||
         value.status ||
         value.orderStatus ||
         "received";
+
+      // Standardize status names to only 3 options
+      const statusMapping = {
+        // All new/pending orders become "received"
+        new: "received",
+        pending: "received",
+        placed: "received",
+        received: "received",
+
+        // All in-progress statuses become "received" (still being worked on)
+        accepted: "received",
+        preparing: "received",
+        cooking: "received",
+        in_progress: "received",
+        ready: "received",
+        finished: "received",
+        done: "received",
+
+        // All final successful statuses become "completed"
+        delivered: "completed",
+        completed: "completed",
+        complete: "completed",
+        served: "completed",
+
+        // All cancelled statuses become "rejected"
+        cancelled: "rejected",
+        canceled: "rejected",
+        rejected: "rejected",
+      };
+
+      normalizedStatus =
+        statusMapping[normalizedStatus.toLowerCase()] ||
+        normalizedStatus.toLowerCase();
 
       // Handle table information consistently
       const tableInfo =
@@ -72,26 +108,55 @@ export const useOrderData = (hotelName, options = {}) => {
         value.customerInfo?.tableNumber ||
         value.table ||
         value.customerInfo?.table ||
-        "Unknown";
+        "0";
+
+      // Normalize items array with consistent structure
+      const items = (value.items || value.menuItems || []).map(
+        (item, index) => {
+          const itemPrice =
+            parseFloat(item.itemTotal) ||
+            parseFloat(item.finalPrice) ||
+            parseFloat(item.price) ||
+            parseFloat(item.originalPrice) ||
+            0;
+
+          const quantity = parseInt(item.quantity) || 1;
+          const totalPrice = itemPrice * quantity;
+
+          return {
+            id: item.id || item.menuId || `item-${index}`,
+            menuId: item.menuId || item.id,
+            menuName: item.menuName || item.name || "Unknown Item",
+            menuCategory: item.menuCategory || item.category || "Uncategorized",
+            quantity: quantity,
+            price:
+              parseFloat(item.price) ||
+              parseFloat(item.originalPrice) ||
+              itemPrice,
+            originalPrice:
+              parseFloat(item.originalPrice) ||
+              parseFloat(item.price) ||
+              itemPrice,
+            finalPrice: itemPrice,
+            itemTotal: totalPrice,
+            imageUrl: item.imageUrl || null,
+            notes: item.notes || item.specialInstructions || "",
+            // Preserve any additional item properties
+            ...item,
+          };
+        }
+      );
 
       // Calculate totals consistently
-      const items = value.items || value.menuItems || [];
-      const calculatedTotal = items.reduce((sum, item) => {
-        const itemPrice =
-          item.itemTotal ||
-          item.finalPrice ||
-          item.price ||
-          item.originalPrice ||
-          0;
-        const quantity = item.quantity || 1;
-        return sum + itemPrice * quantity;
-      }, 0);
-
+      const calculatedTotal = items.reduce(
+        (sum, item) => sum + item.itemTotal,
+        0
+      );
       const totalAmount =
-        value.pricing?.total ||
-        value.total ||
-        value.orderDetails?.total ||
-        value.totalPrice ||
+        parseFloat(value.pricing?.total) ||
+        parseFloat(value.total) ||
+        parseFloat(value.orderDetails?.total) ||
+        parseFloat(value.totalPrice) ||
         calculatedTotal ||
         0;
 
@@ -99,102 +164,95 @@ export const useOrderData = (hotelName, options = {}) => {
       const orderNumber = value.orderNumber || value.orderNo || value.id || key;
 
       // Calculate order date from timestamp
-      const orderDate = orderTimestamp
-        ? new Date(orderTimestamp).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0];
+      const orderDate = new Date(normalizedTimestamp)
+        .toISOString()
+        .split("T")[0];
 
-      return {
+      // Create comprehensive timestamps object
+      const timestamps = {
+        orderPlaced: normalizedTimestamp,
+        orderDate,
+        lastUpdated: value.timestamps?.lastUpdated || normalizedTimestamp,
+        lastStatusUpdate: value.timestamps?.lastStatusUpdate || null,
+        completedTime: value.timestamps?.completedTime || null,
+        rejectedTime: value.timestamps?.rejectedTime || null,
+        // Preserve any additional timestamps
+        ...value.timestamps,
+      };
+
+      // Build comprehensive normalized order object
+      const normalizedOrder = {
         // Core identifiers
         id: key,
         orderNumber,
 
-        // Status information
+        // Status information (consistent across all components)
         status: normalizedStatus,
         normalizedStatus,
 
         // Timing information
-        orderTimestamp,
+        orderTimestamp: normalizedTimestamp,
         orderDate,
-        timestamps: {
-          orderPlaced: orderTimestamp,
-          orderDate,
-          lastUpdated:
-            value.timestamps?.lastUpdated || new Date().toISOString(),
-          lastStatusUpdate: value.timestamps?.lastStatusUpdate,
-          preparingTime: value.timestamps?.preparingTime,
-          readyTime: value.timestamps?.readyTime,
-          completedTime: value.timestamps?.completedTime,
-          servedTime: value.timestamps?.servedTime,
-          rejectedTime: value.timestamps?.rejectedTime,
-          ...value.timestamps,
-        },
+        timestamps,
 
         // Customer information
-        tableInfo,
-        tableNumber: tableInfo,
+        tableInfo: tableInfo.toString(),
+        tableNumber: tableInfo.toString(),
         customerInfo: {
-          tableNumber: tableInfo,
-          customerName: value.customerInfo?.customerName || value.customerName,
-          phoneNumber: value.customerInfo?.phoneNumber || value.phoneNumber,
+          tableNumber: tableInfo.toString(),
+          customerName:
+            value.customerInfo?.customerName || value.customerName || "",
+          phoneNumber:
+            value.customerInfo?.phoneNumber || value.phoneNumber || "",
+          // Preserve additional customer info
           ...value.customerInfo,
         },
 
-        // Order details with enhanced normalization
-        items: items.map((item) => ({
-          id: item.id || item.menuId,
-          menuId: item.menuId || item.id,
-          menuName: item.menuName || item.name,
-          menuCategory: item.menuCategory || item.category || "Uncategorized",
-          quantity: item.quantity || 1,
-          price: item.price || item.originalPrice || 0,
-          originalPrice: item.originalPrice || item.price || 0,
-          finalPrice: item.finalPrice || item.itemTotal || item.price || 0,
-          itemTotal:
-            item.itemTotal ||
-            item.finalPrice ||
-            item.price * (item.quantity || 1) ||
-            0,
-          imageUrl: item.imageUrl,
-          notes: item.notes || item.specialInstructions,
-          ...item,
-        })),
+        // Order items with consistent structure
+        items,
 
         // Financial information
-        totalAmount,
-        total: totalAmount,
+        totalAmount: parseFloat(totalAmount.toFixed(2)),
+        total: parseFloat(totalAmount.toFixed(2)),
         totalItems: items.length,
 
         // Order details structure
         orderDetails: {
-          total: totalAmount,
+          total: parseFloat(totalAmount.toFixed(2)),
           totalItems: items.length,
-          subtotal: value.orderDetails?.subtotal || totalAmount,
-          tax: value.orderDetails?.tax || 0,
-          discount: value.orderDetails?.discount || 0,
+          subtotal: parseFloat(value.orderDetails?.subtotal || totalAmount),
+          tax: parseFloat(value.orderDetails?.tax || 0),
+          discount: parseFloat(value.orderDetails?.discount || 0),
+          // Preserve additional order details
           ...value.orderDetails,
         },
 
         // Kitchen information
         kitchen: {
           status: normalizedStatus,
-          lastUpdated: new Date().toISOString(),
-          estimatedTime: value.kitchen?.estimatedTime,
-          notes: value.kitchen?.notes,
+          lastUpdated: timestamps.lastUpdated,
+          estimatedTime: value.kitchen?.estimatedTime || null,
+          notes: value.kitchen?.notes || "",
+          // Preserve additional kitchen info
           ...value.kitchen,
         },
 
-        // Preserve original data
+        // Preserve all original data (important for compatibility)
         ...value,
 
-        // Computed fields for UI
+        // Computed fields for UI consistency
         displayOrderNumber: `#${orderNumber}`,
         displayTable: `Table ${tableInfo}`,
         displayStatus:
           normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1),
-        displayTime: new Date(orderTimestamp).toLocaleString(),
-        displayDate: new Date(orderTimestamp).toLocaleDateString(),
-        displayAmount: `₹${totalAmount.toFixed(2)}`,
+        displayTime: new Date(normalizedTimestamp).toLocaleString(),
+        displayDate: new Date(normalizedTimestamp).toLocaleDateString(),
+        displayAmount: `₹${parseFloat(
+          totalAmount.toFixed(2)
+        ).toLocaleString()}`,
       };
+
+      return normalizedOrder;
     });
   }, []);
 
@@ -211,7 +269,6 @@ export const useOrderData = (hotelName, options = {}) => {
         lastday.setHours(23, 59, 59, 999);
         return { start: firstday, end: lastday };
       },
-
       getCurrentMonthRange: () => {
         const now = new Date();
         const firstday = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -220,7 +277,6 @@ export const useOrderData = (hotelName, options = {}) => {
         lastday.setHours(23, 59, 59, 999);
         return { start: firstday, end: lastday };
       },
-
       isDateInRange: (orderDate, startDate, endDate) => {
         const date = new Date(orderDate);
         date.setHours(0, 0, 0, 0);
@@ -230,7 +286,6 @@ export const useOrderData = (hotelName, options = {}) => {
         end.setHours(23, 59, 59, 999);
         return date >= start && date <= end;
       },
-
       getPeriodDisplayText: (period, date) => {
         switch (period) {
           case "daily":
@@ -254,7 +309,7 @@ export const useOrderData = (hotelName, options = {}) => {
     []
   );
 
-  // Subscribe to orders data with enhanced error handling
+  // Subscribe to orders data with enhanced error handling and real-time updates
   useEffect(() => {
     if (!hotelName) {
       setOrders([]);
@@ -281,11 +336,11 @@ export const useOrderData = (hotelName, options = {}) => {
             const data = snapshot.val();
             const normalizedOrders = normalizeOrderData(data);
 
-            // Apply sorting
+            // Apply consistent sorting
             normalizedOrders.sort((a, b) => {
               if (sortBy === "timestamp") {
-                const aTime = new Date(a.orderTimestamp || 0);
-                const bTime = new Date(b.orderTimestamp || 0);
+                const aTime = new Date(a.orderTimestamp);
+                const bTime = new Date(b.orderTimestamp);
                 return sortOrder === "desc" ? bTime - aTime : aTime - bTime;
               } else if (sortBy === "status") {
                 return sortOrder === "desc"
@@ -370,7 +425,7 @@ export const useOrderData = (hotelName, options = {}) => {
     return () => unsubscribe();
   }, [hotelName, includeMenuData]);
 
-  // Filter orders by time period
+  // Filter orders by time period with improved logic
   const timeFilteredOrders = useMemo(() => {
     if (!orders.length) return [];
 
@@ -389,6 +444,7 @@ export const useOrderData = (hotelName, options = {}) => {
         dateRangeHelpers.isDateInRange(order.orderDate, start, end)
       );
     }
+    // For "total" period, return all orders
 
     return filtered;
   }, [orders, selectedTimePeriod, selectedDate, dateRangeHelpers]);
@@ -404,9 +460,9 @@ export const useOrderData = (hotelName, options = {}) => {
       );
     }
 
-    // Search filter with debouncing
+    // Search filter with comprehensive matching
     if (debouncedSearchTerm) {
-      const searchLower = debouncedSearchTerm.toLowerCase();
+      const searchLower = debouncedSearchTerm.toLowerCase().trim();
       filtered = filtered.filter((order) => {
         return (
           order.orderNumber?.toString().toLowerCase().includes(searchLower) ||
@@ -415,9 +471,13 @@ export const useOrderData = (hotelName, options = {}) => {
           order.customerInfo?.customerName
             ?.toLowerCase()
             .includes(searchLower) ||
+          order.customerInfo?.phoneNumber
+            ?.toLowerCase()
+            .includes(searchLower) ||
           order.items?.some((item) =>
             item.menuName?.toLowerCase().includes(searchLower)
-          )
+          ) ||
+          order.normalizedStatus.toLowerCase().includes(searchLower)
         );
       });
     }
@@ -425,48 +485,47 @@ export const useOrderData = (hotelName, options = {}) => {
     return filtered;
   }, [timeFilteredOrders, statusFilter, debouncedSearchTerm]);
 
-  // Calculate comprehensive order statistics
+  // Calculate comprehensive and accurate order statistics (simplified)
   const orderStats = useMemo(() => {
     const stats = {
       total: timeFilteredOrders.length,
-      pending: timeFilteredOrders.filter((o) =>
-        ["received", "pending"].includes(o.normalizedStatus)
-      ).length,
-      preparing: timeFilteredOrders.filter(
-        (o) => o.normalizedStatus === "preparing"
-      ).length,
-      ready: timeFilteredOrders.filter((o) => o.normalizedStatus === "ready")
-        .length,
-      completed: timeFilteredOrders.filter(
-        (o) => o.normalizedStatus === "completed"
-      ).length,
-      rejected: timeFilteredOrders.filter(
-        (o) => o.normalizedStatus === "rejected"
-      ).length,
-      served: timeFilteredOrders.filter((o) => o.normalizedStatus === "served")
-        .length,
+      received: 0,
+      completed: 0,
+      rejected: 0,
     };
 
-    // Revenue calculations
-    const completedOrders = timeFilteredOrders.filter((o) =>
-      ["completed", "served"].includes(o.normalizedStatus)
+    // Count orders by simplified status
+    timeFilteredOrders.forEach((order) => {
+      const status = order.normalizedStatus;
+      if (status === "received") {
+        stats.received++;
+      } else if (status === "completed") {
+        stats.completed++;
+      } else if (status === "rejected") {
+        stats.rejected++;
+      }
+    });
+
+    // Revenue calculations from completed orders only
+    const revenueOrders = timeFilteredOrders.filter((o) =>
+      ["completed"].includes(o.normalizedStatus)
     );
 
-    stats.totalRevenue = completedOrders.reduce(
+    stats.totalRevenue = revenueOrders.reduce(
       (sum, order) => sum + (order.totalAmount || 0),
       0
     );
 
     stats.avgOrderValue =
-      completedOrders.length > 0
-        ? Math.round(stats.totalRevenue / completedOrders.length)
+      revenueOrders.length > 0
+        ? Math.round(stats.totalRevenue / revenueOrders.length)
         : 0;
 
     // Customer metrics
     const uniqueTables = new Set(
       timeFilteredOrders
         .map((o) => o.tableInfo)
-        .filter((table) => table && table !== "Unknown")
+        .filter((table) => table && table !== "Unknown" && table !== "0")
     );
     stats.uniqueCustomers = uniqueTables.size;
 
@@ -488,16 +547,16 @@ export const useOrderData = (hotelName, options = {}) => {
     return stats;
   }, [timeFilteredOrders]);
 
-  // Calculate menu analytics
+  // Calculate menu analytics with improved accuracy
   const menuAnalytics = useMemo(() => {
     const menuStatsData = {};
     let totalMenuOrders = 0;
 
     timeFilteredOrders.forEach((order) => {
       order.items?.forEach((item) => {
-        const menuName = item.menuName || item.name || "Unknown Menu";
+        const menuName = item.menuName || "Unknown Menu";
         const menuId = item.menuId || item.id;
-        const key = menuId || menuName;
+        const key = `${menuId}-${menuName}`;
 
         if (!menuStatsData[key]) {
           menuStatsData[key] = {
@@ -509,13 +568,12 @@ export const useOrderData = (hotelName, options = {}) => {
               item.imageUrl ||
               menuData.find((m) => m.id === menuId || m.menuName === menuName)
                 ?.imageUrl,
-            category: item.menuCategory || item.category || "Uncategorized",
+            category: item.menuCategory || "Uncategorized",
           };
         }
 
         const quantity = item.quantity || 1;
-        const itemRevenue =
-          item.itemTotal || item.finalPrice || item.price || 0;
+        const itemRevenue = item.itemTotal || 0;
 
         menuStatsData[key].orderCount += quantity;
         menuStatsData[key].revenue += itemRevenue;
@@ -526,34 +584,33 @@ export const useOrderData = (hotelName, options = {}) => {
     const menuStats = Object.values(menuStatsData)
       .map((data) => ({
         ...data,
+        revenue: parseFloat(data.revenue.toFixed(2)),
         percentage:
           totalMenuOrders > 0 ? (data.orderCount / totalMenuOrders) * 100 : 0,
       }))
       .sort((a, b) => b.orderCount - a.orderCount);
 
     return {
-      menuStats: menuStats.slice(0, 10),
+      menuStats: menuStats.slice(0, 20), // Show more items for better analytics
       topMenus: menuStats.slice(0, 3),
       totalMenuOrders,
     };
   }, [timeFilteredOrders, menuData]);
 
-  // Calculate category analytics
+  // Calculate category analytics with improved accuracy
   const categoryAnalytics = useMemo(() => {
     const categoryData = {};
     let totalCategoryOrders = 0;
 
     timeFilteredOrders.forEach((order) => {
       order.items?.forEach((item) => {
-        const category = item.menuCategory || item.category || "Uncategorized";
-
+        const category = item.menuCategory || "Uncategorized";
         if (!categoryData[category]) {
           categoryData[category] = { orderCount: 0, revenue: 0 };
         }
 
         const quantity = item.quantity || 1;
-        const itemRevenue =
-          item.itemTotal || item.finalPrice || item.price || 0;
+        const itemRevenue = item.itemTotal || 0;
 
         categoryData[category].orderCount += quantity;
         categoryData[category].revenue += itemRevenue;
@@ -565,7 +622,7 @@ export const useOrderData = (hotelName, options = {}) => {
       .map(([category, data]) => ({
         category,
         orderCount: data.orderCount,
-        revenue: data.revenue,
+        revenue: parseFloat(data.revenue.toFixed(2)),
         percentage:
           totalCategoryOrders > 0
             ? (data.orderCount / totalCategoryOrders) * 100
@@ -576,6 +633,7 @@ export const useOrderData = (hotelName, options = {}) => {
     return { categoryStats, totalCategoryOrders };
   }, [timeFilteredOrders]);
 
+  // Enhanced update order status function
   const updateOrderStatus = useCallback(
     async (orderId, newStatus, additionalData = {}) => {
       if (submitting) {
@@ -589,6 +647,7 @@ export const useOrderData = (hotelName, options = {}) => {
       }
 
       setSubmitting(true);
+
       try {
         const orderRef = ref(db, `/hotels/${hotelName}/orders/${orderId}`);
         const now = new Date().toISOString();
@@ -599,15 +658,25 @@ export const useOrderData = (hotelName, options = {}) => {
           throw new Error("Order not found");
         }
 
+        // Simplified status mapping for updates
+        const statusMapping = {
+          received: "received",
+          completed: "completed",
+          rejected: "rejected",
+        };
+
+        const normalizedNewStatus =
+          statusMapping[newStatus.toLowerCase()] || newStatus.toLowerCase();
+
         const updates = {
-          "kitchen/status": newStatus,
+          "kitchen/status": normalizedNewStatus,
           "kitchen/lastUpdated": now,
-          status: newStatus,
+          status: normalizedNewStatus,
           "timestamps/lastStatusUpdate": now,
           "timestamps/lastUpdated": now,
         };
 
-        // Handle additional data carefully to avoid path conflicts
+        // Handle additional data
         Object.keys(additionalData).forEach((key) => {
           if (key !== "kitchen" && key !== "timestamps") {
             updates[key] = additionalData[key];
@@ -630,21 +699,15 @@ export const useOrderData = (hotelName, options = {}) => {
         }
 
         // Add status-specific timestamps
-        const statusTimestamps = {
-          preparing: "preparingTime",
-          ready: "readyTime",
-          completed: "completedTime",
-          served: "servedTime",
-          rejected: "rejectedTime",
-        };
-
-        if (statusTimestamps[newStatus]) {
-          updates[`timestamps/${statusTimestamps[newStatus]}`] = now;
+        if (normalizedNewStatus === "completed") {
+          updates[`timestamps/completedTime`] = now;
+        } else if (normalizedNewStatus === "rejected") {
+          updates[`timestamps/rejectedTime`] = now;
         }
 
         await update(orderRef, updates);
-        toast.success(`Order status updated to ${newStatus}`);
-        return { success: true };
+        toast.success(`Order status updated to ${normalizedNewStatus}`);
+        return { success: true, newStatus: normalizedNewStatus };
       } catch (err) {
         console.error("Error updating order status:", err);
         toast.error(`Failed to update order status: ${err.message}`);
@@ -656,6 +719,7 @@ export const useOrderData = (hotelName, options = {}) => {
     [hotelName, submitting]
   );
 
+  // Enhanced delete order function
   const deleteOrder = useCallback(
     async (orderId) => {
       if (submitting) {
@@ -669,10 +733,11 @@ export const useOrderData = (hotelName, options = {}) => {
       }
 
       setSubmitting(true);
+
       try {
         const orderRef = ref(db, `/hotels/${hotelName}/orders/${orderId}`);
-
         const orderSnapshot = await get(orderRef);
+
         if (!orderSnapshot.exists()) {
           throw new Error("Order not found");
         }
@@ -691,6 +756,7 @@ export const useOrderData = (hotelName, options = {}) => {
     [hotelName, submitting]
   );
 
+  // Enhanced update order function
   const updateOrder = useCallback(
     async (orderId, orderData) => {
       if (submitting) {
@@ -704,10 +770,11 @@ export const useOrderData = (hotelName, options = {}) => {
       }
 
       setSubmitting(true);
+
       try {
         const orderRef = ref(db, `/hotels/${hotelName}/orders/${orderId}`);
-
         const orderSnapshot = await get(orderRef);
+
         if (!orderSnapshot.exists()) {
           throw new Error("Order not found");
         }
@@ -715,20 +782,23 @@ export const useOrderData = (hotelName, options = {}) => {
         const currentOrder = orderSnapshot.val();
         const now = new Date().toISOString();
 
-        // Calculate totals if items were updated
+        // Recalculate totals if items were updated
         const updatedItems = orderData.items || currentOrder.items || [];
         const calculatedTotal = updatedItems.reduce(
           (sum, item) =>
             sum +
-            (item.itemTotal || item.finalPrice || item.price || 0) *
-              (item.quantity || 1),
+            (parseFloat(item.itemTotal) ||
+              parseFloat(item.finalPrice) ||
+              parseFloat(item.price) ||
+              0) *
+              (parseInt(item.quantity) || 1),
           0
         );
 
-        // Prepare the updates object carefully to avoid path conflicts
+        // Prepare updates with proper flattening
         const updates = {};
 
-        // Handle core order data (excluding nested objects that might conflict)
+        // Handle core order data
         Object.keys(orderData).forEach((key) => {
           if (
             key !== "kitchen" &&
@@ -739,35 +809,34 @@ export const useOrderData = (hotelName, options = {}) => {
           }
         });
 
-        // Handle kitchen updates properly - flatten to avoid conflicts
+        // Handle kitchen updates
         if (orderData.kitchen) {
           Object.keys(orderData.kitchen).forEach((kitchenKey) => {
             updates[`kitchen/${kitchenKey}`] = orderData.kitchen[kitchenKey];
           });
         }
 
-        // Always update kitchen status and lastUpdated
-        updates["kitchen/status"] =
+        // Update kitchen status
+        const newStatus =
           orderData.status ||
           orderData.normalizedStatus ||
           currentOrder.kitchen?.status ||
           currentOrder.status ||
           "received";
+        updates["kitchen/status"] = newStatus;
         updates["kitchen/lastUpdated"] = now;
 
-        // Handle timestamps updates properly - flatten to avoid conflicts
+        // Handle timestamps
         if (orderData.timestamps) {
           Object.keys(orderData.timestamps).forEach((timestampKey) => {
             updates[`timestamps/${timestampKey}`] =
               orderData.timestamps[timestampKey];
           });
         }
-
-        // Always update core timestamps
         updates["timestamps/lastModified"] = now;
         updates["timestamps/lastUpdated"] = now;
 
-        // Handle order details updates properly - flatten to avoid conflicts
+        // Handle order details
         if (orderData.orderDetails) {
           Object.keys(orderData.orderDetails).forEach((detailKey) => {
             updates[`orderDetails/${detailKey}`] =
@@ -775,22 +844,16 @@ export const useOrderData = (hotelName, options = {}) => {
           });
         }
 
-        // Update calculated fields if items changed
+        // Update calculated fields
         if (orderData.items) {
           updates["orderDetails/totalItems"] = updatedItems.length;
-          updates.totalAmount = calculatedTotal;
-          updates.total = calculatedTotal;
+          updates.totalAmount = parseFloat(calculatedTotal.toFixed(2));
+          updates.total = parseFloat(calculatedTotal.toFixed(2));
         }
 
-        // Preserve essential fields
+        // Update main status
+        updates.status = newStatus;
         updates.id = orderId;
-
-        // Update main status for consistency
-        updates.status =
-          orderData.status ||
-          orderData.normalizedStatus ||
-          currentOrder.status ||
-          "received";
 
         await update(orderRef, updates);
         toast.success("Order updated successfully");
@@ -853,7 +916,95 @@ export const useOrderData = (hotelName, options = {}) => {
     }
   }, [connectionStatus]);
 
-  // Return comprehensive API
+  // Get order by ID helper function
+  const getOrderById = useCallback(
+    (orderId) => {
+      return orders.find((order) => order.id === orderId) || null;
+    },
+    [orders]
+  );
+
+  // Get orders by status helper function
+  const getOrdersByStatus = useCallback(
+    (status) => {
+      return orders.filter((order) => order.normalizedStatus === status);
+    },
+    [orders]
+  );
+
+  // Get orders by table helper function
+  const getOrdersByTable = useCallback(
+    (tableNumber) => {
+      return orders.filter(
+        (order) => order.tableInfo === tableNumber.toString()
+      );
+    },
+    [orders]
+  );
+
+  // Calculate today's stats
+  const todayStats = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const todayOrders = orders.filter((order) => order.orderDate === today);
+
+    return {
+      total: todayOrders.length,
+      revenue: todayOrders
+        .filter((o) => ["completed"].includes(o.normalizedStatus))
+        .reduce((sum, order) => sum + (order.totalAmount || 0), 0),
+      received: todayOrders.filter((o) => o.normalizedStatus === "received")
+        .length,
+      completed: todayOrders.filter((o) => o.normalizedStatus === "completed")
+        .length,
+      rejected: todayOrders.filter((o) => o.normalizedStatus === "rejected")
+        .length,
+    };
+  }, [orders]);
+
+  // Export order data as CSV helper function
+  const exportOrdersCSV = useCallback(() => {
+    if (!filteredOrders.length) {
+      toast.warning("No orders to export");
+      return;
+    }
+
+    const csvData = filteredOrders.map((order) => ({
+      OrderNumber: order.orderNumber,
+      Date: order.displayDate,
+      Time: order.displayTime,
+      Table: order.tableInfo,
+      CustomerName: order.customerInfo?.customerName || "",
+      Status: order.displayStatus,
+      Items:
+        order.items
+          ?.map((item) => `${item.menuName} (${item.quantity})`)
+          .join("; ") || "",
+      TotalAmount: order.totalAmount,
+      Phone: order.customerInfo?.phoneNumber || "",
+    }));
+
+    const csvContent = [
+      Object.keys(csvData[0]).join(","),
+      ...csvData.map((row) => Object.values(row).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `orders_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("Orders exported successfully");
+  }, [filteredOrders]);
+
+  // Return comprehensive and consistent API
   return {
     // Data
     orders,
@@ -865,6 +1016,7 @@ export const useOrderData = (hotelName, options = {}) => {
     orderStats,
     menuAnalytics,
     categoryAnalytics,
+    todayStats,
 
     // State
     loading,
@@ -873,41 +1025,59 @@ export const useOrderData = (hotelName, options = {}) => {
     lastUpdated,
     connectionStatus,
 
-    // Filters
+    // Filter state
     statusFilter,
-    searchTerm,
     selectedDate,
     selectedTimePeriod,
+    searchTerm,
+    debouncedSearchTerm,
 
-    // Actions
-    updateOrderStatus,
-    updateOrder,
-    deleteOrder,
+    // Filter handlers
     handleStatusFilterChange,
     handleSearchChange,
     handleDateChange,
     handleTimePeriodChange,
     clearFilters,
-    refreshOrders,
 
-    // Utilities
+    // Actions
+    updateOrderStatus,
+    deleteOrder,
+    updateOrder,
+    refreshOrders,
+    exportOrdersCSV,
+
+    // Helper functions
+    getOrderById,
+    getOrdersByStatus,
+    getOrdersByTable,
     dateRangeHelpers,
 
-    // Computed values
-    hasOrders: orders.length > 0,
-    hasFilteredOrders: filteredOrders.length > 0,
-    totalOrders: orders.length,
-    filteredOrdersCount: filteredOrders.length,
+    // Simplified status options for UI (only 3 statuses)
+    statusOptions: [
+      { value: "all", label: "All Orders" },
+      { value: "received", label: "Received" },
+      { value: "completed", label: "Completed" },
+      { value: "rejected", label: "Rejected" },
+    ],
+
+    // Time period options for UI
+    timePeriodOptions: [
+      { value: "daily", label: "Daily" },
+      { value: "weekly", label: "Weekly" },
+      { value: "monthly", label: "Monthly" },
+      { value: "total", label: "All Time" },
+    ],
+
+    // Computed display properties
     periodDisplayText: dateRangeHelpers.getPeriodDisplayText(
       selectedTimePeriod,
       selectedDate
     ),
-
-    // Status helpers
+    hasOrders: orders.length > 0,
+    hasFilteredOrders: filteredOrders.length > 0,
     isConnected: connectionStatus === "connected",
-    isConnecting: connectionStatus === "connecting",
-    hasConnectionError: connectionStatus === "error",
+    isLoading: loading,
+    isError: !!error,
+    errorMessage: error?.message || null,
   };
 };
-
-export default useOrderData;

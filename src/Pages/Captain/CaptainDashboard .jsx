@@ -1,7 +1,26 @@
-import React, { useState, useEffect, useCallback, memo, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  memo,
+  Suspense,
+  useMemo,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { Clock, AlertCircle, CheckCircle, Package, Plus } from "lucide-react";
+import {
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  Package,
+  Plus,
+  ChefHat,
+  LoaderCircle,
+  RefreshCw,
+  TrendingUp,
+  Users,
+  Calendar,
+} from "lucide-react";
 
 // Services and utilities
 import { captainServices } from "../../services/captainServices";
@@ -23,6 +42,7 @@ import ErrorMessage from "../../atoms/Messages/ErrorMessage";
 import WelcomeSection from "../../molecules/Sections/WelcomeSection";
 import OrderStatusBadge from "../../atoms/Badges/OrderStatusBadge";
 import QuickActions from "atoms/Buttons/QuickActions";
+import TimePeriodSelector from "atoms/TimePeriodSelector";
 
 // Lazy load heavy components
 const OrderDetailsModal = React.lazy(() => import("./OrderDetailsModal"));
@@ -35,33 +55,70 @@ const CaptainDashboard = memo(() => {
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modal state
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
-  // Order status options - consistent across the application
-
-  // Enhanced order data hook
+  // Enhanced order data hook with comprehensive functionality
   const {
     orders,
     filteredOrders,
+    timeFilteredOrders,
     orderStats,
+    todayStats,
+    menuAnalytics,
+    categoryAnalytics,
+
+    // State management
     loading: ordersLoading,
+    submitting,
     error: ordersError,
+    connectionStatus,
+    lastUpdated,
+
+    // Filter state
     searchTerm,
     statusFilter,
-    handleSearchChange,
-    handleStatusFilterChange,
-    clearFilters,
-    updateOrderStatus,
-    refreshOrders,
+    selectedDate,
+    selectedTimePeriod,
+
+    // Display helpers
+    periodDisplayText,
     hasOrders,
     hasFilteredOrders,
-    filteredOrdersCount,
+    isConnected,
+    isLoading: hookIsLoading,
+    isError,
+    errorMessage,
+
+    // Filter handlers
+    handleSearchChange,
+    handleStatusFilterChange,
+    handleDateChange,
+    handleTimePeriodChange,
+    clearFilters,
+
+    // Actions
+    updateOrderStatus,
+    deleteOrder,
+    refreshOrders,
+    exportOrdersCSV,
+
+    // Helper functions
+    getOrderById,
+    getOrdersByStatus,
+
+    // Options for UI
+    statusOptions,
+    timePeriodOptions,
   } = useOrderData(captain?.hotelName, {
-    defaultTimePeriod: "total", // Show all orders for captain view
+    defaultTimePeriod: "daily", // Show today's orders by default
     defaultStatusFilter: "all",
+    includeMenuData: true, // Include menu data for analytics
+    sortBy: "timestamp",
+    sortOrder: "desc",
   });
 
   // Load captain data on mount
@@ -91,6 +148,42 @@ const CaptainDashboard = memo(() => {
     loadCaptainData();
   }, [navigate]);
 
+  // Connection status indicator
+  const connectionStatusInfo = useMemo(() => {
+    switch (connectionStatus) {
+      case "connected":
+        return { color: "green", text: "Connected", icon: CheckCircle };
+      case "connecting":
+        return { color: "yellow", text: "Connecting...", icon: LoaderCircle };
+      case "error":
+        return { color: "red", text: "Connection Error", icon: AlertCircle };
+      case "disconnected":
+        return { color: "gray", text: "Disconnected", icon: AlertCircle };
+      default:
+        return { color: "gray", text: "Unknown", icon: AlertCircle };
+    }
+  }, [connectionStatus]);
+
+  // Enhanced order statistics with corrected mapping for simplified status system
+  const displayStats = useMemo(() => {
+    // Use the comprehensive stats from the hook and map correctly
+    const stats = {
+      total: orderStats.total || 0,
+      // Map simplified statuses correctly
+      received: orderStats.received || 0, // This is the new "pending/preparing/ready" equivalent
+      completed: orderStats.completed || 0,
+      rejected: orderStats.rejected || 0,
+      totalRevenue: orderStats.totalRevenue || 0,
+    };
+
+    // Add computed stats based on simplified system
+    stats.activeOrders = stats.received; // Only received orders are considered active
+    stats.completionRate =
+      stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
+    return stats;
+  }, [orderStats]);
+
   // Event handlers
   const handleLogout = useCallback(async () => {
     try {
@@ -108,7 +201,16 @@ const CaptainDashboard = memo(() => {
 
   const handleOrderStatusUpdate = useCallback(
     async (orderId, newStatus) => {
-      const result = await updateOrderStatus(orderId, newStatus);
+      const result = await updateOrderStatus(orderId, newStatus, {
+        updatedBy: "captain",
+        updatedByName: captain?.name || "Captain",
+        updatedAt: new Date().toISOString(),
+        kitchen: {
+          notes: `Status updated by ${
+            captain?.name || "Captain"
+          } from dashboard`,
+        },
+      });
 
       // Update selected order if it's the same one
       if (result.success && selectedOrder && selectedOrder.id === orderId) {
@@ -116,10 +218,17 @@ const CaptainDashboard = memo(() => {
           ...selectedOrder,
           normalizedStatus: newStatus,
           status: newStatus,
+          kitchen: {
+            ...selectedOrder.kitchen,
+            status: newStatus,
+            lastUpdated: new Date().toISOString(),
+          },
         });
       }
+
+      return result;
     },
-    [updateOrderStatus, selectedOrder]
+    [updateOrderStatus, selectedOrder, captain?.name]
   );
 
   const handleViewOrder = useCallback((order) => {
@@ -132,8 +241,17 @@ const CaptainDashboard = memo(() => {
     setSelectedOrder(null);
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    refreshOrders();
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshOrders();
+      toast.success("Orders refreshed successfully");
+    } catch (error) {
+      console.error("Error refreshing orders:", error);
+      toast.error("Failed to refresh orders");
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
   }, [refreshOrders]);
 
   const handleCreateOrder = useCallback(() => {
@@ -144,9 +262,42 @@ const CaptainDashboard = memo(() => {
     }
   }, [captain, navigate]);
 
+  const handleViewAllOrders = useCallback(() => {
+    if (captain?.hotelName) {
+      navigate(`/captain/orders`);
+    }
+  }, [captain, navigate]);
+
+  const handleExportOrders = useCallback(() => {
+    try {
+      exportOrdersCSV();
+    } catch (error) {
+      console.error("Error exporting orders:", error);
+      toast.error("Failed to export orders");
+    }
+  }, [exportOrdersCSV]);
+
+  // Fixed search handler to work with string input
+  const handleSearchInputChange = useCallback(
+    (e) => {
+      const value = e.target ? e.target.value : e; // Support both event and direct value
+      handleSearchChange(value);
+    },
+    [handleSearchChange]
+  );
+
+  // Fixed status filter handler to work with select input
+  const handleStatusInputChange = useCallback(
+    (e) => {
+      const value = e.target ? e.target.value : e; // Support both event and direct value
+      handleStatusFilterChange(value);
+    },
+    [handleStatusFilterChange]
+  );
+
   // Computed values
-  const isLoading = loading || ordersLoading;
-  const hasError = error || ordersError;
+  const isLoadingData = loading || hookIsLoading;
+  const hasError = error || isError;
 
   // Error state
   if (hasError && !captain) {
@@ -194,75 +345,186 @@ const CaptainDashboard = memo(() => {
         {showOrderModal && selectedOrder && (
           <OrderDetailsModal
             order={selectedOrder}
-            orderStatuses={ORDER_STATUSES}
+            orderStatuses={statusOptions}
             onClose={handleModalClose}
             onStatusUpdate={handleOrderStatusUpdate}
+            isSubmitting={submitting}
+            showDetailedInfo={true}
           />
         )}
       </Suspense>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
-          <PageTitle
-            pageTitle="Orders Management"
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description="Track and manage your restaurant orders in real-time"
-          />
+        {/* Header with Connection Status */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <PageTitle
+              pageTitle="Dashboard"
+              className="text-2xl sm:text-3xl font-bold text-gray-900"
+              description={periodDisplayText}
+            />
+
+            {/* Connection Status Indicator */}
+            <div
+              className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
+              ${
+                connectionStatusInfo.color === "green"
+                  ? "bg-green-100 text-green-700"
+                  : ""
+              }
+              ${
+                connectionStatusInfo.color === "yellow"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : ""
+              }
+              ${
+                connectionStatusInfo.color === "red"
+                  ? "bg-red-100 text-red-700"
+                  : ""
+              }
+              ${
+                connectionStatusInfo.color === "gray"
+                  ? "bg-gray-100 text-gray-700"
+                  : ""
+              }
+            `}
+            >
+              <connectionStatusInfo.icon className="w-3 h-3" />
+              {connectionStatusInfo.text}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            {lastUpdated && (
+              <div className="text-sm text-gray-500">
+                Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+              </div>
+            )}
+
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </button>
+
+            <button
+              onClick={handleCreateOrder}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Create Order
+            </button>
+          </div>
         </div>
 
         {/* Welcome Section */}
-        {/* <WelcomeSection firstName={captain.firstName} /> */}
+        <WelcomeSection
+          firstName={captain.firstName || captain.name}
+          hotelName={captain.hotelName}
+          todayStats={todayStats}
+        />
 
-        {/* Quick Actions */}
-        {/* <QuickActions onCreateOrder={handleCreateOrder} /> */}
+        {/* Time Period Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <TimePeriodSelector
+            selectedTimePeriod={selectedTimePeriod}
+            onTimePeriodChange={handleTimePeriodChange}
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            variant="compact"
+            showDatePicker={true}
+            className="mb-2"
+            disableFutureDates={true}
+            datePickerProps={{
+              placeholder: "Select a date to view orders",
+            }}
+            options={timePeriodOptions}
+          />
 
-        {/* Order Statistics Cards */}
-        {hasOrders && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={Package}
-                title="Total Orders"
-                value={orderStats.total}
-                color="blue"
-              />
-            </div>
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={Clock}
-                title="Pending"
-                value={orderStats.pending}
-                color="yellow"
-              />
-            </div>
-
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={CheckCircle}
-                title="Completed"
-                value={orderStats.completed}
-                color="gray"
-              />
-            </div>
+          {/* Period Summary */}
+          <div className="text-sm text-gray-600 mt-2">
+            {periodDisplayText} • {displayStats.total} orders
+            {displayStats.totalRevenue > 0 && (
+              <span>
+                {" "}
+                • ₹{displayStats.totalRevenue.toLocaleString()} revenue
+              </span>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Enhanced Order Statistics Cards - Updated for Simplified Status System */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              icon={Package}
+              title="Total Orders"
+              value={displayStats.total}
+              color="blue"
+              subtitle={`${displayStats.activeOrders} active`}
+              trend={displayStats.total > 0 ? "up" : "neutral"}
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              icon={Clock}
+              title="Ongoing"
+              value={displayStats.received}
+              color="yellow"
+              subtitle="Being processed"
+              alert={displayStats.received > 5}
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              icon={CheckCircle}
+              title="Completed"
+              value={displayStats.completed}
+              color="green"
+              subtitle={`${displayStats.completionRate}% completion rate`}
+            />
+          </div>
+
+          <div className="transform hover:scale-105 transition-all duration-300">
+            <StatCard
+              icon={AlertCircle}
+              title="Rejected"
+              value={displayStats.rejected}
+              color="red"
+              subtitle="Cancelled orders"
+            />
+          </div>
+         
+        </div>
 
         {/* Search and Filters */}
         {hasOrders && (
           <SearchWithResults
             searchTerm={searchTerm}
-            onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search orders by number, table..."
-            totalCount={orderStats.total}
-            filteredCount={filteredOrdersCount}
+            onSearchChange={handleSearchInputChange}
+            placeholder="Search orders by number, table, customer name..."
+            totalCount={timeFilteredOrders.length}
+            filteredCount={filteredOrders.length}
             onClearSearch={clearFilters}
-            totalLabel="total orders"
+            totalLabel="orders"
             showStatusFilter={true}
             statusFilter={statusFilter}
-            onStatusChange={(e) => handleStatusFilterChange(e.target.value)}
-            statusOptions={ORDER_STATUSES}
+            onStatusChange={handleStatusInputChange}
+            statusOptions={statusOptions}
+            isRefreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            lastUpdated={lastUpdated}
+            showExportButton={hasFilteredOrders}
+            onExport={handleExportOrders}
           />
         )}
 
@@ -272,6 +534,38 @@ const CaptainDashboard = memo(() => {
             <>
               {hasFilteredOrders ? (
                 <>
+                  {/* Orders Summary */}
+                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-4">
+                        <span className="font-medium text-gray-900">
+                          {filteredOrders.length} of {timeFilteredOrders.length}{" "}
+                          orders
+                        </span>
+                        {statusFilter !== "all" && (
+                          <span className="text-gray-600">
+                            (filtered by {statusFilter})
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-4 text-gray-600">
+                        {displayStats.totalRevenue > 0 && (
+                          <span>
+                            Revenue: ₹
+                            {displayStats.totalRevenue.toLocaleString()}
+                          </span>
+                        )}
+                        <button
+                          onClick={handleViewAllOrders}
+                          className="text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          View All Orders →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Orders Table using DynamicTable */}
                   <Suspense
                     fallback={<LoadingSpinner text="Loading orders table..." />}
@@ -283,11 +577,23 @@ const CaptainDashboard = memo(() => {
                       loading={ordersLoading}
                       emptyMessage="No orders match your search criteria"
                       showPagination={true}
-                      initialRowsPerPage={10}
+                      initialRowsPerPage={15}
                       sortable={true}
                       className="border-0"
                       showLabelsOnActions={false}
-                      onRowClick={handleViewOrder} // Click row to view order
+                      onRowClick={handleViewOrder}
+                      highlightRows={(order) => {
+                        if (order.normalizedStatus === "ready")
+                          return "bg-green-50";
+                        if (
+                          order.normalizedStatus === "pending" &&
+                          new Date() - new Date(order.orderTimestamp) >
+                            15 * 60 * 1000
+                        ) {
+                          return "bg-yellow-50";
+                        }
+                        return "";
+                      }}
                     />
                   </Suspense>
                 </>
@@ -296,25 +602,57 @@ const CaptainDashboard = memo(() => {
                   searchTerm={searchTerm}
                   onClearSearch={clearFilters}
                   message="No orders match your search criteria"
+                  suggestions={[
+                    "Try searching by order number, table, or customer name",
+                    "Check if the selected status filter has any orders",
+                    "Clear all filters to see all orders",
+                  ]}
                 />
               )}
             </>
           ) : (
             <EmptyState
               icon={Package}
-              title="No Orders Yet"
-              description="Orders will appear here once they are placed. Create your first order to get started!"
-              actionLabel="Create Order"
+              title={
+                selectedTimePeriod === "daily"
+                  ? `No Orders for ${new Date(
+                      selectedDate
+                    ).toLocaleDateString()}`
+                  : "No Orders Found"
+              }
+              description={
+                selectedTimePeriod === "daily"
+                  ? `No orders found for ${new Date(
+                      selectedDate
+                    ).toLocaleDateString()}. Try selecting a different date or time period.`
+                  : "No orders have been placed yet. Orders will appear here once customers start placing them."
+              }
+              actionLabel="Create First Order"
               onAction={handleCreateOrder}
+              secondaryActionLabel={
+                selectedTimePeriod === "daily"
+                  ? "View All Time"
+                  : "View All Orders"
+              }
+              onSecondaryAction={
+                selectedTimePeriod === "daily"
+                  ? () => handleTimePeriodChange("total")
+                  : handleViewAllOrders
+              }
               loading={ordersLoading}
             />
           )}
         </div>
 
         {/* Loading overlay for order operations */}
-        {ordersLoading && hasOrders && (
-          <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-            <LoadingSpinner text="Updating orders..." />
+        {(submitting || ordersLoading) && hasOrders && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 flex items-center gap-3 shadow-lg">
+              <LoadingSpinner size="sm" />
+              <span className="text-gray-700 font-medium">
+                {submitting ? "Processing order..." : "Loading orders..."}
+              </span>
+            </div>
           </div>
         )}
       </main>
