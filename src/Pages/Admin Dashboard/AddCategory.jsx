@@ -164,11 +164,11 @@ const AddCategory = memo(() => {
         />
       </Suspense>
 
-      <div className="container mx-auto px-4 py-6">
+      <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
-            pageTitle="Category Management"
+            pageTitle="Add Category"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description="Manage your menu categories"
           />
@@ -188,24 +188,6 @@ const AddCategory = memo(() => {
               label="Total Categories"
               value={stats.total}
               color="blue"
-            />
-            <StatCard
-              icon={TrendingUp}
-              label="Active Categories"
-              value={stats.active}
-              color="green"
-            />
-            <StatCard
-              icon={Grid}
-              label="With Items"
-              value={stats.withItems}
-              color="orange"
-            />
-            <StatCard
-              icon={Plus}
-              label="Recent (7 days)"
-              value={stats.recent}
-              color="purple"
             />
           </div>
         )}

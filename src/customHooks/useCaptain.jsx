@@ -30,17 +30,17 @@ export const useCaptain = (hotelName) => {
     );
 
     // Handle potential connection errors
-    const errorTimeout = setTimeout(() => {
-      if (loading) {
-        setError(new Error("Taking longer than expected to load captains"));
-        setLoading(false);
-      }
-    }, 10000);
+    // const errorTimeout = setTimeout(() => {
+    //   if (loading) {
+    //     setError(new Error("Taking longer than expected to load captains"));
+    //     setLoading(false);
+    //   }
+    // }, 50000);
 
     // Cleanup subscription on component unmount or hotelName change
     return () => {
       unsubscribe();
-      clearTimeout(errorTimeout);
+      // clearTimeout(errorTimeout);
     };
   }, [hotelName]);
 

@@ -1,46 +1,81 @@
 import React, { useState } from "react";
-import { Star, Menu, X } from "lucide-react"; // Added Menu and X icons for sidebar toggle
+import {
+  Star,
+  Menu,
+  X,
+  Gift,
+  Home,
+  MessageCircle,
+  Instagram,
+  Facebook,
+  Globe,
+} from "lucide-react";
 import { colors } from "theme/theme";
 import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
+const NavBar = ({
+  title,
+  hotelPlaceId,
+  hotelName,
+  home,
+  offers,
+  socialLinks = {}, // { instagram: "url", facebook: "url", google: "url" }
+}) => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   const handleOfferClick = () => {
     navigate(`/viewMenu/${hotelName}/offers`);
-    setIsSidebarOpen(false); // Close sidebar after navigation
+    setIsSidebarOpen(false);
   };
 
   const handleHomeClick = () => {
     navigate(`/viewMenu/${hotelName}/home`);
-    setIsSidebarOpen(false); // Close sidebar after navigation
+    setIsSidebarOpen(false);
   };
 
-  // Function to handle Google review redirection
   const handleReviewClick = () => {
     let reviewUrl;
-
     if (hotelPlaceId) {
-      // If you have Google Place ID (most accurate)
       reviewUrl = `https://search.google.com/local/writereview?placeid=${hotelPlaceId}`;
     } else if (hotelName) {
-      // If you only have hotel name, search for it
       const encodedHotelName = encodeURIComponent(`${hotelName} reviews`);
       reviewUrl = `https://www.google.com/search?q=${encodedHotelName}`;
     } else {
-      // Fallback to generic Google reviews
       reviewUrl = `https://www.google.com/search?q=hotel+reviews`;
     }
-
-    // Open in new tab
     window.open(reviewUrl, "_blank", "noopener,noreferrer");
-    setIsSidebarOpen(false); // Close sidebar after action
+    setIsSidebarOpen(false);
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const menuItems = [
+    {
+      label: "Review",
+      description: "Write a review on Google",
+      icon: Star,
+      onClick: handleReviewClick,
+    },
+    offers && {
+      label: "Offers",
+      description: "View special offers",
+      icon: Gift,
+      onClick: handleOfferClick,
+    },
+    home && {
+      label: "Menu",
+      description: "View menu items",
+      icon: Home,
+      onClick: handleHomeClick,
+    },
+  ].filter(Boolean);
+
+  const socials = [
+    { name: "Instagram", icon: Instagram, url: socialLinks.instagram },
+    { name: "Facebook", icon: Facebook, url: socialLinks.facebook },
+    { name: "Google", icon: Globe, url: socialLinks.google },
+  ].filter((s) => s.url);
 
   return (
     <>
@@ -59,11 +94,15 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
         </button>
         <h2
           className="font-semibold text-black-500"
-          style={{ marginLeft: "10px", paddingTop:'5px', color:colors.Orange }}
+          style={{
+            marginLeft: "10px",
+            paddingTop: "5px",
+            color: colors.Orange,
+          }}
         >
           {title}
         </h2>
-        <div className="w-10"></div> {/* Spacer for centering */}
+        <div className="w-10"></div>
       </div>
 
       {/* Sidebar Overlay */}
@@ -76,11 +115,11 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 left-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Sidebar Header with Logo */}
+        {/* Sidebar Header */}
         <div
           className="p-4 border-b flex justify-between items-center"
           style={{ background: colors.Orange }}
@@ -111,64 +150,47 @@ const NavBar = ({ title, hotelPlaceId, hotelName, home, offers }) => {
         </div>
 
         {/* Sidebar Menu Items */}
-        <div className="p-4">
-          {/* Review Option */}
-          <button
-            onClick={handleReviewClick}
-            className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
-          >
-            <Star
-              size={24}
-              fill="#f59e0b"
-              stroke="#f59e0b"
-              className="animate-pulse"
-            />
-            <div className="text-left">
-              <span className="text-lg font-medium text-gray-800">Review</span>
-              <p className="text-sm text-gray-600">Write a review on Google</p>
-            </div>
-          </button>
-
-          {/* Offers Option */}
-          {offers && (
-            <button
-              onClick={handleOfferClick}
-              className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
-            >
-              <Star
-                size={24}
-                fill="#f59e0b"
-                stroke="#f59e0b"
-                className="animate-pulse"
-              />
-              <div className="text-left">
-                <span className="text-lg font-medium text-gray-800">
-                  Offers
-                </span>
-                <p className="text-sm text-gray-600">View special offers</p>
-              </div>
-            </button>
-          )}
-
-          {/* Menu/Home Option */}
-          {home && (
-            <button
-              onClick={handleHomeClick}
-              className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
-            >
-              <Star
-                size={24}
-                fill="#f59e0b"
-                stroke="#f59e0b"
-                className="animate-pulse"
-              />
-              <div className="text-left">
-                <span className="text-lg font-medium text-gray-800">Menu</span>
-                <p className="text-sm text-gray-600">View menu items</p>
-              </div>
-            </button>
-          )}
+        <div className="p-4 flex-1 overflow-y-auto">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200 mb-3 border border-gray-200"
+              >
+                <Icon size={24} className="text-orange-500" />
+                <div className="text-left">
+                  <span className="text-lg font-medium text-gray-800">
+                    {item.label}
+                  </span>
+                  <p className="text-sm text-gray-600">{item.description}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Social Links */}
+        {socials.length > 0 && (
+          <div className="p-4 border-t flex justify-center gap-6">
+            {socials.map(({ name, icon: Icon, url }) => (
+              <a
+                key={name}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+                title={name}
+              >
+                <Icon
+                  size={24}
+                  className="text-gray-700 hover:text-orange-500"
+                />
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

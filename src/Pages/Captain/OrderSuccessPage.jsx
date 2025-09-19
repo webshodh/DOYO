@@ -303,9 +303,9 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
             )}
           </div>
         </div>
-
+        {/* Imp code hide for now  */}
         {/* Status Timeline */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Order Status Timeline
           </h3>
@@ -377,29 +377,11 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
               );
             })}
           </div>
-        </div>
+        </div> */}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={handleTrackOrder}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            <Eye className="w-5 h-5" />
-            View in Dashboard
-          </button>
-
-          <button
-            onClick={onGoHome}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-          >
-            <Home className="w-5 h-5" />
-            Back to Menu
-          </button>
-        </div>
-
+        {/* Imp code hide for now  */}
         {/* Support Info */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        {/* <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-5 h-5 text-amber-600" />
             <span className="font-medium text-amber-900">Need Help?</span>
@@ -408,7 +390,7 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
             If you have any questions about your order or need assistance,
             please contact our staff at your table or visit the reception desk.
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

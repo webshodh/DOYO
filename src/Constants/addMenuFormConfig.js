@@ -106,12 +106,12 @@ export const FORM_CONFIG = {
       icon: Tag,
       bgColor: "purple",
       fields: [
-        {
-          name: "mainCategory",
-          label: "Main Category",
-          type: "select",
-          options: "mainCategories",
-        },
+        // {
+        //   name: "mainCategory",
+        //   label: "Main Category",
+        //   type: "select",
+        //   options: "mainCategories",
+        // },
         {
           name: "menuCategory",
           label: "Menu Category",
@@ -129,34 +129,18 @@ export const FORM_CONFIG = {
             { value: "nonveg", label: "🍖 Non-Vegetarian" },
           ],
         },
-        {
-          name: "mealType",
-          label: "Meal Type",
-          type: "select",
-          options: "mealTypes",
-        },
+        // {
+        //   name: "mealType",
+        //   label: "Meal Type",
+        //   type: "select",
+        //   options: "mealTypes",
+        // },
         {
           name: "spiceLevel",
           label: "Spice Level",
           type: "select",
           options: "spiceLevels",
         },
-        
-      ],
-    },
-    {
-      id: "preparation",
-      title: "Preparation Details",
-      icon: Utensils,
-      bgColor: "orange",
-      fields: [
-        {
-          name: "preparationMethod",
-          label: "Preparation Method",
-          type: "select",
-          options: "preparationMethods",
-        },
-        
         {
           name: "availability",
           label: "Availability",
@@ -166,32 +150,47 @@ export const FORM_CONFIG = {
             { value: "Not Available", label: "❌ Not Available" },
           ],
         },
-        {
-          name: "cuisineType",
-          label: "Cuisine Type",
-          type: "select",
-          options: "cuisineTypes",
-        },
-        {
-          name: "tasteProfile",
-          label: "Taste Profile ",
-          type: "select",
-          options: "tasteProfiles",
-        },
-        {
-          name: "texture",
-          label: "Texture",
-          type: "select",
-          options: "textures",
-        },
-        {
-          name: "cookingStyle",
-          label: "Cooking Style",
-          type: "select",
-          options: "cookingStyles",
-        },
       ],
     },
+    // {
+    //   id: "preparation",
+    //   title: "Preparation Details",
+    //   icon: Utensils,
+    //   bgColor: "orange",
+    //   fields: [
+    //     {
+    //       name: "preparationMethod",
+    //       label: "Preparation Method",
+    //       type: "select",
+    //       options: "preparationMethods",
+    //     },
+
+    //     {
+    //       name: "cuisineType",
+    //       label: "Cuisine Type",
+    //       type: "select",
+    //       options: "cuisineTypes",
+    //     },
+    //     {
+    //       name: "tasteProfile",
+    //       label: "Taste Profile ",
+    //       type: "select",
+    //       options: "tasteProfiles",
+    //     },
+    //     {
+    //       name: "texture",
+    //       label: "Texture",
+    //       type: "select",
+    //       options: "textures",
+    //     },
+    //     {
+    //       name: "cookingStyle",
+    //       label: "Cooking Style",
+    //       type: "select",
+    //       options: "cookingStyles",
+    //     },
+    //   ],
+    // },
     {
       id: "nutrition",
       title: "Nutritional Information",

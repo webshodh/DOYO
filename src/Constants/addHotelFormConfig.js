@@ -234,3 +234,69 @@ export const hotelFormConfig = {
     },
   ],
 };
+
+export const adminFormConfig = {
+  sections: [
+    {
+      id: "admin_search",
+      title: "Admin Search",
+      icon: "Search",
+      gradient: "from-purple-500 to-pink-600",
+      fields: [
+        {
+          name: "email",
+          label: "Search Admin by Email",
+          type: "email",
+          placeholder: "Enter admin email to search",
+          required: true,
+          validation: "email",
+          gridCols: "lg:col-span-2",
+          searchField: true,
+          description:
+            "Search for existing admin or enter email to create new admin",
+        },
+      ],
+    },
+    {
+      id: "admin_details",
+      title: "Admin Information",
+      icon: "User",
+      gradient: "from-indigo-500 to-purple-600",
+      fields: [
+        {
+          name: "name",
+          label: "Admin Name",
+          type: "text",
+          placeholder: "Enter admin name",
+          required: true,
+          validation: "required",
+          gridCols: "lg:col-span-1",
+          disabledWhenExisting: true,
+        },
+        {
+          name: "contact",
+          label: "Contact Number",
+          type: "tel",
+          placeholder: "Enter 10-digit contact",
+          required: true,
+          validation: "contact",
+          maxLength: 10,
+          gridCols: "lg:col-span-1",
+          disabledWhenExisting: true,
+        },
+        {
+          name: "password",
+          label: "Password",
+          type: "password",
+          placeholder: "Enter password (min 6 characters)",
+          required: true,
+          validation: "password",
+          gridCols: "lg:col-span-1",
+          disabledWhenExisting: true,
+          conditionalRequired: true, // Required only for new admins
+          description: "Password must be at least 6 characters long",
+        },
+      ],
+    },
+  ],
+};

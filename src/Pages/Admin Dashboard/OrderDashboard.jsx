@@ -12,7 +12,6 @@ import {
   Download,
   LoaderCircle,
   Award,
-  DollarSign,
 } from "lucide-react";
 
 // Hooks and utilities
@@ -44,13 +43,12 @@ import {
   OrdersByCategoryColumn,
   OrdersByMenuColumn,
 } from "../../Constants/Columns";
-import { useMenu } from "customHooks/menu";
 
 /**
  * Admin Dashboard Component
  * Provides comprehensive analytics and management interface for hotel orders
  */
-const AdminDashboard = () => {
+const OrderDashboard = () => {
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
 
@@ -120,17 +118,13 @@ const AdminDashboard = () => {
     sortOrder: "desc",
   });
 
-  // Use custom hook for menu management
+  // Menu and category management data
   const {
-    filteredAndSortedMenus,
-    menuLoading,
-    menuError,
-    refreshMenus,
+    menuData: managementMenuData,
     totalMenus,
-    menuCount,
-    hasMenus,
-    hasSearchResults,
-  } = useMenu(hotelName);
+    loading: menuLoading,
+    error: menuError,
+  } = useMenuData(hotelName);
 
   const {
     categoriesData,
@@ -255,21 +249,12 @@ const AdminDashboard = () => {
   const isMenuManagementLoading = menuLoading || categoriesLoading;
   const menuManagementError = menuError || categoriesError || optionsError;
 
-  // Memoized calculations for menu statistics
-  const stats = useMemo(
-    () => ({
-      total: menuCount,
-      available: filteredAndSortedMenus.filter(
-        (menu) => menu.availability === "Available"
-      ).length,
-      discounted: filteredAndSortedMenus.filter((menu) => menu.discount > 0)
-        .length,
-      categories: new Set(
-        filteredAndSortedMenus.map((menu) => menu.menuCategory)
-      ).size,
-    }),
-    [filteredAndSortedMenus, menuCount]
-  );
+  // Handle print bill
+  const handlePrintBill = useCallback((order) => {
+    console.log("Printing bill for order:", order); // Debug log
+    setSelectedOrderForBill(order);
+    setShowPrintBill(true);
+  }, []);
   return (
     <AdminDashboardLayout>
       <div className="space-y-6 sm:space-y-8">
@@ -397,50 +382,6 @@ const AdminDashboard = () => {
         </div>
 
         {/* Enhanced Menu Management Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              title="Total Menu Items"
-              value={menuCount || 0}
-              color="blue"
-              icon={ShoppingBag}
-              subtitle={
-                menuAnalytics.topMenus.length > 0
-                  ? `${menuAnalytics.topMenus[0]?.menuName} is top seller`
-                  : ""
-              }
-            />
-          </div>
-
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              title="Total Categories"
-              value={totalCategories || 0}
-              color="green"
-              icon={BarChart3}
-              subtitle={
-                categoryAnalytics.categoryStats.length > 0
-                  ? `${categoryAnalytics.categoryStats[0]?.category} leads`
-                  : ""
-              }
-            />
-          </div>
-
-          <StatCard
-            icon={TrendingUp}
-            title="Available"
-            value={stats.available}
-            color="green"
-          />
-          <StatCard
-            icon={DollarSign}
-            title="With Discount"
-            value={stats.discounted}
-            color="orange"
-          />
-        </div>
-
-        {/* Enhanced Menu Management Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
@@ -502,111 +443,44 @@ const AdminDashboard = () => {
               trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
             />
           </div>
+          
         </div>
 
-        {/* Enhanced Analytics Tables and Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Orders by Category with Enhanced Data */}
+        {/* Enhanced Recent Orders Table */}
+        {hasOrders && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-500" />
+                  <BarChart3 className="w-5 h-5 text-gray-700" />
                   <h2 className="text-lg font-semibold text-gray-900">
-                    Orders by Category
+                    Recent Orders
                   </h2>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {categoryAnalytics.totalCategoryOrders} total items ordered
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <span>
+                    Showing {timeFilteredOrders.length} of {orders.length}{" "}
+                    orders
+                  </span>
+                  {statusFilter !== "all" && (
+                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                      {statusFilter} only
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <DynamicTable
-                columns={OrdersByCategoryColumn}
-                data={categoryAnalytics.categoryStats}
-                showPagination={false}
-                showRowsPerPage={false}
-                emptyMessage="No category data available"
-                className="border-0 shadow-none"
-                headerClassName="bg-gradient-to-r from-blue-500 to-blue-600"
-                highlightRows={(row) => {
-                  // Highlight top performing category
-                  if (
-                    categoryAnalytics.categoryStats[0]?.category ===
-                    row.category
-                  ) {
-                    return "bg-blue-50";
-                  }
-                  return "";
-                }}
+              <OrderDetailsTable
+                orders={timeFilteredOrders.slice(0, 20)} // Show recent 20 orders
+                onViewDetails={handleViewDetails}
+                onUpdateStatus={handleOrderStatusUpdate}
+                isUpdating={submitting}
+                showConnectionStatus={!isConnected}
+                onPrintBill={handlePrintBill}
               />
             </div>
           </div>
-
-          {/* Enhanced Top Menu Items with Better Analytics */}
-          {menuAnalytics.topMenus.length > 0 && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Award className="w-5 h-5 text-orange-500" />
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Top Performing Menu Items
-                  </h3>
-                  <div className="text-sm text-gray-500">
-                    Based on{" "}
-                    {selectedTimePeriod === "daily"
-                      ? "today's"
-                      : periodDisplayText.toLowerCase()}{" "}
-                    orders
-                  </div>
-                </div>
-
-                <TopMenuCards
-                  topMenus={menuAnalytics.topMenus}
-                  showRevenue={true}
-                  showPercentage={true}
-                  totalOrders={menuAnalytics.totalMenuOrders}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Enhanced Orders by Menu */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                Orders by Menu Item
-              </h2>
-            </div>
-            <div className="text-sm text-gray-500">
-              {menuAnalytics.menuStats.length} items •{" "}
-              {menuAnalytics.totalMenuOrders} total orders
-            </div>
-          </div>
-
-          <DynamicTable
-            columns={OrdersByMenuColumn}
-            data={menuAnalytics.menuStats}
-            showPagination={menuAnalytics.menuStats.length > 10}
-            showRowsPerPage={menuAnalytics.menuStats.length > 10}
-            initialRowsPerPage={10}
-            rowsPerPageOptions={[5, 10, 15, 20]}
-            emptyMessage="No menu data available"
-            className="border-0 shadow-none"
-            sortable={true}
-            highlightRows={(row) => {
-              // Highlight top 3 performing items
-              const topThree = menuAnalytics.menuStats.slice(0, 3);
-              if (topThree.find((item) => item.menuId === row.menuId)) {
-                return "bg-yellow-50";
-              }
-              return "";
-            }}
-          />
-        </div>
+        )}
 
         {/* Enhanced Loading States */}
         {(loading || isMenuManagementLoading) && (
@@ -677,6 +551,30 @@ const AdminDashboard = () => {
           />
         )}
 
+        {/* Print Bill Modal */}
+        {showPrintBill && selectedOrderForBill && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto shadow-2xl">
+              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
+                <h2 className="text-xl font-semibold">Print Bill</h2>
+                <button
+                  onClick={() => {
+                    setShowPrintBill(false);
+                    setSelectedOrderForBill(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+                >
+                  ×
+                </button>
+              </div>
+              <PrintBill
+                order={selectedOrderForBill}
+                restaurantInfo={restaurantInfo}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Loading overlay for operations */}
         {submitting && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -691,4 +589,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default OrderDashboard;

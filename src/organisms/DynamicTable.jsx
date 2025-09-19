@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Loader,
   Eye,
+  Printer, // Added Printer icon
 } from "lucide-react";
 
 // Custom hook for pagination logic
@@ -142,6 +143,7 @@ const ActionButton = memo(
       danger: "bg-red-500 hover:bg-red-600 text-white",
       warning: "bg-yellow-500 hover:bg-yellow-600 text-white",
       secondary: "bg-gray-500 hover:bg-gray-600 text-white",
+      print: "bg-purple-500 hover:bg-purple-600 text-white", // Added print variant
     };
 
     const sizes = {
@@ -171,7 +173,7 @@ const ActionButton = memo(
 
 ActionButton.displayName = "ActionButton";
 
-// Actions cell component
+// Actions cell component - Updated to include print functionality
 const ActionsCell = memo(
   ({
     item,
@@ -181,6 +183,7 @@ const ActionsCell = memo(
     onReject,
     onMarkAsCompleted,
     onView,
+    onPrint, // Added onPrint prop
     customActions = [],
     showLabels = false,
   }) => {
@@ -198,6 +201,13 @@ const ActionsCell = memo(
         icon: Edit,
         onClick: () => onEdit(item),
         variant: "primary",
+      },
+      onPrint && {
+        // Added print action
+        label: "Print",
+        icon: Printer,
+        onClick: () => onPrint(item),
+        variant: "print",
       },
       onAccept && {
         label: "Accept",
@@ -418,7 +428,7 @@ const TableHeader = memo(
 
 TableHeader.displayName = "TableHeader";
 
-// Main DynamicTable component
+// Main DynamicTable component - Updated to include print functionality
 const DynamicTable = memo(
   forwardRef(
     (
@@ -434,6 +444,7 @@ const DynamicTable = memo(
         onReject,
         onMarkAsCompleted,
         onView,
+        onPrint, // Added onPrint prop
         customActions = [],
 
         // Table configuration
@@ -457,6 +468,9 @@ const DynamicTable = memo(
         // Events
         onRowClick,
         onSort,
+
+        // Row highlighting function
+        highlightRows,
 
         // Additional props
         testId,
@@ -492,7 +506,7 @@ const DynamicTable = memo(
         [sortConfig, sortable, onSort]
       );
 
-      // Check if table has actions
+      // Check if table has actions - Updated to include onPrint
       const hasActions = useMemo(
         () =>
           !!(
@@ -502,6 +516,7 @@ const DynamicTable = memo(
             onReject ||
             onMarkAsCompleted ||
             onView ||
+            onPrint || // Added onPrint check
             customActions.length > 0
           ),
         [
@@ -511,6 +526,7 @@ const DynamicTable = memo(
           onReject,
           onMarkAsCompleted,
           onView,
+          onPrint, // Added onPrint dependency
           customActions,
         ]
       );
@@ -564,6 +580,8 @@ const DynamicTable = memo(
                       onClick={(e) => handleRowClick(item, e)}
                       className={`hover:bg-gray-50 transition-colors duration-150 ${
                         onRowClick ? "cursor-pointer" : ""
+                      } ${
+                        highlightRows ? highlightRows(item) : ""
                       } ${rowClassName}`}
                     >
                       {columns.map((column, colIndex) => (
@@ -596,6 +614,7 @@ const DynamicTable = memo(
                             onReject={onReject}
                             onMarkAsCompleted={onMarkAsCompleted}
                             onView={onView}
+                            onPrint={onPrint} // Added onPrint prop
                             customActions={customActions}
                             showLabels={showLabelsOnActions}
                           />
@@ -671,7 +690,7 @@ const DynamicTable = memo(
 
 DynamicTable.displayName = "DynamicTable";
 
-// Default props
+// Default props - Updated to include onPrint
 DynamicTable.defaultProps = {
   columns: [],
   data: [],

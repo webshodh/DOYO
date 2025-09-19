@@ -21,8 +21,8 @@ const ActiveFilters = memo(
     if (!hasFilters) return null;
 
     return (
-      <div className="mb-4 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
+      <div className="mb-1 p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between mb-1">
           <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Filter className="w-4 h-4" />
             Active Filters
@@ -34,8 +34,9 @@ const ActiveFilters = memo(
             Clear All
           </button>
         </div>
-
-        <div className="flex flex-wrap gap-2">
+        
+        {/*Currently hide this to save space but this is a working functionality  */}
+        {/* <div className="flex flex-wrap gap-2">
           {searchTerm && (
             <FilterBadge
               label={`Search: "${searchTerm}"`}
@@ -77,7 +78,7 @@ const ActiveFilters = memo(
               icon={Award}
             />
           )}
-        </div>
+        </div> */}
       </div>
     );
   }
