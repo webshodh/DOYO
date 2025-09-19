@@ -13,25 +13,16 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import { HotelProvider } from "./context/HotelContext";
 // Inject colors into CSS
 import { injectColorsIntoCSS } from "./theme/InjectColors";
-import { AuthProvider } from "./context/AuthContext";
-import { UserAuthProvider } from "./context/UserAuthContext";
-import { UserProvider } from "./context/UserContext";
 injectColorsIntoCSS();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <HotelProvider>
-        <UserAuthProvider>
-          <UserProvider>
-            <App />
-          </UserProvider>
-        </UserAuthProvider>
-      </HotelProvider>
-    </AuthProvider>
+    <App />
   </React.StrictMode>
 );
+
+// Note: AuthProvider and HotelProvider are now handled inside App.js
+// This prevents context duplication and ensures proper nesting

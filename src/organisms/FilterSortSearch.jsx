@@ -448,18 +448,15 @@ const FilterSortSearch = memo(
     return (
       <div className={`flex ${layoutClasses} w-full ${className}`} {...rest}>
         {/* Search Input */}
-        <SearchInput
-          searchTerm={searchTerm}
-          onSearchChange={handleSearch}
-          placeholder={searchPlaceholder}
-          disabled={disabled}
-          className={searchClassName}
-        />
+        <div className="d-flex align-items-center gap-2">
+          <SearchInput
+            searchTerm={searchTerm}
+            onSearchChange={handleSearch}
+            placeholder={searchPlaceholder}
+            disabled={disabled}
+            className={searchClassName}
+          />
 
-        {/* Controls */}
-        <div
-          className={`flex items-center gap-3 flex-wrap ${controlsClassName}`}
-        >
           {/* Sort Dropdown */}
           {handleSort && (
             <SortDropdown
@@ -468,7 +465,12 @@ const FilterSortSearch = memo(
               disabled={disabled}
             />
           )}
+        </div>
 
+        {/* Controls */}
+        <div
+          className={`flex items-center gap-3 flex-wrap ${controlsClassName}`}
+        >
           {/* Category Filter Dropdown */}
           {handleCategoryFilter && (
             <CategoryFilterDropdown
@@ -491,7 +493,7 @@ const FilterSortSearch = memo(
               Reset
             </ActionButton>
           )}
-c        </div>
+        </div>
       </div>
     );
   }

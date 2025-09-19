@@ -21,322 +21,28 @@ import OrderSuccessPage from "../Captain/OrderSuccessPage";
 import { FilterSortSearch } from "components";
 import { db } from "../../data/firebase/firebaseConfig";
 import { specialCategories } from "../../Constants/addMenuFormConfig";
-
-// Separate component for cart button
-const CartButton = ({
-  totalItems,
-  totalAmount,
-  onGoToCart,
-  isMobile = false,
-}) => {
-  if (isMobile && totalItems === 0) return null;
-
-  return (
-    <button
-      onClick={onGoToCart}
-      className={`relative bg-orange-500 text-white rounded-lg flex items-center gap-2 hover:bg-orange-600 transition-all duration-200 shadow-lg ${
-        isMobile
-          ? "p-4 rounded-full fixed bottom-6 right-4 z-40 transform hover:scale-110 animate-pulse"
-          : "px-3 py-2 sm:px-4"
-      }`}
-      aria-label={`View cart with ${totalItems} items`}
-    >
-      <ShoppingCart size={isMobile ? 24 : 18} className="sm:w-5 sm:h-5" />
-      {!isMobile && (
-        <span className="font-semibold text-sm sm:text-base">
-          ₹{totalAmount}
-        </span>
-      )}
-      {totalItems > 0 && (
-        <span
-          className={`absolute bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold ${
-            isMobile
-              ? "-top-2 -right-2 h-6 w-6 animate-bounce"
-              : "-top-2 -right-2 h-5 w-5 sm:h-6 sm:w-6"
-          }`}
-        >
-          {totalItems > 99 ? "99+" : totalItems}
-        </span>
-      )}
-    </button>
-  );
-};
-
-// Header component with navigation
-const MenuHeader = ({ hotelName, onGoToDashboard, cartInfo }) => (
-  <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
-    <div className="px-4 py-3">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onGoToDashboard}
-            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-            title="Back to Dashboard"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-800">
-              Create New Order
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-500">
-              {hotelName && `${hotelName} • `}Select items for your order
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onGoToDashboard}
-            className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Dashboard
-          </button>
-
-          <CartButton
-            totalItems={cartInfo.totalItems}
-            totalAmount={cartInfo.totalAmount}
-            onGoToCart={cartInfo.onGoToCart}
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Category filters component
-const CategoryFilters = ({
-  categories,
-  selectedCategory,
-  onCategorySelect,
-  className = "",
-}) => (
-  <div className={`overflow-x-auto pb-2 ${className}`}>
-    <div className="flex space-x-2 min-w-max">
-      {categories.map((category) => (
-        <button
-          key={category}
-          onClick={() => onCategorySelect(category)}
-          className={`px-3 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-            selectedCategory === category
-              ? "bg-orange-500 text-white shadow-md transform scale-105"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:scale-102"
-          }`}
-          aria-pressed={selectedCategory === category}
-        >
-          {category}
-        </button>
-      ))}
-    </div>
-  </div>
-);
-
-// Special category filters component
-const SpecialCategoryFilters = ({
-  categories,
-  selectedFilters,
-  counts,
-  onToggleFilter,
-}) => (
-  <div className="overflow-x-auto pb-2">
-    <div className="flex space-x-2 min-w-max">
-      {categories.map((category) => {
-        const isSelected = selectedFilters.includes(category.name);
-        const Icon = category.icon;
-        const count = counts[category.name] || 0;
-
-        return (
-          <button
-            key={category.name}
-            onClick={() => onToggleFilter(category.name)}
-            className={`flex-shrink-0 flex items-center px-3 py-2 rounded-full border-2 transition-all duration-200 transform hover:scale-105 ${
-              isSelected
-                ? `${category.activeColor} text-white border-transparent shadow-md`
-                : `${category.bgColor} ${category.iconColor} ${category.borderColor} hover:shadow-sm`
-            }`}
-            aria-pressed={isSelected}
-          >
-            <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
-              {category.label}
-            </span>
-            <span
-              className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold ${
-                isSelected
-                  ? "bg-white bg-opacity-20 text-white"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              {count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  </div>
-);
-
-// Active filters display component
-const ActiveFiltersDisplay = ({
-  selectedFilters,
-  selectedCategory,
-  selectedMainCategory,
-  onRemoveFilter,
-  onClearAll,
-}) => {
-  const hasFilters =
-    selectedFilters.length > 0 ||
-    selectedCategory !== "All" ||
-    selectedMainCategory !== "";
-
-  if (!hasFilters) return null;
-
-  return (
-    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-700">
-          Active Filters:
-        </span>
-        <button
-          onClick={onClearAll}
-          className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
-        >
-          Clear All
-        </button>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {selectedFilters.map((filter) => {
-          const category = specialCategories.find((c) => c.name === filter);
-          return (
-            <span
-              key={filter}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 animate-fadeIn"
-            >
-              {category?.label}
-              <button
-                onClick={() => onRemoveFilter(filter, "special")}
-                className="ml-1 text-blue-600 hover:text-blue-800 p-0.5 rounded-full hover:bg-blue-200 transition-colors"
-                aria-label={`Remove ${category?.label} filter`}
-              >
-                <X size={12} />
-              </button>
-            </span>
-          );
-        })}
-        {selectedCategory && selectedCategory !== "All" && (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 animate-fadeIn">
-            {selectedCategory}
-            <button
-              onClick={() => onRemoveFilter(selectedCategory, "category")}
-              className="ml-1 text-green-600 hover:text-green-800 p-0.5 rounded-full hover:bg-green-200 transition-colors"
-              aria-label={`Remove ${selectedCategory} filter`}
-            >
-              <X size={12} />
-            </button>
-          </span>
-        )}
-        {selectedMainCategory && (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800 animate-fadeIn">
-            {selectedMainCategory}
-            <button
-              onClick={() =>
-                onRemoveFilter(selectedMainCategory, "mainCategory")
-              }
-              className="ml-1 text-purple-600 hover:text-purple-800 p-0.5 rounded-full hover:bg-purple-200 transition-colors"
-              aria-label={`Remove ${selectedMainCategory} filter`}
-            >
-              <X size={12} />
-            </button>
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Empty state component
-const EmptyState = ({ hasFilters, onClearFilters, isLoading = false }) => (
-  <div className="text-center py-16">
-    <div className="mb-4">
-      {isLoading ? (
-        <LoaderCircle
-          size={64}
-          className="mx-auto text-gray-300 animate-spin"
-        />
-      ) : (
-        <ShoppingCart size={64} className="mx-auto text-gray-300" />
-      )}
-    </div>
-    <h2 className="text-gray-700 text-xl font-semibold mb-2">
-      {isLoading ? "Loading menu..." : "No items found"}
-    </h2>
-    <p className="text-gray-500 text-sm mb-4">
-      {isLoading
-        ? "Please wait while we fetch the latest menu items"
-        : "Try adjusting your search or category filter"}
-    </p>
-    {hasFilters && !isLoading && (
-      <button
-        onClick={onClearFilters}
-        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-      >
-        Clear All Filters
-      </button>
-    )}
-  </div>
-);
-
-// Error state component
-const ErrorState = ({ error, onRetry }) => (
-  <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-    <div className="text-center max-w-md">
-      <div className="mb-4">
-        <AlertCircle size={64} className="mx-auto text-red-400" />
-      </div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-2">
-        Something went wrong
-      </h2>
-      <p className="text-gray-600 mb-4 text-sm">
-        {error ||
-          "Failed to load menu items. Please check your connection and try again."}
-      </p>
-      <button
-        onClick={onRetry}
-        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-      >
-        <LoaderCircle size={16} />
-        Try Again
-      </button>
-    </div>
-  </div>
-);
-
-// Connection status indicator
-const ConnectionStatus = ({ isOnline }) => {
-  if (isOnline) return null;
-
-  return (
-    <div className="bg-red-100 border border-red-200 p-2 text-center">
-      <div className="flex items-center justify-center gap-2 text-red-800 text-sm">
-        <WifiOff size={16} />
-        <span>No internet connection. Some features may not work.</span>
-      </div>
-    </div>
-  );
-};
+import ErrorState from "atoms/Messages/ErrorState";
+import ConnectionStatus from "atoms/Messages/ConnectionStatus";
+import EmptyState from "atoms/Messages/EmptyState";
+import CategoryFilters from "components/Filters/CategoryFilters";
+import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
+import CartButton from "atoms/Buttons/CartButton";
 
 // Main CaptainMenuPage component
 const CaptainMenuPage = () => {
-  // State management
+  // State management - organized by category
+
+  // Cart state
   const [cartItems, setCartItems] = useState([]);
+  const [currentPage, setCurrentPage] = useState("menu");
+  const [orderSuccessData, setOrderSuccessData] = useState(null);
+
+  // Filter and search state
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSpecialFilters, setSelectedSpecialFilters] = useState([]);
   const [sortOrder, setSortOrder] = useState("default");
-  const [currentPage, setCurrentPage] = useState("menu");
-  const [orderSuccessData, setOrderSuccessData] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Data state
@@ -366,6 +72,18 @@ const CaptainMenuPage = () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  // Calculate special category counts
+  const calculateSpecialCategoryCounts = useCallback((menusData) => {
+    const counts = {};
+    specialCategories.forEach((category) => {
+      const categoryMenus = menusData.filter(
+        (menu) => menu[category.name] === true
+      );
+      counts[category.name] = categoryMenus.length;
+    });
+    setSpecialCategoryCounts(counts);
   }, []);
 
   // Fetch menu data
@@ -408,7 +126,7 @@ const CaptainMenuPage = () => {
     );
 
     return () => unsubscribe();
-  }, [hotelName, retryCount]);
+  }, [hotelName, retryCount, calculateSpecialCategoryCounts]);
 
   // Fetch categories
   useEffect(() => {
@@ -445,18 +163,6 @@ const CaptainMenuPage = () => {
 
     return () => unsubscribe();
   }, [hotelName]);
-
-  // Calculate special category counts
-  const calculateSpecialCategoryCounts = useCallback((menusData) => {
-    const counts = {};
-    specialCategories.forEach((category) => {
-      const categoryMenus = menusData.filter(
-        (menu) => menu[category.name] === true
-      );
-      counts[category.name] = categoryMenus.length;
-    });
-    setSpecialCategoryCounts(counts);
-  }, []);
 
   // Memoized dynamic categories
   const dynamicCategories = useMemo(() => {
@@ -681,10 +387,6 @@ const CaptainMenuPage = () => {
     setOrderSuccessData(null);
   }, []);
 
-  const handleGoToDashboard = useCallback(() => {
-    navigate("/captain/dashboard");
-  }, [navigate]);
-
   const handleRetry = useCallback(() => {
     setRetryCount((prev) => prev + 1);
   }, []);
@@ -737,17 +439,6 @@ const CaptainMenuPage = () => {
       {/* Connection Status */}
       <ConnectionStatus isOnline={isOnline} />
 
-      {/* Header */}
-      <MenuHeader
-        hotelName={hotelName}
-        onGoToDashboard={handleGoToDashboard}
-        cartInfo={{
-          totalItems: cartCalculations.totalItems,
-          totalAmount: cartCalculations.totalAmount,
-          onGoToCart: handleGoToCart,
-        }}
-      />
-
       <div className="px-4 py-3">
         {/* Search Bar */}
         <div className="mb-3">
@@ -791,9 +482,6 @@ const CaptainMenuPage = () => {
         >
           {/* Category Filter */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2 md:hidden">
-              Categories
-            </h3>
             <CategoryFilters
               categories={dynamicCategories}
               selectedCategory={selectedCategory}
@@ -804,64 +492,51 @@ const CaptainMenuPage = () => {
           {/* Special Categories Filter */}
           {availableSpecialCategories.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                Special Categories
-              </h3>
-              <SpecialCategoryFilters
+              <SpecialCategoriesFilter
                 categories={availableSpecialCategories}
                 selectedFilters={selectedSpecialFilters}
                 counts={specialCategoryCounts}
-                onToggleFilter={handleSpecialFilterToggle}
+                onToggle={handleSpecialFilterToggle}
               />
             </div>
           )}
-
-          {/* Active Filters Display - Desktop */}
-          <div className="hidden md:block">
-            <ActiveFiltersDisplay
-              selectedFilters={selectedSpecialFilters}
-              selectedCategory={selectedCategory}
-              selectedMainCategory={selectedMainCategory}
-              onRemoveFilter={handleRemoveFilter}
-              onClearAll={clearAllFilters}
-            />
-          </div>
         </div>
-      </div>
 
-      {/* Menu Items Grid */}
-      <div className="p-4">
-        {isLoading ? (
-          <EmptyState isLoading={true} />
-        ) : filteredMenuItems.length === 0 ? (
-          <EmptyState
-            hasFilters={hasActiveFilters}
-            onClearFilters={clearAllFilters}
-          />
-        ) : (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-            {filteredMenuItems.map((item) => (
-              <CaptainMenuCard
-                key={item.id}
-                item={item}
-                onAddToCart={handleAddToCart}
-                quantity={getItemQuantityInCart(item.id)}
-              />
-            ))}
+        {/* Menu Items Grid */}
+        <div className="p-4">
+          {isLoading ? (
+            <EmptyState isLoading={true} />
+          ) : filteredMenuItems.length === 0 ? (
+            <EmptyState
+              hasFilters={hasActiveFilters}
+              onClearFilters={clearAllFilters}
+            />
+          ) : (
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+              {filteredMenuItems.map((item) => (
+                <CaptainMenuCard
+                  key={item.id}
+                  item={item}
+                  onAddToCart={handleAddToCart}
+                  quantity={getItemQuantityInCart(item.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Floating Cart Button */}
+        {cartCalculations.totalItems > 0 && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <CartButton
+              totalItems={cartCalculations.totalItems}
+              totalAmount={cartCalculations.totalAmount}
+              onGoToCart={handleGoToCart}
+              isMobile={true}
+            />
           </div>
         )}
       </div>
-
-      {/* Floating Cart Button for Mobile */}
-      <CartButton
-        totalItems={cartCalculations.totalItems}
-        totalAmount={cartCalculations.totalAmount}
-        onGoToCart={handleGoToCart}
-        isMobile={true}
-      />
-
-      {/* Bottom Padding for Mobile */}
-      <div className="h-20 md:hidden" />
     </div>
   );
 };

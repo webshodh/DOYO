@@ -46,6 +46,7 @@ import CaptainDashboardLayout from "layout/CaptainDashboardLayout";
 import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
 import CaptainLogin from "Pages/Captain/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
+import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -264,7 +265,7 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
-
+                      <Route path="order-dashboard" element={<OrderDashboard />} />
                       <Route
                         path="profile"
                         element={

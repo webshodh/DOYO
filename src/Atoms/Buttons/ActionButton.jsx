@@ -30,7 +30,7 @@ const ActionButton = memo(({ isAvailable, onClick, isLoading = false }) => {
         <>
           <AlertCircle size={14} />
           <span className="hidden sm:inline">Unavailable</span>
-          <span className="sm:hidden">N/A</span>
+          <span className="sm:hidden">Unavailable</span>
         </>
       )}
     </button>

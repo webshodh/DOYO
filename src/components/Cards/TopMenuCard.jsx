@@ -51,10 +51,10 @@ const TopMenuCards = memo(
 
     return (
       <div className="p-6">
-        <div className="flex items-center gap-2 mb-6">
+        {/* <div className="flex items-center gap-2 mb-6">
           <Award className="w-5 h-5 text-orange-500" />
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        </div>
+        </div> */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {safeTopMenus.map((item, index) => {
             // Safe object access with fallbacks
