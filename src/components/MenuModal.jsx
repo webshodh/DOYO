@@ -1,11 +1,20 @@
 import React, { useState, useCallback, useMemo, memo, useEffect } from "react";
-import { ChefHat, AlertCircle, Info, Shield } from "lucide-react";
+import {
+  ChefHat,
+  AlertCircle,
+  Info,
+  Shield,
+  Clock,
+  Users,
+  Flame,
+  Zap,
+} from "lucide-react";
+import QuickInfoCard from "../components/Cards/QuickInfoCard"; // Adjust path as needed
 import CloseButton from "atoms/Buttons/CloseButton";
 import SpecialBadges from "atoms/Badges/SpecialBadges";
 import ImageHeader from "../atoms/Headers/ImageHeader";
 import TitlePriceSection from "molecules/Sections/TitlePriceSection";
 import TagsSection from "molecules/Sections/TagsSection";
-import QuickInfoSection from "molecules/Sections/QuickInfoSection";
 import DescriptionSection from "molecules/Sections/DescriptionSection";
 import NutritionalSection from "molecules/Sections/NutritionalSection";
 import DetailSectionGroup from "molecules/Sections/DetailSectionGroup";
@@ -16,7 +25,6 @@ import {
   getPreparationItems,
 } from "Constants/itemConfigurations";
 
-// Main MenuModal component
 const MenuModal = memo(
   ({ show, handleClose, modalData, addToCart, isLoading = false }) => {
     // Handle escape key
@@ -47,6 +55,17 @@ const MenuModal = memo(
       },
       [handleClose]
     );
+
+    // Helper function for spice level icons
+    const getSpiceIcon = useCallback((level) => {
+      const icons = {
+        Mild: "🟢",
+        Medium: "🟡",
+        Hot: "🟠",
+        "Extra Hot": "🔴",
+      };
+      return icons[level] || "🟡";
+    }, []);
 
     // Memoized sections visibility
     const sectionsVisibility = useMemo(() => {
@@ -108,6 +127,13 @@ const MenuModal = memo(
 
     const isAvailable = modalData.availability === "Available";
 
+    // Extract data with fallbacks for quick info cards
+    const cookingTime =
+      modalData.menuCookingTime || modalData.cookingTime || 15;
+    const servingSize = modalData.servingSize || modalData.serves || 1;
+    const spiceLevel = modalData.spiceLevel || "Medium";
+    const portionSize = modalData.portionSize || modalData.portion || "Regular";
+
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
@@ -147,8 +173,33 @@ const MenuModal = memo(
             {/* Tags Section */}
             <TagsSection modalData={modalData} />
 
-            {/* Quick Info Cards */}
-            <QuickInfoSection modalData={modalData} />
+            {/* Quick Info Cards - Direct usage */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+              <QuickInfoCard
+                icon={Clock}
+                label="Cooking Time"
+                value={`${cookingTime} mins`}
+                colorScheme="orange"
+              />
+              <QuickInfoCard
+                icon={Users}
+                label="Serves"
+                value={servingSize.toString()}
+                colorScheme="blue"
+              />
+              <QuickInfoCard
+                icon={Flame}
+                label="Spice Level"
+                value={`${getSpiceIcon(spiceLevel)} ${spiceLevel}`}
+                colorScheme="red"
+              />
+              <QuickInfoCard
+                icon={Zap}
+                label="Portion"
+                value={portionSize.toString()}
+                colorScheme="green"
+              />
+            </div>
 
             {/* Description Section */}
             <DescriptionSection modalData={modalData} />
@@ -216,7 +267,6 @@ const MenuModal = memo(
 
 MenuModal.displayName = "MenuModal";
 
-// Default props
 MenuModal.defaultProps = {
   show: false,
   handleClose: () => {},

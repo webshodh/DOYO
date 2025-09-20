@@ -13,7 +13,7 @@ import {
   Timer,
   Package,
 } from "lucide-react";
-import { db } from "../../data/firebase/firebaseConfig";
+import { db } from "../../services/firebase/firebaseConfig";
 import { toast } from "react-toastify";
 
 const OrderSuccessPage = ({ orderDetails, onGoHome }) => {

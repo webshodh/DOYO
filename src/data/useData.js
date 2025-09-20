@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { db } from './firebase/firebaseConfig'; // Adjust the path as necessary
-import { onValue, ref } from 'firebase/database';
+import { useState, useEffect } from "react";
+import { db } from "../services/firebase/firebaseConfig"; // Adjust the path as necessary
+import { onValue, ref } from "firebase/database";
 
 const useData = (path) => {
   const [data, setData] = useState([]);

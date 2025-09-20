@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FORM_CONFIG } from "Constants/addMenuFormConfig";
+import { FORM_CONFIG } from "Constants/ConfigForms/addMenuFormConfig";
 import { Upload, ChefHat, AlertCircle, X, Save } from "lucide-react";
-import { FormSection, getDefaultFormData } from "utility/FormUtilityFunctions";
+import { FormSection, getDefaultFormData } from "utils/FormUtilityFunctions";
 
 const MenuFormModal = ({
   show,
@@ -414,9 +414,9 @@ const MenuFormModal = ({
 
                 {/* Form Actions */}
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>* Required fields</span>
-                  </div>
+                  <AlertCircle className="w-4 h-4" />
+                  <span>* Required fields</span>
+                </div>
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200">
                   <div className="flex items-center gap-3">
                     <button

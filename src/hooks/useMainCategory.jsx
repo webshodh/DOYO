@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
-import { createCategoryService } from "../services/mainCategoryService";
+import { createCategoryService } from "../services/api/mainCategoryService";
 
 export const useCategoryManager = (hotelName) => {
   // State management

@@ -1,5 +1,5 @@
 // services/categoryService.js
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 
@@ -18,10 +18,10 @@ export class CategoryService {
       const generalUuidSnapshot = await get(
         ref(db, `hotels/${this.hotelName}/uuid`)
       );
-      
+
       const adminHotelUuid = adminUuidSnapshot.val();
       const generalHotelUuid = generalUuidSnapshot.val();
-      
+
       return adminHotelUuid === generalHotelUuid;
     } catch (error) {
       console.error("Error checking admin permission:", error);
@@ -34,14 +34,15 @@ export class CategoryService {
     try {
       const snapshot = await get(ref(db, this.basePath));
       const categories = snapshot.val();
-      
+
       if (!categories) return false;
-      
+
       const normalizedName = categoryName.trim().toLowerCase();
-      
-      return Object.values(categories).some(category => 
-        category.categoryId !== excludeId &&
-        category.categoryName.trim().toLowerCase() === normalizedName
+
+      return Object.values(categories).some(
+        (category) =>
+          category.categoryId !== excludeId &&
+          category.categoryName.trim().toLowerCase() === normalizedName
       );
     } catch (error) {
       console.error("Error checking category existence:", error);
@@ -56,7 +57,7 @@ export class CategoryService {
       const categoriesArray = data ? Object.values(data) : [];
       callback(categoriesArray);
     });
-    
+
     return unsubscribe;
   }
 
@@ -64,7 +65,9 @@ export class CategoryService {
   async addCategory(categoryName, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to add categories for this hotel.");
+      throw new Error(
+        "You do not have permission to add categories for this hotel."
+      );
     }
 
     const categoryExists = await this.checkCategoryExists(categoryName);
@@ -85,10 +88,15 @@ export class CategoryService {
   async updateCategory(categoryId, categoryName, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to update categories for this hotel.");
+      throw new Error(
+        "You do not have permission to update categories for this hotel."
+      );
     }
 
-    const categoryExists = await this.checkCategoryExists(categoryName, categoryId);
+    const categoryExists = await this.checkCategoryExists(
+      categoryName,
+      categoryId
+    );
     if (categoryExists) {
       throw new Error("Category with this name already exists.");
     }
@@ -105,7 +113,9 @@ export class CategoryService {
   async deleteCategory(categoryId, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to delete categories for this hotel.");
+      throw new Error(
+        "You do not have permission to delete categories for this hotel."
+      );
     }
 
     await remove(ref(db, `${this.basePath}/${categoryId}`));

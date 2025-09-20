@@ -510,7 +510,7 @@ const CategoryFormModal = memo(
             </FormField>
 
             {/* Character Counter */}
-            <CharacterCounter current={categoryName.length} max={maxLength} />
+            {/* <CharacterCounter current={categoryName.length} max={maxLength} /> */}
 
             {/* Category Info (Edit Mode) */}
             {isEditMode && <CategoryInfo category={editCategory} />}

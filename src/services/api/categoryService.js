@@ -1,4 +1,4 @@
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 import { getAuth } from "firebase/auth";
@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import {
   validateCategoryForm,
   sanitizeCategoryName,
-} from "../validation/categoryValidation";
+} from "../../validation/categoryValidation";
 
 export const categoryServices = {
   // Get current admin ID

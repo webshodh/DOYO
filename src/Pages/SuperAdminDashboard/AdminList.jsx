@@ -3,7 +3,7 @@ import useData from "../../data/useData";
 import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
 import { adminsListColumn } from "../../Constants/Columns";
-import { db } from "../../data/firebase/firebaseConfig";
+import { db } from "../../services/firebase/firebaseConfig";
 import { ref, update, get, remove } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

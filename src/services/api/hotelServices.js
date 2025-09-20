@@ -1,9 +1,9 @@
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../firebase/firebaseConfig";
 import { v4 as uuidv4 } from "uuid";
 import { set, ref, get } from "firebase/database";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
-import { validateHotelForm } from "../validation/hotelValidation";
+import { validateHotelForm } from "../../validation/hotelValidation";
 
 // Hotel Services - Updated to support single admin per hotel with multiple hotel assignments
 export const hotelServices = {

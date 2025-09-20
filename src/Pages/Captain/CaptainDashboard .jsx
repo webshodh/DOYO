@@ -23,8 +23,8 @@ import {
 } from "lucide-react";
 
 // Services and utilities
-import { captainServices } from "../../services/captainServices";
-import { useOrderData } from "../../customHooks/useOrder";
+import { captainServices } from "../../services/api/captainServices";
+import { useOrderData } from "../../hooks/useOrder";
 import { toast } from "react-toastify";
 
 // Components
@@ -503,7 +503,6 @@ const CaptainDashboard = memo(() => {
               subtitle="Cancelled orders"
             />
           </div>
-         
         </div>
 
         {/* Search and Filters */}

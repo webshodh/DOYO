@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { ViewMenuColumns } from "Constants/Columns";
 import CategoryTabs from "molecules/CategoryTab";
-import { useMenu } from "../../customHooks/menu";
+import { useMenu } from "../../hooks/useMenu";
 import PageTitle from "../../atoms/PageTitle";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";

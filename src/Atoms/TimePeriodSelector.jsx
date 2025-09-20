@@ -1,7 +1,7 @@
 // components/TimePeriodSelector/TimePeriodSelector.jsx
 import React, { useState, useCallback, memo } from "react";
 import { Calendar, BarChart3, TrendingUp, Activity } from "lucide-react";
-import DatePicker from "./DatePicker";
+import DatePicker from "./Buttons/DatePicker";
 
 const TimePeriodSelector = memo(
   ({
