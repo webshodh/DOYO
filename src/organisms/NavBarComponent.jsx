@@ -326,7 +326,7 @@ const Navbar = memo(({ onMenuToggle, isSidebarOpen, admin }) => {
     setIsLoggingOut(true);
     try {
       await signOut(auth);
-      localStorage.removeItem("selectedHotel");
+      // localStorage.removeItem("selectedHotel");
       toast.success("Logged out successfully!");
       navigate("/login");
     } catch (error) {

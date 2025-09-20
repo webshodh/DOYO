@@ -75,8 +75,6 @@ export const HotelSelectionProvider = ({ children }) => {
 
   const selectHotel = (hotel) => {
     setSelectedHotel(hotel);
-    // Store in localStorage for persistence
-    localStorage.setItem("selectedHotel", JSON.stringify(hotel));
   };
 
   const refreshHotels = async () => {
@@ -84,18 +82,6 @@ export const HotelSelectionProvider = ({ children }) => {
       await fetchUserHotels(user.uid);
     }
   };
-
-  // Load selected hotel from localStorage on mount
-  useEffect(() => {
-    const savedHotel = localStorage.getItem("selectedHotel");
-    if (savedHotel) {
-      try {
-        setSelectedHotel(JSON.parse(savedHotel));
-      } catch (error) {
-        console.error("Error loading saved hotel:", error);
-      }
-    }
-  }, []);
 
   const value = {
     selectedHotel,

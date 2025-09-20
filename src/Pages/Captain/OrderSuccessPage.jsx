@@ -275,7 +275,7 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
                   Items Ordered
                 </h3>
                 <div className="space-y-2">
-                  {orderData.items.slice(0, 3).map((item, index) => (
+                  {orderData.items.map((item, index) => (
                     <div
                       key={index}
                       className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
@@ -293,11 +293,7 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
                       </p>
                     </div>
                   ))}
-                  {orderData.items.length > 3 && (
-                    <p className="text-sm text-gray-600 text-center py-2">
-                      +{orderData.items.length - 3} more items
-                    </p>
-                  )}
+                  
                 </div>
               </div>
             )}

@@ -12,4 +12,4 @@ const DiscountBadge = memo(({ discount }) => {
   );
 });
 
-export default DiscountBadge.displayName = 'DiscountBadge';
+export default DiscountBadge.displayName = "DiscountBadge";

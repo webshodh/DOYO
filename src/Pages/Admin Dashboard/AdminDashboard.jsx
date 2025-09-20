@@ -277,39 +277,10 @@ const AdminDashboard = () => {
         <div>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="text-left">
-              <div className="flex items-center gap-4 mb-3">
+              <div className="flex items-center gap-4 mb-1">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent">
                   Dashboard Overview
                 </h1>
-
-                {/* Connection Status Indicator */}
-                <div
-                  className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
-                  ${
-                    connectionStatusInfo.color === "green"
-                      ? "bg-green-100 text-green-700"
-                      : ""
-                  }
-                  ${
-                    connectionStatusInfo.color === "yellow"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : ""
-                  }
-                  ${
-                    connectionStatusInfo.color === "red"
-                      ? "bg-red-100 text-red-700"
-                      : ""
-                  }
-                  ${
-                    connectionStatusInfo.color === "gray"
-                      ? "bg-gray-100 text-gray-700"
-                      : ""
-                  }
-                `}
-                >
-                  <connectionStatusInfo.icon className="w-3 h-3" />
-                  {connectionStatusInfo.text}
-                </div>
               </div>
 
               <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-2xl">
@@ -320,14 +291,12 @@ const AdminDashboard = () => {
                 today.
               </p>
             </div>
-
-            
           </div>
         </div>
 
         {/* Enhanced Analytics Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-4">
+          <div className="flex justify-between items-center mb-1">
             <div>
               <h2 className="text-xl font-bold text-gray-900">
                 Order Analytics
@@ -352,7 +321,7 @@ const AdminDashboard = () => {
           />
 
           {/* Enhanced Period Display with Metrics */}
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          {/* <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="text-sm text-gray-600 font-medium">
               {periodDisplayText}
             </div>
@@ -365,7 +334,7 @@ const AdminDashboard = () => {
                 <span>{displayStats.completionRate}% completion rate</span>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Enhanced Menu Management Stats Grid */}
@@ -481,10 +450,10 @@ const AdminDashboard = () => {
           {/* Orders by Category with Enhanced Data */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div>
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-blue-500" />
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
                     Orders by Category
                   </h2>
                 </div>
@@ -519,18 +488,18 @@ const AdminDashboard = () => {
           {menuAnalytics.topMenus.length > 0 && (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center mb-1">
                   <Award className="w-5 h-5 text-orange-500" />
                   <h3 className="text-lg font-semibold text-gray-900">
                     Top Performing Menu Items
                   </h3>
-                  <div className="text-sm text-gray-500">
-                    Based on{" "}
-                    {selectedTimePeriod === "daily"
-                      ? "today's"
-                      : periodDisplayText.toLowerCase()}{" "}
-                    orders
-                  </div>
+                </div>
+                <div className="text-sm text-gray-500">
+                  Based on{" "}
+                  {selectedTimePeriod === "daily"
+                    ? "today's"
+                    : periodDisplayText.toLowerCase()}{" "}
+                  orders
                 </div>
 
                 <TopMenuCards
@@ -546,14 +515,14 @@ const AdminDashboard = () => {
 
         {/* Enhanced Orders by Menu */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div>
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-purple-500" />
               <h2 className="text-lg font-semibold text-gray-900">
                 Orders by Menu Item
               </h2>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 mb-2">
               {menuAnalytics.menuStats.length} items •{" "}
               {menuAnalytics.totalMenuOrders} total orders
             </div>

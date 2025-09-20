@@ -145,22 +145,6 @@ const OrderDashboard = () => {
   const optionsCategoryCount = categories?.length || 0;
   const { totalMainCategories } = useMainCategoriesData(hotelName);
 
-  // Connection status indicator
-  const connectionStatusInfo = useMemo(() => {
-    switch (connectionStatus) {
-      case "connected":
-        return { color: "green", text: "Live Data", icon: CheckCircle };
-      case "connecting":
-        return { color: "yellow", text: "Connecting...", icon: LoaderCircle };
-      case "error":
-        return { color: "red", text: "Connection Error", icon: AlertCircle };
-      case "disconnected":
-        return { color: "gray", text: "Offline", icon: AlertCircle };
-      default:
-        return { color: "gray", text: "Unknown", icon: AlertCircle };
-    }
-  }, [connectionStatus]);
-
   // Restaurant information for the bill - Get from captain data or use defaults
   const restaurantInfo = useMemo(
     () => ({
@@ -264,55 +248,9 @@ const OrderDashboard = () => {
             <div className="text-left">
               <div className="flex items-center gap-4 mb-3">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent">
-                  Dashboard Overview
+                  Order Dashboard
                 </h1>
-
-                {/* Connection Status Indicator */}
-                <div
-                  className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
-                  ${
-                    connectionStatusInfo.color === "green"
-                      ? "bg-green-100 text-green-700"
-                      : ""
-                  }
-                  ${
-                    connectionStatusInfo.color === "yellow"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : ""
-                  }
-                  ${
-                    connectionStatusInfo.color === "red"
-                      ? "bg-red-100 text-red-700"
-                      : ""
-                  }
-                  ${
-                    connectionStatusInfo.color === "gray"
-                      ? "bg-gray-100 text-gray-700"
-                      : ""
-                  }
-                `}
-                >
-                  <connectionStatusInfo.icon className="w-3 h-3" />
-                  {connectionStatusInfo.text}
-                </div>
               </div>
-
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-2xl">
-                Welcome back! Here's what's happening at{" "}
-                <span className="font-semibold text-orange-600">
-                  {selectedHotel?.name || "your hotel"}
-                </span>{" "}
-                today.
-              </p>
-            </div>
-
-            {/* Action Controls */}
-            <div className="flex items-center gap-3">
-              {lastUpdated && (
-                <div className="text-sm text-gray-500">
-                  Last updated: {new Date(lastUpdated).toLocaleTimeString()}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -342,22 +280,6 @@ const OrderDashboard = () => {
             options={timePeriodOptions}
             disableFutureDates={true}
           />
-
-          {/* Enhanced Period Display with Metrics */}
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="text-sm text-gray-600 font-medium">
-              {periodDisplayText}
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>{timeFilteredOrders.length} orders</span>
-              {orderStats.totalRevenue > 0 && (
-                <span>₹{orderStats.totalRevenue.toLocaleString()} revenue</span>
-              )}
-              {displayStats.completionRate > 0 && (
-                <span>{displayStats.completionRate}% completion rate</span>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Enhanced Menu Management Stats Grid */}
