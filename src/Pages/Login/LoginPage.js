@@ -7,9 +7,7 @@ import LoginHeader from "components/login-form/LoginHeader";
 import LoginForm from "components/login-form/LoginForm";
 import SecurityNotice from "components/login-form/LoginSecurityNotice";
 import LoginRightPanel from "components/login-form/LoginRightPanel";
-import { getUserType, LOGIN_CONFIGS } from "Constants/loginConfigs";
-
-
+import { getUserType, LOGIN_CONFIGS } from "Constants/ConfigForms/loginConfigs";
 
 const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FORM_CONFIG } from "Constants/addMenuFormConfig";
+import { FORM_CONFIG } from "Constants/ConfigForms/addMenuFormConfig";
 import { Upload, ChefHat, AlertCircle, X, Save } from "lucide-react";
 import { FormSection, getDefaultFormData } from "utils/FormUtilityFunctions";
 

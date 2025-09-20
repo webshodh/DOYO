@@ -6,7 +6,7 @@ import {
   validateContact,
   validatePassword,
 } from "../validation/hotelValidation";
-import { hotelFormConfig } from "Constants/addHotelFormConfig";
+import { hotelFormConfig } from "Constants/ConfigForms/addHotelFormConfig";
 
 const useHotel = () => {
   // Get default form data from config

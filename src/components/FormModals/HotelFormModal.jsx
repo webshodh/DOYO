@@ -14,7 +14,7 @@ import {
   validatePassword,
 } from "../../validation/hotelValidation";
 import { FormSection } from "utils/FormUtilityFunctions";
-import { hotelFormConfig } from "Constants/addHotelFormConfig";
+import { hotelFormConfig } from "Constants/ConfigForms/addHotelFormConfig";
 import useHotel from "../../hooks/useHotel";
 
 const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {

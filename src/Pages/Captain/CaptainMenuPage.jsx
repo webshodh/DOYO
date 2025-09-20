@@ -20,7 +20,7 @@ import CheckoutPage from "../Captain/CheckoutPage";
 import OrderSuccessPage from "../Captain/OrderSuccessPage";
 import { FilterSortSearch } from "components";
 import { db } from "../../services/firebase/firebaseConfig";
-import { specialCategories } from "../../Constants/addMenuFormConfig";
+import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig";
 import ErrorState from "atoms/Messages/ErrorState";
 import ConnectionStatus from "atoms/Messages/ConnectionStatus";
 import EmptyState from "atoms/Messages/EmptyState";

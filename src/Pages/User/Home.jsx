@@ -9,7 +9,7 @@ import React, {
 import { useParams, useLocation } from "react-router-dom";
 import { db } from "../../services/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
-import { specialCategories } from "../../Constants/addMenuFormConfig";
+import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig";
 import ErrorState from "atoms/Messages/ErrorState";
 import NavBar from "organisms/Navbar";
 import ActiveFilters from "components/Filters/ActiveFilters";
