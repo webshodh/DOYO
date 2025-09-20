@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ref, onValue, update, remove, get } from "firebase/database";
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../services/firebase/firebaseConfig";
 import { toast } from "react-toastify";
 
 /**

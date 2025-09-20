@@ -1,4 +1,4 @@
-import { db, storage } from "../data/firebase/firebaseConfig";
+import { db, storage } from "../firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, update, get, remove } from "firebase/database";
 import {
@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import {
   validateMenuForm,
   calculateFinalPrice,
-} from "../validation/menuValidation";
+} from "../../validation/menuValidation";
 
 export const menuServices = {
   // Check if user has permission to manage hotel menus

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { captainServices } from "../services/captainServices";
+import { captainServices } from "../services/api/captainServices";
 
 export const useCaptain = (hotelName) => {
   // State management
@@ -19,7 +19,7 @@ export const useCaptain = (hotelName) => {
 
     setLoading(true);
     setError(null);
-    
+
     const unsubscribe = captainServices.subscribeToCaptains(
       hotelName,
       (data) => {
@@ -212,8 +212,7 @@ export const useCaptain = (hotelName) => {
     (mobileNo, excludeId = null) => {
       return captains.some(
         (captain) =>
-          captain.mobileNo === mobileNo &&
-          captain.captainId !== excludeId
+          captain.mobileNo === mobileNo && captain.captainId !== excludeId
       );
     },
     [captains]
@@ -224,8 +223,7 @@ export const useCaptain = (hotelName) => {
     (adharNo, excludeId = null) => {
       return captains.some(
         (captain) =>
-          captain.adharNo === adharNo &&
-          captain.captainId !== excludeId
+          captain.adharNo === adharNo && captain.captainId !== excludeId
       );
     },
     [captains]
@@ -274,8 +272,8 @@ export const useCaptain = (hotelName) => {
     filteredCount: filteredCaptains.length,
     hasCaptains: captains.length > 0,
     hasSearchResults: filteredCaptains.length > 0,
-    activeCaptains: captains.filter(c => c.status === 'active').length,
-    inactiveCaptains: captains.filter(c => c.status === 'inactive').length,
+    activeCaptains: captains.filter((c) => c.status === "active").length,
+    inactiveCaptains: captains.filter((c) => c.status === "inactive").length,
 
     // Direct setters (if needed for specific cases)
     setSearchTerm,

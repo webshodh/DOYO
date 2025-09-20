@@ -1,18 +1,10 @@
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import {
-  Plus,
-  Tags,
-  LoaderCircle,
-  AlertCircle,
-  TrendingUp,
-  Grid,
-} from "lucide-react";
+import { Tags } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
 import { ViewCategoryColumns } from "../../Constants/Columns";
-import SearchWithButton from "molecules/SearchWithAddButton";
-import { useCategory } from "../../customHooks/useCategory";
+import { useCategory } from "../../hooks/useCategory";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import NoSearchResults from "molecules/NoSearchResults";
@@ -28,13 +20,11 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 // Main AddCategory component
 const AddCategory = memo(() => {
-  const navigate = useNavigate();
   const { hotelName } = useParams();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [viewMode, setViewMode] = useState("table"); // table, grid
 
   // Use custom hook for category management
   const {

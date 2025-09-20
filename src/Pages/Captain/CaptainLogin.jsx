@@ -9,7 +9,7 @@ import {
   Loader,
   AlertCircle,
 } from "lucide-react";
-import { captainServices } from "../../services/captainServices";
+import { captainServices } from "../../services/api/captainServices";
 import { toast } from "react-toastify";
 
 const CaptainLogin = () => {
@@ -21,8 +21,8 @@ const CaptainLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const {hotelName} = useParams();
-  console.log("hotelNamehotelName", hotelName)
+  const { hotelName } = useParams();
+  console.log("hotelNamehotelName", hotelName);
   // Check if already logged in
   useEffect(() => {
     const checkAuthStatus = async () => {

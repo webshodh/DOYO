@@ -13,9 +13,9 @@ import {
   validateContact,
   validatePassword,
 } from "../../validation/hotelValidation";
-import { FormSection } from "utility/FormUtilityFunctions";
+import { FormSection } from "utils/FormUtilityFunctions";
 import { hotelFormConfig } from "Constants/addHotelFormConfig";
-import useHotel from "../../customHooks/useHotel";
+import useHotel from "../../hooks/useHotel";
 
 const HotelFormModal = ({ isOpen = true, onClose, editMode = false }) => {
   // Use the custom hook for all hotel and admin management

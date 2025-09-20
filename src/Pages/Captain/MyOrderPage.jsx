@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 
 // Services and utilities
-import { captainServices } from "../../services/captainServices";
-import { useOrderData } from "../../customHooks/useOrder";
-import { db } from "../../data/firebase/firebaseConfig";
+import { captainServices } from "../../services/api/captainServices";
+import { useOrderData } from "../../hooks/useOrder";
+import { db } from "../../services/firebase/firebaseConfig";
 
 // Components
 import LoadingSpinner from "../../atoms/LoadingSpinner";

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { db } from './firebase/firebaseConfig';
-import { onValue, ref } from 'firebase/database';
+import { useState, useEffect } from "react";
+import { db } from "../services/firebase/firebaseConfig";
+import { onValue, ref } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 const useOffersData = (hotelName) => {
@@ -13,7 +13,7 @@ const useOffersData = (hotelName) => {
 
   useEffect(() => {
     const offersRef = ref(db, `/hotels/${hotelName}/offers/`);
-    
+
     const unsubscribe = onValue(offersRef, (snapshot) => {
       try {
         const data = snapshot.val();
@@ -30,22 +30,24 @@ const useOffersData = (hotelName) => {
   }, [hotelName]);
 
   console.log("offersDataoffersData", offersData);
-  
-  const totalOffers = offersData.length;
-  const activeOffers = offersData.filter(offer => offer.isActive && !offer.isExpired).length;
-  const expiredOffers = offersData.filter(offer => offer.isExpired).length;
-  
-  // Get unique offer types for filtering
-  const offerTypes = [...new Set(offersData.map(offer => offer.offerType))];
 
-  return { 
-    offersData, 
-    totalOffers, 
-    activeOffers, 
-    expiredOffers, 
+  const totalOffers = offersData.length;
+  const activeOffers = offersData.filter(
+    (offer) => offer.isActive && !offer.isExpired
+  ).length;
+  const expiredOffers = offersData.filter((offer) => offer.isExpired).length;
+
+  // Get unique offer types for filtering
+  const offerTypes = [...new Set(offersData.map((offer) => offer.offerType))];
+
+  return {
+    offersData,
+    totalOffers,
+    activeOffers,
+    expiredOffers,
     offerTypes,
-    loading, 
-    error 
+    loading,
+    error,
   };
 };
 

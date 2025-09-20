@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ref, push, set, get } from "firebase/database";
-import { db } from "../../data/firebase/firebaseConfig";
+import { db } from "../../services/firebase/firebaseConfig";
 import { toast } from "react-toastify";
 import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
 import CheckoutHeader from "atoms/Headers/CheckoutHeader";

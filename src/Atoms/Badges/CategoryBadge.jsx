@@ -128,37 +128,3 @@ CategoryBadge.displayName = "CategoryBadge";
 
 export default CategoryBadge;
 
-// Dot indicator style
-{
-  /* <CategoryBadge categoryType="veg" />
-<CategoryBadge categoryType="nonveg" /> */
-}
-
-// Logo style
-{
-  /* <CategoryBadge categoryType="veg" variant="logo" />
-<CategoryBadge categoryType="Non Veg" variant="logo" /> */
-}
-
-// Absolute positioning (like the original CategoryIndicator)
-{
-  /* <div className="relative">
-  <img src="menu-item.jpg" alt="Food item" />
-  <CategoryBadge 
-    categoryType="veg" 
-    variant="logo" 
-    position="absolute"
-    size="md"
-  />
-</div> */
-}
-
-// Custom positioning with className
-{
-  /* <CategoryBadge 
-  categoryType="nonveg" 
-  variant="indicator"
-  size="lg"
-  className="ml-2"
-/> */
-}

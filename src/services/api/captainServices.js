@@ -1,4 +1,4 @@
-import { db, storage, auth } from "../data/firebase/firebaseConfig";
+import { db, storage, auth } from "../firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 import {
@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import {
   validateCaptainForm,
   sanitizeCaptainData,
-} from "../validation/captainValidation";
+} from "../../validation/captainValidation";
 
 export const captainServices = {
   // Get current admin ID

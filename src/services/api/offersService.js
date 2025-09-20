@@ -1,4 +1,4 @@
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 import { getAuth } from "firebase/auth";
@@ -7,7 +7,7 @@ import {
   validateOfferFormWithToast,
   sanitizeOfferData,
   isOfferExpired,
-} from "../validation/offeresValidation";
+} from "../../validation/offeresValidation";
 
 export const offerServices = {
   // Get current admin ID

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 // Hooks and utilities
-import { useOrderData } from "../../customHooks/useOrder"; // Updated import path
+import { useOrderData } from "../../hooks/useOrder"; // Updated import path
 import {
   useCategoriesData,
   useMainCategoriesData,
@@ -44,7 +44,7 @@ import {
   OrdersByCategoryColumn,
   OrdersByMenuColumn,
 } from "../../Constants/Columns";
-import { useMenu } from "customHooks/menu";
+import { useMenu } from "hooks/useMenu";
 
 /**
  * Admin Dashboard Component

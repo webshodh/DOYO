@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { offerServices } from "../services/offersService";
+import { offerServices } from "../services/api/offersService";
 
 export const useOffers = (hotelName) => {
   // State management
@@ -54,10 +54,10 @@ export const useOffers = (hotelName) => {
   // Memoized filtered offers with advanced filtering and sorting
   const filteredOffers = useMemo(() => {
     let filtered = offerServices.filterOffers(offers, searchTerm);
-    
+
     // Apply type filter
     if (filterType !== "all") {
-      filtered = filtered.filter(offer => {
+      filtered = filtered.filter((offer) => {
         switch (filterType) {
           case "active":
             return offer.isActive;
@@ -66,9 +66,11 @@ export const useOffers = (hotelName) => {
             return offer.validUntil && new Date(offer.validUntil) < now;
           case "expiring":
             const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-            return offer.validUntil && 
-                   new Date(offer.validUntil) > new Date() && 
-                   new Date(offer.validUntil) <= weekFromNow;
+            return (
+              offer.validUntil &&
+              new Date(offer.validUntil) > new Date() &&
+              new Date(offer.validUntil) <= weekFromNow
+            );
           default:
             return true;
         }
@@ -313,22 +315,19 @@ export const useOffers = (hotelName) => {
     [offers]
   );
 
-  const validateOfferDates = useCallback(
-    (startDate, endDate) => {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const now = new Date();
-      
-      return {
-        isValid: start < end && end > now,
-        errors: {
-          startAfterEnd: start >= end,
-          endInPast: end <= now,
-        }
-      };
-    },
-    []
-  );
+  const validateOfferDates = useCallback((startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+
+    return {
+      isValid: start < end && end > now,
+      errors: {
+        startAfterEnd: start >= end,
+        endInPast: end <= now,
+      },
+    };
+  }, []);
 
   // Filter utilities with memoization
   const getActiveOffers = useCallback(() => {

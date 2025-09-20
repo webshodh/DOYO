@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 // Hooks and utilities
-import { useOrderData } from "../../customHooks/useOrder"; // Updated import path
+import { useOrderData } from "../../hooks/useOrder"; // Updated import path
 import {
   useCategoriesData,
   useMainCategoriesData,
@@ -443,7 +443,6 @@ const OrderDashboard = () => {
               trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
             />
           </div>
-          
         </div>
 
         {/* Enhanced Recent Orders Table */}

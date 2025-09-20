@@ -5,11 +5,10 @@ import { Users, UserCheck, UserX, Clock } from "lucide-react";
 
 import PageTitle from "../../atoms/PageTitle";
 import { ViewCaptainColumns } from "../../Constants/Columns";
-import { useCaptain } from "../../customHooks/useCaptain";
+import { useCaptain } from "../../hooks/useCaptain";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import StatCard from "components/Cards/StatCard";
-import ErrorState from "atoms/Messages/ErrorState";
 import NoSearchResults from "molecules/NoSearchResults";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";

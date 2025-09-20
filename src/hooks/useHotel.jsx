@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { hotelServices } from "../services/hotelServices";
+import { hotelServices } from "../services/api/hotelServices";
 import { toast } from "react-toastify";
 import {
   validateEmail,

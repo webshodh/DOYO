@@ -93,10 +93,9 @@
 //   };
 // };
 
-
 // customHooks/useOption.js
 import { useState, useEffect } from "react";
-import { createOptionsService } from "../services/optionService"; // ✅ fixed import
+import { createOptionsService } from "../services/api/optionService"; // ✅ fixed import
 import { toast } from "react-toastify";
 
 export const useOptionsManager = (hotelName) => {
@@ -110,10 +109,12 @@ export const useOptionsManager = (hotelName) => {
 
     setLoading(true);
 
-    const unsubscribeCategories = optionsService.subscribeToCategories((data) => {
-      setCategories(data);
-      setLoading(false);
-    });
+    const unsubscribeCategories = optionsService.subscribeToCategories(
+      (data) => {
+        setCategories(data);
+        setLoading(false);
+      }
+    );
 
     return () => {
       unsubscribeCategories();
@@ -142,7 +143,11 @@ export const useOptionsManager = (hotelName) => {
   };
 
   const deleteCategory = async (categoryKey) => {
-    if (window.confirm("Are you sure? This will delete the category and all its options.")) {
+    if (
+      window.confirm(
+        "Are you sure? This will delete the category and all its options."
+      )
+    ) {
       try {
         await optionsService.deleteCategory(categoryKey, "admin-id");
         toast.success("Category deleted successfully!");
@@ -166,7 +171,12 @@ export const useOptionsManager = (hotelName) => {
 
   const updateOption = async (categoryKey, optionId, newValue) => {
     try {
-      await optionsService.updateOption(categoryKey, optionId, newValue, "admin-id");
+      await optionsService.updateOption(
+        categoryKey,
+        optionId,
+        newValue,
+        "admin-id"
+      );
       toast.success("Option updated successfully!");
     } catch (error) {
       console.error("Error updating option:", error);

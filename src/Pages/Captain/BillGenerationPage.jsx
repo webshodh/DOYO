@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ref, get } from "firebase/database";
-import { db } from "../../data/firebase/firebaseConfig";
+import { db } from "../../services/firebase/firebaseConfig";
 import { Search, Receipt, AlertCircle } from "lucide-react";
 
 const BillGenerationPage = () => {

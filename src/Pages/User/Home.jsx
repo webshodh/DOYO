@@ -7,7 +7,7 @@ import React, {
   Suspense,
 } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { db } from "../../data/firebase/firebaseConfig";
+import { db } from "../../services/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { specialCategories } from "../../Constants/addMenuFormConfig";
 import ErrorState from "atoms/Messages/ErrorState";
