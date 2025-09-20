@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ref, onValue, update } from "firebase/database";
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../services/firebase/firebaseConfig";
 
 export const useKitchenOrders = (hotelName, includeMenuData = false) => {
   // State management

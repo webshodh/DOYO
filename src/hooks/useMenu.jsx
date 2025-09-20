@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../services/firebase/firebaseConfig";
 import { ref, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
-import { menuServices } from "../services/menuService";
+import { menuServices } from "../services/api/menuService";
 
 export const useMenu = (hotelName) => {
   // State management

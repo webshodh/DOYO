@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
 import { ViewOffersColumns } from "../../Constants/Columns";
-import { useOffers } from "../../customHooks/useOffers";
+import { useOffers } from "../../hooks/useOffers";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import NoSearchResults from "molecules/NoSearchResults";

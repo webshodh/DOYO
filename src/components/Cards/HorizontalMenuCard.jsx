@@ -38,7 +38,7 @@ const HorizontalMenuCard = memo(
     );
 
     const truncatedCategory = useMemo(
-      () => truncateText(item?.menuCategory, 10),
+      () => truncateText(item?.menuCategory, 8),
       [item?.menuCategory]
     );
 
@@ -93,7 +93,7 @@ const HorizontalMenuCard = memo(
         </div>
       );
     }
-
+console.log("discount", item)
     return (
       <article className={`w-full ${height} ${className}`}>
         <div

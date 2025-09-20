@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { db } from './firebase/firebaseConfig';
-import { onValue, ref } from 'firebase/database';
+import { useEffect, useState } from "react";
+import { db } from "../services/firebase/firebaseConfig";
+import { onValue, ref } from "firebase/database";
 
 const useAdminData = (path) => {
   const [data, setData] = useState(null);

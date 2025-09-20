@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Filter, Search, Utensils, Award } from "lucide-react";
 import FilterBadge from "../../atoms/Badges/FilterBadge";
-import { specialCategories } from "Constants/addMenuFormConfig";
+import { specialCategories } from "Constants/ConfigForms/addMenuFormConfig";
 
 const ActiveFilters = memo(
   ({
@@ -34,7 +34,7 @@ const ActiveFilters = memo(
             Clear All
           </button>
         </div>
-        
+
         {/*Currently hide this to save space but this is a working functionality  */}
         {/* <div className="flex flex-wrap gap-2">
           {searchTerm && (

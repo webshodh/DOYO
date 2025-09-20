@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { db } from './firebase/firebaseConfig';
-import { onValue, ref } from 'firebase/database';
+import { useState, useEffect } from "react";
+import { db } from "../services/firebase/firebaseConfig";
+import { onValue, ref } from "firebase/database";
 import { getAuth } from "firebase/auth";
 const useCategoriesData = (hotelName) => {
   const [categoriesData, setCategoriesData] = useState([]);
@@ -25,7 +25,7 @@ const useCategoriesData = (hotelName) => {
 
     return () => unsubscribe();
   }, [hotelName]);
-  console.log("categoriesData", categoriesData)
+  console.log("categoriesData", categoriesData);
   const totalCategories = categoriesData.length;
   return { categoriesData, totalCategories, loading, error };
 };

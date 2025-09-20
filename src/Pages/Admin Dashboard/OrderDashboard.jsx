@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 // Hooks and utilities
-import { useOrderData } from "../../customHooks/useOrder"; // Updated import path
+import { useOrderData } from "../../hooks/useOrder"; // Updated import path
 import {
   useCategoriesData,
   useMainCategoriesData,
@@ -313,27 +313,6 @@ const OrderDashboard = () => {
                   Last updated: {new Date(lastUpdated).toLocaleTimeString()}
                 </div>
               )}
-
-              {hasOrders && (
-                <button
-                  onClick={handleExportData}
-                  className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Export Data
-                </button>
-              )}
-
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-                {isRefreshing ? "Refreshing..." : "Refresh"}
-              </button>
             </div>
           </div>
         </div>
@@ -443,7 +422,6 @@ const OrderDashboard = () => {
               trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
             />
           </div>
-          
         </div>
 
         {/* Enhanced Recent Orders Table */}

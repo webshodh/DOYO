@@ -9,7 +9,7 @@ import {
   Grid,
   ChefHat,
 } from "lucide-react";
-import { useKitchenOrders } from "../../customHooks/useKitchenOrders";
+import { useKitchenOrders } from "../../hooks/useKitchenOrders";
 import PageTitle from "../../atoms/PageTitle";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";

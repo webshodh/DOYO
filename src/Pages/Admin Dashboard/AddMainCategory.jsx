@@ -1,18 +1,10 @@
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import {
-  Plus,
-  Tags,
-  LoaderCircle,
-  AlertCircle,
-  TrendingUp,
-  Grid,
-  Star,
-} from "lucide-react";
+import { Plus, Tags, TrendingUp, Star } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
 import { ViewCategoryColumns } from "../../Constants/Columns";
-import { useCategoryManager } from "../../customHooks/useMainCategory";
+import { useCategoryManager } from "../../hooks/useMainCategory";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import NoSearchResults from "molecules/NoSearchResults";

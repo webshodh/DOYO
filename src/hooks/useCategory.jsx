@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { categoryServices } from "../services/categoryService";
+import { categoryServices } from "../services/api/categoryService";
 
 export const useCategory = (hotelName) => {
   // State management

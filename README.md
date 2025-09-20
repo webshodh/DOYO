@@ -1,70 +1,157 @@
-# Getting Started with Create React App
+DOYO Restaurant POS
+DOYO is a full-featured, multi-role restaurant point-of-sale (POS) system built with React and Firebase Firestore. It supports Super Admin, Admin, and Captain roles, and offers robust menu management, ordering, kitchen operations, analytics, and more.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Features
+Multi-hotel management for Super Admins
 
-## Available Scripts
+Admin dashboard with menu, categories, orders, captains, kitchen view, offers, options, bulk upload, and settings
 
-In the project directory, you can run:
+Captain interface for taking orders: menu browsing, cart, checkout, bill generation, order history, print bills
 
-### `npm start`
+User-facing menu & offers pages with advanced filters, search, and special categories
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Real-time data syncing via Firestore listeners
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Image uploads to Firebase Storage
 
-### `npm test`
+Role-based route protection
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Detailed form validation and error handling
 
-### `npm run build`
+Atomic design: Atoms, Molecules, Organisms, Templates
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Custom React hooks for data fetching and state management
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+FirestoreService layer for CRUD operations
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Responsive Chakra UI design theme
 
-### `npm run eject`
+Toast notifications via React-Hot-Toast
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Firebase emulators support for local development
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Deployment to Firebase Hosting
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Folder Structure
+src/
+├─ Atoms/ (UI primitives: Buttons, Inputs, Messages, Skeletons)
+├─ Molecules/ (StatCard, MenuCard, OrderSummaryCard, CartItem, CategoryTab, etc.)
+├─ Organisms/ (Navbar, Sidebar, FilterSortSearch, SpecialCategoriesFilter, DynamicTable, ProfileComponent)
+├─ Templates/ (MainLayout, AuthLayout, AdminLayout, CaptainLayout, SuperAdminLayout)
+├─ Pages/
+│ ├─ auth/ (LoginPage, CaptainLogin)
+│ ├─ admin/ (AdminDashboard, AddMenu, AddCategory, etc.)
+│ ├─ captain/ (CaptainDashboard, MenuPage, CartPage, CheckoutPage, BillGenerationPage, MyOrders, etc.)
+│ ├─ superadmin/ (SuperAdminDashboard, HotelManagement, AdminManagement, Subscription)
+│ ├─ user/ (Home, Offers)
+│ └─ screens/ (SplashScreen, NotAuthorized, NotFound, WelcomeScreen, ThankYouScreen)
+├─ Hooks/ (useAuth, useCart, useHotels, useMenu, useCategory, useHomeData, useKitchenOrders, useOffers, useOption, useOrder, useCaptain)
+├─ Context/ (AuthContext, CartContext, HotelContext, HotelSelectionContext)
+├─ Services/
+│ ├─ firebase/ (config.js, firestore.js)
+│ └─ api/ (menuService, categoryService, mainCategoryService, ordersService, captainServices, hotelServices, offersService, optionService)
+├─ Routes/ (AppRouter, ProtectedRoute, AdminRoutes, CaptainRoutes, SuperAdminRoutes)
+├─ Utils/ (constants.js, helpers.js, validation schemas)
+├─ Styles/ (theme.js, index.css, injectColors.js)
+├─ Data/ (firebaseConfig for RTDB if still present)
+├─ App.js
+└─ index.js
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Getting Started
+Prerequisites
+Node.js ≥ 14
 
-## Learn More
+npm or Yarn
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Firebase project with Firestore & Storage enabled
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Installation
+bash
+git clone https://github.com/webshodh/DOYO.git
+cd DOYO
+npm install
+Environment Variables
+Copy .env.example to .env.local and fill in your Firebase config:
 
-### Code Splitting
+text
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+REACT_APP_USE_EMULATORS=false
+NODE_ENV=development
 
-### Analyzing the Bundle Size
+REACT_APP_NAME=DOYO Restaurant POS
+REACT_APP_VERSION=1.0.0
+REACT_APP_SUPER_ADMIN_EMAIL=webshodhteam@gmail.com
+Development
+Run Firebase emulators (optional):
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+bash
+firebase emulators:start --only firestore,auth,storage
+Start the React dev server:
 
-### Making a Progressive Web App
+bash
+npm start
+Open http://localhost:3000.
+The app reloads on changes; lint errors will appear in the console.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Testing
+bash
+npm test
+Build & Deploy
+Build for production:
 
-### Advanced Configuration
+bash
+npm run build
+Deploy to Firebase Hosting:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+bash
+npm run deploy
+Make sure firebase.json and .firebaserc are configured for your project.
 
-### Deployment
+Migration from Realtime Database to Firestore
+Services updated to use Firestore (FirestoreService) instead of firebase/database.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Removed all onValue, set(ref(...)), remove(ref(...)) calls.
 
-### `npm run build` fails to minify
+Firestore collections under /hotels/{hotelName}/menu, /admins, /orders, etc.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Storage and image upload remain via firebase/storage.
+
+Technologies & Libraries
+React 18, React Router 6
+
+Firebase Firestore & Storage
+
+Chakra UI
+
+React-Hot-Toast
+
+React Icons, Lucide-React
+
+ESLint, Prettier
+
+uid for unique IDs
+
+Axios for HTTP requests
+
+react-chartjs-2 for charts
+
+react-calendar, react-slick for UI features
+
+Contributing
+Fork the repo
+
+Create a feature branch
+
+Commit your changes
+
+Open a Pull Request
+
+Please maintain code style and add tests where applicable.
+
+Thank you for using DOYO! If you have questions or need help, open an issue on GitHub.

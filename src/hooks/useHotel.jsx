@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
-import { hotelServices } from "../services/hotelServices";
+import { hotelServices } from "../services/api/hotelServices";
 import { toast } from "react-toastify";
 import {
   validateEmail,
   validateContact,
   validatePassword,
 } from "../validation/hotelValidation";
-import { hotelFormConfig } from "Constants/addHotelFormConfig";
+import { hotelFormConfig } from "Constants/ConfigForms/addHotelFormConfig";
 
 const useHotel = () => {
   // Get default form data from config

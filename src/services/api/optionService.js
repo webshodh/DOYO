@@ -1,5 +1,5 @@
 // services/optionsService.js
-import { db } from "../data/firebase/firebaseConfig";
+import { db } from "../firebase/firebaseConfig";
 import { uid } from "uid";
 import { set, ref, onValue, remove, update, get } from "firebase/database";
 
@@ -42,7 +42,9 @@ export class OptionsService {
   async addCategory(categoryTitle, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to add categories for this hotel.");
+      throw new Error(
+        "You do not have permission to add categories for this hotel."
+      );
     }
 
     const categoryId = uid();
@@ -63,7 +65,9 @@ export class OptionsService {
   async updateCategory(categoryKey, newTitle, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to update categories for this hotel.");
+      throw new Error(
+        "You do not have permission to update categories for this hotel."
+      );
     }
 
     await update(ref(db, `${this.categoriesPath}/${categoryKey}`), {
@@ -77,7 +81,9 @@ export class OptionsService {
   async deleteCategory(categoryKey, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to delete categories for this hotel.");
+      throw new Error(
+        "You do not have permission to delete categories for this hotel."
+      );
     }
 
     await remove(ref(db, `${this.categoriesPath}/${categoryKey}`));
@@ -87,15 +93,20 @@ export class OptionsService {
   async addOption(categoryKey, value, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to add options for this hotel.");
+      throw new Error(
+        "You do not have permission to add options for this hotel."
+      );
     }
 
     const optionId = uid();
-    await set(ref(db, `${this.categoriesPath}/${categoryKey}/options/${optionId}`), {
-      id: optionId,
-      value: value.trim(),
-      createdAt: Date.now(),
-    });
+    await set(
+      ref(db, `${this.categoriesPath}/${categoryKey}/options/${optionId}`),
+      {
+        id: optionId,
+        value: value.trim(),
+        createdAt: Date.now(),
+      }
+    );
 
     return { id: optionId, value: value.trim() };
   }
@@ -104,12 +115,17 @@ export class OptionsService {
   async updateOption(categoryKey, optionId, newValue, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to update options for this hotel.");
+      throw new Error(
+        "You do not have permission to update options for this hotel."
+      );
     }
 
-    await update(ref(db, `${this.categoriesPath}/${categoryKey}/options/${optionId}`), {
-      value: newValue.trim(),
-    });
+    await update(
+      ref(db, `${this.categoriesPath}/${categoryKey}/options/${optionId}`),
+      {
+        value: newValue.trim(),
+      }
+    );
 
     return { id: optionId, value: newValue.trim() };
   }
@@ -118,10 +134,14 @@ export class OptionsService {
   async deleteOption(categoryKey, optionId, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
-      throw new Error("You do not have permission to delete options for this hotel.");
+      throw new Error(
+        "You do not have permission to delete options for this hotel."
+      );
     }
 
-    await remove(ref(db, `${this.categoriesPath}/${categoryKey}/options/${optionId}`));
+    await remove(
+      ref(db, `${this.categoriesPath}/${categoryKey}/options/${optionId}`)
+    );
   }
 }
 
