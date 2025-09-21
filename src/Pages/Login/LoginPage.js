@@ -169,7 +169,7 @@ const LoginPage = () => {
             loginConfig={loginConfig}
           />
 
-          <SecurityNotice loginConfig={loginConfig} />
+          {/* <SecurityNotice loginConfig={loginConfig} /> */}
         </div>
       </div>
 

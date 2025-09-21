@@ -54,7 +54,7 @@ const OrderSummary = memo(
       ) : (
         ""
       )}
-      {showDeliveryInfo && (
+      {/* {showDeliveryInfo && (
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-start gap-2">
             <Info size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
@@ -68,7 +68,7 @@ const OrderSummary = memo(
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   )
 );

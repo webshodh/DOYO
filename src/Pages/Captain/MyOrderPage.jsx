@@ -189,22 +189,6 @@ const MyOrdersPage = () => {
     return stats;
   }, [orderStats]);
 
-  // Connection status indicator
-  const connectionStatusInfo = useMemo(() => {
-    switch (connectionStatus) {
-      case "connected":
-        return { color: "green", text: "Connected", icon: CheckCircle };
-      case "connecting":
-        return { color: "yellow", text: "Connecting...", icon: LoaderCircle };
-      case "error":
-        return { color: "red", text: "Connection Error", icon: AlertCircle };
-      case "disconnected":
-        return { color: "gray", text: "Disconnected", icon: AlertCircle };
-      default:
-        return { color: "gray", text: "Unknown", icon: AlertCircle };
-    }
-  }, [connectionStatus]);
-
   // Event handlers
   const handleGoBack = useCallback(() => {
     navigate("/captain/dashboard");
@@ -365,35 +349,6 @@ const MyOrdersPage = () => {
               className="text-2xl sm:text-3xl font-bold text-gray-900"
               description={periodDisplayText}
             />
-
-            {/* Connection Status Indicator */}
-            <div
-              className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
-              ${
-                connectionStatusInfo.color === "green"
-                  ? "bg-green-100 text-green-700"
-                  : ""
-              }
-              ${
-                connectionStatusInfo.color === "yellow"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : ""
-              }
-              ${
-                connectionStatusInfo.color === "red"
-                  ? "bg-red-100 text-red-700"
-                  : ""
-              }
-              ${
-                connectionStatusInfo.color === "gray"
-                  ? "bg-gray-100 text-gray-700"
-                  : ""
-              }
-            `}
-            >
-              <connectionStatusInfo.icon className="w-3 h-3" />
-              {connectionStatusInfo.text}
-            </div>
           </div>
 
           {/* Last Updated Info */}
@@ -405,7 +360,7 @@ const MyOrdersPage = () => {
         </div>
 
         {/* Time Period Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-2">
           <TimePeriodSelector
             selectedTimePeriod={selectedTimePeriod}
             onTimePeriodChange={handleTimePeriodChange}
@@ -413,7 +368,7 @@ const MyOrdersPage = () => {
             onDateChange={handleDateChange}
             variant="default"
             showDatePicker={true}
-            className="mb-4"
+            className="mb-2"
             disableFutureDates={true}
             datePickerProps={{
               placeholder: "Select a date to view orders",
