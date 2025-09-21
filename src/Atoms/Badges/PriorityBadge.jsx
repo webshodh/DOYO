@@ -1,4 +1,4 @@
-// Separate component for priority badge (single badge for horizontal layout)
+// PriorityBadge.js - Fixed positioning and z-index
 import React, { useMemo, memo } from "react";
 import { Star, ChefHat, TrendingUp, Award, Heart } from "lucide-react";
 
@@ -52,9 +52,9 @@ const PriorityBadge = memo(({ item }) => {
   if (!badge) return null;
 
   return (
-    <div className="absolute top-2 left-2 z-50">
+    <div className="absolute bottom-1 left-0 z-30">
       <div
-        className={`bg-gradient-to-r ${badge.color} text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-fadeIn`}
+        className={`bg-gradient-to-r ${badge.color} text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-fadeIn border border-white/20`}
       >
         {badge.icon}
         <span className="whitespace-nowrap">{badge.text}</span>
@@ -63,4 +63,5 @@ const PriorityBadge = memo(({ item }) => {
   );
 });
 
-export default PriorityBadge.displayName = "PriorityBadge";
+PriorityBadge.displayName = "PriorityBadge";
+export default PriorityBadge

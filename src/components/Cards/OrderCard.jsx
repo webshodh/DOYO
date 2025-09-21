@@ -175,7 +175,9 @@ const OrderCard = ({
         {/* Rejection Reason Display */}
         {isOrderRejected && order.rejectionReason && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
+            <p className="text-sm font-medium text-red-800">
+              Rejection Reason:
+            </p>
             <p className="text-sm text-red-700 mt-1">{order.rejectionReason}</p>
           </div>
         )}
@@ -285,16 +287,6 @@ const OrderCard = ({
               <LoadingSpinner size="sm" />
               <span>Updating...</span>
             </div>
-          )}
-        </div>
-
-        {/* Order Summary Footer */}
-        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-          <span>Order ID: {order.id}</span>
-          {order.timestamps?.lastUpdated && (
-            <span>
-              Last updated: {formatDateTime(order.timestamps.lastUpdated)}
-            </span>
           )}
         </div>
       </div>

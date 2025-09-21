@@ -11,6 +11,7 @@ import SpecialFeatures from "atoms/Badges/SpecialFeatures";
 import PriceDisplay from "atoms/PriceDisplay";
 import ActionButton from "atoms/Buttons/ActionButton";
 import CategoryBadge from "atoms/Badges/CategoryBadge";
+import SpecialBadges from "atoms/Badges/SpecialBadges";
 
 // Utility function for text truncation
 const truncateText = (text, maxLength = 12) => {
@@ -33,12 +34,12 @@ const HorizontalMenuCard = memo(
     );
 
     const truncatedName = useMemo(
-      () => truncateText(item?.menuName, 12),
+      () => truncateText(item?.menuName, 20),
       [item?.menuName]
     );
 
     const truncatedCategory = useMemo(
-      () => truncateText(item?.menuCategory, 8),
+      () => truncateText(item?.menuCategory, 12),
       [item?.menuCategory]
     );
 
@@ -93,7 +94,7 @@ const HorizontalMenuCard = memo(
         </div>
       );
     }
-console.log("discount", item)
+    console.log("discount", item);
     return (
       <article className={`w-full ${height} ${className}`}>
         <div

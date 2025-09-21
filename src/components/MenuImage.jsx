@@ -46,7 +46,7 @@ const MenuImage = memo(
           </div>
         )}
         {isUnavailable && (
-          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center backdrop-blur-sm">
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center backdrop-blur-sm z-50">
             <span className="bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-full shadow-lg">
               Unavailable
             </span>

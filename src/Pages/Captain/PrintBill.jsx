@@ -17,11 +17,42 @@ const PrintBill = ({ order, restaurantInfo = {} }) => {
     }
   };
 
+  const getItemPrice = (item) => {
+    // Check for your specific price properties first
+    const possiblePriceProps = [
+      "finalPrice",
+      "originalPrice",
+      "itemTotal", // Your actual properties
+      "price",
+      "menuPrice",
+      "itemPrice",
+      "cost", // Common fallbacks
+      "amount",
+      "rate",
+      "unitPrice",
+      "sellingPrice",
+    ];
+
+    for (let prop of possiblePriceProps) {
+      if (
+        item[prop] !== undefined &&
+        item[prop] !== null &&
+        item[prop] !== ""
+      ) {
+        const price = parseFloat(item[prop]);
+        if (!isNaN(price)) {
+          return price;
+        }
+      }
+    }
+    return 0;
+  };
+
   const calculateSubtotal = () => {
     if (!order.items || !Array.isArray(order.items)) return 0;
-    return order.items.reduce((sum, item) => {
-      const price = parseFloat(item.price || item.menuPrice || 0);
-      const quantity = parseInt(item.quantity || 0);
+    return order.items.reduce((sum, item, index) => {
+      const price = getItemPrice(item);
+      const quantity = parseInt(item.quantity || item.qty || 0);
       return sum + price * quantity;
     }, 0);
   };
@@ -36,7 +67,7 @@ const PrintBill = ({ order, restaurantInfo = {} }) => {
   const total = order.totalAmount || order.total || subtotal + tax;
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 font-mono text-sm print:shadow-none print:p-4">
+    <div className="max-w-2xl mx-auto bg-white p-6 font-mono text-sm print:shadow-none print:p-2">
       {/* Restaurant Header */}
       <div className="text-center border-b-2 border-black pb-4 mb-6">
         <h1 className="text-2xl font-bold uppercase tracking-wide">
@@ -54,36 +85,34 @@ const PrintBill = ({ order, restaurantInfo = {} }) => {
       </div>
 
       {/* Bill Header */}
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h2 className="text-lg font-bold uppercase">Tax Invoice</h2>
-          <p className="mt-2">
-            <strong>Order No:</strong>{" "}
-            {order.displayOrderNumber || `#${order.orderNumber || order.id}`}
-          </p>
+      <h2 className="text-lg font-bold uppercase">Tax Invoice</h2>
+      <div className="flex justify-between items-start mb-1">
+        <p>
+          <strong>Order No:</strong>{" "}
+          {order.displayOrderNumber || `#${order.orderNumber || order.id}`}
+        </p>
+        <p>
+          <strong>Table No:</strong>{" "}
+          {order.displayTable ||
+            `Table ${order.tableInfo || order.tableNumber || "0"}`}
+        </p>
+        {order.customerInfo?.customerName && (
           <p>
-            <strong>Table No:</strong>{" "}
-            {order.displayTable ||
-              `Table ${order.tableInfo || order.tableNumber || "0"}`}
+            <strong>Customer:</strong> {order.customerInfo.customerName}
           </p>
-          {order.customerInfo?.customerName && (
-            <p>
-              <strong>Customer:</strong> {order.customerInfo.customerName}
-            </p>
+        )}
+      </div>
+      <div>
+        <p>
+          <strong>Order Date:</strong>{" "}
+          {formatDateTime(
+            order.timestamps?.orderPlaced || order.orderTimestamp
           )}
-        </div>
-        <div className="text-right">
-          <p>
-            <strong>Date:</strong>{" "}
-            {formatDateTime(
-              order.timestamps?.orderPlaced || order.orderTimestamp
-            )}
-          </p>
-          <p>
-            <strong>Completed:</strong>{" "}
-            {formatDateTime(order.timestamps?.completed || new Date())}
-          </p>
-        </div>
+        </p>
+        <p>
+          <strong>Completed Order:</strong>{" "}
+          {formatDateTime(order.timestamps?.completed || new Date())}
+        </p>
       </div>
 
       {/* Items Table */}
@@ -100,8 +129,8 @@ const PrintBill = ({ order, restaurantInfo = {} }) => {
         <tbody>
           {order.items && order.items.length > 0 ? (
             order.items.map((item, index) => {
-              const price = parseFloat(item.price || item.menuPrice || 0);
-              const quantity = parseInt(item.quantity || 0);
+              const price = getItemPrice(item);
+              const quantity = parseInt(item.quantity || item.qty || 0);
               const itemTotal = price * quantity;
 
               return (
@@ -113,7 +142,10 @@ const PrintBill = ({ order, restaurantInfo = {} }) => {
                   <td className="py-2 pr-4">
                     <div>
                       <div className="font-semibold">
-                        {item.menuName || item.name || "Unknown Item"}
+                        {item.menuName ||
+                          item.name ||
+                          item.itemName ||
+                          "Unknown Item"}
                       </div>
                       {item.notes && (
                         <div className="text-xs text-gray-600 italic">

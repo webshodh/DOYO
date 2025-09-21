@@ -172,10 +172,10 @@ const AddCategory = memo(() => {
 
         {/* Stats Cards */}
         {hasCategories && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Tags}
-              label="Total Categories"
+              title="Total Categories"
               value={stats.total}
               color="blue"
             />

@@ -148,22 +148,6 @@ const CaptainDashboard = memo(() => {
     loadCaptainData();
   }, [navigate]);
 
-  // Connection status indicator
-  const connectionStatusInfo = useMemo(() => {
-    switch (connectionStatus) {
-      case "connected":
-        return { color: "green", text: "Connected", icon: CheckCircle };
-      case "connecting":
-        return { color: "yellow", text: "Connecting...", icon: LoaderCircle };
-      case "error":
-        return { color: "red", text: "Connection Error", icon: AlertCircle };
-      case "disconnected":
-        return { color: "gray", text: "Disconnected", icon: AlertCircle };
-      default:
-        return { color: "gray", text: "Unknown", icon: AlertCircle };
-    }
-  }, [connectionStatus]);
-
   // Enhanced order statistics with corrected mapping for simplified status system
   const displayStats = useMemo(() => {
     // Use the comprehensive stats from the hook and map correctly
@@ -357,82 +341,25 @@ const CaptainDashboard = memo(() => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header with Connection Status */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-2">
           <div className="flex items-center gap-4">
             <PageTitle
               pageTitle="Dashboard"
               className="text-2xl sm:text-3xl font-bold text-gray-900"
               description={periodDisplayText}
             />
-
-            {/* Connection Status Indicator */}
-            <div
-              className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
-              ${
-                connectionStatusInfo.color === "green"
-                  ? "bg-green-100 text-green-700"
-                  : ""
-              }
-              ${
-                connectionStatusInfo.color === "yellow"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : ""
-              }
-              ${
-                connectionStatusInfo.color === "red"
-                  ? "bg-red-100 text-red-700"
-                  : ""
-              }
-              ${
-                connectionStatusInfo.color === "gray"
-                  ? "bg-gray-100 text-gray-700"
-                  : ""
-              }
-            `}
-            >
-              <connectionStatusInfo.icon className="w-3 h-3" />
-              {connectionStatusInfo.text}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3">
-            {lastUpdated && (
-              <div className="text-sm text-gray-500">
-                Last updated: {new Date(lastUpdated).toLocaleTimeString()}
-              </div>
-            )}
-
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-              {isRefreshing ? "Refreshing..." : "Refresh"}
-            </button>
-
-            <button
-              onClick={handleCreateOrder}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Create Order
-            </button>
           </div>
         </div>
 
         {/* Welcome Section */}
-        <WelcomeSection
+        {/* <WelcomeSection
           firstName={captain.firstName || captain.name}
           hotelName={captain.hotelName}
           todayStats={todayStats}
-        />
+        /> */}
 
         {/* Time Period Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-2">
           <TimePeriodSelector
             selectedTimePeriod={selectedTimePeriod}
             onTimePeriodChange={handleTimePeriodChange}
@@ -448,16 +375,7 @@ const CaptainDashboard = memo(() => {
             options={timePeriodOptions}
           />
 
-          {/* Period Summary */}
-          <div className="text-sm text-gray-600 mt-2">
-            {periodDisplayText} • {displayStats.total} orders
-            {displayStats.totalRevenue > 0 && (
-              <span>
-                {" "}
-                • ₹{displayStats.totalRevenue.toLocaleString()} revenue
-              </span>
-            )}
-          </div>
+         
         </div>
 
         {/* Enhanced Order Statistics Cards - Updated for Simplified Status System */}
