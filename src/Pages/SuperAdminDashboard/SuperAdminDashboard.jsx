@@ -20,7 +20,8 @@ import {
   FaBuilding,
 } from "react-icons/fa";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
-import { Users } from "lucide-react";
+import { AlertTriangle, Building2, CheckCircle, Coffee, DollarSign, Globe, HomeIcon, MapPin, Package, Star, TrendingUp, Users, Utensils, Wine } from "lucide-react";
+
 
 const SuperAdminDashboard = () => {
   // Use the custom hook to get hotel data
@@ -211,25 +212,18 @@ const SuperAdminDashboard = () => {
     <SuperAdminDashboardLayout>
       <div className="space-y-6 sm:space-y-8">
         {/* Enhanced Header Section */}
-        <div className="animate-fade-in-down">
-          <div className="text-left">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
-              Super Admin Dashboard
-            </h1>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-3xl">
-              Welcome to your command center. Monitor and manage all properties
-              across the platform with real-time insights and analytics.
-            </p>
-            {!loading && (
-              <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Live Data</span>
-                </div>
-                <div>Last updated: {new Date().toLocaleTimeString()}</div>
-                <div>Total Properties: {calculatedStats.totalProperties}</div>
-              </div>
-            )}
+        <div className="animate-fade-in-down p-2">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
+                Super Admin Dashboard
+              </h1>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-3xl">
+                Welcome to your command center. Monitor and manage all
+                properties across the platform with real-time insights and
+                analytics.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -237,129 +231,196 @@ const SuperAdminDashboard = () => {
         {loading && <Spinner />}
 
         {/* Error State */}
-        {error && <ErrorMessage />}
+        {error && (
+          <div className="py-8">
+            <ErrorMessage
+              error={error}
+              title="Dashboard Error"
+              showRetryButton={true}
+            />
+          </div>
+        )}
 
-        {/* Main Content - Only show when not loading and no error */}
-        {!loading && !error && (
+        {/* Main Content - Show when not loading or when we have data */}
+        {(!loading || calculatedStats.totalProperties > 0) && !error && (
           <>
-            {/* Enhanced Stats Grid - Business Type */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Total Hotels"
-                  value={calculatedStats.totalHotels}
-                  color="bg-gradient-to-br from-blue-50 to-blue-100"
-                  icon={Users}
-                />
-              </div>
+            {/* Performance Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 p-2">
+              <StatCard
+                title="Total Revenue"
+                value={`₹${(calculatedStats.totalRevenue / 1000).toFixed(1)}K`}
+                color="blue"
+                icon={DollarSign}
+                subtitle="Across all properties"
+              />
+              <StatCard
+                title="Total Hotels"
+                value={calculatedStats.totalOrders}
+                color="green"
+                icon={Package}
+                subtitle="Platform wide"
+              />
+              <StatCard
+                title="Average Rating"
+                value={calculatedStats.avgRating}
+                color="yellow"
+                icon={Star}
+                subtitle="Customer satisfaction"
+              />
+              <StatCard
+                title="Monthly Revenue"
+                // value={`₹${(subscriptionStats.monthlyRevenue / 1000).toFixed(
+                //   1
+                // )}K`}
+                color="purple"
+                icon={TrendingUp}
+                subtitle="From subscriptions"
+              />
+            </div>
 
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Total Cafes"
-                  value={calculatedStats.totalCafes}
-                  color="bg-gradient-to-br from-green-50 to-green-100"
-                  icon={Users}
-                />
-              </div>
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Total Dhaba"
-                  value={calculatedStats.totalDhaba}
-                  color="bg-gradient-to-br from-green-50 to-green-100"
-                  icon={Users}
-                />
-              </div>
-
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Total Restaurants"
-                  value={calculatedStats.totalRestaurants}
-                  color="bg-gradient-to-br from-orange-50 to-orange-100"
-                  icon={Users}
-                />
-              </div>
-
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Total Bars"
-                  value={calculatedStats.totalBars}
-                  color="bg-gradient-to-br from-purple-50 to-purple-100"
-                  icon={Users}
-                />
-              </div>
+            {/* Business Type Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 p-2">
+              <StatCard
+                title="Hotels"
+                value={calculatedStats.totalHotels}
+                color="blue"
+                icon={Building2}
+              />
+              <StatCard
+                title="Restaurants"
+                value={calculatedStats.totalRestaurants}
+                color="orange"
+                icon={Utensils}
+              />
+              <StatCard
+                title="Cafes"
+                value={calculatedStats.totalCafes}
+                color="green"
+                icon={Coffee}
+              />
+              <StatCard
+                title="Bars"
+                value={calculatedStats.totalBars}
+                color="purple"
+                icon={Wine}
+              />
+              <StatCard
+                title="Dhabas"
+                value={calculatedStats.totalDhaba}
+                color="red"
+                icon={HomeIcon}
+              />
+              <StatCard
+                title="Others"
+                value={calculatedStats.totalOthers}
+                color="gray"
+                icon={Building2}
+              />
             </div>
 
             {/* Geographic Coverage Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="States Covered"
-                  value={calculatedStats.totalStates}
-                  color="bg-gradient-to-br from-indigo-50 to-indigo-100"
-                  icon={Users}
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 p-2">
+              <StatCard
+                title="States Covered"
+                value={calculatedStats.totalStates}
+                color="indigo"
+                icon={Globe}
+                subtitle="Geographic reach"
+              />
+              <StatCard
+                title="Districts Covered"
+                value={calculatedStats.totalDistricts}
+                color="teal"
+                icon={MapPin}
+                subtitle="Local presence"
+              />
+              <StatCard
+                title="Cities Covered"
+                value={calculatedStats.totalCities}
+                color="rose"
+                icon={Users}
+                subtitle="Urban coverage"
+              />
+            </div>
 
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Districts Covered"
-                  value={calculatedStats.totalDistricts}
-                  color="bg-gradient-to-br from-teal-50 to-teal-100"
-                  icon={Users}
-                />
-              </div>
-
-              <div className="transform hover:scale-105 transition-all duration-300">
-                <StatCard
-                  title="Cities Covered"
-                  value={calculatedStats.totalCities}
-                  color="bg-gradient-to-br from-rose-50 to-rose-100"
-                  icon={Users}
-                />
-              </div>
+            {/* Subscription Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 p-2">
+              <StatCard
+                title="Active Subscriptions"
+                // value={subscriptionStats.activeSubscriptions}
+                color="green"
+                icon={CheckCircle}
+                subtitle="Currently active"
+              />
+              <StatCard
+                title="Expiring Soon"
+                // value={subscriptionStats.expiringSubscriptions}
+                color="yellow"
+                icon={AlertTriangle}
+                subtitle="Within 7 days"
+              />
+              <StatCard
+                title="Total Subscriptions"
+                // value={subscriptionStats.totalSubscriptions}
+                color="blue"
+                icon={Package}
+                subtitle="All time"
+              />
             </div>
 
             {/* Quick Insights Card */}
-            <QuickInsights />
+            <div className="p-2">
+              <QuickInsights />
+            </div>
 
             {/* Data Visualization Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 p-2">
               <ChartCard
-                title="Hotels by State"
+                title="Properties by State"
                 data={hotelsByState || {}}
                 color="bg-blue-500"
-                maxValue={Math.max(...Object.values(hotelsByState || {}), 1)}
-                icon={FaMapMarkerAlt}
+                maxValue={Math.max(
+                  ...Object.values(hotelsByState || {}),
+                  1
+                )}
+                icon={MapPin}
                 delay={0}
               />
-
               <ChartCard
-                title="Hotels by District"
+                title="Properties by District"
                 data={hotelsByDistrict || {}}
                 color="bg-green-500"
-                maxValue={Math.max(...Object.values(hotelsByDistrict || {}), 1)}
-                icon={FaCity}
+                maxValue={Math.max(
+                  ...Object.values(hotelsByDistrict || {}),
+                  1
+                )}
+                icon={Globe}
                 delay={200}
               />
             </div>
 
             {/* Additional Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 p-2">
               <ChartCard
-                title="Hotels by City"
+                title="Properties by City"
                 data={hotelsByCity || {}}
-                color="bg-purple-500"
-                maxValue={Math.max(...Object.values(hotelsByCity || {}), 1)}
-                icon={FaBuilding}
+                 color="bg-purple-500"
+                maxValue={Math.max(
+                  ...Object.values(hotelsByCity || {}),
+                  1
+                )}
+                icon={Building2}
                 delay={400}
               />
-
               <ChartCard
-                title="Hotels by Type"
+                title="Properties by Type"
                 data={hotelsByType || {}}
-                color="bg-orange-500"
-                maxValue={Math.max(...Object.values(hotelsByType || {}), 1)}
-                icon={FaHotel}
+               color="bg-orange-500"
+                maxValue={Math.max(
+                  ...Object.values(hotelsByType || {}),
+                  1
+                )}
+                icon={Utensils}
                 delay={600}
               />
             </div>
@@ -396,8 +457,8 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
             <p className="text-gray-500 text-sm">
-              Dashboard powered by Real-time Analytics • Data refreshed
-              automatically •v Total Properties:{" "}
+              Dashboard powered by Real-time Firestore Analytics • Data
+              refreshed automatically • Total Properties:{" "}
               <span className="font-semibold">
                 {calculatedStats.totalProperties}
               </span>
