@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useHotelSelection } from "../context/HotelSelectionContext";
 import { toast } from "react-toastify";
+import LanguageSelector from "atoms/Selector/LanguageSelector";
 
 // Custom hook for outside click detection
 const useOutsideClick = (ref, handler) => {
@@ -378,6 +379,7 @@ const Navbar = memo(({ onMenuToggle, isSidebarOpen, admin }) => {
           <div className="flex items-center gap-4 flex-1">
             <MenuToggleButton onToggle={onMenuToggle} isOpen={isSidebarOpen} />
           </div>
+          <LanguageSelector/>
 
           {/* Right Section */}
           <div className="flex items-center gap-3">

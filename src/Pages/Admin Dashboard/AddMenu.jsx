@@ -12,7 +12,7 @@ import {
   DollarSign,
   Eye,
 } from "lucide-react";
-import { ViewMenuColumns } from "Constants/Columns";
+import useColumns from "Constants/Columns";
 import CategoryTabs from "molecules/CategoryTab";
 import { useMenu } from "../../hooks/useMenu";
 import PageTitle from "../../atoms/PageTitle";
@@ -23,6 +23,8 @@ import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "context/ThemeContext";
 
 // Lazy load heavy components
 const MenuFormModal = React.lazy(() =>
@@ -34,6 +36,9 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 const AddMenu = memo(({ onlyView = false }) => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
+  const { t } = useTranslation();
+  const { currentTheme, isDark } = useTheme();
+  const { ViewMenuColumns } = useColumns();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -240,14 +245,14 @@ const AddMenu = memo(({ onlyView = false }) => {
       <ErrorMessage
         error={error}
         onRetry={handleRefresh}
-        title="Error Loading Menu Items"
+        title={t("menu.errorLoading")}
       />
     );
   }
 
   // Loading state
   if (loading && !filteredAndSortedMenus.length) {
-    return <LoadingSpinner size="lg" text="Loading menu items..." />;
+    return <LoadingSpinner size="lg" text={t("menu.loading")} />;
   }
 
   return (
@@ -269,54 +274,58 @@ const AddMenu = memo(({ onlyView = false }) => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
-          <PageTitle
-            pageTitle={onlyView ? "View Menu" : "Menu Management"}
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description={
-              onlyView
-                ? "Browse menu items"
-                : "Manage your menu items and categories"
-            }
-          />
+        {!onlyView && (
+          <>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+              <PageTitle
+                pageTitle={
+                  onlyView ? t("menu.viewPageTitle") : t("menu.managePageTitle")
+                }
+                className="text-2xl sm:text-3xl font-bold text-gray-900"
+                description={
+                  onlyView
+                    ? t("menu.viewDescription")
+                    : t("menu.manageDescription")
+                }
+              />
 
-          {!onlyView && (
-            <PrimaryButton
-              onAdd={handleAddClick}
-              btnText="Add Menu Item"
-              loading={loading}
-            />
-          )}
-        </div>
+              <PrimaryButton
+                onAdd={handleAddClick}
+                btnText={t("menu.addButton")}
+                loading={loading}
+              />
+            </div>
 
-        {/* Stats Cards */}
-        {hasMenus && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={ChefHat}
-              title="Total Items"
-              value={stats.total}
-              color="blue"
-            />
-            <StatCard
-              icon={TrendingUp}
-              title="Available"
-              value={stats.available}
-              color="green"
-            />
-            <StatCard
-              icon={DollarSign}
-              title="With Discount"
-              value={stats.discounted}
-              color="orange"
-            />
-            <StatCard
-              icon={Grid}
-              title="Categories"
-              value={stats.categories}
-              color="purple"
-            />
-          </div>
+            {/* Stats Cards */}
+            {hasMenus && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <StatCard
+                  icon={ChefHat}
+                  title={t("menu.totalItems")}
+                  value={stats.total}
+                  color="blue"
+                />
+                <StatCard
+                  icon={TrendingUp}
+                  title={t("menu.totalAvailable")}
+                  value={stats.available}
+                  color="green"
+                />
+                <StatCard
+                  icon={DollarSign}
+                  title={t("menu.withDiscount")}
+                  value={stats.discounted}
+                  color="orange"
+                />
+                <StatCard
+                  icon={Grid}
+                  title={t("menu.totalCategories")}
+                  value={stats.categories}
+                  color="purple"
+                />
+              </div>
+            )}
+          </>
         )}
 
         {/* Search and Filters */}
@@ -324,11 +333,11 @@ const AddMenu = memo(({ onlyView = false }) => {
           <SearchWithResults
             searchTerm={searchTerm}
             onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search menu items by name, category, or price..."
+            placeholder={t("menu.searchPlaceholder")}
             totalCount={menuCount}
             filteredCount={filteredAndSortedMenus.length}
             onClearSearch={handleClearSearch}
-            totalLabel="total menu items"
+            totalLabel={t("menu.totalLabel")}
           />
         )}
 
@@ -362,7 +371,7 @@ const AddMenu = memo(({ onlyView = false }) => {
                     onEdit={!onlyView ? handleEditClick : undefined}
                     onDelete={!onlyView ? handleDeleteClick : undefined}
                     loading={submitting}
-                    emptyMessage="No menu items match your search criteria"
+                    emptyMessage={t("menu.noSearchResults")}
                     showPagination={true}
                     initialRowsPerPage={10}
                     sortable={true}
@@ -371,7 +380,7 @@ const AddMenu = memo(({ onlyView = false }) => {
                 </Suspense>
               ) : (
                 <NoSearchResults
-                  btnText="Add Menu Item"
+                  btnText={t("menu.addButton")}
                   searchTerm={searchTerm}
                   onClearSearch={handleClearSearch}
                   onAddNew={!onlyView ? handleAddClick : undefined}
@@ -381,13 +390,13 @@ const AddMenu = memo(({ onlyView = false }) => {
           ) : (
             <EmptyState
               icon={onlyView ? Eye : ChefHat}
-              title={onlyView ? "No Menu Items to View" : "No Menu Items Yet"}
+              title={onlyView ? t("menu.noItemsView") : t("menu.noItems")}
               description={
                 onlyView
-                  ? "There are no menu items available to display. Check back later or contact the restaurant."
-                  : "Create your first menu item to start building your restaurant's offerings. Add delicious dishes and beverages for your customers."
+                  ? t("menu.noItemsViewDescription")
+                  : t("menu.noItemsDescription")
               }
-              actionLabel={onlyView ? undefined : "Add Your First Menu Item"}
+              actionLabel={onlyView ? undefined : t("menu.emptyAction")}
               onAction={!onlyView ? handleAddClick : undefined}
               loading={submitting}
             />

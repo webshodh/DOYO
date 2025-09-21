@@ -4,10 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import useData from "../../data/useData";
 import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
-import {
-  hotelsListColumn,
-  hotelsSubscriptionListColumn,
-} from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 import { db } from "../../services/firebase/firebaseConfig";
 import { ref, update, get, remove } from "firebase/database";
 import { toast } from "react-toastify";
@@ -33,6 +30,7 @@ const ViewHotelSubscription = () => {
   const { data, loading, error, refetch } = useData("/hotels/");
   const { hotelName } = useParams();
   const navigate = useNavigate();
+  const { hotelsListColumn, hotelsSubscriptionListColumn } = useColumns();
 
   const [editingHotel, setEditingHotel] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");

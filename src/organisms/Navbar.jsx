@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
-import { colors } from "theme/theme";
 import { useNavigate } from "react-router-dom";
 
 const NavBar = ({

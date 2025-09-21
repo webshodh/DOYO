@@ -30,7 +30,7 @@ import { toast } from "react-toastify";
 // Components
 import StatCard from "../../components/Cards/StatCard";
 import { DynamicTable } from "../../components";
-import { ORDER_STATUSES, orderColumns } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 
 // UI Components
 import PageTitle from "../../atoms/PageTitle";
@@ -49,6 +49,7 @@ const OrderDetailsModal = React.lazy(() => import("./OrderDetailsModal"));
 
 const CaptainDashboard = memo(() => {
   const navigate = useNavigate();
+  const { ORDER_STATUSES, orderColumns } = useColumns();
 
   // Captain state
   const [captain, setCaptain] = useState(null);
@@ -374,8 +375,6 @@ const CaptainDashboard = memo(() => {
             }}
             options={timePeriodOptions}
           />
-
-         
         </div>
 
         {/* Enhanced Order Statistics Cards - Updated for Simplified Status System */}

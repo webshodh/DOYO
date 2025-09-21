@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { colors } from "../../theme/theme";
+
 // Styled components
 const BackToTopButton = styled.a`
   position: fixed;
@@ -20,13 +20,13 @@ const BackToTopButton = styled.a`
 
   i {
     font-size: 24px;
-    color: ${colors.White};
+    color: white;
     line-height: 0;
   }
 
   &:hover {
     background: #6776f4;
-    color: ${colors.White};
+    color: white;
   }
 
   &.active {

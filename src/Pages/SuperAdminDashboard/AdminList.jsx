@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import useData from "../../data/useData";
 import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
-import { adminsListColumn } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 import { db } from "../../services/firebase/firebaseConfig";
 import { ref, update, get, remove } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
@@ -29,6 +29,7 @@ const AdminList = () => {
   console.log("adminData_______", data);
   const { hotelName } = useParams();
   const navigate = useNavigate();
+  const { adminsListColumn } = useColumns();
 
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");

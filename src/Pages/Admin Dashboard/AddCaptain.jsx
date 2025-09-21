@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
 
 import PageTitle from "../../atoms/PageTitle";
-import { ViewCaptainColumns } from "../../Constants/Columns";
+
 import { useCaptain } from "../../hooks/useCaptain";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
@@ -13,7 +13,7 @@ import NoSearchResults from "molecules/NoSearchResults";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
-
+import useColumns from "../../Constants/Columns";
 // Lazy load heavy components
 const CaptainFormModal = React.lazy(() =>
   import("../../components/FormModals/CaptainFormModal")
@@ -23,7 +23,7 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 // Main AddCaptain component
 const AddCaptain = memo(() => {
   const { hotelName } = useParams();
-
+  const { ViewCaptainColumns } = useColumns();
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingCaptain, setEditingCaptain] = useState(null);

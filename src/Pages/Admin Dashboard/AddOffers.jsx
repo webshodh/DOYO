@@ -11,7 +11,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
-import { ViewOffersColumns } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 import { useOffers } from "../../hooks/useOffers";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
@@ -31,6 +31,7 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 const AddOffers = memo(() => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
+  const { ViewOffersColumns } = useColumns();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);

@@ -1,10 +1,12 @@
 import React, { memo } from "react";
-import { Building } from "lucide-react";
-import { roleThemes } from "Constants/sideBarMenuConfig";
-import { X } from "lucide-react";
+import { Building, X } from "lucide-react";
+import { getRoleThemes } from "Constants/sideBarMenuConfig";
+import { useTranslation } from "react-i18next";
+
 // Header component
 const SidebarHeader = memo(({ role, onClose }) => {
-  const theme = roleThemes[role];
+  const { t } = useTranslation();
+  const theme = getRoleThemes(t)[role];
 
   return (
     <div

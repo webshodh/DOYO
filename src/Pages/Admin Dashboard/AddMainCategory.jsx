@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Plus, Tags, TrendingUp, Star } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
-import { ViewCategoryColumns } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 import { useCategoryManager } from "../../hooks/useMainCategory";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
@@ -23,6 +23,7 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 const AddMainCategory = memo(() => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
+  const { ViewCategoryColumns } = useColumns();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
