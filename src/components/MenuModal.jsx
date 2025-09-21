@@ -24,6 +24,7 @@ import {
   getDietaryItems,
   getPreparationItems,
 } from "Constants/itemConfigurations";
+import { BackToTop } from "atoms";
 
 const MenuModal = memo(
   ({ show, handleClose, modalData, addToCart, isLoading = false }) => {
@@ -256,7 +257,9 @@ const MenuModal = memo(
             {/* Unavailable Notice */}
             {!isAvailable && <UnavailableNotice />}
           </div>
-
+          {/* Close Button */}
+          <CloseButton onClose={handleClose} />
+          <BackToTop/>
           {/* Bottom Accent */}
           <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500" />
         </div>

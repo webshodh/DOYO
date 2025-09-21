@@ -61,7 +61,7 @@ const QuickInfoCard = memo(
 
     return (
       <div
-        className={`${colorTheme.bg} border ${colorTheme.border} rounded-xl p-4 min-h-[100px] flex flex-col items-center justify-center text-center transition-all duration-200 hover:shadow-md`}
+        className={`${colorTheme.bg} border ${colorTheme.border} rounded-xl p-2 min-h-[100px] flex flex-col items-center justify-center text-center transition-all duration-200 hover:shadow-md`}
       >
         {/* Icon */}
         {Icon && (
