@@ -293,7 +293,10 @@ function App() {
                     <HotelSelectionProvider>
                       <Routes>
                         <Route path="dashboard" element={<AdminDashboard />} />
-                        <Route path="order-dashboard" element={<OrderDashboard />} />
+                        <Route
+                          path="order-dashboard"
+                          element={<OrderDashboard />}
+                        />
                         <Route
                           path="profile"
                           element={
@@ -439,7 +442,10 @@ function App() {
                             </AdminLayout>
                           }
                         />
-                        <Route path="" element={<Navigate to="home" replace />} />
+                        <Route
+                          path=""
+                          element={<Navigate to="home" replace />}
+                        />
                       </Routes>
                     </HotelSelectionProvider>
                   </ProtectedAdminRoute>

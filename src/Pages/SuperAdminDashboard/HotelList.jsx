@@ -254,46 +254,6 @@ const ViewHotel = () => {
     return Array.from(types);
   }, [hotels]);
 
-  // ✅ NEW: Connection status indicator
-  const ConnectionStatusIndicator = () => {
-    if (connectionStatus === "connecting" || isRetrying) {
-      return (
-        <div className="flex items-center gap-2 text-yellow-600 text-sm">
-          <Wifi className="animate-pulse" size={16} />
-          <span>{isRetrying ? "Retrying..." : "Connecting..."}</span>
-        </div>
-      );
-    } else if (connectionStatus === "error") {
-      return (
-        <div className="flex items-center gap-2 text-red-600 text-sm">
-          <WifiOff size={16} />
-          <span>Connection Error</span>
-          {canRetry && (
-            <button
-              onClick={handleRefresh}
-              className="text-blue-600 hover:text-blue-800 underline ml-1"
-            >
-              Retry
-            </button>
-          )}
-        </div>
-      );
-    } else if (connectionStatus === "connected") {
-      return (
-        <div className="flex items-center gap-2 text-green-600 text-sm">
-          <CheckCircle size={16} />
-          <span>Live Data</span>
-          {lastFetch && (
-            <span className="text-xs text-gray-500">
-              • Updated {new Date(lastFetch).toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
-
   // Handle search change
   const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
@@ -559,13 +519,13 @@ const ViewHotel = () => {
   }
 
   // ✅ ENHANCED: Loading state
-  if (loading && (!hotels || hotels.length === 0)) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading hotel list..." />
-      </div>
-    );
-  }
+  // if (loading && (!hotels || hotels.length === 0)) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  //       <LoadingSpinner size="lg" text="Loading hotel list..." />
+  //     </div>
+  //   );
+  // }
 
   // ✅ ENHANCED: Error state
   if (error && connectionStatus === "error") {
@@ -579,7 +539,6 @@ const ViewHotel = () => {
             showRetryButton={canRetry}
           />
           <div className="mt-4 text-center">
-            <ConnectionStatusIndicator />
             {retryCount > 0 && (
               <p className="text-sm text-gray-500 mt-2">
                 Attempted {retryCount} time{retryCount !== 1 ? "s" : ""}
@@ -593,19 +552,7 @@ const ViewHotel = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ✅ NEW: Connection Status Bar */}
-      {connectionStatus !== "connected" && (
-        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2">
-          <div className="flex items-center justify-between">
-            <ConnectionStatusIndicator />
-            {retryCount > 0 && (
-              <span className="text-xs text-gray-600">
-                Retry attempt: {retryCount}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+      
 
       <div className="p-6">
         {/* Hotel Edit Form Modal */}

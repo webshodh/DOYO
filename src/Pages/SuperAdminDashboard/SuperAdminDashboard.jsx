@@ -623,31 +623,6 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <LoadingSpinner size="lg" />
-              <p className="mt-4 text-gray-600">
-                Loading super admin dashboard...
-              </p>
-              {loadingTimeout && (
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800">
-                    Loading is taking longer than expected.
-                  </p>
-                  <button
-                    onClick={handleRefresh}
-                    className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Error State */}
         {error && (
           <div className="py-8">
