@@ -1,6 +1,6 @@
+// src/Pages/Captain/CaptainMenuPage.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { onValue, ref } from "firebase/database";
 import {
   Search,
   ShoppingCart,
@@ -12,14 +12,32 @@ import {
   WifiOff,
   ArrowLeft,
   BarChart3,
+  CheckCircle,
+  RefreshCw,
 } from "lucide-react";
 
+// ✅ NEW: Import Firestore methods and hooks
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy as firestoreOrderBy,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
+
+// ✅ NEW: Import context hooks
+import { useAuth } from "../../context/AuthContext";
+import { useHotelContext } from "../../context/HotelContext";
+import { useFirestoreCollection } from "../../hooks/useFirestoreCollection";
+
+// Components
 import CaptainMenuCard from "components/Cards/CaptainMenuCard";
 import CartPage from "../Captain/CartPage";
 import CheckoutPage from "../Captain/CheckoutPage";
 import OrderSuccessPage from "../Captain/OrderSuccessPage";
 import { FilterSortSearch } from "components";
-import { db } from "../../services/firebase/firebaseConfig";
 import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig";
 import ErrorState from "atoms/Messages/ErrorState";
 import ConnectionStatus from "atoms/Messages/ConnectionStatus";
@@ -27,10 +45,16 @@ import EmptyState from "atoms/Messages/EmptyState";
 import CategoryFilters from "components/Filters/CategoryFilters";
 import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
 import CartButton from "atoms/Buttons/CartButton";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
 
 // Main CaptainMenuPage component
 const CaptainMenuPage = () => {
-  // State management - organized by category
+  const navigate = useNavigate();
+  const { hotelName } = useParams();
+
+  // ✅ NEW: Use context hooks
+  const { currentUser, isAuthenticated } = useAuth();
+  const { selectedHotel, selectHotelById } = useHotelContext();
 
   // Cart state
   const [cartItems, setCartItems] = useState([]);
@@ -46,19 +70,70 @@ const CaptainMenuPage = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   // Data state
-  const [menus, setMenus] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [mainCategories, setMainCategories] = useState([]);
   const [specialCategoryCounts, setSpecialCategoryCounts] = useState({});
-
-  // UI state
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [retryCount, setRetryCount] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const navigate = useNavigate();
-  const { hotelName } = useParams();
+  // ✅ NEW: Get hotel ID for queries
+  const hotelId = useMemo(() => {
+    return selectedHotel?.id || hotelName;
+  }, [selectedHotel, hotelName]);
+
+  // ✅ ENHANCED: Use Firestore collection hooks for menu data
+  const {
+    documents: menus,
+    loading: menusLoading,
+    error: menusError,
+    connectionStatus: menusConnection,
+    refresh: refreshMenus,
+  } = useFirestoreCollection("menuItems", {
+    where: hotelId ? [["hotelId", "==", hotelId]] : null,
+    orderBy: [["menuName", "asc"]],
+    realtime: true,
+    enableRetry: true,
+  });
+
+  // ✅ ENHANCED: Use Firestore collection hooks for categories
+  const {
+    documents: categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useFirestoreCollection("categories", {
+    where: hotelId ? [["hotelId", "==", hotelId]] : null,
+    orderBy: [["categoryName", "asc"]],
+    realtime: true,
+  });
+
+  // ✅ ENHANCED: Use Firestore collection hooks for main categories
+  const { documents: mainCategories, loading: mainCategoriesLoading } =
+    useFirestoreCollection("mainCategories", {
+      where: hotelId ? [["hotelId", "==", hotelId]] : null,
+      orderBy: [["mainCategoryName", "asc"]],
+      realtime: true,
+    });
+
+  // ✅ NEW: Auto-select hotel if not selected
+  useEffect(() => {
+    if (hotelName && !selectedHotel) {
+      const loadHotelInfo = async () => {
+        try {
+          const hotelsRef = collection(db, "hotels");
+          const hotelQuery = query(hotelsRef, where("name", "==", hotelName));
+          const hotelsSnapshot = await getDocs(hotelQuery);
+
+          if (!hotelsSnapshot.empty) {
+            const hotelDoc = hotelsSnapshot.docs[0];
+            selectHotelById(hotelDoc.id);
+          }
+        } catch (error) {
+          console.error("Error loading hotel info:", error);
+        }
+      };
+
+      loadHotelInfo();
+    }
+  }, [hotelName, selectedHotel, selectHotelById]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -74,7 +149,7 @@ const CaptainMenuPage = () => {
     };
   }, []);
 
-  // Calculate special category counts
+  // ✅ ENHANCED: Calculate special category counts from Firestore data
   const calculateSpecialCategoryCounts = useCallback((menusData) => {
     const counts = {};
     specialCategories.forEach((category) => {
@@ -86,105 +161,40 @@ const CaptainMenuPage = () => {
     setSpecialCategoryCounts(counts);
   }, []);
 
-  // Fetch menu data
+  // Update special category counts when menus change
   useEffect(() => {
-    if (!hotelName) return;
+    if (menus && menus.length > 0) {
+      calculateSpecialCategoryCounts(menus);
+    } else {
+      setSpecialCategoryCounts({});
+    }
+  }, [menus, calculateSpecialCategoryCounts]);
 
-    setIsLoading(true);
-    setError("");
-
-    const menuRef = ref(db, `/hotels/${hotelName}/menu/`);
-    const unsubscribe = onValue(
-      menuRef,
-      (snapshot) => {
-        try {
-          const data = snapshot.val();
-          if (data !== null) {
-            const menusData = Object.entries(data).map(([key, value]) => ({
-              ...value,
-              id: key,
-            }));
-            setMenus(menusData);
-            calculateSpecialCategoryCounts(menusData);
-            setError("");
-          } else {
-            setMenus([]);
-            setSpecialCategoryCounts({});
-          }
-        } catch (err) {
-          console.error("Error processing menu data:", err);
-          setError("Failed to process menu data");
-        } finally {
-          setIsLoading(false);
-        }
-      },
-      (error) => {
-        console.error("Firebase error:", error);
-        setError("Failed to connect to database");
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [hotelName, retryCount, calculateSpecialCategoryCounts]);
-
-  // Fetch categories
-  useEffect(() => {
-    if (!hotelName) return;
-
-    const categoriesRef = ref(db, `/hotels/${hotelName}/categories/`);
-    const unsubscribe = onValue(categoriesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data !== null) {
-        const categoriesData = Object.values(data);
-        setCategories(categoriesData);
-      } else {
-        setCategories([]);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [hotelName]);
-
-  // Fetch main categories
-  useEffect(() => {
-    if (!hotelName) return;
-
-    const mainCategoriesRef = ref(db, `/hotels/${hotelName}/Maincategories/`);
-    const unsubscribe = onValue(mainCategoriesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data !== null) {
-        const mainCategoriesData = Object.values(data);
-        setMainCategories(mainCategoriesData);
-      } else {
-        setMainCategories([]);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [hotelName]);
-
-  // Memoized dynamic categories
+  // ✅ ENHANCED: Memoized dynamic categories from Firestore data
   const dynamicCategories = useMemo(() => {
     const allCategories = ["All"];
 
-    mainCategories.forEach((mainCategory) => {
-      if (
-        mainCategory.mainCategoryName &&
-        !allCategories.includes(mainCategory.mainCategoryName)
-      ) {
-        allCategories.push(mainCategory.mainCategoryName);
-      }
-    });
+    if (mainCategories && mainCategories.length > 0) {
+      mainCategories.forEach((mainCategory) => {
+        if (
+          mainCategory.mainCategoryName &&
+          !allCategories.includes(mainCategory.mainCategoryName)
+        ) {
+          allCategories.push(mainCategory.mainCategoryName);
+        }
+      });
+    }
 
-    categories.forEach((category) => {
-      if (
-        category.categoryName &&
-        !allCategories.includes(category.categoryName)
-      ) {
-        allCategories.push(category.categoryName);
-      }
-    });
+    if (categories && categories.length > 0) {
+      categories.forEach((category) => {
+        if (
+          category.categoryName &&
+          !allCategories.includes(category.categoryName)
+        ) {
+          allCategories.push(category.categoryName);
+        }
+      });
+    }
 
     return allCategories;
   }, [mainCategories, categories]);
@@ -196,8 +206,10 @@ const CaptainMenuPage = () => {
     );
   }, [specialCategoryCounts]);
 
-  // Memoized filtered and sorted items
+  // ✅ ENHANCED: Memoized filtered and sorted items with Firestore data
   const filteredMenuItems = useMemo(() => {
+    if (!menus || menus.length === 0) return [];
+
     const search = (searchTerm || "").toLowerCase();
 
     let filteredItems = menus.filter((menu) =>
@@ -279,6 +291,33 @@ const CaptainMenuPage = () => {
     },
     [cartItems]
   );
+
+  // ✅ NEW: Connection status indicator
+  const ConnectionStatusIndicator = () => {
+    if (menusConnection === "connecting") {
+      return (
+        <div className="flex items-center gap-2 text-yellow-600 text-sm mb-2">
+          <Wifi className="animate-pulse" size={16} />
+          <span>Loading menu...</span>
+        </div>
+      );
+    } else if (menusConnection === "error") {
+      return (
+        <div className="flex items-center gap-2 text-red-600 text-sm mb-2">
+          <WifiOff size={16} />
+          <span>Connection Error</span>
+        </div>
+      );
+    } else if (menusConnection === "connected" && menus) {
+      return (
+        <div className="flex items-center gap-2 text-green-600 text-sm mb-2">
+          <CheckCircle size={16} />
+          <span>Menu loaded ({menus.length} items)</span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Cart management
   const handleAddToCart = useCallback((item, quantityChange) => {
@@ -387,9 +426,17 @@ const CaptainMenuPage = () => {
     setOrderSuccessData(null);
   }, []);
 
-  const handleRetry = useCallback(() => {
-    setRetryCount((prev) => prev + 1);
-  }, []);
+  // ✅ NEW: Refresh handler
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshMenus();
+    } catch (error) {
+      console.error("Error refreshing menu:", error);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
+  }, [refreshMenus]);
 
   // Check if there are active filters
   const hasActiveFilters =
@@ -397,9 +444,22 @@ const CaptainMenuPage = () => {
     selectedCategory !== "All" ||
     selectedMainCategory !== "";
 
+  // ✅ ENHANCED: Loading and error states
+  const isLoading = menusLoading || categoriesLoading || mainCategoriesLoading;
+  const error = menusError || categoriesError;
+
   // Error state
-  if (error && !isLoading) {
-    return <ErrorState error={error} onRetry={handleRetry} />;
+  if (error && !isLoading && !menus?.length) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <ErrorState
+          error={error}
+          onRetry={handleRefresh}
+          title="Menu Loading Error"
+          description="Unable to load the restaurant menu. Please check your connection and try again."
+        />
+      </div>
+    );
   }
 
   // Page routing
@@ -436,7 +496,26 @@ const CaptainMenuPage = () => {
   // Main menu page render
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Connection Status */}
+      {/* ✅ ENHANCED: Connection Status */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <ConnectionStatusIndicator />
+          {selectedHotel && (
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">
+                {selectedHotel.businessName || selectedHotel.name}
+              </span>
+            </div>
+          )}
+          {isRefreshing && (
+            <div className="flex items-center gap-2 text-blue-600 text-sm">
+              <RefreshCw className="animate-spin" size={16} />
+              <span>Refreshing...</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       <ConnectionStatus isOnline={isOnline} />
 
       <div className="px-4 py-3">
@@ -446,6 +525,7 @@ const CaptainMenuPage = () => {
             searchTerm={searchTerm}
             handleSearch={handleSearch}
             handleSort={handleSort}
+            disabled={isLoading}
           />
         </div>
 
@@ -453,7 +533,8 @@ const CaptainMenuPage = () => {
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+            disabled={isLoading}
+            className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50"
           >
             <Filter size={16} />
             Filters
@@ -464,14 +545,28 @@ const CaptainMenuPage = () => {
             )}
           </button>
 
-          {hasActiveFilters && (
+          <div className="flex items-center gap-2">
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
+              >
+                Clear All
+              </button>
+            )}
+
             <button
-              onClick={clearAllFilters}
-              className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
+              onClick={handleRefresh}
+              disabled={isRefreshing || isLoading}
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              Clear All
+              <RefreshCw
+                size={12}
+                className={isRefreshing ? "animate-spin" : ""}
+              />
+              Refresh
             </button>
-          )}
+          </div>
         </div>
 
         {/* Filters Section */}
@@ -486,6 +581,7 @@ const CaptainMenuPage = () => {
               categories={dynamicCategories}
               selectedCategory={selectedCategory}
               onCategorySelect={handleCategoryFilter}
+              loading={categoriesLoading || mainCategoriesLoading}
             />
           </div>
 
@@ -497,31 +593,64 @@ const CaptainMenuPage = () => {
                 selectedFilters={selectedSpecialFilters}
                 counts={specialCategoryCounts}
                 onToggle={handleSpecialFilterToggle}
+                loading={isLoading}
               />
             </div>
           )}
         </div>
 
-        {/* Menu Items Grid */}
+        {/* ✅ ENHANCED: Menu Items Grid with better loading states */}
         <div className="p-4">
           {isLoading ? (
-            <EmptyState isLoading={true} />
+            <div className="flex items-center justify-center py-12">
+              <LoadingSpinner size="lg" text="Loading restaurant menu..." />
+            </div>
           ) : filteredMenuItems.length === 0 ? (
             <EmptyState
               hasFilters={hasActiveFilters}
               onClearFilters={clearAllFilters}
+              icon={Search}
+              title={
+                hasActiveFilters
+                  ? "No items match your filters"
+                  : "Menu not available"
+              }
+              description={
+                hasActiveFilters
+                  ? "Try adjusting your search or filters to find items"
+                  : "The restaurant menu is currently not available"
+              }
+              actionLabel={hasActiveFilters ? "Clear Filters" : "Refresh Menu"}
+              onAction={hasActiveFilters ? clearAllFilters : handleRefresh}
             />
           ) : (
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-              {filteredMenuItems.map((item) => (
-                <CaptainMenuCard
-                  key={item.id}
-                  item={item}
-                  onAddToCart={handleAddToCart}
-                  quantity={getItemQuantityInCart(item.id)}
-                />
-              ))}
-            </div>
+            <>
+              {/* ✅ NEW: Results summary */}
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredMenuItems.length}
+                  {filteredMenuItems.length === 1 ? " item" : " items"}
+                  {hasActiveFilters &&
+                    ` (filtered from ${menus?.length || 0} total)`}
+                </p>
+                {cartCalculations.totalItems > 0 && (
+                  <p className="text-sm text-green-600 font-medium">
+                    {cartCalculations.totalItems} items in cart
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+                {filteredMenuItems.map((item) => (
+                  <CaptainMenuCard
+                    key={item.id}
+                    item={item}
+                    onAddToCart={handleAddToCart}
+                    quantity={getItemQuantityInCart(item.id)}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 

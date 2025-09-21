@@ -1,6 +1,22 @@
+// src/services/offerService.js
 import { db } from "../firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+// ✅ FIRESTORE IMPORTS (replacing Realtime Database)
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+  writeBatch,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import {
@@ -10,13 +26,13 @@ import {
 } from "../../validation/offeresValidation";
 
 export const offerServices = {
-  // Get current admin ID
+  // Get current admin ID (unchanged)
   getCurrentAdminId: () => {
     const auth = getAuth();
     return auth.currentUser?.uid;
   },
 
-  // Check if admin has permission for the hotel
+  // ✅ FIRESTORE: Check if admin has permission for the hotel
   checkAdminPermission: async (hotelName) => {
     try {
       const adminId = offerServices.getCurrentAdminId();
@@ -24,55 +40,53 @@ export const offerServices = {
         throw new Error("Admin not authenticated");
       }
 
-      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
-          (snapshot) => snapshot.val()
-        ),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
-          snapshot.val()
-        ),
+      // Get admin and hotel documents
+      const [adminDoc, hotelDoc] = await Promise.all([
+        getDoc(doc(db, `admins/${adminId}`)),
+        getDoc(doc(db, `hotels/${hotelName}/info`)),
       ]);
 
-      return adminHotelUuid === generalHotelUuid;
+      if (!adminDoc.exists() || !hotelDoc.exists()) {
+        return false;
+      }
+
+      const adminData = adminDoc.data();
+      const hotelData = hotelDoc.data();
+
+      return adminData?.hotels?.[hotelName]?.hotelUuid === hotelData?.uuid;
     } catch (error) {
       console.error("Error checking permission:", error);
       return false;
     }
   },
 
-  // Subscribe to offers changes with real-time updates
+  // ✅ FIRESTORE: Subscribe to offers changes with real-time updates
   subscribeToOffers: (hotelName, callback, errorCallback = null) => {
     if (!hotelName) {
       callback([]);
       return () => {};
     }
 
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/offers/`),
+    const offersRef = collection(db, `hotels/${hotelName}/offers`);
+    const q = query(offersRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
       (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const offersArray = Object.values(data).map((offer, index) => ({
-            ...offer,
-            srNo: index + 1,
-            isExpired: isOfferExpired(offer),
-            // Calculate status display
-            statusDisplay: offer.isActive
-              ? isOfferExpired(offer)
-                ? "Expired"
-                : "Active"
-              : "Inactive",
-          }));
+        const offersArray = snapshot.docs.map((doc, index) => ({
+          id: doc.id,
+          ...doc.data(),
+          srNo: index + 1,
+          isExpired: isOfferExpired(doc.data()),
+          // Calculate status display
+          statusDisplay: doc.data().isActive
+            ? isOfferExpired(doc.data())
+              ? "Expired"
+              : "Active"
+            : "Inactive",
+        }));
 
-          // Sort by creation date (newest first)
-          offersArray.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          );
-
-          callback(offersArray);
-        } else {
-          callback([]);
-        }
+        callback(offersArray);
       },
       (error) => {
         console.error("Error fetching offers:", error);
@@ -90,7 +104,7 @@ export const offerServices = {
     return unsubscribe;
   },
 
-  // Sort offers based on different criteria
+  // Sort offers based on different criteria (unchanged - client-side sorting)
   sortOffers: (offers, sortOrder = "default") => {
     if (!Array.isArray(offers)) return [];
 
@@ -108,15 +122,27 @@ export const offerServices = {
         );
 
       case "date_asc":
-        return sortedOffers.sort(
-          (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-        );
+        return sortedOffers.sort((a, b) => {
+          const dateA = a.createdAt?.toDate
+            ? a.createdAt.toDate()
+            : new Date(a.createdAt || 0);
+          const dateB = b.createdAt?.toDate
+            ? b.createdAt.toDate()
+            : new Date(b.createdAt || 0);
+          return dateA - dateB;
+        });
 
       case "date_desc":
       case "newest":
-        return sortedOffers.sort(
-          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-        );
+        return sortedOffers.sort((a, b) => {
+          const dateA = a.createdAt?.toDate
+            ? a.createdAt.toDate()
+            : new Date(a.createdAt || 0);
+          const dateB = b.createdAt?.toDate
+            ? b.createdAt.toDate()
+            : new Date(b.createdAt || 0);
+          return dateB - dateA;
+        });
 
       case "expiry_asc":
         return sortedOffers.sort((a, b) => {
@@ -161,14 +187,19 @@ export const offerServices = {
 
       case "default":
       default:
-        // Default sort by creation date (newest first)
-        return sortedOffers.sort(
-          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-        );
+        return sortedOffers.sort((a, b) => {
+          const dateA = a.createdAt?.toDate
+            ? a.createdAt.toDate()
+            : new Date(a.createdAt || 0);
+          const dateB = b.createdAt?.toDate
+            ? b.createdAt.toDate()
+            : new Date(b.createdAt || 0);
+          return dateB - dateA;
+        });
     }
   },
 
-  // Add new offer
+  // ✅ FIRESTORE: Add new offer
   addOffer: async (hotelName, offerData, existingOffers = []) => {
     try {
       // Validate offer data
@@ -191,14 +222,19 @@ export const offerServices = {
       const offerRecord = {
         ...sanitizedData,
         offerId,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         createdBy: offerServices.getCurrentAdminId(),
         currentUsageCount: 0,
         isExpired: false,
+        hotelName: hotelName,
       };
 
-      // Save to database
-      await set(ref(db, `/hotels/${hotelName}/offers/${offerId}`), offerRecord);
+      // ✅ FIRESTORE: Save to database
+      await setDoc(
+        doc(db, `hotels/${hotelName}/offers/${offerId}`),
+        offerRecord
+      );
 
       toast.success("Offer added successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -214,7 +250,7 @@ export const offerServices = {
     }
   },
 
-  // Update existing offer
+  // ✅ FIRESTORE: Update existing offer
   updateOffer: async (hotelName, offerId, offerData, existingOffers = []) => {
     try {
       // Validate offer data
@@ -242,28 +278,31 @@ export const offerServices = {
         return false;
       }
 
-      // Get existing offer data to preserve usage count
-      const existingOfferSnapshot = await get(
-        ref(db, `/hotels/${hotelName}/offers/${offerId}`)
+      // ✅ FIRESTORE: Get existing offer data to preserve usage count
+      const existingOfferDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/offers/${offerId}`)
       );
-      const existingOffer = existingOfferSnapshot.val();
+      const existingOffer = existingOfferDoc.exists()
+        ? existingOfferDoc.data()
+        : {};
 
       // Sanitize and prepare updated data
       const sanitizedData = sanitizeOfferData(offerData);
       const updateData = {
         ...sanitizedData,
         offerId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
         updatedBy: offerServices.getCurrentAdminId(),
         // Preserve existing usage data
         currentUsageCount: existingOffer?.currentUsageCount || 0,
-        createdAt: existingOffer?.createdAt,
+        createdAt: existingOffer?.createdAt || serverTimestamp(),
         createdBy: existingOffer?.createdBy,
+        hotelName: hotelName,
       };
 
-      // Update in database
-      await update(
-        ref(db, `/hotels/${hotelName}/offers/${offerId}`),
+      // ✅ FIRESTORE: Update in database
+      await updateDoc(
+        doc(db, `hotels/${hotelName}/offers/${offerId}`),
         updateData
       );
 
@@ -281,7 +320,7 @@ export const offerServices = {
     }
   },
 
-  // Delete offer
+  // ✅ FIRESTORE: Delete offer
   deleteOffer: async (hotelName, offer) => {
     try {
       // Check permissions
@@ -313,8 +352,8 @@ export const offerServices = {
         }
       }
 
-      // Delete from database
-      await remove(ref(db, `/hotels/${hotelName}/offers/${offer.offerId}`));
+      // ✅ FIRESTORE: Delete from database
+      await deleteDoc(doc(db, `hotels/${hotelName}/offers/${offer.offerId}`));
 
       toast.success("Offer deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -330,7 +369,7 @@ export const offerServices = {
     }
   },
 
-  // Toggle offer status (active/inactive)
+  // ✅ FIRESTORE: Toggle offer status (active/inactive)
   toggleOfferStatus: async (hotelName, offer) => {
     try {
       // Check permissions
@@ -355,10 +394,10 @@ export const offerServices = {
         return false;
       }
 
-      // Update status in database
-      await update(ref(db, `/hotels/${hotelName}/offers/${offer.offerId}`), {
+      // ✅ FIRESTORE: Update status in database
+      await updateDoc(doc(db, `hotels/${hotelName}/offers/${offer.offerId}`), {
         isActive: newStatus,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
         updatedBy: offerServices.getCurrentAdminId(),
       });
 
@@ -376,7 +415,7 @@ export const offerServices = {
     }
   },
 
-  // Prepare offer for editing
+  // Prepare offer for editing (unchanged)
   prepareForEdit: async (hotelName, offer) => {
     try {
       const hasPermission = await offerServices.checkAdminPermission(hotelName);
@@ -399,7 +438,7 @@ export const offerServices = {
     }
   },
 
-  // Filter offers based on search term
+  // Filter offers based on search term (unchanged - client-side filtering)
   filterOffers: (offers, searchTerm) => {
     if (!searchTerm.trim()) {
       return offers.map((offer, index) => ({
@@ -424,7 +463,7 @@ export const offerServices = {
       }));
   },
 
-  // Bulk operations for offers
+  // ✅ FIRESTORE: Bulk operations for offers
   bulkUpdateOffers: async (hotelName, offerIds, updateData) => {
     try {
       const hasPermission = await offerServices.checkAdminPermission(hotelName);
@@ -440,20 +479,20 @@ export const offerServices = {
       );
       if (!confirmBulk) return false;
 
-      const updates = {};
-      const timestamp = new Date().toISOString();
+      // ✅ FIRESTORE: Use batch for multiple updates
+      const batch = writeBatch(db);
       const adminId = offerServices.getCurrentAdminId();
 
       offerIds.forEach((offerId) => {
-        Object.keys(updateData).forEach((key) => {
-          updates[`/hotels/${hotelName}/offers/${offerId}/${key}`] =
-            updateData[key];
+        const offerRef = doc(db, `hotels/${hotelName}/offers/${offerId}`);
+        batch.update(offerRef, {
+          ...updateData,
+          updatedAt: serverTimestamp(),
+          updatedBy: adminId,
         });
-        updates[`/hotels/${hotelName}/offers/${offerId}/updatedAt`] = timestamp;
-        updates[`/hotels/${hotelName}/offers/${offerId}/updatedBy`] = adminId;
       });
 
-      await update(ref(db), updates);
+      await batch.commit();
 
       toast.success(`${offerIds.length} offers updated successfully!`);
       return true;
@@ -464,7 +503,7 @@ export const offerServices = {
     }
   },
 
-  // Duplicate an existing offer
+  // ✅ FIRESTORE: Duplicate an existing offer
   duplicateOffer: async (hotelName, offer) => {
     try {
       const hasPermission = await offerServices.checkAdminPermission(hotelName);
@@ -484,18 +523,19 @@ export const offerServices = {
         offerId: newOfferId,
         offerName: `${offer.offerName} (Copy)`,
         offerCode: `${offer.offerCode}_COPY_${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         createdBy: offerServices.getCurrentAdminId(),
         currentUsageCount: 0,
         isActive: false, // Set as inactive by default
+        hotelName: hotelName,
       };
 
       // Remove fields that shouldn't be duplicated
-      delete duplicatedOffer.updatedAt;
-      delete duplicatedOffer.updatedBy;
+      delete duplicatedOffer.id;
 
-      await set(
-        ref(db, `/hotels/${hotelName}/offers/${newOfferId}`),
+      await setDoc(
+        doc(db, `hotels/${hotelName}/offers/${newOfferId}`),
         duplicatedOffer
       );
 
@@ -508,12 +548,14 @@ export const offerServices = {
     }
   },
 
-  // Get offer statistics
+  // ✅ FIRESTORE: Get offer statistics
   getOfferStats: async (hotelName) => {
     try {
-      const offerSnapshot = await get(ref(db, `/hotels/${hotelName}/offers`));
+      const offerSnapshot = await getDocs(
+        collection(db, `hotels/${hotelName}/offers`)
+      );
 
-      if (!offerSnapshot.exists()) {
+      if (offerSnapshot.empty) {
         return {
           totalOffers: 0,
           activeOffers: 0,
@@ -523,8 +565,7 @@ export const offerServices = {
         };
       }
 
-      const offers = Object.values(offerSnapshot.val());
-      const now = new Date();
+      const offers = offerSnapshot.docs.map((doc) => doc.data());
 
       const stats = {
         totalOffers: offers.length,
@@ -553,19 +594,20 @@ export const offerServices = {
     }
   },
 
-  // Increment offer usage count
+  // ✅ FIRESTORE: Increment offer usage count
   incrementOfferUsage: async (hotelName, offerId) => {
     try {
-      const offerRef = ref(db, `/hotels/${hotelName}/offers/${offerId}`);
-      const offerSnapshot = await get(offerRef);
+      const offerDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/offers/${offerId}`)
+      );
 
-      if (offerSnapshot.exists()) {
-        const offer = offerSnapshot.val();
+      if (offerDoc.exists()) {
+        const offer = offerDoc.data();
         const newUsageCount = (offer.currentUsageCount || 0) + 1;
 
-        await update(offerRef, {
+        await updateDoc(doc(db, `hotels/${hotelName}/offers/${offerId}`), {
           currentUsageCount: newUsageCount,
-          lastUsedAt: new Date().toISOString(),
+          lastUsedAt: serverTimestamp(),
         });
 
         return true;
@@ -577,22 +619,24 @@ export const offerServices = {
     }
   },
 
-  // Get active and valid offers for customers
+  // ✅ FIRESTORE: Get active and valid offers for customers
   getAvailableOffers: async (hotelName, orderAmount = 0) => {
     try {
-      const offerSnapshot = await get(ref(db, `/hotels/${hotelName}/offers`));
+      const offerSnapshot = await getDocs(
+        query(
+          collection(db, `hotels/${hotelName}/offers`),
+          where("isActive", "==", true)
+        )
+      );
 
-      if (!offerSnapshot.exists()) {
+      if (offerSnapshot.empty) {
         return [];
       }
 
-      const offers = Object.values(offerSnapshot.val());
+      const offers = offerSnapshot.docs.map((doc) => doc.data());
       const now = new Date();
 
       return offers.filter((offer) => {
-        // Check if offer is active
-        if (!offer.isActive) return false;
-
         // Check if offer is expired
         if (isOfferExpired(offer)) return false;
 
@@ -624,7 +668,7 @@ export const offerServices = {
     }
   },
 
-  // Apply offer to order (calculate discount)
+  // Apply offer to order (calculate discount) - unchanged
   applyOfferToOrder: (offer, orderData) => {
     try {
       let discountAmount = 0;
@@ -645,7 +689,6 @@ export const offerServices = {
 
         case "buy_one_get_one":
           // Implementation depends on your business logic
-          // This is a simplified version
           discountAmount = items.reduce((total, item) => {
             const itemDiscount = Math.floor(item.quantity / 2) * item.price;
             return total + itemDiscount;
@@ -676,27 +719,28 @@ export const offerServices = {
     }
   },
 
-  // Check if customer can use offer (usage per customer limit)
+  // ✅ FIRESTORE: Check if customer can use offer (usage per customer limit)
   canCustomerUseOffer: async (hotelName, offerId, customerId) => {
     try {
       if (!customerId) return true; // Allow for guest users
 
       // Get customer's usage history for this offer
-      const usageRef = ref(
-        db,
-        `/hotels/${hotelName}/offerUsage/${offerId}/${customerId}`
+      const usageDoc = await getDoc(
+        doc(
+          db,
+          `hotels/${hotelName}/offerUsage/${offerId}/customers/${customerId}`
+        )
       );
-      const usageSnapshot = await get(usageRef);
 
-      if (!usageSnapshot.exists()) {
+      if (!usageDoc.exists()) {
         return true; // Customer hasn't used this offer
       }
 
-      const usage = usageSnapshot.val();
-      const offer = await get(
-        ref(db, `/hotels/${hotelName}/offers/${offerId}`)
+      const usage = usageDoc.data();
+      const offerDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/offers/${offerId}`)
       );
-      const offerData = offer.val();
+      const offerData = offerDoc.data();
 
       if (!offerData.usagePerCustomer) {
         return true; // No per-customer limit
@@ -709,35 +753,35 @@ export const offerServices = {
     }
   },
 
-  // Record offer usage by customer
+  // ✅ FIRESTORE: Record offer usage by customer
   recordOfferUsage: async (hotelName, offerId, customerId, orderData) => {
     try {
       if (!customerId) return; // Skip for guest users
 
-      const usageRef = ref(
+      const usageDocRef = doc(
         db,
-        `/hotels/${hotelName}/offerUsage/${offerId}/${customerId}`
+        `hotels/${hotelName}/offerUsage/${offerId}/customers/${customerId}`
       );
-      const usageSnapshot = await get(usageRef);
+      const usageDoc = await getDoc(usageDocRef);
 
       let usageData;
-      if (usageSnapshot.exists()) {
-        const existing = usageSnapshot.val();
+      if (usageDoc.exists()) {
+        const existing = usageDoc.data();
         usageData = {
           count: existing.count + 1,
-          lastUsed: new Date().toISOString(),
+          lastUsed: serverTimestamp(),
           totalSavings: (existing.totalSavings || 0) + orderData.discountAmount,
         };
       } else {
         usageData = {
           count: 1,
-          firstUsed: new Date().toISOString(),
-          lastUsed: new Date().toISOString(),
+          firstUsed: serverTimestamp(),
+          lastUsed: serverTimestamp(),
           totalSavings: orderData.discountAmount,
         };
       }
 
-      await set(usageRef, usageData);
+      await setDoc(usageDocRef, usageData);
 
       // Also increment the global usage count
       await offerServices.incrementOfferUsage(hotelName, offerId);
@@ -746,12 +790,12 @@ export const offerServices = {
     }
   },
 
-  // Get offers by type
+  // Get offers by type (unchanged - client-side filtering)
   getOffersByType: (offers, offerType) => {
     return offers.filter((offer) => offer.offerType === offerType);
   },
 
-  // Get offers expiring soon (within next 7 days)
+  // Get offers expiring soon (unchanged - client-side filtering)
   getOffersExpiringSoon: (offers) => {
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
@@ -764,7 +808,7 @@ export const offerServices = {
     });
   },
 
-  // Bulk update offer status
+  // ✅ FIRESTORE: Bulk update offer status
   bulkUpdateOfferStatus: async (hotelName, offerIds, isActive) => {
     try {
       const hasPermission = await offerServices.checkAdminPermission(hotelName);
@@ -782,17 +826,19 @@ export const offerServices = {
 
       if (!confirmBulk) return false;
 
-      const updates = {};
-      const timestamp = new Date().toISOString();
+      const batch = writeBatch(db);
       const adminId = offerServices.getCurrentAdminId();
 
       offerIds.forEach((offerId) => {
-        updates[`/hotels/${hotelName}/offers/${offerId}/isActive`] = isActive;
-        updates[`/hotels/${hotelName}/offers/${offerId}/updatedAt`] = timestamp;
-        updates[`/hotels/${hotelName}/offers/${offerId}/updatedBy`] = adminId;
+        const offerRef = doc(db, `hotels/${hotelName}/offers/${offerId}`);
+        batch.update(offerRef, {
+          isActive: isActive,
+          updatedAt: serverTimestamp(),
+          updatedBy: adminId,
+        });
       });
 
-      await update(ref(db), updates);
+      await batch.commit();
 
       toast.success(`${offerIds.length} offers ${statusText}d successfully!`);
       return true;
@@ -803,20 +849,26 @@ export const offerServices = {
     }
   },
 
-  // Get offer usage analytics
+  // ✅ FIRESTORE: Get offer usage analytics
   getOfferAnalytics: async (hotelName, offerId) => {
     try {
-      const [offerSnapshot, usageSnapshot] = await Promise.all([
-        get(ref(db, `/hotels/${hotelName}/offers/${offerId}`)),
-        get(ref(db, `/hotels/${hotelName}/offerUsage/${offerId}`)),
+      const [offerDoc, usageSnapshot] = await Promise.all([
+        getDoc(doc(db, `hotels/${hotelName}/offers/${offerId}`)),
+        getDocs(
+          collection(db, `hotels/${hotelName}/offerUsage/${offerId}/customers`)
+        ),
       ]);
 
-      if (!offerSnapshot.exists()) {
+      if (!offerDoc.exists()) {
         return null;
       }
 
-      const offer = offerSnapshot.val();
-      const usageData = usageSnapshot.exists() ? usageSnapshot.val() : {};
+      const offer = offerDoc.data();
+      const usageData = {};
+
+      usageSnapshot.docs.forEach((doc) => {
+        usageData[doc.id] = doc.data();
+      });
 
       const analytics = {
         offer,
@@ -839,4 +891,31 @@ export const offerServices = {
       return null;
     }
   },
+
+  // ✅ FIRESTORE: Get all offers for a hotel
+  getAllOffers: async (hotelName) => {
+    try {
+      const offerSnapshot = await getDocs(
+        collection(db, `hotels/${hotelName}/offers`)
+      );
+
+      return offerSnapshot.docs.map((doc, index) => ({
+        id: doc.id,
+        ...doc.data(),
+        srNo: index + 1,
+        isExpired: isOfferExpired(doc.data()),
+        statusDisplay: doc.data().isActive
+          ? isOfferExpired(doc.data())
+            ? "Expired"
+            : "Active"
+          : "Inactive",
+      }));
+    } catch (error) {
+      console.error("Error fetching all offers:", error);
+      return [];
+    }
+  },
 };
+
+// Default export for backward compatibility
+export default offerServices;

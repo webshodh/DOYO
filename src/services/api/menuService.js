@@ -1,6 +1,19 @@
+// src/services/menuService.js
 import { db, storage } from "../firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, update, get, remove } from "firebase/database";
+// ✅ FIRESTORE IMPORTS (replacing Realtime Database)
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  serverTimestamp,
+} from "firebase/firestore";
 import {
   ref as storageRef,
   uploadBytes,
@@ -13,18 +26,25 @@ import {
 } from "../../validation/menuValidation";
 
 export const menuServices = {
-  // Check if user has permission to manage hotel menus
+  // ✅ FIRESTORE: Check if user has permission to manage hotel menus
   checkUserPermission: async (currentAdminId, hotelName) => {
     try {
-      const adminUuidSnapshot = await get(
-        ref(db, `admins/${currentAdminId}/hotels/${hotelName}/uuid`)
-      );
-      const generalUuidSnapshot = await get(
-        ref(db, `hotels/${hotelName}/uuid`)
-      );
+      // Get admin and hotel documents
+      const [adminDoc, hotelDoc] = await Promise.all([
+        getDoc(doc(db, `admins/${currentAdminId}`)),
+        getDoc(doc(db, `hotels/${hotelName}/info`)),
+      ]);
 
-      const adminHotelUuid = adminUuidSnapshot.val();
-      const generalHotelUuid = generalUuidSnapshot.val();
+      if (!adminDoc.exists() || !hotelDoc.exists()) {
+        return false;
+      }
+
+      const adminData = adminDoc.data();
+      const hotelData = hotelDoc.data();
+
+      // Check if admin has this hotel assigned
+      const adminHotelUuid = adminData.hotels?.[hotelName]?.hotelUuid;
+      const generalHotelUuid = hotelData.uuid;
 
       return adminHotelUuid === generalHotelUuid;
     } catch (error) {
@@ -33,7 +53,7 @@ export const menuServices = {
     }
   },
 
-  // Upload image to Firebase Storage
+  // Upload image to Firebase Storage (unchanged - uses Storage)
   uploadMenuImage: async (file, hotelName) => {
     if (!file) return "";
 
@@ -47,7 +67,7 @@ export const menuServices = {
     }
   },
 
-  // Add new menu to database
+  // ✅ FIRESTORE: Add new menu to database
   addMenu: async (menuData, hotelName, currentAdminId) => {
     try {
       // Validate form data
@@ -139,19 +159,29 @@ export const menuServices = {
         isKidsFriendly: Boolean(menuData.isKidsFriendly),
         isBeverageAlcoholic: Boolean(menuData.isBeverageAlcoholic),
 
+        // Special categories for easier filtering
+        isVeg: Boolean(menuData.isVeg),
+        isNonVeg: Boolean(menuData.isNonVeg),
+        isSpicy: Boolean(menuData.isSpicy),
+        isNew: Boolean(menuData.isNew),
+        isHealthy: Boolean(menuData.isHealthy),
+        isJainFood: Boolean(menuData.isJainFood),
+
         // Allergens (Array)
         allergens: Array.isArray(menuData.allergens) ? menuData.allergens : [],
 
         // System fields
         uuid: uid(),
         imageUrl: imageUrl,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: currentAdminId,
+        hotelName: hotelName,
       };
 
-      // Save to database
-      await set(
-        ref(db, `/hotels/${hotelName}/menu/${newMenuData.uuid}`),
+      // ✅ FIRESTORE: Save to database
+      await setDoc(
+        doc(db, `hotels/${hotelName}/menu/${newMenuData.uuid}`),
         newMenuData
       );
 
@@ -169,7 +199,7 @@ export const menuServices = {
     }
   },
 
-  // Update existing menu
+  // ✅ FIRESTORE: Update existing menu
   updateMenu: async (menuData, menuId, hotelName, currentAdminId) => {
     try {
       // Validate form data
@@ -192,8 +222,20 @@ export const menuServices = {
         return false;
       }
 
+      // Get existing menu data to preserve createdAt
+      const existingMenuDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/menu/${menuId}`)
+      );
+      const existingData = existingMenuDoc.exists()
+        ? existingMenuDoc.data()
+        : {};
+
       // Upload new image if provided
-      let imageUrl = menuData.existingImageUrl || menuData.imageUrl || "";
+      let imageUrl =
+        menuData.existingImageUrl ||
+        menuData.imageUrl ||
+        existingData.imageUrl ||
+        "";
       if (menuData.file) {
         imageUrl = await menuServices.uploadMenuImage(menuData.file, hotelName);
       }
@@ -261,19 +303,29 @@ export const menuServices = {
         isKidsFriendly: Boolean(menuData.isKidsFriendly),
         isBeverageAlcoholic: Boolean(menuData.isBeverageAlcoholic),
 
+        // Special categories for easier filtering
+        isVeg: Boolean(menuData.isVeg),
+        isNonVeg: Boolean(menuData.isNonVeg),
+        isSpicy: Boolean(menuData.isSpicy),
+        isNew: Boolean(menuData.isNew),
+        isHealthy: Boolean(menuData.isHealthy),
+        isJainFood: Boolean(menuData.isJainFood),
+
         // Allergens (Array)
         allergens: Array.isArray(menuData.allergens) ? menuData.allergens : [],
 
         // System fields
         uuid: menuId,
         imageUrl: imageUrl,
-        createdAt: menuData.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: existingData.createdAt || serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updatedBy: currentAdminId,
+        hotelName: hotelName,
       };
 
-      // Update in database
-      await update(
-        ref(db, `/hotels/${hotelName}/menu/${menuId}`),
+      // ✅ FIRESTORE: Update in database
+      await updateDoc(
+        doc(db, `hotels/${hotelName}/menu/${menuId}`),
         updatedMenuData
       );
 
@@ -291,7 +343,7 @@ export const menuServices = {
     }
   },
 
-  // Delete menu
+  // ✅ FIRESTORE: Delete menu
   deleteMenu: async (menuId, hotelName) => {
     try {
       const confirmDelete = window.confirm(
@@ -299,7 +351,7 @@ export const menuServices = {
       );
 
       if (confirmDelete) {
-        await remove(ref(db, `/hotels/${hotelName}/menu/${menuId}`));
+        await deleteDoc(doc(db, `hotels/${hotelName}/menu/${menuId}`));
         toast.success("Menu Deleted Successfully!", {
           position: toast.POSITION.TOP_RIGHT,
         });
@@ -316,7 +368,7 @@ export const menuServices = {
     }
   },
 
-  // Filter and sort menus
+  // Filter and sort menus (unchanged - client-side filtering)
   filterAndSortMenus: (menus, searchTerm, selectedCategory, sortOrder) => {
     let filteredItems = menus.filter((menu) =>
       menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -342,7 +394,7 @@ export const menuServices = {
     return filteredItems;
   },
 
-  // Calculate menu counts by category
+  // Calculate menu counts by category (unchanged - client-side calculation)
   calculateMenuCountsByCategory: (menus) => {
     const countsByCategory = {};
     menus.forEach((menu) => {
@@ -351,4 +403,133 @@ export const menuServices = {
     });
     return countsByCategory;
   },
+
+  // ✅ FIRESTORE: Get all menus for a hotel
+  getAllMenus: async (hotelName) => {
+    try {
+      const menuSnapshot = await getDocs(
+        collection(db, `hotels/${hotelName}/menu`)
+      );
+
+      if (!menuSnapshot.empty) {
+        return menuSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Error fetching menus:", error);
+      return [];
+    }
+  },
+
+  // ✅ FIRESTORE: Get menu by ID
+  getMenuById: async (hotelName, menuId) => {
+    try {
+      const menuDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/menu/${menuId}`)
+      );
+
+      if (menuDoc.exists()) {
+        return {
+          id: menuDoc.id,
+          ...menuDoc.data(),
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error fetching menu by ID:", error);
+      return null;
+    }
+  },
+
+  // ✅ FIRESTORE: Get menus by category
+  getMenusByCategory: async (hotelName, categoryName) => {
+    try {
+      const menuQuery = query(
+        collection(db, `hotels/${hotelName}/menu`),
+        where("menuCategory", "==", categoryName)
+      );
+      const menuSnapshot = await getDocs(menuQuery);
+
+      return menuSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error("Error fetching menus by category:", error);
+      return [];
+    }
+  },
+
+  // ✅ FIRESTORE: Toggle menu availability
+  toggleMenuAvailability: async (menuId, hotelName, currentAvailability) => {
+    try {
+      const newAvailability =
+        currentAvailability === "Available" ? "Unavailable" : "Available";
+
+      await updateDoc(doc(db, `hotels/${hotelName}/menu/${menuId}`), {
+        availability: newAvailability,
+        updatedAt: serverTimestamp(),
+      });
+
+      toast.success(`Menu availability changed to ${newAvailability}`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error toggling menu availability:", error);
+      toast.error("Error updating menu availability", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+  },
+
+  // ✅ FIRESTORE: Get menu statistics
+  getMenuStats: async (hotelName) => {
+    try {
+      const menuSnapshot = await getDocs(
+        collection(db, `hotels/${hotelName}/menu`)
+      );
+
+      if (menuSnapshot.empty) {
+        return {
+          totalMenus: 0,
+          availableMenus: 0,
+          unavailableMenus: 0,
+          categoryCounts: {},
+        };
+      }
+
+      const menus = menuSnapshot.docs.map((doc) => doc.data());
+      const categoryCounts = {};
+
+      menus.forEach((menu) => {
+        if (menu.menuCategory) {
+          categoryCounts[menu.menuCategory] =
+            (categoryCounts[menu.menuCategory] || 0) + 1;
+        }
+      });
+
+      return {
+        totalMenus: menus.length,
+        availableMenus: menus.filter((m) => m.availability === "Available")
+          .length,
+        unavailableMenus: menus.filter((m) => m.availability === "Unavailable")
+          .length,
+        categoryCounts,
+      };
+    } catch (error) {
+      console.error("Error getting menu stats:", error);
+      return null;
+    }
+  },
 };
+
+// Default export for backward compatibility
+export default menuServices;

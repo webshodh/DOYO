@@ -1,21 +1,33 @@
+// src/services/hotelServices.js
 import { db } from "../firebase/firebaseConfig";
 import { v4 as uuidv4 } from "uuid";
-import { set, ref, get } from "firebase/database";
+// ✅ FIRESTORE IMPORTS (replacing Realtime Database)
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  serverTimestamp,
+} from "firebase/firestore";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import { validateHotelForm } from "../../validation/hotelValidation";
 
 // Hotel Services - Updated to support single admin per hotel with multiple hotel assignments
 export const hotelServices = {
-  // Search for admin by email
+  // ✅ FIRESTORE: Search for admin by email
   searchAdminByEmail: async (email) => {
     try {
-      const adminsRef = ref(db, "admins");
-      const snapshot = await get(adminsRef);
+      const adminsSnapshot = await getDocs(collection(db, "admins"));
 
-      if (snapshot.exists()) {
-        const allAdmins = snapshot.val();
-        for (const [adminId, adminData] of Object.entries(allAdmins)) {
+      if (!adminsSnapshot.empty) {
+        for (const adminDoc of adminsSnapshot.docs) {
+          const adminData = adminDoc.data();
           if (adminData.email === email) {
             // Get hotel names from admin's hotels object
             const hotelNames = adminData.hotels
@@ -24,7 +36,7 @@ export const hotelServices = {
 
             return {
               exists: true,
-              adminId: adminId,
+              adminId: adminDoc.id,
               adminData: {
                 name: adminData.name,
                 contact: adminData.contact,
@@ -44,19 +56,18 @@ export const hotelServices = {
     }
   },
 
-  // Check if hotel exists
+  // ✅ FIRESTORE: Check if hotel exists
   checkHotelExists: async (hotelName) => {
     try {
-      const hotelRef = ref(db, `/hotels/${hotelName}`);
-      const snapshot = await get(hotelRef);
-      return snapshot.exists();
+      const hotelDoc = await getDoc(doc(db, `hotels/${hotelName}`));
+      return hotelDoc.exists();
     } catch (error) {
       console.error("Error checking hotel existence:", error);
       return false;
     }
   },
 
-  // Create new admin account
+  // Create new admin account (unchanged - uses Firebase Auth)
   createAdminAccount: async (adminData) => {
     try {
       const auth = getAuth();
@@ -83,7 +94,7 @@ export const hotelServices = {
     }
   },
 
-  // Save admin data to database
+  // ✅ FIRESTORE: Save admin data to database
   saveAdminData: async (adminId, adminData) => {
     try {
       const newAdminData = {
@@ -91,11 +102,12 @@ export const hotelServices = {
         email: adminData.email,
         contact: adminData.contact,
         role: adminData.role || "admin",
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         hotels: {},
       };
 
-      await set(ref(db, `admins/${adminId}`), newAdminData);
+      await setDoc(doc(db, `admins/${adminId}`), newAdminData);
       return true;
     } catch (error) {
       console.error("Error saving admin data:", error);
@@ -103,14 +115,29 @@ export const hotelServices = {
     }
   },
 
-  // Update admin's hotel list
+  // ✅ FIRESTORE: Update admin's hotel list
   updateAdminHotelList: async (adminId, hotelName, hotelUuid) => {
     try {
-      await set(ref(db, `admins/${adminId}/hotels/${hotelName}`), {
-        hotelName,
-        hotelUuid,
-        assignedAt: new Date().toISOString(),
+      const adminDoc = await getDoc(doc(db, `admins/${adminId}`));
+      if (!adminDoc.exists()) {
+        throw new Error("Admin not found");
+      }
+
+      const adminData = adminDoc.data();
+      const updatedHotels = {
+        ...adminData.hotels,
+        [hotelName]: {
+          hotelName,
+          hotelUuid,
+          assignedAt: serverTimestamp(),
+        },
+      };
+
+      await updateDoc(doc(db, `admins/${adminId}`), {
+        hotels: updatedHotels,
+        updatedAt: serverTimestamp(),
       });
+
       return true;
     } catch (error) {
       console.error("Error updating admin hotel list:", error);
@@ -118,12 +145,16 @@ export const hotelServices = {
     }
   },
 
-  // Save hotel data to database
+  // ✅ FIRESTORE: Save hotel data to database
   saveHotelData: async (hotelName, hotelData) => {
     try {
-      console.log(`Saving to /hotels/${hotelName}/info:`, hotelData); // Debug log
+      console.log(`Saving to hotels/${hotelName}/info:`, hotelData); // Debug log
 
-      await set(ref(db, `/hotels/${hotelName}/info`), hotelData);
+      await setDoc(doc(db, `hotels/${hotelName}/info`), {
+        ...hotelData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
 
       console.log("Hotel data saved successfully"); // Debug log
 
@@ -135,7 +166,7 @@ export const hotelServices = {
     }
   },
 
-  // Create hotel with admin (existing or new)
+  // ✅ FIRESTORE: Create hotel with admin (existing or new)
   createHotelWithAdmin: async (hotelName, admin, completeFormData = {}) => {
     try {
       // Validate basic requirements
@@ -184,13 +215,11 @@ export const hotelServices = {
       // Update admin's hotel list
       await hotelServices.updateAdminHotelList(adminId, hotelName, hotelUuid);
 
-      // THIS IS THE FIX - Create COMPLETE hotel data object with ALL form fields
+      // Create COMPLETE hotel data object with ALL form fields
       const completeHotelData = {
         // System fields
         uuid: hotelUuid,
         hotelName,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         status: "active",
 
         // Admin information
@@ -200,7 +229,7 @@ export const hotelServices = {
           email: admin.email,
           contact: admin.contact,
           role: admin.role || "admin",
-          assignedAt: new Date().toISOString(),
+          assignedAt: serverTimestamp(),
         },
 
         // === ALL FORM DATA FROM hotelFormConfig ===
@@ -238,7 +267,7 @@ export const hotelServices = {
 
       console.log("Saving complete hotel data:", completeHotelData); // Debug log
 
-      // Save complete hotel data to /hotels/{hotelName}/info
+      // ✅ FIRESTORE: Save complete hotel data
       await hotelServices.saveHotelData(hotelName, completeHotelData);
 
       const message = isNewAdmin
@@ -272,14 +301,13 @@ export const hotelServices = {
     }
   },
 
-  // Get admin details with associated hotels
+  // ✅ FIRESTORE: Get admin details with associated hotels
   getAdminWithHotels: async (adminId) => {
     try {
-      const adminRef = ref(db, `admins/${adminId}`);
-      const snapshot = await get(adminRef);
+      const adminDoc = await getDoc(doc(db, `admins/${adminId}`));
 
-      if (snapshot.exists()) {
-        const adminData = snapshot.val();
+      if (adminDoc.exists()) {
+        const adminData = adminDoc.data();
         const hotels = adminData.hotels ? Object.values(adminData.hotels) : [];
 
         return {
@@ -302,7 +330,7 @@ export const hotelServices = {
     }
   },
 
-  // Get all hotels for a specific admin by email
+  // Get all hotels for a specific admin by email (unchanged)
   getHotelsByAdmin: async (adminEmail) => {
     try {
       const adminData = await hotelServices.searchAdminByEmail(adminEmail);
@@ -321,37 +349,38 @@ export const hotelServices = {
     }
   },
 
-  // Assign existing hotel to existing admin
+  // ✅ FIRESTORE: Assign existing hotel to existing admin
   assignHotelToAdmin: async (hotelName, adminId) => {
     try {
       // Get hotel data
-      const hotelRef = ref(db, `/hotels/${hotelName}/info`);
-      const hotelSnapshot = await get(hotelRef);
+      const hotelDoc = await getDoc(doc(db, `hotels/${hotelName}/info`));
 
-      if (!hotelSnapshot.exists()) {
+      if (!hotelDoc.exists()) {
         return { success: false, message: "Hotel not found" };
       }
 
-      const hotelData = hotelSnapshot.val();
+      const hotelData = hotelDoc.data();
 
       // Get admin data
-      const adminRef = ref(db, `admins/${adminId}`);
-      const adminSnapshot = await get(adminRef);
+      const adminDoc = await getDoc(doc(db, `admins/${adminId}`));
 
-      if (!adminSnapshot.exists()) {
+      if (!adminDoc.exists()) {
         return { success: false, message: "Admin not found" };
       }
 
-      const adminData = adminSnapshot.val();
+      const adminData = adminDoc.data();
 
       // Update hotel's admin
-      await set(ref(db, `/hotels/${hotelName}/info/admin`), {
-        adminId,
-        name: adminData.name,
-        email: adminData.email,
-        contact: adminData.contact,
-        role: adminData.role || "admin",
-        assignedAt: new Date().toISOString(),
+      await updateDoc(doc(db, `hotels/${hotelName}/info`), {
+        admin: {
+          adminId,
+          name: adminData.name,
+          email: adminData.email,
+          contact: adminData.contact,
+          role: adminData.role || "admin",
+          assignedAt: serverTimestamp(),
+        },
+        updatedAt: serverTimestamp(),
       });
 
       // Update admin's hotel list
@@ -374,14 +403,28 @@ export const hotelServices = {
     }
   },
 
-  // Remove admin from hotel
+  // ✅ FIRESTORE: Remove admin from hotel
   removeAdminFromHotel: async (hotelName, adminId) => {
     try {
-      // Remove hotel from admin's hotel list
-      await set(ref(db, `admins/${adminId}/hotels/${hotelName}`), null);
+      // Get current admin data
+      const adminDoc = await getDoc(doc(db, `admins/${adminId}`));
+      if (adminDoc.exists()) {
+        const adminData = adminDoc.data();
+        const updatedHotels = { ...adminData.hotels };
+        delete updatedHotels[hotelName];
 
-      // Remove admin from hotel (set to null or remove admin field)
-      await set(ref(db, `/hotels/${hotelName}/info/admin`), null);
+        // Remove hotel from admin's hotel list
+        await updateDoc(doc(db, `admins/${adminId}`), {
+          hotels: updatedHotels,
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      // Remove admin from hotel
+      await updateDoc(doc(db, `hotels/${hotelName}/info`), {
+        admin: null,
+        updatedAt: serverTimestamp(),
+      });
 
       return {
         success: true,
@@ -396,19 +439,68 @@ export const hotelServices = {
     }
   },
 
-  // Get all hotels (for validation or display)
+  // ✅ FIRESTORE: Get all hotels (for validation or display)
   getAllHotels: async () => {
     try {
-      const hotelsRef = ref(db, "hotels");
-      const snapshot = await get(hotelsRef);
+      const hotelsSnapshot = await getDocs(collection(db, "hotels"));
 
-      if (snapshot.exists()) {
-        return Object.keys(snapshot.val());
+      if (!hotelsSnapshot.empty) {
+        return hotelsSnapshot.docs.map((doc) => doc.id);
       }
       return [];
     } catch (error) {
       console.error("Error fetching hotels:", error);
       throw new Error("Failed to fetch hotels");
+    }
+  },
+
+  // ✅ FIRESTORE: Get all hotels with details
+  getAllHotelsWithDetails: async () => {
+    try {
+      const hotelsSnapshot = await getDocs(collection(db, "hotels"));
+
+      if (!hotelsSnapshot.empty) {
+        const hotelsWithDetails = [];
+
+        for (const hotelDoc of hotelsSnapshot.docs) {
+          const hotelName = hotelDoc.id;
+          const infoDoc = await getDoc(doc(db, `hotels/${hotelName}/info`));
+
+          if (infoDoc.exists()) {
+            hotelsWithDetails.push({
+              id: hotelName,
+              name: hotelName,
+              ...infoDoc.data(),
+            });
+          }
+        }
+
+        return hotelsWithDetails;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching hotels with details:", error);
+      throw new Error("Failed to fetch hotels with details");
+    }
+  },
+
+  // ✅ FIRESTORE: Get hotel by name
+  getHotelByName: async (hotelName) => {
+    try {
+      const hotelDoc = await getDoc(doc(db, `hotels/${hotelName}/info`));
+
+      if (hotelDoc.exists()) {
+        return {
+          id: hotelName,
+          name: hotelName,
+          ...hotelDoc.data(),
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error fetching hotel by name:", error);
+      throw new Error("Failed to fetch hotel");
     }
   },
 
@@ -426,4 +518,56 @@ export const hotelServices = {
   checkExistingAdmin: async (email) => {
     return await hotelServices.searchAdminByEmail(email);
   },
+
+  // ✅ FIRESTORE: Update hotel information
+  updateHotelInfo: async (hotelName, updateData) => {
+    try {
+      await updateDoc(doc(db, `hotels/${hotelName}/info`), {
+        ...updateData,
+        updatedAt: serverTimestamp(),
+      });
+
+      return {
+        success: true,
+        message: "Hotel information updated successfully",
+      };
+    } catch (error) {
+      console.error("Error updating hotel info:", error);
+      return { success: false, message: "Failed to update hotel information" };
+    }
+  },
+
+  // ✅ FIRESTORE: Delete hotel (with confirmation)
+  deleteHotel: async (hotelName) => {
+    try {
+      // Get hotel data first
+      const hotelDoc = await getDoc(doc(db, `hotels/${hotelName}/info`));
+
+      if (!hotelDoc.exists()) {
+        return { success: false, message: "Hotel not found" };
+      }
+
+      const hotelData = hotelDoc.data();
+
+      // Remove hotel from admin's list if admin exists
+      if (hotelData.admin?.adminId) {
+        await hotelServices.removeAdminFromHotel(
+          hotelName,
+          hotelData.admin.adminId
+        );
+      }
+
+      // TODO: In production, you might want to soft delete or archive instead
+      // For now, we'll delete the entire hotel document
+      await deleteDoc(doc(db, `hotels/${hotelName}`));
+
+      return { success: true, message: "Hotel deleted successfully" };
+    } catch (error) {
+      console.error("Error deleting hotel:", error);
+      return { success: false, message: "Failed to delete hotel" };
+    }
+  },
 };
+
+// Default export for backward compatibility
+export default hotelServices;

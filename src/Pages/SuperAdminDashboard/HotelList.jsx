@@ -1,213 +1,613 @@
-import React, { useState } from "react";
+// src/Pages/SuperAdmin/ViewHotel.jsx
+import React, { useState, useCallback, useMemo } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import useData from "../../data/useData";
+import {
+  Building2,
+  Hotel,
+  MapPin,
+  Phone,
+  Mail,
+  Users,
+  RefreshCw,
+  Download,
+  Search,
+  Filter,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  AlertTriangle,
+  CheckCircle,
+  Wifi,
+  WifiOff,
+  Clock,
+  Star,
+  TrendingUp,
+  Activity,
+} from "lucide-react";
+import {
+  collection,
+  doc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  query,
+  orderBy,
+  where,
+} from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
+import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+
+// ✅ NEW: Import Firestore-based hooks and contexts
+import { useAuth } from "../../context/AuthContext";
+import { useSuperAdmin } from "../../hooks/useSuperAdmin";
+import { useFirestoreCollection } from "../../hooks/useFirestoreCollection";
+
 import { PageTitle } from "../../atoms";
 import { DynamicTable } from "../../components";
 import { hotelsListColumn } from "../../Constants/Columns";
-import { db } from "../../services/firebase/firebaseConfig";
-import { ref, update, get, remove } from "firebase/database";
-import { toast } from "react-toastify";
-import { useNavigate, useParams } from "react-router-dom";
-import HotelEditForm from "./AddHotel"; // Import the separate component
+import HotelEditForm from "./AddHotel";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
-import { Spinner } from "react-bootstrap";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
+import StatCard from "components/Cards/StatCard";
 import SearchWithButton from "molecules/SearchWithAddButton";
-import CategoryTabs from "molecules/CategoryTab";
 
 const ViewHotel = () => {
-  const { data, loading, error, refetch } = useData("/hotels/");
-  console.log("hotelData_______", data);
+  const navigate = useNavigate();
   const { hotelName } = useParams();
+
+  // ✅ NEW: Use context hooks for better integration
+  const { currentUser, isSuperAdmin } = useAuth();
+  const { hasPermissions } = useSuperAdmin();
+
+  // ✅ ENHANCED: Use Firestore collection hook
+  const {
+    documents: hotels,
+    loading,
+    error,
+    connectionStatus,
+    lastFetch,
+    retryCount,
+    refresh: refetchHotels,
+    isRetrying,
+    canRetry,
+  } = useFirestoreCollection("hotels", {
+    orderBy: [["createdAt", "desc"]],
+    realtime: true,
+    enableRetry: true,
+  });
+
+  // State management
   const [editingHotel, setEditingHotel] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [businessTypeFilter, setBusinessTypeFilter] = useState("all");
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
-  // Convert data to an array and add serial numbers + process hotel data
-  const hotelsDataArray = Object.entries(data || {}).map(
-    ([id, hotel], index) => ({
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  console.log("hotelData_______", hotels);
+
+  // ✅ NEW: Permission check
+  const hasPermission = useMemo(() => {
+    return isSuperAdmin() && hasPermissions;
+  }, [isSuperAdmin, hasPermissions]);
+
+  // ✅ ENHANCED: Process and filter hotel data
+  const processedHotels = useMemo(() => {
+    if (!hotels || hotels.length === 0) return [];
+
+    let filtered = hotels.map((hotel, index) => ({
       srNo: index + 1,
-      id,
+      id: hotel.id,
       ...hotel,
+      // Handle hotel name from multiple possible fields
       hotelName:
-        hotel.info?.businessName || hotel.hotelName || "No Name provided",
-      ownerName: hotel.info?.admin?.name || hotel.ownerName || "N/A",
-      district: hotel.info?.district || hotel.district || "N/A",
-      state: hotel.info?.state || hotel.state || "N/A",
-      // Format address if it exists
-      fullAddress: hotel.info?.address
-        ? `${hotel.info.address || ""} ${hotel.address?.city || ""} ${
-            hotel.address?.state || ""
-          } ${hotel.address?.pincode || ""}`.trim()
-        : hotel.location || "No address provided",
-      // Format contact info
+        hotel.businessName ||
+        hotel.name ||
+        hotel.hotelName ||
+        hotel.info?.businessName ||
+        "No Name provided",
+
+      // Handle owner/admin information
+      ownerName:
+        hotel.adminDetails?.name ||
+        hotel.admin?.name ||
+        hotel.info?.admin?.name ||
+        hotel.ownerName ||
+        "N/A",
+
+      // Handle location information
+      district:
+        hotel.address?.district ||
+        hotel.district ||
+        hotel.info?.district ||
+        "N/A",
+
+      state: hotel.address?.state || hotel.state || hotel.info?.state || "N/A",
+
+      // Format full address
+      fullAddress: hotel.address
+        ? `${hotel.address.street || ""} ${hotel.address.city || ""} ${
+            hotel.address.state || ""
+          } ${hotel.address.pincode || ""}`.trim()
+        : hotel.info?.address || hotel.location || "No address provided",
+
+      // Handle contact information
       contactInfo:
-        hotel.info?.primaryContact ||
-        hotel.contact ||
         hotel.phone ||
-        hotel.mobile ||
+        hotel.contact ||
+        hotel.info?.primaryContact ||
+        hotel.primaryContact ||
         "No contact provided",
+
+      // Handle email
+      email:
+        hotel.email || hotel.admin?.email || hotel.info?.admin?.email || "N/A",
+
       // Format status
-      status: hotel.info?.status !== false ? "Active" : "Inactive",
+      status:
+        hotel.isActive !== false && hotel.status !== "inactive"
+          ? "Active"
+          : "Inactive",
+
       // Format creation date
-      createdDate: hotel.createdAt
+      createdDate: hotel.createdAt?.toDate
+        ? hotel.createdAt.toDate().toLocaleDateString()
+        : hotel.createdAt
         ? new Date(hotel.createdAt).toLocaleDateString()
         : "N/A",
 
-      // Handle multiple contact numbers if they exist
-      ownerContact: hotel.info?.admin?.contact || hotel.ownerContact || "N/A",
+      // Handle owner contact
+      ownerContact:
+        hotel.adminDetails?.phone ||
+        hotel.admin?.contact ||
+        hotel.info?.admin?.contact ||
+        hotel.ownerContact ||
+        "N/A",
 
-      email: hotel.info?.admin?.email || hotel.email || "N/A",
-
-      // Format cuisine type
+      // Format business type/cuisine
       cuisineType:
-        hotel.info?.businessType || hotel.cuisineType || "Not specified",
-    })
-  );
+        hotel.businessType ||
+        hotel.cuisineType ||
+        hotel.info?.businessType ||
+        "Not specified",
 
-  // Filter hotels based on search term
-  const filteredHotels = hotelsDataArray.filter(
-    (hotel) =>
-      hotel.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotel.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotel.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotel.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotel.cuisineType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      // Additional fields for enhanced display
+      avgCostForTwo: hotel.avgCostForTwo || 0,
+      rating: hotel.stats?.rating || 0,
+      totalOrders: hotel.stats?.totalOrders || 0,
+      totalRevenue: hotel.stats?.totalRevenue || 0,
 
-  const hotelCount = hotelsDataArray.length;
-  const hasHotels = hotelCount > 0;
-  const hasSearchResults = filteredHotels.length > 0;
+      // GST and legal info
+      gstNumber: hotel.gstNumber || hotel.info?.gstNumber || "N/A",
+      fssaiNumber: hotel.fssaiNumber || hotel.info?.fssaiNumber || "N/A",
+    }));
 
-  console.log("Hotel data array:", hotelsDataArray);
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (hotel) =>
+          hotel.hotelName?.toLowerCase().includes(search) ||
+          hotel.ownerName?.toLowerCase().includes(search) ||
+          hotel.district?.toLowerCase().includes(search) ||
+          hotel.state?.toLowerCase().includes(search) ||
+          hotel.cuisineType?.toLowerCase().includes(search) ||
+          hotel.email?.toLowerCase().includes(search) ||
+          hotel.contactInfo?.includes(search)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      const isActive = statusFilter === "active";
+      filtered = filtered.filter(
+        (hotel) => (hotel.status === "Active") === isActive
+      );
+    }
+
+    // Apply business type filter
+    if (businessTypeFilter !== "all") {
+      filtered = filtered.filter(
+        (hotel) =>
+          hotel.cuisineType?.toLowerCase() === businessTypeFilter.toLowerCase()
+      );
+    }
+
+    return filtered;
+  }, [hotels, searchTerm, statusFilter, businessTypeFilter]);
+
+  // ✅ NEW: Hotel statistics
+  const hotelStats = useMemo(() => {
+    if (!hotels || hotels.length === 0) {
+      return { total: 0, active: 0, inactive: 0, revenue: 0 };
+    }
+
+    const total = hotels.length;
+    const active = hotels.filter(
+      (hotel) => hotel.isActive !== false && hotel.status !== "inactive"
+    ).length;
+    const inactive = total - active;
+    const totalRevenue = hotels.reduce(
+      (sum, hotel) => sum + (hotel.stats?.totalRevenue || 0),
+      0
+    );
+
+    return { total, active, inactive, revenue: totalRevenue };
+  }, [hotels]);
+
+  // ✅ NEW: Business types for filter
+  const businessTypes = useMemo(() => {
+    if (!hotels || hotels.length === 0) return [];
+
+    const types = new Set();
+    hotels.forEach((hotel) => {
+      const type =
+        hotel.businessType || hotel.cuisineType || hotel.info?.businessType;
+      if (type) types.add(type);
+    });
+
+    return Array.from(types);
+  }, [hotels]);
+
+  // ✅ NEW: Connection status indicator
+  const ConnectionStatusIndicator = () => {
+    if (connectionStatus === "connecting" || isRetrying) {
+      return (
+        <div className="flex items-center gap-2 text-yellow-600 text-sm">
+          <Wifi className="animate-pulse" size={16} />
+          <span>{isRetrying ? "Retrying..." : "Connecting..."}</span>
+        </div>
+      );
+    } else if (connectionStatus === "error") {
+      return (
+        <div className="flex items-center gap-2 text-red-600 text-sm">
+          <WifiOff size={16} />
+          <span>Connection Error</span>
+          {canRetry && (
+            <button
+              onClick={handleRefresh}
+              className="text-blue-600 hover:text-blue-800 underline ml-1"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      );
+    } else if (connectionStatus === "connected") {
+      return (
+        <div className="flex items-center gap-2 text-green-600 text-sm">
+          <CheckCircle size={16} />
+          <span>Live Data</span>
+          {lastFetch && (
+            <span className="text-xs text-gray-500">
+              • Updated {new Date(lastFetch).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Handle search change
-  const handleSearchChange = (value) => {
+  const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
-  };
+  }, []);
 
   // Handle add button click
-  const handleAddClick = () => {
-    // Navigate to add hotel page or open modal
+  const handleAddClick = useCallback(() => {
+    if (!hasPermission) {
+      toast.error("You don't have permission to add hotels.");
+      return;
+    }
     navigate("/super-admin/add-hotel");
-  };
+  }, [hasPermission, navigate]);
 
-  // Function to toggle hotel status (Active/Inactive)
-  const onToggleStatus = async (item) => {
-    const { id, hotelName } = item;
-    const itemRef = ref(db, `hotels/${id}`);
-    setSubmitting(true);
+  // ✅ ENHANCED: Toggle hotel status with Firestore
+  const onToggleStatus = useCallback(
+    async (item) => {
+      if (!hasPermission) {
+        toast.error("You don't have permission to modify hotel status.");
+        return;
+      }
 
-    try {
-      const snapshot = await get(itemRef);
-      if (snapshot.exists()) {
-        const currentData = snapshot.val();
-        const currentStatus = currentData.info?.status !== false;
-        const newStatus = !currentStatus;
+      const { id, hotelName, status } = item;
+      const newStatus = status !== "Active";
+      setSubmitting(true);
 
-        // Update only the status field, preserve everything else
-        await update(itemRef, {
-          "info.status": newStatus,
-          updatedAt: new Date().toISOString(),
+      try {
+        const hotelDocRef = doc(db, "hotels", id);
+
+        await updateDoc(hotelDocRef, {
+          isActive: newStatus,
+          status: newStatus ? "active" : "inactive",
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUser?.uid,
         });
 
         const statusText = newStatus ? "activated" : "deactivated";
         toast.success(`${hotelName || "Hotel"} ${statusText} successfully.`);
-
-        // Refresh data after update
-        if (refetch) {
-          refetch();
-        }
-      } else {
-        toast.error("No data available for this hotel.");
-      }
-    } catch (error) {
-      console.error("Error updating hotel status:", error);
-      toast.error("Error updating hotel status: " + error.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Function to handle edit action
-  const onEdit = (item) => {
-    console.log("Opening edit form for hotel:", item);
-    setEditingHotel(item);
-  };
-
-  // Function to handle successful edit
-  const onEditSuccess = () => {
-    console.log("Edit successful, refreshing data...");
-    setEditingHotel(null);
-
-    // Refresh data after successful update
-    if (refetch) {
-      refetch();
-    }
-  };
-
-  // Function to handle delete action
-  const onDelete = async (item) => {
-    const { id, hotelName, name } = item;
-    const displayName = hotelName || name || "this hotel";
-
-    // Confirm deletion
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${displayName}? This action cannot be undone.`
-    );
-
-    if (confirmDelete) {
-      const itemRef = ref(db, `hotels/${id}`);
-      setSubmitting(true);
-
-      try {
-        await remove(itemRef);
-        toast.success(`${displayName} deleted successfully!`);
-
-        // Refresh data after deletion
-        if (refetch) {
-          refetch();
-        }
       } catch (error) {
-        console.error("Error deleting hotel:", error);
-        toast.error("Error deleting hotel: " + error.message);
+        console.error("Error updating hotel status:", error);
+
+        let errorMessage = "Error updating hotel status: ";
+        if (error.code === "permission-denied") {
+          errorMessage += "You don't have permission to update this hotel.";
+        } else {
+          errorMessage += error.message;
+        }
+
+        toast.error(errorMessage);
       } finally {
         setSubmitting(false);
       }
-    }
-  };
+    },
+    [hasPermission, currentUser]
+  );
+
+  // Function to handle edit action
+  const onEdit = useCallback(
+    (item) => {
+      if (!hasPermission) {
+        toast.error("You don't have permission to edit hotels.");
+        return;
+      }
+      console.log("Opening edit form for hotel:", item);
+      setEditingHotel(item);
+    },
+    [hasPermission]
+  );
+
+  // Function to handle successful edit
+  const onEditSuccess = useCallback(() => {
+    console.log("Edit successful, refreshing data...");
+    setEditingHotel(null);
+    toast.success("Hotel updated successfully!");
+  }, []);
+
+  // ✅ ENHANCED: Delete function with Firestore
+  const onDelete = useCallback(
+    async (item) => {
+      if (!hasPermission) {
+        toast.error("You don't have permission to delete hotels.");
+        return;
+      }
+
+      const { id, hotelName, name } = item;
+      const displayName = hotelName || name || "this hotel";
+
+      // Confirm deletion
+      const confirmDelete = window.confirm(
+        `Are you sure you want to delete ${displayName}? This action cannot be undone and will remove all associated data including orders, menu items, and staff.`
+      );
+
+      if (confirmDelete) {
+        setSubmitting(true);
+
+        try {
+          const hotelDocRef = doc(db, "hotels", id);
+          await deleteDoc(hotelDocRef);
+
+          toast.success(`${displayName} deleted successfully!`);
+        } catch (error) {
+          console.error("Error deleting hotel:", error);
+
+          let errorMessage = "Error deleting hotel: ";
+          if (error.code === "permission-denied") {
+            errorMessage += "You don't have permission to delete this hotel.";
+          } else {
+            errorMessage += error.message;
+          }
+
+          toast.error(errorMessage);
+        } finally {
+          setSubmitting(false);
+        }
+      }
+    },
+    [hasPermission]
+  );
 
   // Function to view hotel details
-  const onViewDetails = (item) => {
-    console.log("Viewing details for hotel:", item);
-    toast.info(`Viewing details for ${item.hotelName || item.name}`);
-  };
+  const onViewDetails = useCallback(
+    (item) => {
+      console.log("Viewing details for hotel:", item);
+      toast.info(`Viewing details for ${item.hotelName || item.name}`);
+      // Navigate to hotel details page
+      navigate(`/super-admin/hotel/${item.id}/details`);
+    },
+    [navigate]
+  );
+
+  // ✅ NEW: Refresh handler
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchHotels();
+    } catch (error) {
+      console.error("Error refreshing hotel list:", error);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
+  }, [refetchHotels]);
+
+  // ✅ NEW: Export functionality
+  const handleExport = useCallback(() => {
+    try {
+      const csvData = processedHotels.map((hotel) => ({
+        "Sr. No": hotel.srNo,
+        "Hotel Name": hotel.hotelName,
+        Owner: hotel.ownerName,
+        Email: hotel.email,
+        Phone: hotel.contactInfo,
+        District: hotel.district,
+        State: hotel.state,
+        "Business Type": hotel.cuisineType,
+        Status: hotel.status,
+        "Created Date": hotel.createdDate,
+        "GST Number": hotel.gstNumber,
+        "Average Cost": hotel.avgCostForTwo,
+        Rating: hotel.rating,
+        "Total Orders": hotel.totalOrders,
+        Revenue: hotel.totalRevenue,
+      }));
+
+      const csv = csvData.map((row) => Object.values(row).join(",")).join("\n");
+      const headers = Object.keys(csvData[0] || {}).join(",");
+      const csvContent = headers + "\n" + csv;
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `hotels_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting hotel list:", error);
+      toast.error("Error exporting data");
+    }
+  }, [processedHotels]);
 
   // Handle modal close
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setEditingHotel(null);
-  };
+  }, []);
 
+  // ✅ ENHANCED: Actions with better organization
   const actions = [
-    { label: "Toggle Status", variant: "primary", handler: onToggleStatus },
-    { label: "View Details", variant: "info", handler: onViewDetails },
+    {
+      label: "Toggle Status",
+      variant: "primary",
+      handler: onToggleStatus,
+      icon: (item) =>
+        item.status === "Active" ? (
+          <ToggleRight size={14} />
+        ) : (
+          <ToggleLeft size={14} />
+        ),
+      condition: () => hasPermission,
+    },
+    {
+      label: "View Details",
+      variant: "info",
+      handler: onViewDetails,
+      icon: <Eye size={14} />,
+    },
   ];
 
-  const columns = hotelsListColumn;
+  // ✅ ENHANCED: Updated columns with better formatting
+  const enhancedColumns = [
+    ...hotelsListColumn,
+    {
+      key: "status",
+      label: "Status",
+      render: (value) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            value === "Active"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: "rating",
+      label: "Rating",
+      render: (value) => (
+        <div className="flex items-center gap-1">
+          <Star size={12} className="text-yellow-500" />
+          <span className="text-sm">{value || "0.0"}</span>
+        </div>
+      ),
+    },
+  ];
 
-  // Loading state
-  if (loading) {
-    return <Spinner />;
+  // Computed values
+  const hotelCount = processedHotels.length;
+  const hasHotels = hotelStats.total > 0;
+  const hasSearchResults = processedHotels.length > 0;
+
+  // ✅ NEW: Permission check UI
+  if (!hasPermission) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Access Denied
+          </h3>
+          <p className="text-gray-600">
+            You don't have super admin permissions to view hotels.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  // Error state
-  if (error) {
-    return <ErrorMessage message={error.message} />;
+  // ✅ ENHANCED: Loading state
+  if (loading && (!hotels || hotels.length === 0)) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading hotel list..." />
+      </div>
+    );
+  }
+
+  // ✅ ENHANCED: Error state
+  if (error && connectionStatus === "error") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <ErrorMessage
+            error={error}
+            onRetry={handleRefresh}
+            title="Hotel List Error"
+            showRetryButton={canRetry}
+          />
+          <div className="mt-4 text-center">
+            <ConnectionStatusIndicator />
+            {retryCount > 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Attempted {retryCount} time{retryCount !== 1 ? "s" : ""}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
-      <div style={{ margin: "20px" }}>
+    <div className="min-h-screen bg-gray-50">
+      {/* ✅ NEW: Connection Status Bar */}
+      {connectionStatus !== "connected" && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2">
+          <div className="flex items-center justify-between">
+            <ConnectionStatusIndicator />
+            {retryCount > 0 && (
+              <span className="text-xs text-gray-600">
+                Retry attempt: {retryCount}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="p-6">
         {/* Hotel Edit Form Modal */}
         {editingHotel && (
           <HotelEditForm
@@ -218,97 +618,213 @@ const ViewHotel = () => {
           />
         )}
 
-        <div style={{ width: "100%" }}>
-          {/* Page Title with Stats */}
-          <div className="d-flex justify-between align-items-center mb-3">
-            <PageTitle pageTitle="Hotel Management" />
+        {/* ✅ ENHANCED: Header with actions */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div>
+            <PageTitle
+              pageTitle="Hotel Management"
+              className="text-2xl sm:text-3xl font-bold text-gray-900"
+              description="Manage hotels and their configurations"
+            />
+
+            {/* ✅ NEW: Live status indicator */}
+            {connectionStatus === "connected" && (
+              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Live updates</span>
+              </div>
+            )}
+
+            {/* ✅ NEW: Result count */}
             {hasHotels && (
-              <div className="text-sm text-gray-600">
-                {searchTerm
-                  ? `Showing ${filteredHotels.length} of ${hotelCount} hotels`
-                  : `Total: ${hotelCount} hotels`}
+              <div className="text-sm text-gray-600 mt-1">
+                {searchTerm ||
+                statusFilter !== "all" ||
+                businessTypeFilter !== "all"
+                  ? `Showing ${hotelCount} of ${hotelStats.total} hotels`
+                  : `Total: ${hotelStats.total} hotels`}
               </div>
             )}
           </div>
 
-          {/* Stats Cards */}
-          {hasHotels && (
-            <div className="row mb-4">
-              <div className="col-md-4">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body text-center">
-                    <h5 className="card-title text-primary">Total Hotels</h5>
-                    <h3 className="text-primary">{hotelCount}</h3>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body text-center">
-                    <h5 className="card-title text-success">Active Hotels</h5>
-                    <h3 className="text-success">
-                      {
-                        filteredHotels.filter(
-                          (hotel) => hotel.status === "Active"
-                        ).length
-                      }
-                    </h3>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body text-center">
-                    <h5 className="card-title text-danger">Inactive Hotels</h5>
-                    <h3 className="text-danger">
-                      {
-                        filteredHotels.filter(
-                          (hotel) => hotel.status === "Inactive"
-                        ).length
-                      }
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              disabled={!hasHotels}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download size={16} />
+              Export CSV
+            </button>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={`flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
+                isRefreshing ? "opacity-75 cursor-not-allowed" : ""
+              }`}
+            >
+              <RefreshCw
+                size={16}
+                className={isRefreshing ? "animate-spin" : ""}
+              />
+              Refresh
+            </button>
+          </div>
+        </div>
 
-          {/* Search and Add Button */}
-          <div className="mb-4">
-            <SearchWithButton
-              searchTerm={searchTerm}
-              onSearchChange={(e) => handleSearchChange(e.target.value)}
-              buttonText="Add Hotel"
-              onButtonClick={handleAddClick}
-              disabled={submitting}
-              placeholder="Search hotels by name, owner, location, or type..."
+        {/* ✅ ENHANCED: Statistics Cards */}
+        {hasHotels && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Building2}
+              title="Total Hotels"
+              value={hotelStats.total}
+              color="blue"
+              loading={loading}
+            />
+            <StatCard
+              icon={Activity}
+              title="Active Hotels"
+              value={hotelStats.active}
+              color="green"
+              subtitle={`${Math.round(
+                (hotelStats.active / hotelStats.total) * 100
+              )}% active`}
+              loading={loading}
+            />
+            <StatCard
+              icon={AlertTriangle}
+              title="Inactive Hotels"
+              value={hotelStats.inactive}
+              color="red"
+              loading={loading}
+            />
+            <StatCard
+              icon={TrendingUp}
+              title="Total Revenue"
+              value={`₹${(hotelStats.revenue / 1000).toFixed(1)}K`}
+              color="purple"
+              subtitle="Across all hotels"
+              loading={loading}
             />
           </div>
+        )}
 
-          {/* Hotels Table */}
+        {/* ✅ ENHANCED: Filters */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            {/* Search */}
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Search hotels by name, owner, location, or type..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="flex gap-2 flex-wrap">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+
+              {businessTypes.length > 0 && (
+                <select
+                  value={businessTypeFilter}
+                  onChange={(e) => setBusinessTypeFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Types</option>
+                  {businessTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              <button
+                onClick={handleAddClick}
+                disabled={submitting || !hasPermission}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus size={16} />
+                Add Hotel
+              </button>
+            </div>
+          </div>
+
+          {/* Filter summary */}
+          {(searchTerm ||
+            statusFilter !== "all" ||
+            businessTypeFilter !== "all") && (
+            <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+              <span>
+                Showing {hotelCount} result{hotelCount !== 1 ? "s" : ""}
+              </span>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setBusinessTypeFilter("all");
+                }}
+                className="text-red-600 hover:text-red-800 underline"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ✅ ENHANCED: Hotels Table */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {hasHotels ? (
             <>
               {hasSearchResults ? (
                 <DynamicTable
-                  columns={columns}
-                  data={filteredHotels}
+                  columns={enhancedColumns}
+                  data={processedHotels}
                   onEdit={onEdit}
                   onDelete={onDelete}
                   actions={actions}
                   loading={submitting}
+                  emptyMessage="No hotels match your search criteria"
+                  showPagination={true}
+                  initialRowsPerPage={10}
+                  sortable={true}
+                  // ✅ NEW: Enhanced table props
+                  searchable={false} // We handle search externally
+                  exportable={false} // We handle export externally
+                  refreshable={true}
+                  onRefresh={handleRefresh}
+                  connectionStatus={connectionStatus}
                 />
               ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 mb-2">
-                    <i className="fas fa-search fa-3x"></i>
-                  </div>
-                  <h5 className="text-gray-600">No hotels found</h5>
-                  <p className="text-gray-500">
+                <div className="text-center py-12">
+                  <Search className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                  <h5 className="text-lg font-medium text-gray-900 mb-2">
+                    No hotels found
+                  </h5>
+                  <p className="text-gray-600 mb-4">
                     No hotels match your search "{searchTerm}"
                   </p>
                   <button
-                    className="btn btn-outline-primary mt-2"
                     onClick={() => handleSearchChange("")}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Clear Search
                   </button>
@@ -316,20 +832,20 @@ const ViewHotel = () => {
               )}
             </>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-4">
-                <i className="fas fa-hotel fa-4x"></i>
-              </div>
-              <h5 className="text-gray-600 mb-2">No Hotels Found</h5>
-              <p className="text-gray-500 mb-4">
-                Get started by adding your first hotel
+            <div className="text-center py-12">
+              <Building2 className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+              <h5 className="text-lg font-medium text-gray-900 mb-2">
+                No Hotels Found
+              </h5>
+              <p className="text-gray-600 mb-6">
+                Get started by adding your first hotel to the system
               </p>
               <button
-                className="btn btn-primary"
                 onClick={handleAddClick}
-                disabled={submitting}
+                disabled={submitting || !hasPermission}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mx-auto"
               >
-                <i className="fas fa-plus me-2"></i>
+                <Plus size={20} />
                 Add Your First Hotel
               </button>
             </div>
@@ -348,8 +864,9 @@ const ViewHotel = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        theme="light"
       />
-    </>
+    </div>
   );
 };
 

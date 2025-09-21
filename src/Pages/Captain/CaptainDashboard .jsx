@@ -1,3 +1,4 @@
+// src/Pages/Captain/CaptainDashboard.jsx
 import React, {
   useState,
   useEffect,
@@ -6,7 +7,7 @@ import React, {
   Suspense,
   useMemo,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import {
   Clock,
@@ -20,11 +21,27 @@ import {
   TrendingUp,
   Users,
   Calendar,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 
-// Services and utilities
-import { captainServices } from "../../services/api/captainServices";
-import { useOrderData } from "../../hooks/useOrder";
+// ✅ NEW: Import Firestore-based services and hooks
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+  orderBy as firestoreOrderBy,
+  limit,
+} from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
+import { useAuth } from "../../context/AuthContext";
+import { useHotelContext } from "../../context/HotelContext";
+import { useFirestoreCollection } from "../../hooks/useFirestoreCollection";
 import { toast } from "react-toastify";
 
 // Components
@@ -49,6 +66,11 @@ const OrderDetailsModal = React.lazy(() => import("./OrderDetailsModal"));
 
 const CaptainDashboard = memo(() => {
   const navigate = useNavigate();
+  const { hotelName } = useParams();
+
+  // ✅ NEW: Use context hooks
+  const { currentUser, isAuthenticated } = useAuth();
+  const { selectedHotel, selectHotelById } = useHotelContext();
 
   // Captain state
   const [captain, setCaptain] = useState(null);
@@ -61,82 +83,75 @@ const CaptainDashboard = memo(() => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
-  // Enhanced order data hook with comprehensive functionality
-  const {
-    orders,
-    filteredOrders,
-    timeFilteredOrders,
-    orderStats,
-    todayStats,
-    menuAnalytics,
-    categoryAnalytics,
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [selectedTimePeriod, setSelectedTimePeriod] = useState("daily");
 
-    // State management
+  // ✅ NEW: Get hotel ID for queries
+  const hotelId = useMemo(() => {
+    return selectedHotel?.id || hotelName;
+  }, [selectedHotel, hotelName]);
+
+  // ✅ ENHANCED: Use Firestore collection hook for orders
+  const {
+    documents: orders,
     loading: ordersLoading,
-    submitting,
     error: ordersError,
     connectionStatus,
-    lastUpdated,
-
-    // Filter state
-    searchTerm,
-    statusFilter,
-    selectedDate,
-    selectedTimePeriod,
-
-    // Display helpers
-    periodDisplayText,
-    hasOrders,
-    hasFilteredOrders,
-    isConnected,
-    isLoading: hookIsLoading,
-    isError,
-    errorMessage,
-
-    // Filter handlers
-    handleSearchChange,
-    handleStatusFilterChange,
-    handleDateChange,
-    handleTimePeriodChange,
-    clearFilters,
-
-    // Actions
-    updateOrderStatus,
-    deleteOrder,
-    refreshOrders,
-    exportOrdersCSV,
-
-    // Helper functions
-    getOrderById,
-    getOrdersByStatus,
-
-    // Options for UI
-    statusOptions,
-    timePeriodOptions,
-  } = useOrderData(captain?.hotelName, {
-    defaultTimePeriod: "daily", // Show today's orders by default
-    defaultStatusFilter: "all",
-    includeMenuData: true, // Include menu data for analytics
-    sortBy: "timestamp",
-    sortOrder: "desc",
+    lastFetch,
+    refresh: refreshOrders,
+  } = useFirestoreCollection("orders", {
+    where: hotelId
+      ? [
+          ["hotelId", "==", hotelId],
+          ["captainId", "==", currentUser?.uid],
+        ]
+      : null,
+    orderBy: [["createdAt", "desc"]],
+    limit: 100,
+    realtime: true,
+    enableRetry: true,
   });
 
-  // Load captain data on mount
+  // ✅ NEW: Load captain data from Firestore
   useEffect(() => {
     const loadCaptainData = async () => {
+      if (!currentUser || !isAuthenticated) {
+        navigate("/captain/login");
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        const captainData = await captainServices.getCurrentCaptain();
+        // ✅ FIRESTORE: Get captain data from Firestore
+        const captainDocRef = doc(db, "captains", currentUser.uid);
+        const captainDoc = await getDoc(captainDocRef);
 
-        if (!captainData) {
-          toast.error("Captain session not found. Please login again.");
+        if (!captainDoc.exists()) {
+          toast.error("Captain profile not found. Please contact support.");
           navigate("/captain/login");
           return;
         }
 
+        const captainData = {
+          id: captainDoc.id,
+          ...captainDoc.data(),
+          uid: currentUser.uid,
+          email: currentUser.email,
+        };
+
         setCaptain(captainData);
+
+        // Set hotel context if we have hotel info
+        if (captainData.hotelId && !selectedHotel) {
+          selectHotelById(captainData.hotelId);
+        }
       } catch (error) {
         console.error("Error loading captain data:", error);
         setError(error.message || "Error loading captain information");
@@ -146,33 +161,223 @@ const CaptainDashboard = memo(() => {
     };
 
     loadCaptainData();
-  }, [navigate]);
+  }, [currentUser, isAuthenticated, navigate, selectedHotel, selectHotelById]);
 
-  // Enhanced order statistics with corrected mapping for simplified status system
-  const displayStats = useMemo(() => {
-    // Use the comprehensive stats from the hook and map correctly
+  // ✅ NEW: Filter orders based on time period and search
+  const filteredOrders = useMemo(() => {
+    if (!orders || orders.length === 0) return [];
+
+    let filtered = [...orders];
+
+    // Time period filtering
+    const today = new Date();
+    const selectedDateObj = new Date(selectedDate);
+
+    switch (selectedTimePeriod) {
+      case "daily":
+        filtered = filtered.filter((order) => {
+          const orderDate = order.createdAt?.toDate
+            ? order.createdAt.toDate()
+            : new Date(order.createdAt);
+          return orderDate.toDateString() === selectedDateObj.toDateString();
+        });
+        break;
+      case "weekly":
+        const weekStart = new Date(selectedDateObj);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        filtered = filtered.filter((order) => {
+          const orderDate = order.createdAt?.toDate
+            ? order.createdAt.toDate()
+            : new Date(order.createdAt);
+          return orderDate >= weekStart && orderDate <= weekEnd;
+        });
+        break;
+      case "monthly":
+        filtered = filtered.filter((order) => {
+          const orderDate = order.createdAt?.toDate
+            ? order.createdAt.toDate()
+            : new Date(order.createdAt);
+          return (
+            orderDate.getMonth() === selectedDateObj.getMonth() &&
+            orderDate.getFullYear() === selectedDateObj.getFullYear()
+          );
+        });
+        break;
+      // 'total' shows all orders
+    }
+
+    // Status filtering
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((order) => {
+        const orderStatus = order.status || order.normalizedStatus || "pending";
+        return orderStatus.toLowerCase() === statusFilter.toLowerCase();
+      });
+    }
+
+    // Search filtering
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((order) => {
+        return (
+          order.orderNumber?.toString().toLowerCase().includes(search) ||
+          order.tableNumber?.toString().toLowerCase().includes(search) ||
+          order.customerName?.toLowerCase().includes(search) ||
+          order.customerPhone?.includes(search) ||
+          (order.items &&
+            order.items.some(
+              (item) =>
+                item.name?.toLowerCase().includes(search) ||
+                item.menuName?.toLowerCase().includes(search)
+            ))
+        );
+      });
+    }
+
+    return filtered;
+  }, [orders, selectedTimePeriod, selectedDate, statusFilter, searchTerm]);
+
+  // ✅ NEW: Calculate order statistics
+  const orderStats = useMemo(() => {
+    if (!filteredOrders || filteredOrders.length === 0) {
+      return {
+        total: 0,
+        received: 0,
+        completed: 0,
+        rejected: 0,
+        totalRevenue: 0,
+        activeOrders: 0,
+        completionRate: 0,
+      };
+    }
+
     const stats = {
-      total: orderStats.total || 0,
-      // Map simplified statuses correctly
-      received: orderStats.received || 0, // This is the new "pending/preparing/ready" equivalent
-      completed: orderStats.completed || 0,
-      rejected: orderStats.rejected || 0,
-      totalRevenue: orderStats.totalRevenue || 0,
+      total: filteredOrders.length,
+      received: 0,
+      completed: 0,
+      rejected: 0,
+      totalRevenue: 0,
     };
 
-    // Add computed stats based on simplified system
-    stats.activeOrders = stats.received; // Only received orders are considered active
+    filteredOrders.forEach((order) => {
+      const status = (
+        order.status ||
+        order.normalizedStatus ||
+        "pending"
+      ).toLowerCase();
+
+      switch (status) {
+        case "pending":
+        case "preparing":
+        case "ready":
+          stats.received++;
+          break;
+        case "completed":
+        case "delivered":
+          stats.completed++;
+          break;
+        case "rejected":
+        case "cancelled":
+          stats.rejected++;
+          break;
+      }
+
+      // Calculate revenue (only from completed orders)
+      if (status === "completed" || status === "delivered") {
+        stats.totalRevenue += order.totalAmount || order.grandTotal || 0;
+      }
+    });
+
+    stats.activeOrders = stats.received;
     stats.completionRate =
       stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
     return stats;
-  }, [orderStats]);
+  }, [filteredOrders]);
+
+  // ✅ NEW: Status options for filtering
+  const statusOptions = [
+    { label: "All Orders", value: "all" },
+    { label: "Pending", value: "pending" },
+    { label: "Preparing", value: "preparing" },
+    { label: "Ready", value: "ready" },
+    { label: "Completed", value: "completed" },
+    { label: "Rejected", value: "rejected" },
+  ];
+
+  // ✅ NEW: Time period options
+  const timePeriodOptions = [
+    { label: "Today", value: "daily" },
+    { label: "This Week", value: "weekly" },
+    { label: "This Month", value: "monthly" },
+    { label: "All Time", value: "total" },
+  ];
+
+  // ✅ ENHANCED: Update order status with Firestore
+  const handleOrderStatusUpdate = useCallback(
+    async (orderId, newStatus) => {
+      if (!orderId) return { success: false, error: "Order ID is required" };
+
+      try {
+        const orderDocRef = doc(db, "orders", orderId);
+
+        await updateDoc(orderDocRef, {
+          status: newStatus,
+          normalizedStatus: newStatus,
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUser?.uid,
+          updatedByName: captain?.name || captain?.email || "Captain",
+          kitchen: {
+            status: newStatus,
+            lastUpdated: serverTimestamp(),
+            notes: `Status updated by ${
+              captain?.name || "Captain"
+            } from dashboard`,
+          },
+        });
+
+        // Update selected order if it's the same one
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder((prev) => ({
+            ...prev,
+            status: newStatus,
+            normalizedStatus: newStatus,
+            kitchen: {
+              ...prev.kitchen,
+              status: newStatus,
+              lastUpdated: new Date().toISOString(),
+            },
+          }));
+        }
+
+        toast.success(`Order status updated to ${newStatus}`);
+        return { success: true };
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        toast.error(`Failed to update order status: ${error.message}`);
+        return { success: false, error: error.message };
+      }
+    },
+    [currentUser, captain, selectedOrder]
+  );
 
   // Event handlers
   const handleLogout = useCallback(async () => {
     try {
       setLoggingOut(true);
-      await captainServices.captainLogout();
+
+      // ✅ FIRESTORE: Update captain status to offline
+      if (captain?.id) {
+        const captainDocRef = doc(db, "captains", captain.id);
+        await updateDoc(captainDocRef, {
+          isOnline: false,
+          lastSeen: serverTimestamp(),
+        });
+      }
+
+      // Clear auth state
+      // This would typically be handled by your auth service
       toast.success("Logged out successfully");
       navigate("/captain/login");
     } catch (error) {
@@ -181,39 +386,7 @@ const CaptainDashboard = memo(() => {
     } finally {
       setLoggingOut(false);
     }
-  }, [navigate]);
-
-  const handleOrderStatusUpdate = useCallback(
-    async (orderId, newStatus) => {
-      const result = await updateOrderStatus(orderId, newStatus, {
-        updatedBy: "captain",
-        updatedByName: captain?.name || "Captain",
-        updatedAt: new Date().toISOString(),
-        kitchen: {
-          notes: `Status updated by ${
-            captain?.name || "Captain"
-          } from dashboard`,
-        },
-      });
-
-      // Update selected order if it's the same one
-      if (result.success && selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({
-          ...selectedOrder,
-          normalizedStatus: newStatus,
-          status: newStatus,
-          kitchen: {
-            ...selectedOrder.kitchen,
-            status: newStatus,
-            lastUpdated: new Date().toISOString(),
-          },
-        });
-      }
-
-      return result;
-    },
-    [updateOrderStatus, selectedOrder, captain?.name]
-  );
+  }, [captain, navigate]);
 
   const handleViewOrder = useCallback((order) => {
     setSelectedOrder(order);
@@ -239,55 +412,148 @@ const CaptainDashboard = memo(() => {
   }, [refreshOrders]);
 
   const handleCreateOrder = useCallback(() => {
-    if (captain?.hotelName) {
-      navigate(`/captain/menu/${captain.hotelName}`);
+    if (hotelName) {
+      navigate(`/viewMenu/${hotelName}/captain/home`);
+    } else if (selectedHotel?.name) {
+      navigate(`/viewMenu/${selectedHotel.name}/captain/home`);
     } else {
       toast.error("Hotel information not found");
     }
-  }, [captain, navigate]);
+  }, [hotelName, selectedHotel, navigate]);
 
   const handleViewAllOrders = useCallback(() => {
-    if (captain?.hotelName) {
-      navigate(`/captain/orders`);
+    if (hotelName) {
+      navigate(`/viewMenu/${hotelName}/captain/my-orders`);
+    } else {
+      navigate("/captain/my-orders");
     }
-  }, [captain, navigate]);
+  }, [hotelName, navigate]);
 
+  // ✅ NEW: Export orders functionality
   const handleExportOrders = useCallback(() => {
     try {
-      exportOrdersCSV();
+      const csvData = filteredOrders.map((order, index) => ({
+        "Sr. No": index + 1,
+        "Order Number": order.orderNumber || order.id,
+        Table: order.tableNumber || "N/A",
+        Customer: order.customerName || "Walk-in",
+        Items: order.items
+          ? order.items
+              .map((item) => `${item.name || item.menuName} x${item.quantity}`)
+              .join("; ")
+          : "No items",
+        "Total Amount": order.totalAmount || order.grandTotal || 0,
+        Status: order.status || order.normalizedStatus,
+        "Created At": order.createdAt?.toDate
+          ? order.createdAt.toDate().toLocaleString()
+          : new Date(order.createdAt).toLocaleString(),
+      }));
+
+      const csv = csvData.map((row) => Object.values(row).join(",")).join("\n");
+      const headers = Object.keys(csvData[0] || {}).join(",");
+      const csvContent = headers + "\n" + csv;
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `captain-orders-${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Orders exported successfully");
     } catch (error) {
       console.error("Error exporting orders:", error);
       toast.error("Failed to export orders");
     }
-  }, [exportOrdersCSV]);
+  }, [filteredOrders]);
 
-  // Fixed search handler to work with string input
-  const handleSearchInputChange = useCallback(
-    (e) => {
-      const value = e.target ? e.target.value : e; // Support both event and direct value
-      handleSearchChange(value);
-    },
-    [handleSearchChange]
-  );
+  // Filter handlers
+  const handleSearchChange = useCallback((value) => {
+    setSearchTerm(
+      typeof value === "string" ? value : value.target?.value || ""
+    );
+  }, []);
 
-  // Fixed status filter handler to work with select input
-  const handleStatusInputChange = useCallback(
-    (e) => {
-      const value = e.target ? e.target.value : e; // Support both event and direct value
-      handleStatusFilterChange(value);
-    },
-    [handleStatusFilterChange]
-  );
+  const handleStatusFilterChange = useCallback((value) => {
+    setStatusFilter(
+      typeof value === "string" ? value : value.target?.value || "all"
+    );
+  }, []);
+
+  const handleTimePeriodChange = useCallback((period) => {
+    setSelectedTimePeriod(period);
+  }, []);
+
+  const handleDateChange = useCallback((date) => {
+    setSelectedDate(date);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setSelectedTimePeriod("daily");
+    setSelectedDate(new Date().toISOString().split("T")[0]);
+  }, []);
+
+  // ✅ NEW: Connection status indicator
+  const ConnectionStatusIndicator = () => {
+    if (connectionStatus === "connecting") {
+      return (
+        <div className="flex items-center gap-2 text-yellow-600 text-sm">
+          <Wifi className="animate-pulse" size={16} />
+          <span>Connecting...</span>
+        </div>
+      );
+    } else if (connectionStatus === "error") {
+      return (
+        <div className="flex items-center gap-2 text-red-600 text-sm">
+          <WifiOff size={16} />
+          <span>Connection Error</span>
+        </div>
+      );
+    } else if (connectionStatus === "connected") {
+      return (
+        <div className="flex items-center gap-2 text-green-600 text-sm">
+          <CheckCircle size={16} />
+          <span>Live Data</span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Computed values
-  const isLoadingData = loading || hookIsLoading;
-  const hasError = error || isError;
+  const hasOrders = orders && orders.length > 0;
+  const hasFilteredOrders = filteredOrders && filteredOrders.length > 0;
+  const isLoadingData = loading || ordersLoading;
+  const hasError = error || ordersError;
+  const periodDisplayText = useMemo(() => {
+    switch (selectedTimePeriod) {
+      case "daily":
+        return `Orders for ${new Date(selectedDate).toLocaleDateString()}`;
+      case "weekly":
+        return "This Week's Orders";
+      case "monthly":
+        return "This Month's Orders";
+      case "total":
+        return "All Orders";
+      default:
+        return "Orders";
+    }
+  }, [selectedTimePeriod, selectedDate]);
 
   // Error state
   if (hasError && !captain) {
     return (
       <ErrorMessage
-        error={hasError}
+        error={error || ordersError}
         onRetry={handleRefresh}
         title="Error Loading Dashboard"
       />
@@ -300,7 +566,7 @@ const CaptainDashboard = memo(() => {
   }
 
   // Access denied state
-  if (!captain) {
+  if (!captain && !loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -324,6 +590,13 @@ const CaptainDashboard = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ✅ NEW: Connection Status Bar */}
+      {connectionStatus !== "connected" && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2">
+          <ConnectionStatusIndicator />
+        </div>
+      )}
+
       {/* Order Details Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         {showOrderModal && selectedOrder && (
@@ -332,7 +605,7 @@ const CaptainDashboard = memo(() => {
             orderStatuses={statusOptions}
             onClose={handleModalClose}
             onStatusUpdate={handleOrderStatusUpdate}
-            isSubmitting={submitting}
+            isSubmitting={false}
             showDetailedInfo={true}
           />
         )}
@@ -341,25 +614,53 @@ const CaptainDashboard = memo(() => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header with Connection Status */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <PageTitle
-              pageTitle="Dashboard"
+              pageTitle="Captain Dashboard"
               className="text-2xl sm:text-3xl font-bold text-gray-900"
               description={periodDisplayText}
             />
           </div>
+          <div className="flex items-center gap-2">
+            <ConnectionStatusIndicator />
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={`flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
+                isRefreshing ? "opacity-75 cursor-not-allowed" : ""
+              }`}
+            >
+              <RefreshCw
+                size={16}
+                className={isRefreshing ? "animate-spin" : ""}
+              />
+              Refresh
+            </button>
+          </div>
         </div>
 
-        {/* Welcome Section */}
-        {/* <WelcomeSection
-          firstName={captain.firstName || captain.name}
-          hotelName={captain.hotelName}
-          todayStats={todayStats}
-        /> */}
+        {/* Captain Welcome */}
+        {captain && (
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white mb-8">
+            <h2 className="text-xl font-semibold mb-2">
+              Welcome back, {captain.name || captain.firstName || "Captain"}!
+            </h2>
+            <p className="text-blue-100">
+              {selectedHotel?.businessName ||
+                selectedHotel?.name ||
+                captain.hotelName ||
+                "Restaurant"}{" "}
+              •
+              {hasFilteredOrders
+                ? ` ${filteredOrders.length} orders today`
+                : " No orders yet today"}
+            </p>
+          </div>
+        )}
 
         {/* Time Period Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-2">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <TimePeriodSelector
             selectedTimePeriod={selectedTimePeriod}
             onTimePeriodChange={handleTimePeriodChange}
@@ -367,79 +668,66 @@ const CaptainDashboard = memo(() => {
             onDateChange={handleDateChange}
             variant="compact"
             showDatePicker={true}
-            className="mb-2"
+            className="mb-4"
             disableFutureDates={true}
             datePickerProps={{
               placeholder: "Select a date to view orders",
             }}
             options={timePeriodOptions}
           />
-
-         
         </div>
 
-        {/* Enhanced Order Statistics Cards - Updated for Simplified Status System */}
+        {/* Enhanced Order Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              icon={Package}
-              title="Total Orders"
-              value={displayStats.total}
-              color="blue"
-              subtitle={`${displayStats.activeOrders} active`}
-              trend={displayStats.total > 0 ? "up" : "neutral"}
-            />
-          </div>
-
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              icon={Clock}
-              title="Ongoing"
-              value={displayStats.received}
-              color="yellow"
-              subtitle="Being processed"
-              alert={displayStats.received > 5}
-            />
-          </div>
-
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              icon={CheckCircle}
-              title="Completed"
-              value={displayStats.completed}
-              color="green"
-              subtitle={`${displayStats.completionRate}% completion rate`}
-            />
-          </div>
-
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              icon={AlertCircle}
-              title="Rejected"
-              value={displayStats.rejected}
-              color="red"
-              subtitle="Cancelled orders"
-            />
-          </div>
+          <StatCard
+            icon={Package}
+            title="Total Orders"
+            value={orderStats.total}
+            color="blue"
+            subtitle={`${orderStats.activeOrders} active`}
+            trend={orderStats.total > 0 ? "up" : "neutral"}
+          />
+          <StatCard
+            icon={Clock}
+            title="Ongoing"
+            value={orderStats.received}
+            color="yellow"
+            subtitle="Being processed"
+            alert={orderStats.received > 5}
+          />
+          <StatCard
+            icon={CheckCircle}
+            title="Completed"
+            value={orderStats.completed}
+            color="green"
+            subtitle={`${orderStats.completionRate}% completion rate`}
+          />
+          <StatCard
+            icon={AlertCircle}
+            title="Rejected"
+            value={orderStats.rejected}
+            color="red"
+            subtitle="Cancelled orders"
+          />
         </div>
 
         {/* Search and Filters */}
         {hasOrders && (
           <SearchWithResults
             searchTerm={searchTerm}
-            onSearchChange={handleSearchInputChange}
+            onSearchChange={handleSearchChange}
             placeholder="Search orders by number, table, customer name..."
-            totalCount={timeFilteredOrders.length}
+            totalCount={orders.length}
             filteredCount={filteredOrders.length}
             onClearSearch={clearFilters}
             totalLabel="orders"
             showStatusFilter={true}
             statusFilter={statusFilter}
-            onStatusChange={handleStatusInputChange}
+            onStatusChange={handleStatusFilterChange}
             statusOptions={statusOptions}
             isRefreshing={isRefreshing}
             onRefresh={handleRefresh}
-            lastUpdated={lastUpdated}
+            lastUpdated={lastFetch}
             showExportButton={hasFilteredOrders}
             onExport={handleExportOrders}
           />
@@ -456,8 +744,7 @@ const CaptainDashboard = memo(() => {
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-4">
                         <span className="font-medium text-gray-900">
-                          {filteredOrders.length} of {timeFilteredOrders.length}{" "}
-                          orders
+                          {filteredOrders.length} of {orders.length} orders
                         </span>
                         {statusFilter !== "all" && (
                           <span className="text-gray-600">
@@ -465,12 +752,10 @@ const CaptainDashboard = memo(() => {
                           </span>
                         )}
                       </div>
-
                       <div className="flex items-center gap-4 text-gray-600">
-                        {displayStats.totalRevenue > 0 && (
+                        {orderStats.totalRevenue > 0 && (
                           <span>
-                            Revenue: ₹
-                            {displayStats.totalRevenue.toLocaleString()}
+                            Revenue: ₹{orderStats.totalRevenue.toLocaleString()}
                           </span>
                         )}
                         <button
@@ -500,11 +785,14 @@ const CaptainDashboard = memo(() => {
                       showLabelsOnActions={false}
                       onRowClick={handleViewOrder}
                       highlightRows={(order) => {
-                        if (order.normalizedStatus === "ready")
-                          return "bg-green-50";
+                        const status = order.normalizedStatus || order.status;
+                        if (status === "ready") return "bg-green-50";
                         if (
-                          order.normalizedStatus === "pending" &&
-                          new Date() - new Date(order.orderTimestamp) >
+                          status === "pending" &&
+                          new Date() -
+                            (order.createdAt?.toDate
+                              ? order.createdAt.toDate()
+                              : new Date(order.createdAt)) >
                             15 * 60 * 1000
                         ) {
                           return "bg-yellow-50";
@@ -562,12 +850,12 @@ const CaptainDashboard = memo(() => {
         </div>
 
         {/* Loading overlay for order operations */}
-        {(submitting || ordersLoading) && hasOrders && (
+        {ordersLoading && hasOrders && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 flex items-center gap-3 shadow-lg">
               <LoadingSpinner size="sm" />
               <span className="text-gray-700 font-medium">
-                {submitting ? "Processing order..." : "Loading orders..."}
+                Loading orders...
               </span>
             </div>
           </div>

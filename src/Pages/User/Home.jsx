@@ -1,3 +1,4 @@
+// src/Pages/User/Home.jsx
 import React, {
   useState,
   useEffect,
@@ -7,8 +8,16 @@ import React, {
   Suspense,
 } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { db } from "../../services/firebase/firebaseConfig";
-import { onValue, ref } from "firebase/database";
+// ✅ REMOVED: Direct Firebase imports (now using hooks)
+// import { db } from "../../services/firebase/firebaseConfig";
+// import { onValue, ref } from "firebase/database";
+
+// ✅ NEW: Import Firestore-based hooks
+import { useMenu } from "../../hooks/useMenu";
+import { useCategory } from "../../hooks/useCategory";
+import { useAuth } from "../../context/AuthContext";
+import { useHotelContext } from "../../context/HotelContext";
+
 import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig";
 import ErrorState from "atoms/Messages/ErrorState";
 import NavBar from "organisms/Navbar";
@@ -18,7 +27,7 @@ import ResultsSummary from "components/ResultsSummary";
 import MenuCardSkeleton from "atoms/MenuCardSkeleton";
 import LoadingSpinner from "atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import { Filter } from "lucide-react";
+import { Filter, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 
 // Lazy load heavy components
 const Navbar = React.lazy(() => import("../../organisms/Navbar"));
@@ -35,118 +44,91 @@ const Home = memo(() => {
   const { hotelName } = useParams();
   const location = useLocation();
 
-  // State management
-  const [menus, setMenus] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [mainCategories, setMainCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // ✅ NEW: Use context hooks
+  const { currentUser, isAuthenticated } = useAuth();
+  const { selectedHotel, selectHotelById } = useHotelContext();
 
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("default");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  // ✅ ENHANCED: Use the active hotel name with fallback
+  const activeHotelName = hotelName || selectedHotel?.name || selectedHotel?.id;
+
+  // ✅ NEW: Use Firestore-based hooks instead of direct Firebase calls
+  const {
+    menus,
+    categories,
+    mainCategories,
+    loading,
+    error,
+    connectionStatus,
+    filteredAndSortedMenus: hookFilteredMenus,
+    searchTerm,
+    setSearchTerm,
+    sortOrder,
+    setSortOrder,
+    selectedCategory,
+    setSelectedCategory,
+    activeCategory,
+    setActiveCategory,
+    handleSearchChange,
+    handleSortChange,
+    handleCategoryFilter,
+    clearAllFilters,
+    menuCount,
+    filteredCount,
+    hasMenus,
+    hasSearchResults,
+    refreshMenus,
+    // Get computed counts
+    menuCountsByCategory,
+  } = useMenu(activeHotelName);
+
+  // ✅ NEW: Get categories with their own hook for better performance
+  const {
+    categories: categoriesData,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useCategory(activeHotelName);
+
+  // Local state for additional filters not handled by useMenu
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSpecialFilters, setSelectedSpecialFilters] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
-
-  // UI states
   const [viewMode, setViewMode] = useState("grid");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Counts
-  const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
+  // ✅ NEW: Computed state for counts
   const [menuCountsByMainCategory, setMenuCountsByMainCategory] = useState({});
   const [specialCategoryCounts, setSpecialCategoryCounts] = useState({});
+
+  // ✅ NEW: Auto-update hotel selection if needed
+  useEffect(() => {
+    if (hotelName && selectedHotel?.name !== hotelName) {
+      selectHotelById(hotelName);
+    }
+  }, [hotelName, selectedHotel, selectHotelById]);
 
   // Check if user is admin
   useEffect(() => {
     setIsAdmin(location.pathname.includes("admin"));
   }, [location.pathname]);
 
-  // Data fetching
+  // ✅ ENHANCED: Calculate counts when menus data changes
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch menus
-        const menusPromise = new Promise((resolve) => {
-          onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
-            const data = snapshot.val();
-            const menusData = data ? Object.values(data) : [];
-            resolve(menusData);
-          });
-        });
-
-        // Fetch categories
-        const categoriesPromise = new Promise((resolve) => {
-          onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
-            const data = snapshot.val();
-            const categoriesData = data ? Object.values(data) : [];
-            resolve(categoriesData);
-          });
-        });
-
-        // Fetch main categories
-        const mainCategoriesPromise = new Promise((resolve) => {
-          onValue(
-            ref(db, `/hotels/${hotelName}/Maincategories/`),
-            (snapshot) => {
-              const data = snapshot.val();
-              const mainCategoriesData = data ? Object.values(data) : [];
-              resolve(mainCategoriesData);
-            }
-          );
-        });
-
-        const [menusData, categoriesData, mainCategoriesData] =
-          await Promise.all([
-            menusPromise,
-            categoriesPromise,
-            mainCategoriesPromise,
-          ]);
-
-        setMenus(menusData);
-        setCategories(categoriesData);
-        setMainCategories(mainCategoriesData);
-
-        // Calculate counts
-        calculateCounts(menusData, categoriesData, mainCategoriesData);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (hotelName) {
-      fetchData();
+    if (menus.length > 0) {
+      calculateCounts(menus, categories, mainCategories);
     }
-  }, [hotelName]);
+  }, [menus, categories, mainCategories]);
 
   // Calculate counts
   const calculateCounts = useCallback(
     (menusData, categoriesData, mainCategoriesData) => {
-      // Category counts
-      const categoryCounts = {};
-      categoriesData.forEach((category) => {
-        const count = menusData.filter(
-          (menu) => menu.menuCategory === category.categoryName
-        ).length;
-        categoryCounts[category.categoryName] = count;
-      });
-      setMenuCountsByCategory(categoryCounts);
-
       // Main category counts
       const mainCategoryCounts = {};
       mainCategoriesData.forEach((mainCategory) => {
+        const categoryName = mainCategory.mainCategoryName || mainCategory.name;
         const count = menusData.filter(
-          (menu) => menu.mainCategory === mainCategory.mainCategoryName
+          (menu) => menu.mainCategory === categoryName
         ).length;
-        mainCategoryCounts[mainCategory.mainCategoryName] = count;
+        mainCategoryCounts[categoryName] = count;
       });
       setMenuCountsByMainCategory(mainCategoryCounts);
 
@@ -163,42 +145,43 @@ const Home = memo(() => {
     []
   );
 
-  // Filter and sort menus
+  // ✅ ENHANCED: Filter and sort menus with additional local filters
   const filteredAndSortedMenus = useMemo(() => {
     let filtered = [...menus];
 
-    // Search filter
+    // Apply hook-based filters first (search, category, sort are handled by useMenu)
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (menu) =>
           menu.menuName?.toLowerCase().includes(search) ||
-          menu.menuDescription?.toLowerCase().includes(search)
+          menu.menuDescription?.toLowerCase().includes(search) ||
+          menu.ingredients?.toLowerCase().includes(search)
       );
     }
 
-    // Category filter
+    // Category filter (hook handles this, but we need to sync with local state)
     if (selectedCategory) {
       filtered = filtered.filter(
         (menu) => menu.menuCategory === selectedCategory
       );
     }
 
-    // Main category filter
+    // Main category filter (local state)
     if (selectedMainCategory) {
       filtered = filtered.filter(
         (menu) => menu.mainCategory === selectedMainCategory
       );
     }
 
-    // Special filters
+    // Special filters (local state)
     if (selectedSpecialFilters.length > 0) {
       filtered = filtered.filter((menu) =>
         selectedSpecialFilters.every((filter) => menu[filter] === true)
       );
     }
 
-    // Sorting
+    // Apply sorting (hook handles this too, but we can override)
     if (sortOrder === "lowToHigh") {
       filtered.sort(
         (a, b) =>
@@ -240,27 +223,45 @@ const Home = memo(() => {
     [specialCategoryCounts]
   );
 
-  // Event handlers
-  const handleSearch = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
+  // ✅ ENHANCED: Event handlers with hook integration
+  const handleSearch = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+      handleSearchChange(value); // Update hook state
+    },
+    [handleSearchChange]
+  );
 
-  const handleSort = useCallback((order) => {
-    setSortOrder(order);
-  }, []);
+  const handleSort = useCallback(
+    (order) => {
+      setSortOrder(order);
+      handleSortChange(order); // Update hook state
+    },
+    [handleSortChange]
+  );
 
-  const handleCategoryFilter = useCallback((category, type) => {
-    if (type === "all" || category === "") {
-      setSelectedCategory("");
-      setSelectedMainCategory("");
-    } else if (type === "main") {
-      setSelectedMainCategory(category);
-      setSelectedCategory("");
-    } else {
-      setSelectedCategory(category);
-      setSelectedMainCategory("");
-    }
-  }, []);
+  const handleCategoryFilterLocal = useCallback(
+    (category, type) => {
+      if (type === "all" || category === "") {
+        setSelectedCategory("");
+        setSelectedMainCategory("");
+        setActiveCategory("");
+        handleCategoryFilter(""); // Update hook state
+      } else if (type === "main") {
+        setSelectedMainCategory(category);
+        setSelectedCategory("");
+        setActiveCategory("");
+        handleCategoryFilter(""); // Clear hook category filter
+      } else {
+        setSelectedCategory(category);
+        setSelectedMainCategory("");
+        setActiveCategory(category);
+        handleCategoryFilter(category); // Update hook state
+      }
+    },
+    [handleCategoryFilter, setActiveCategory]
+  );
 
   const handleSpecialFilterToggle = useCallback((filterName) => {
     setSelectedSpecialFilters((prev) =>
@@ -270,17 +271,19 @@ const Home = memo(() => {
     );
   }, []);
 
-  const clearAllFilters = useCallback(() => {
+  const clearAllFiltersLocal = useCallback(() => {
     setSearchTerm("");
     setSelectedCategory("");
     setSelectedMainCategory("");
     setSelectedSpecialFilters([]);
     setSortOrder("default");
-  }, []);
+    clearAllFilters(); // Clear hook filters
+  }, [clearAllFilters]);
 
   const clearSearch = useCallback(() => {
     setSearchTerm("");
-  }, []);
+    handleSearchChange(""); // Update hook state
+  }, [handleSearchChange]);
 
   const removeSpecialFilter = useCallback((filter) => {
     setSelectedSpecialFilters((prev) => prev.filter((f) => f !== filter));
@@ -288,7 +291,9 @@ const Home = memo(() => {
 
   const removeCategoryFilter = useCallback(() => {
     setSelectedCategory("");
-  }, []);
+    setActiveCategory("");
+    handleCategoryFilter(""); // Update hook state
+  }, [handleCategoryFilter, setActiveCategory]);
 
   const removeMainCategoryFilter = useCallback(() => {
     setSelectedMainCategory("");
@@ -298,9 +303,39 @@ const Home = memo(() => {
     setViewMode(mode);
   }, []);
 
+  // ✅ ENHANCED: Retry handler with hook refresh
   const handleRetry = useCallback(() => {
-    window.location.reload();
-  }, []);
+    refreshMenus();
+  }, [refreshMenus]);
+
+  // ✅ NEW: Connection status indicator
+  const ConnectionStatusIndicator = memo(() => {
+    if (connectionStatus === "connecting") {
+      return (
+        <div className="flex items-center gap-2 text-yellow-600 text-sm">
+          <Wifi className="animate-pulse" size={16} />
+          <span>Connecting...</span>
+        </div>
+      );
+    }
+
+    if (connectionStatus === "error") {
+      return (
+        <div className="flex items-center gap-2 text-red-600 text-sm">
+          <WifiOff size={16} />
+          <span>Connection Error</span>
+          <button
+            onClick={handleRetry}
+            className="text-blue-600 hover:text-blue-800 underline ml-1"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  });
 
   // Check if any filters are active
   const hasActiveFilters = useMemo(
@@ -312,9 +347,45 @@ const Home = memo(() => {
     [searchTerm, selectedCategory, selectedMainCategory, selectedSpecialFilters]
   );
 
-  // Error state
-  if (error) {
-    return <ErrorState onRetry={handleRetry} />;
+  // ✅ ENHANCED: Error state with more context
+  if (error && connectionStatus === "error") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="max-w-md w-full">
+            <ErrorState
+              title="Unable to Load Menu"
+              message={
+                error.message ||
+                "There was a problem loading the menu items. Please check your connection and try again."
+              }
+              onRetry={handleRetry}
+              showRetryButton={true}
+            />
+            <div className="mt-4 text-center">
+              <ConnectionStatusIndicator />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ NEW: No hotel selected state
+  if (!activeHotelName) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No Restaurant Selected
+          </h3>
+          <p className="text-gray-600">
+            Please select a restaurant to view the menu.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -324,9 +395,9 @@ const Home = memo(() => {
         <Suspense fallback={<div className="h-16 bg-white border-b" />}>
           <div className="sticky top-0 z-50 shadow-sm">
             <NavBar
-              title={hotelName}
+              title={activeHotelName}
               admin={false}
-              hotelName={hotelName}
+              hotelName={activeHotelName}
               home
               offers
               socialLinks={{
@@ -337,6 +408,20 @@ const Home = memo(() => {
             />
           </div>
         </Suspense>
+      )}
+
+      {/* ✅ NEW: Connection Status Bar */}
+      {connectionStatus !== "connected" && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <ConnectionStatusIndicator />
+            {connectionStatus === "error" && (
+              <span className="text-xs text-gray-600">
+                Last updated: {new Date().toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Sticky Filters & Tabs */}
@@ -357,6 +442,7 @@ const Home = memo(() => {
               className="w-full"
             />
           </Suspense>
+
           {/* Mobile Filter Toggle */}
           <div className="flex items-center justify-between mb-1">
             <button
@@ -374,7 +460,7 @@ const Home = memo(() => {
 
             {hasActiveFilters && (
               <button
-                onClick={clearAllFilters}
+                onClick={clearAllFiltersLocal}
                 className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
               >
                 Clear All
@@ -406,7 +492,7 @@ const Home = memo(() => {
                 mainCategories={mainCategories}
                 menuCountsByCategory={menuCountsByCategory}
                 menuCountsByMainCategory={menuCountsByMainCategory}
-                handleCategoryFilter={handleCategoryFilter}
+                handleCategoryFilter={handleCategoryFilterLocal}
                 initialActiveTab={
                   selectedCategory || selectedMainCategory || "All"
                 }
@@ -421,12 +507,29 @@ const Home = memo(() => {
         <div className="container mx-auto px-3 py-3 max-w-7xl">
           {/* Results Summary */}
           <ResultsSummary
-            totalResults={menus.length}
+            totalResults={menuCount}
             filteredResults={filteredAndSortedMenus.length}
             hasFilters={hasActiveFilters}
             viewMode={viewMode}
             onViewModeChange={changeViewMode}
           />
+
+          {/* ✅ NEW: Active Filters Display */}
+          {hasActiveFilters && (
+            <div className="mb-4">
+              <ActiveFilters
+                searchTerm={searchTerm}
+                selectedCategory={selectedCategory}
+                selectedMainCategory={selectedMainCategory}
+                selectedSpecialFilters={selectedSpecialFilters}
+                onClearSearch={clearSearch}
+                onClearCategory={removeCategoryFilter}
+                onClearMainCategory={removeMainCategoryFilter}
+                onClearSpecialFilter={removeSpecialFilter}
+                onClearAll={clearAllFiltersLocal}
+              />
+            </div>
+          )}
 
           {/* Menu Items */}
           {loading ? (
@@ -453,24 +556,61 @@ const Home = memo(() => {
                 }`}
               >
                 {filteredAndSortedMenus.map((item) => (
-                  <div key={item.id || item.menuId} className="w-full">
+                  <div
+                    key={item.id || item.menuId || item.uuid}
+                    className="w-full"
+                  >
                     <HorizontalMenuCard
                       item={item}
                       onAddToCart={(item, quantity) => {
                         console.log("Add to cart:", item, quantity);
+                        // ✅ TODO: Integrate with cart context/service
                       }}
+                      isLoading={connectionStatus === "connecting"}
+                      disabled={connectionStatus === "error"}
                     />
                   </div>
                 ))}
               </div>
             </Suspense>
+          ) : hasMenus ? (
+            <EmptyState
+              title="No menu items found"
+              message={
+                hasActiveFilters
+                  ? "Try adjusting your filters to see more results."
+                  : "No menu items available at the moment."
+              }
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearAllFiltersLocal}
+              actionLabel={hasActiveFilters ? "Clear Filters" : "Refresh"}
+              onAction={hasActiveFilters ? clearAllFiltersLocal : handleRetry}
+            />
           ) : (
             <EmptyState
-              hasActiveFilters={hasActiveFilters}
-              onClearFilters={clearAllFilters}
+              title="Menu coming soon"
+              message="The restaurant is still setting up their menu. Please check back later."
+              actionLabel="Refresh"
+              onAction={handleRetry}
             />
           )}
         </div>
+      </div>
+
+      {/* ✅ NEW: Footer info */}
+      <div className="bg-white border-t px-4 py-2 text-center text-xs text-gray-500">
+        {connectionStatus === "connected" && (
+          <div className="flex items-center justify-center gap-4">
+            <span>Menu items: {menuCount}</span>
+            {filteredAndSortedMenus.length !== menuCount && (
+              <span>Showing: {filteredAndSortedMenus.length}</span>
+            )}
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              Live
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

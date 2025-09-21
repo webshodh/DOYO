@@ -1,6 +1,21 @@
+// src/services/captainServices.js
 import { db, storage, auth } from "../firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+// ✅ FIRESTORE IMPORTS (replacing Realtime Database)
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
 import {
   ref as storageRef,
   uploadBytes,
@@ -36,23 +51,23 @@ export const captainServices = {
         throw new Error("Admin not authenticated");
       }
 
-      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
-          (snapshot) => snapshot.val()
-        ),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
-          snapshot.val()
-        ),
+      // ✅ FIRESTORE: Get admin and hotel documents
+      const [adminDoc, hotelDoc] = await Promise.all([
+        getDoc(doc(db, `admins/${adminId}`)),
+        getDoc(doc(db, `hotels/${hotelName}`)),
       ]);
 
-      return adminHotelUuid === generalHotelUuid;
+      const adminData = adminDoc.exists() ? adminDoc.data() : null;
+      const hotelData = hotelDoc.exists() ? hotelDoc.data() : null;
+
+      return adminData?.hotels?.[hotelName]?.uuid === hotelData?.uuid;
     } catch (error) {
       console.error("Error checking permission:", error);
       return false;
     }
   },
 
-  // Upload captain photo
+  // Upload captain photo (unchanged - uses Storage)
   uploadCaptainPhoto: async (hotelName, captainId, photoFile) => {
     try {
       const photoRef = storageRef(
@@ -68,7 +83,7 @@ export const captainServices = {
     }
   },
 
-  // Delete captain photo
+  // Delete captain photo (unchanged - uses Storage)
   deleteCaptainPhoto: async (hotelName, captainId) => {
     try {
       const photoRef = storageRef(
@@ -77,12 +92,11 @@ export const captainServices = {
       );
       await deleteObject(photoRef);
     } catch (error) {
-      // Photo might not exist, which is fine
       console.log("Photo deletion skipped:", error.message);
     }
   },
 
-  // Create Firebase Auth user for captain
+  // Create Firebase Auth user for captain (unchanged)
   createCaptainAuthUser: async (email, password) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -97,7 +111,7 @@ export const captainServices = {
     }
   },
 
-  // Delete Firebase Auth user
+  // Delete Firebase Auth user (unchanged)
   deleteCaptainAuthUser: async (user) => {
     try {
       await deleteUser(user);
@@ -107,7 +121,7 @@ export const captainServices = {
     }
   },
 
-  // Update captain password
+  // Update captain password (unchanged)
   updateCaptainPassword: async (user, newPassword) => {
     try {
       await updatePassword(user, newPassword);
@@ -145,7 +159,7 @@ export const captainServices = {
     }
   },
 
-  // Captain logout
+  // Captain logout (unchanged)
   captainLogout: async () => {
     try {
       await signOut(auth);
@@ -155,30 +169,31 @@ export const captainServices = {
     }
   },
 
-  // Get captain data by Firebase Auth ID - UPDATED to search through hotels only
+  // ✅ FIRESTORE: Get captain data by Firebase Auth ID
   getCaptainByAuthId: async (authId) => {
     try {
       // Get all hotels first
-      const hotelsSnapshot = await get(ref(db, "hotels"));
-      if (!hotelsSnapshot.exists()) {
+      const hotelsSnapshot = await getDocs(collection(db, "hotels"));
+
+      if (hotelsSnapshot.empty) {
         return null;
       }
 
-      const hotelsData = hotelsSnapshot.val();
-
       // Search through all hotels to find the captain
-      for (const [hotelName, hotelData] of Object.entries(hotelsData)) {
-        if (hotelData.captains) {
-          for (const [captainId, captainData] of Object.entries(
-            hotelData.captains
-          )) {
-            if (captainData.firebaseAuthId === authId) {
-              return {
-                ...captainData,
-                hotelName,
-                captainId,
-              };
-            }
+      for (const hotelDoc of hotelsSnapshot.docs) {
+        const hotelName = hotelDoc.id;
+        const captainsSnapshot = await getDocs(
+          collection(db, `hotels/${hotelName}/captains`)
+        );
+
+        for (const captainDoc of captainsSnapshot.docs) {
+          const captainData = captainDoc.data();
+          if (captainData.firebaseAuthId === authId) {
+            return {
+              ...captainData,
+              hotelName,
+              captainId: captainDoc.id,
+            };
           }
         }
       }
@@ -190,26 +205,25 @@ export const captainServices = {
     }
   },
 
-  // Subscribe to captains changes with real-time updates
+  // ✅ FIRESTORE: Subscribe to captains changes with real-time updates
   subscribeToCaptains: (hotelName, callback) => {
     if (!hotelName) {
       callback([]);
       return () => {};
     }
 
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/captains/`),
+    const captainsRef = collection(db, `hotels/${hotelName}/captains`);
+    const q = query(captainsRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
       (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const captainsArray = Object.values(data).map((captain, index) => ({
-            ...captain,
-            srNo: index + 1,
-          }));
-          callback(captainsArray);
-        } else {
-          callback([]);
-        }
+        const captainsArray = snapshot.docs.map((doc, index) => ({
+          id: doc.id,
+          ...doc.data(),
+          srNo: index + 1,
+        }));
+        callback(captainsArray);
       },
       (error) => {
         console.error("Error fetching captains:", error);
@@ -223,7 +237,7 @@ export const captainServices = {
     return unsubscribe;
   },
 
-  // Add new captain with Firebase Auth - UPDATED to remove separate collection
+  // ✅ FIRESTORE: Add new captain
   addCaptain: async (hotelName, captainData, existingCaptains = []) => {
     let authUser = null;
 
@@ -278,14 +292,15 @@ export const captainServices = {
         status: "active",
         role: "captain",
         hotelName,
-        email: captainData.email, // Store email for login reference
-        createdAt: new Date().toISOString(),
+        email: captainData.email,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         createdBy: captainServices.getCurrentAdminId(),
       };
 
-      // Save to database under hotels only
-      await set(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+      // ✅ FIRESTORE: Save to database
+      await setDoc(
+        doc(db, `hotels/${hotelName}/captains/${captainId}`),
         finalCaptainData
       );
 
@@ -332,7 +347,7 @@ export const captainServices = {
     }
   },
 
-  // Update existing captain - UPDATED to remove separate collection
+  // ✅ FIRESTORE: Update existing captain
   updateCaptain: async (
     hotelName,
     captainId,
@@ -367,19 +382,19 @@ export const captainServices = {
         return false;
       }
 
-      // Get existing captain data to get Firebase Auth ID
-      const existingCaptain = await get(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`)
+      // ✅ FIRESTORE: Get existing captain data
+      const existingCaptainDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/captains/${captainId}`)
       );
 
-      if (!existingCaptain.exists()) {
+      if (!existingCaptainDoc.exists()) {
         toast.error("Captain not found", {
           position: toast.POSITION.TOP_RIGHT,
         });
         return false;
       }
 
-      const existingData = existingCaptain.val();
+      const existingData = existingCaptainDoc.data();
 
       // Sanitize and prepare updated data
       const sanitizedData = sanitizeCaptainData(captainData);
@@ -399,23 +414,20 @@ export const captainServices = {
       const updateData = {
         ...sanitizedData,
         photoUrl,
-        email: captainData.email || existingData.email, // Preserve email for login
-        updatedAt: new Date().toISOString(),
+        email: captainData.email || existingData.email,
+        updatedAt: serverTimestamp(),
         updatedBy: captainServices.getCurrentAdminId(),
       };
 
-      // Update in hotels collection only
-      await update(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+      // ✅ FIRESTORE: Update document
+      await updateDoc(
+        doc(db, `hotels/${hotelName}/captains/${captainId}`),
         updateData
       );
 
       // Update password if provided
       if (captainData.password && captainData.password.trim()) {
         try {
-          // Note: To update password, we need the user to be signed in
-          // In a production app, you might want to send a password reset email instead
-          // or implement a different flow for admin-initiated password changes
           toast.info(
             "Password update requires captain to be signed in. Consider sending a password reset email.",
             {
@@ -441,7 +453,7 @@ export const captainServices = {
     }
   },
 
-  // Delete captain - UPDATED to remove separate collection
+  // ✅ FIRESTORE: Delete captain
   deleteCaptain: async (hotelName, captain) => {
     try {
       // Check permissions
@@ -463,18 +475,13 @@ export const captainServices = {
         await captainServices.deleteCaptainPhoto(hotelName, captain.captainId);
       }
 
-      // Delete from hotels collection only
-      await remove(
-        ref(db, `/hotels/${hotelName}/captains/${captain.captainId}`)
+      // ✅ FIRESTORE: Delete document
+      await deleteDoc(
+        doc(db, `hotels/${hotelName}/captains/${captain.captainId}`)
       );
 
-      // Note: Firebase Auth user deletion requires the user to be recently authenticated
-      // In a production app, you might want to implement a different strategy
-      // such as disabling the account instead of deleting it
       if (captain.firebaseAuthId) {
         try {
-          // This will only work if admin has appropriate permissions
-          // You might want to handle this through Firebase Admin SDK on your backend
           toast.info(
             "Captain removed from hotel. Auth account may need manual cleanup.",
             {
@@ -500,7 +507,7 @@ export const captainServices = {
     }
   },
 
-  // Prepare captain for editing
+  // Prepare captain for editing (unchanged)
   prepareForEdit: async (hotelName, captain) => {
     try {
       const hasPermission = await captainServices.checkAdminPermission(
@@ -525,7 +532,7 @@ export const captainServices = {
     }
   },
 
-  // Filter captains based on search term
+  // Filter captains based on search term (unchanged - client-side filtering)
   filterCaptains: (captains, searchTerm) => {
     if (!searchTerm.trim()) {
       return captains.map((captain, index) => ({
@@ -551,14 +558,14 @@ export const captainServices = {
       }));
   },
 
-  // Get captain statistics
+  // ✅ FIRESTORE: Get captain statistics
   getCaptainStats: async (hotelName) => {
     try {
-      const captainSnapshot = await get(
-        ref(db, `/hotels/${hotelName}/captains`)
+      const captainsSnapshot = await getDocs(
+        collection(db, `hotels/${hotelName}/captains`)
       );
 
-      if (!captainSnapshot.exists()) {
+      if (captainsSnapshot.empty) {
         return {
           totalCaptains: 0,
           activeCaptains: 0,
@@ -567,7 +574,7 @@ export const captainServices = {
         };
       }
 
-      const captains = Object.values(captainSnapshot.val());
+      const captains = captainsSnapshot.docs.map((doc) => doc.data());
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
       return {
@@ -576,7 +583,9 @@ export const captainServices = {
         inactiveCaptains: captains.filter((c) => c.status === "inactive")
           .length,
         recentCaptains: captains.filter((c) => {
-          const createdDate = new Date(c.createdAt);
+          const createdDate = c.createdAt?.toDate
+            ? c.createdAt.toDate()
+            : new Date(c.createdAt);
           return createdDate > weekAgo;
         }).length,
       };
@@ -586,7 +595,7 @@ export const captainServices = {
     }
   },
 
-  // Toggle captain status - UPDATED to remove separate collection
+  // ✅ FIRESTORE: Toggle captain status
   toggleCaptainStatus: async (hotelName, captainId, currentStatus) => {
     try {
       const hasPermission = await captainServices.checkAdminPermission(
@@ -601,10 +610,10 @@ export const captainServices = {
 
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
-      // Update in hotels collection only
-      await update(ref(db, `/hotels/${hotelName}/captains/${captainId}`), {
+      // ✅ FIRESTORE: Update document
+      await updateDoc(doc(db, `hotels/${hotelName}/captains/${captainId}`), {
         status: newStatus,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
         updatedBy: captainServices.getCurrentAdminId(),
       });
 
@@ -622,13 +631,13 @@ export const captainServices = {
     }
   },
 
-  // Check if user is authenticated captain
+  // Check if user is authenticated captain (unchanged)
   isAuthenticatedCaptain: () => {
     const auth = getAuth();
     return auth.currentUser !== null;
   },
 
-  // Get current captain data
+  // Get current captain data (unchanged)
   getCurrentCaptain: async () => {
     try {
       const auth = getAuth();

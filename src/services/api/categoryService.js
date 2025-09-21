@@ -1,6 +1,21 @@
+// src/services/categoryService.js
 import { db } from "../firebase/firebaseConfig";
 import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+// ✅ FIRESTORE IMPORTS (replacing Realtime Database)
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import {
@@ -9,13 +24,13 @@ import {
 } from "../../validation/categoryValidation";
 
 export const categoryServices = {
-  // Get current admin ID
+  // Get current admin ID (unchanged)
   getCurrentAdminId: () => {
     const auth = getAuth();
     return auth.currentUser?.uid;
   },
 
-  // Check if admin has permission for the hotel
+  // ✅ FIRESTORE: Check if admin has permission for the hotel
   checkAdminPermission: async (hotelName) => {
     try {
       const adminId = categoryServices.getCurrentAdminId();
@@ -23,44 +38,41 @@ export const categoryServices = {
         throw new Error("Admin not authenticated");
       }
 
-      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
-          (snapshot) => snapshot.val()
-        ),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
-          snapshot.val()
-        ),
+      // ✅ FIRESTORE: Get admin and hotel documents
+      const [adminDoc, hotelDoc] = await Promise.all([
+        getDoc(doc(db, `admins/${adminId}`)),
+        getDoc(doc(db, `hotels/${hotelName}`)),
       ]);
 
-      return adminHotelUuid === generalHotelUuid;
+      const adminData = adminDoc.exists() ? adminDoc.data() : null;
+      const hotelData = hotelDoc.exists() ? hotelDoc.data() : null;
+
+      return adminData?.hotels?.[hotelName]?.uuid === hotelData?.uuid;
     } catch (error) {
       console.error("Error checking permission:", error);
       return false;
     }
   },
 
-  // Subscribe to categories changes with real-time updates
+  // ✅ FIRESTORE: Subscribe to categories changes with real-time updates
   subscribeToCategories: (hotelName, callback) => {
     if (!hotelName) {
       callback([]);
       return () => {};
     }
 
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/categories/`),
+    const categoriesRef = collection(db, `hotels/${hotelName}/categories`);
+    const q = query(categoriesRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
       (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const categoriesArray = Object.values(data).map(
-            (category, index) => ({
-              ...category,
-              srNo: index + 1,
-            })
-          );
-          callback(categoriesArray);
-        } else {
-          callback([]);
-        }
+        const categoriesArray = snapshot.docs.map((doc, index) => ({
+          id: doc.id,
+          ...doc.data(),
+          srNo: index + 1,
+        }));
+        callback(categoriesArray);
       },
       (error) => {
         console.error("Error fetching categories:", error);
@@ -74,7 +86,7 @@ export const categoryServices = {
     return unsubscribe;
   },
 
-  // Add new category
+  // ✅ FIRESTORE: Add new category
   addCategory: async (hotelName, categoryName, existingCategories = []) => {
     try {
       // Validate category name and check for duplicates
@@ -102,13 +114,14 @@ export const categoryServices = {
       const categoryData = {
         categoryName: sanitizedName,
         categoryId,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         createdBy: categoryServices.getCurrentAdminId(),
       };
 
-      // Save to database
-      await set(
-        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+      // ✅ FIRESTORE: Save to database
+      await setDoc(
+        doc(db, `hotels/${hotelName}/categories/${categoryId}`),
         categoryData
       );
 
@@ -126,7 +139,7 @@ export const categoryServices = {
     }
   },
 
-  // Update existing category
+  // ✅ FIRESTORE: Update existing category
   updateCategory: async (
     hotelName,
     categoryId,
@@ -166,13 +179,13 @@ export const categoryServices = {
       const updateData = {
         categoryName: sanitizedName,
         categoryId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
         updatedBy: categoryServices.getCurrentAdminId(),
       };
 
-      // Update in database
-      await update(
-        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+      // ✅ FIRESTORE: Update in database
+      await updateDoc(
+        doc(db, `hotels/${hotelName}/categories/${categoryId}`),
         updateData
       );
 
@@ -190,7 +203,7 @@ export const categoryServices = {
     }
   },
 
-  // Delete category
+  // ✅ FIRESTORE: Delete category
   deleteCategory: async (hotelName, category) => {
     try {
       // Check permissions
@@ -229,9 +242,9 @@ export const categoryServices = {
         }
       }
 
-      // Delete from database
-      await remove(
-        ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`)
+      // ✅ FIRESTORE: Delete from database
+      await deleteDoc(
+        doc(db, `hotels/${hotelName}/categories/${category.categoryId}`)
       );
 
       toast.success("Category deleted successfully!", {
@@ -248,12 +261,15 @@ export const categoryServices = {
     }
   },
 
-  // Check if category is being used by menus (optional utility)
+  // ✅ FIRESTORE: Check if category is being used by menus (optional utility)
   checkCategoryUsage: async (hotelName, categoryName) => {
     try {
-      const menuSnapshot = await get(ref(db, `/hotels/${hotelName}/menu`));
-      if (menuSnapshot.exists()) {
-        const menus = Object.values(menuSnapshot.val());
+      const menuSnapshot = await getDocs(
+        collection(db, `hotels/${hotelName}/menu`)
+      );
+
+      if (!menuSnapshot.empty) {
+        const menus = menuSnapshot.docs.map((doc) => doc.data());
         return menus.some(
           (menu) =>
             menu.menuCategory === categoryName ||
@@ -267,7 +283,7 @@ export const categoryServices = {
     }
   },
 
-  // Prepare category for editing (with permission check)
+  // Prepare category for editing (with permission check) - unchanged
   prepareForEdit: async (hotelName, category) => {
     try {
       const hasPermission = await categoryServices.checkAdminPermission(
@@ -292,7 +308,7 @@ export const categoryServices = {
     }
   },
 
-  // Filter categories based on search term
+  // Filter categories based on search term (unchanged - client-side filtering)
   filterCategories: (categories, searchTerm) => {
     if (!searchTerm.trim()) {
       return categories.map((category, index) => ({
@@ -311,21 +327,19 @@ export const categoryServices = {
       }));
   },
 
-  // Get category statistics (optional utility)
+  // ✅ FIRESTORE: Get category statistics (optional utility)
   getCategoryStats: async (hotelName) => {
     try {
       const [categorySnapshot, menuSnapshot] = await Promise.all([
-        get(ref(db, `/hotels/${hotelName}/categories`)),
-        get(ref(db, `/hotels/${hotelName}/menu`)),
+        getDocs(collection(db, `hotels/${hotelName}/categories`)),
+        getDocs(collection(db, `hotels/${hotelName}/menu`)),
       ]);
 
-      const totalCategories = categorySnapshot.exists()
-        ? Object.keys(categorySnapshot.val()).length
-        : 0;
+      const totalCategories = categorySnapshot.size;
 
       let categoryUsage = {};
-      if (menuSnapshot.exists()) {
-        const menus = Object.values(menuSnapshot.val());
+      if (!menuSnapshot.empty) {
+        const menus = menuSnapshot.docs.map((doc) => doc.data());
         menus.forEach((menu) => {
           if (menu.menuCategory) {
             categoryUsage[menu.menuCategory] =
@@ -344,4 +358,85 @@ export const categoryServices = {
       return null;
     }
   },
+
+  // ✅ FIRESTORE: Get all categories (helper function)
+  getAllCategories: async (hotelName) => {
+    try {
+      if (!hotelName) return [];
+
+      const categoriesRef = collection(db, `hotels/${hotelName}/categories`);
+      const q = query(categoriesRef, orderBy("categoryName", "asc"));
+      const querySnapshot = await getDocs(q);
+
+      return querySnapshot.docs.map((doc, index) => ({
+        id: doc.id,
+        ...doc.data(),
+        srNo: index + 1,
+      }));
+    } catch (error) {
+      console.error("Error fetching all categories:", error);
+      return [];
+    }
+  },
+
+  // ✅ FIRESTORE: Get category by ID (helper function)
+  getCategoryById: async (hotelName, categoryId) => {
+    try {
+      if (!hotelName || !categoryId) return null;
+
+      const categoryDoc = await getDoc(
+        doc(db, `hotels/${hotelName}/categories/${categoryId}`)
+      );
+
+      if (categoryDoc.exists()) {
+        return {
+          id: categoryDoc.id,
+          ...categoryDoc.data(),
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error fetching category by ID:", error);
+      return null;
+    }
+  },
+
+  // ✅ FIRESTORE: Toggle category status (if you have status field)
+  toggleCategoryStatus: async (hotelName, categoryId, currentStatus) => {
+    try {
+      const hasPermission = await categoryServices.checkAdminPermission(
+        hotelName
+      );
+      if (!hasPermission) {
+        toast.error("You do not have permission to modify category status", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return false;
+      }
+
+      const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+      await updateDoc(doc(db, `hotels/${hotelName}/categories/${categoryId}`), {
+        status: newStatus,
+        updatedAt: serverTimestamp(),
+        updatedBy: categoryServices.getCurrentAdminId(),
+      });
+
+      toast.success(`Category status changed to ${newStatus}`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error toggling category status:", error);
+      toast.error("Error updating category status", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+  },
 };
+
+// Default export for backward compatibility
+export default categoryServices;

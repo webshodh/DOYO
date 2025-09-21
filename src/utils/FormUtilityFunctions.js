@@ -1,7 +1,11 @@
+// src/utils/FormUtils.jsx
 import { CheckCircle } from "lucide-react";
-// import { OPTIONS as STATIC_OPTIONS } from "../Constants/addMenuFormConfig";
 import { simplifyOptions } from "./ConvertOptions";
-import useOptionsData from "data/useOptionsData";
+
+// ✅ NEW: Import Firestore-based hooks
+import { useOffers } from "../hooks/useOffers";
+import { useCategory } from "../hooks/useCategory";
+import { useMemo } from "react";
 
 // Default form values
 export const getDefaultFormData = () => ({
@@ -86,6 +90,93 @@ export const setNestedValue = (obj, path, value) => {
   return { ...obj };
 };
 
+// ✅ NEW: Enhanced options hook that combines multiple data sources
+const useFormOptions = (hotelName) => {
+  // ✅ Use Firestore-based hooks
+  const { offers, loading: offersLoading } = useOffers(hotelName);
+  const { categories, loading: categoriesLoading } = useCategory(hotelName);
+
+  // ✅ Create simplified options structure for backward compatibility
+  const optionsData = useMemo(() => {
+    if (offersLoading || categoriesLoading) return {};
+
+    // Build options structure similar to the old API
+    const combinedOptions = {};
+
+    // Add categories if available
+    if (categories && categories.length > 0) {
+      combinedOptions.categories = categories.map(cat => ({
+        id: cat.id,
+        name: cat.name || cat.categoryName,
+        value: cat.name || cat.categoryName,
+        label: cat.name || cat.categoryName,
+      }));
+    }
+
+    // Add offers/deals if available
+    if (offers && offers.length > 0) {
+      combinedOptions.offers = offers.map(offer => ({
+        id: offer.id,
+        name: offer.title || offer.name,
+        value: offer.title || offer.name,
+        label: offer.title || offer.name,
+      }));
+    }
+
+    // Add static options that don't come from Firestore
+    combinedOptions.spiceLevel = [
+      "Mild", "Medium", "Spicy", "Extra Spicy"
+    ];
+
+    combinedOptions.mealType = [
+      "Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Beverage"
+    ];
+
+    combinedOptions.cuisineType = [
+      "Indian", "Chinese", "Italian", "Mexican", "Thai", "Continental", "Fast Food"
+    ];
+
+    combinedOptions.difficulty = [
+      "Easy", "Medium", "Hard"
+    ];
+
+    combinedOptions.preparationMethod = [
+      "Grilled", "Fried", "Baked", "Steamed", "Boiled", "Raw", "Roasted"
+    ];
+
+    combinedOptions.cookingStyle = [
+      "Traditional", "Modern", "Fusion", "Quick", "Slow Cooked"
+    ];
+
+    combinedOptions.tasteProfile = [
+      "Sweet", "Salty", "Sour", "Bitter", "Umami", "Spicy"
+    ];
+
+    combinedOptions.texture = [
+      "Crispy", "Soft", "Chewy", "Smooth", "Crunchy", "Creamy"
+    ];
+
+    combinedOptions.portionSize = [
+      "Small", "Medium", "Large", "Extra Large"
+    ];
+
+    combinedOptions.allergens = [
+      "Nuts", "Dairy", "Gluten", "Eggs", "Soy", "Seafood", "Shellfish"
+    ];
+
+    combinedOptions.availability = [
+      "Available", "Out of Stock", "Seasonal"
+    ];
+
+    return combinedOptions;
+  }, [categories, offers, categoriesLoading, offersLoading]);
+
+  return {
+    optionsData,
+    loading: offersLoading || categoriesLoading,
+  };
+};
+
 // Reusable form field component
 export const FormField = ({
   field,
@@ -95,7 +186,8 @@ export const FormField = ({
   disabled = false,
   hotelName,
 }) => {
-  const { optionsData } = useOptionsData(hotelName);
+  // ✅ UPDATED: Use the new Firestore-based options hook
+  const { optionsData, loading: optionsLoading } = useFormOptions(hotelName);
   const OPTIONS = simplifyOptions(optionsData);
 
   const fieldValue = field.name.includes(".")
@@ -117,15 +209,14 @@ export const FormField = ({
     }
   };
 
-  // Updated getFieldOptions function to properly handle dynamic options
+  // ✅ ENHANCED: Better options handling with Firestore integration
   const getFieldOptions = () => {
     if (typeof field.options === "string") {
       // Debug logs to help identify the issue
       console.log(`Looking for options for field: ${field.options}`);
       console.log('External options available:', Object.keys(externalOptions || {}));
       console.log('Dynamic OPTIONS available:', Object.keys(OPTIONS || {}));
-      console.log('OPTIONS data:', OPTIONS);
-
+      
       // First check external options (categories, mainCategories passed from parent)
       if (externalOptions?.[field.options]) {
         const options = externalOptions[field.options];
@@ -133,7 +224,7 @@ export const FormField = ({
         return Array.isArray(options) ? options : [];
       }
 
-      // Then check dynamic options from API (simplified options)
+      // Then check dynamic options from Firestore (simplified options)
       if (OPTIONS && OPTIONS[field.options]) {
         console.log(`Found in dynamic OPTIONS:`, OPTIONS[field.options]);
         return OPTIONS[field.options];
@@ -156,6 +247,13 @@ export const FormField = ({
         }
       }
 
+      // ✅ NEW: Enhanced fallback options based on field type
+      const fallbackOptions = getFallbackOptions(field.options);
+      if (fallbackOptions.length > 0) {
+        console.log(`Using fallback options for ${field.options}:`, fallbackOptions);
+        return fallbackOptions;
+      }
+
       // Fallback: return empty array if no options found
       console.warn(`No options found for field: ${field.options}`);
       console.warn('Available option keys:', Object.keys(OPTIONS || {}));
@@ -166,12 +264,47 @@ export const FormField = ({
     return Array.isArray(field.options) ? field.options : [];
   };
 
+  // ✅ NEW: Provide fallback options for common field types
+  const getFallbackOptions = (fieldType) => {
+    const fallbacks = {
+      spiceLevel: ["Mild", "Medium", "Spicy", "Extra Spicy"],
+      mealType: ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Beverage"],
+      cuisineType: ["Indian", "Chinese", "Italian", "Mexican", "Thai", "Continental"],
+      difficulty: ["Easy", "Medium", "Hard"],
+      preparationMethod: ["Grilled", "Fried", "Baked", "Steamed", "Boiled"],
+      cookingStyle: ["Traditional", "Modern", "Fusion"],
+      tasteProfile: ["Sweet", "Salty", "Sour", "Bitter", "Umami", "Spicy"],
+      texture: ["Crispy", "Soft", "Chewy", "Smooth", "Crunchy", "Creamy"],
+      portionSize: ["Small", "Medium", "Large", "Extra Large"],
+      allergens: ["Nuts", "Dairy", "Gluten", "Eggs", "Soy", "Seafood"],
+      availability: ["Available", "Out of Stock", "Seasonal"],
+      categoryType: ["Main Course", "Appetizer", "Dessert", "Beverage", "Side Dish"],
+    };
+
+    return fallbacks[fieldType] || fallbacks[fieldType.toLowerCase()] || [];
+  };
+
   const fieldOptions = getFieldOptions();
 
   const getColSpanClass = () => {
     if (!field.colSpan) return "";
     return field.colSpan === 2 ? "md:col-span-2" : `col-span-${field.colSpan}`;
   };
+
+  // ✅ NEW: Show loading state for options
+  if (optionsLoading && field.type === "select" && typeof field.options === "string") {
+    return (
+      <div className={`relative ${getColSpanClass()}`}>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {field.label} {field.required && "*"}
+        </label>
+        <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+          <span className="text-gray-500 text-sm">Loading options...</span>
+        </div>
+      </div>
+    );
+  }
 
   switch (field.type) {
     case "textarea":
@@ -204,12 +337,14 @@ export const FormField = ({
           <select
             value={fieldValue || ""}
             onChange={(e) => handleChange(e.target.value)}
-            disabled={disabled}
+            disabled={disabled || optionsLoading}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             required={field.required}
           >
             <option value="">
-              {field.placeholder || `Select ${field.label.toLowerCase()}`}
+              {optionsLoading 
+                ? "Loading..." 
+                : field.placeholder || `Select ${field.label.toLowerCase()}`}
             </option>
             {fieldOptions.map((option, index) => {
               let optionValue, optionLabel;
@@ -240,6 +375,12 @@ export const FormField = ({
           </select>
           {fieldValue && field.required && (
             <CheckCircle className="absolute top-10 right-3 w-5 h-5 text-green-500" />
+          )}
+          {/* ✅ NEW: Show option count */}
+          {fieldOptions.length === 0 && !optionsLoading && (
+            <div className="absolute top-10 right-3 text-xs text-gray-400">
+              No options
+            </div>
           )}
         </div>
       );
@@ -275,6 +416,9 @@ export const FormField = ({
         <div className={getColSpanClass()}>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             {field.label} {field.required && "*"}
+            {optionsLoading && (
+              <span className="ml-2 text-xs text-gray-500">(Loading options...)</span>
+            )}
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-32 overflow-y-auto">
             {fieldOptions.map((option, index) => {
@@ -289,7 +433,7 @@ export const FormField = ({
                 <label
                   key={`${field.name}-multiselect-${index}`}
                   className={`flex items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 text-xs font-medium ${
-                    disabled
+                    disabled || optionsLoading
                       ? "cursor-not-allowed opacity-75"
                       : "cursor-pointer"
                   } ${
@@ -302,7 +446,7 @@ export const FormField = ({
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => {
-                      if (disabled) return;
+                      if (disabled || optionsLoading) return;
                       const currentValues = Array.isArray(fieldValue)
                         ? fieldValue
                         : [];
@@ -311,7 +455,7 @@ export const FormField = ({
                         : currentValues.filter((v) => v !== optionValue);
                       handleChange(newValues);
                     }}
-                    disabled={disabled}
+                    disabled={disabled || optionsLoading}
                     className="sr-only"
                   />
                   <span className="text-center">{optionValue}</span>
@@ -319,8 +463,16 @@ export const FormField = ({
               );
             })}
           </div>
-          {fieldOptions.length === 0 && (
-            <p className="text-sm text-gray-500 italic">No options available</p>
+          {fieldOptions.length === 0 && !optionsLoading && (
+            <p className="text-sm text-gray-500 italic">
+              No options available for {field.label.toLowerCase()}
+            </p>
+          )}
+          {optionsLoading && (
+            <div className="flex items-center justify-center p-4">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+              <span className="text-sm text-gray-500">Loading options...</span>
+            </div>
           )}
         </div>
       );
@@ -354,6 +506,7 @@ export const FormField = ({
   }
 };
 
+// ✅ ENHANCED: FormSection component with better error handling
 export const FormSection = ({
   section,
   formData,
@@ -367,15 +520,28 @@ export const FormSection = ({
   const borderColorClass = `border-${section.bgColor}-200`;
   const iconColorClass = `text-${section.bgColor}-500`;
 
+  // ✅ NEW: Get loading state for the section
+  const { loading: optionsLoading } = useFormOptions(hotelName);
+
   return (
     <div
       className={`${bgColorClass} rounded-xl p-6 border ${borderColorClass} ${
         disabled ? "opacity-75" : ""
-      }`}
+      } ${optionsLoading ? "relative" : ""}`}
     >
+      {/* ✅ NEW: Loading overlay for sections */}
+      {optionsLoading && (
+        <div className="absolute top-2 right-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
       <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <IconComponent className={`w-5 h-5 ${iconColorClass}`} />
         {section.title}
+        {optionsLoading && (
+          <span className="text-xs text-gray-500">(Loading...)</span>
+        )}
       </h3>
 
       <div
@@ -431,3 +597,6 @@ export const FormSection = ({
     </div>
   );
 };
+
+// ✅ NEW: Export the options hook for use in other components
+export { useFormOptions };
