@@ -358,7 +358,7 @@ const Home = memo(() => {
             />
           </Suspense>
           {/* Mobile Filter Toggle */}
-          <div className="flex items-center justify-between mb-1">
+          {/* <div className="flex items-center justify-between mb-1">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
@@ -380,21 +380,9 @@ const Home = memo(() => {
                 Clear All
               </button>
             )}
-          </div>
+          </div> */}
 
-          <div
-            className={`${
-              showFilters ? "block" : "hidden"
-            } md:block space-y-4 animate-fadeIn`}
-          >
-            {/* Special Categories Filter */}
-            <SpecialCategoriesFilter
-              categories={availableSpecialCategories}
-              selectedFilters={selectedSpecialFilters}
-              onToggle={handleSpecialFilterToggle}
-              counts={specialCategoryCounts}
-            />
-
+          <div>
             {/* Category Tabs */}
             <Suspense
               fallback={
@@ -412,6 +400,13 @@ const Home = memo(() => {
                 }
               />
             </Suspense>
+            {/* Special Categories Filter */}
+            <SpecialCategoriesFilter
+              categories={availableSpecialCategories}
+              selectedFilters={selectedSpecialFilters}
+              onToggle={handleSpecialFilterToggle}
+              counts={specialCategoryCounts}
+            />
           </div>
         </div>
       </div>

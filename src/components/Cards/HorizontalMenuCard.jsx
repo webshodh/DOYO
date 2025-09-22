@@ -167,15 +167,23 @@ const HorizontalMenuCard = memo(
                         {truncatedCategory}
                       </span>
                     )}
+                    {/* Spice Level */}
+                    <SpiceLevelIndicator spiceLevel={item.spiceLevel} />
                   </div>
                 </div>
 
                 {/* Category and Features */}
 
                 <div className="flex items-center justify-between">
-                  {/* Spice Level */}
-                  <SpiceLevelIndicator spiceLevel={item.spiceLevel} />
+                  <SpecialFeatures item={item} maxFeatures={2} />
+                </div>
+              </div>
 
+              {/* Bottom Section */}
+              <div className="space-y-2">
+                {/* Price Section */}
+                <div className="flex items-center justify-between">
+                  <PriceDisplay item={item} />
                   {item.servingSize && (
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <Users className="w-3 h-3 text-blue-500" />
@@ -185,14 +193,6 @@ const HorizontalMenuCard = memo(
                       <span className="sm:hidden">{item.servingSize}p</span>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Bottom Section */}
-              <div className="space-y-2">
-                {/* Price Section */}
-                <div className="flex items-center justify-between">
-                  <PriceDisplay item={item} />
                 </div>
 
                 {/* Action Button */}
