@@ -7,26 +7,7 @@ import React, {
   memo,
 } from "react";
 import { Search, SortAsc, SortDesc, X, Check } from "lucide-react";
-
-// Custom hook for outside click detection
-const useOutsideClick = (ref, handler) => {
-  useEffect(() => {
-    const listener = (event) => {
-      if (!ref.current || ref.current.contains(event.target)) {
-        return;
-      }
-      handler(event);
-    };
-
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
-
-    return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
-    };
-  }, [ref, handler]);
-};
+import useOutsideClick from "hooks/useOutsideClick";
 
 // Search input component
 const SearchInput = memo(

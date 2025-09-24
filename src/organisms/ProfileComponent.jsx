@@ -64,31 +64,10 @@ import {
 } from "lucide-react";
 
 import { useHotelSelection } from "../context/HotelSelectionContext";
+import LanguageSelector from "atoms/Selector/LanguageSelector";
+import useFormValidation from "../hooks/useFormValidation";
 
-// Custom hook for form validation
-const useFormValidation = (initialErrors = {}) => {
-  const [errors, setErrors] = useState(initialErrors);
 
-  const setError = useCallback((field, message) => {
-    setErrors((prev) => ({ ...prev, [field]: message }));
-  }, []);
-
-  const clearError = useCallback((field) => {
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[field];
-      return newErrors;
-    });
-  }, []);
-
-  const clearAllErrors = useCallback(() => {
-    setErrors({});
-  }, []);
-
-  const hasErrors = useMemo(() => Object.keys(errors).length > 0, [errors]);
-
-  return { errors, setError, clearError, clearAllErrors, hasErrors };
-};
 
 // Enhanced Stats Card Component
 const StatsCard = memo(
@@ -1200,53 +1179,7 @@ const EnhancedAdminProfile = memo(() => {
                   label="Dark Mode"
                   description="Use dark theme across the application"
                 />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Language
-                    </label>
-                    <select
-                      value={settings.preferences.language}
-                      onChange={(e) =>
-                        handleSettingChange(
-                          "preferences",
-                          "language",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    >
-                      <option value="en">English</option>
-                      <option value="es">Spanish</option>
-                      <option value="fr">French</option>
-                      <option value="de">German</option>
-                      <option value="hi">Hindi</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Timezone
-                    </label>
-                    <select
-                      value={settings.preferences.timezone}
-                      onChange={(e) =>
-                        handleSettingChange(
-                          "preferences",
-                          "timezone",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    >
-                      <option value="UTC">UTC</option>
-                      <option value="America/New_York">Eastern Time</option>
-                      <option value="America/Chicago">Central Time</option>
-                      <option value="America/Denver">Mountain Time</option>
-                      <option value="America/Los_Angeles">Pacific Time</option>
-                      <option value="Asia/Kolkata">India Standard Time</option>
-                    </select>
-                  </div>
-                </div>
+                <LanguageSelector/>
               </div>
             </div>
 
@@ -1727,7 +1660,7 @@ const EnhancedAdminProfile = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 py-4 sm:px-2 lg:px-4">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">

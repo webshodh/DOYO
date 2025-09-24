@@ -173,7 +173,7 @@ const AddCaptain = memo(() => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle="Captain Management"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
@@ -189,7 +189,7 @@ const AddCaptain = memo(() => {
 
         {/* Stats Cards */}
         {hasCaptains && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={Users}
               title="Total Captains"

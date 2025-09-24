@@ -25,26 +25,9 @@ import {
 import { useHotelSelection } from "../context/HotelSelectionContext";
 import { toast } from "react-toastify";
 import LanguageSelector from "atoms/Selector/LanguageSelector";
+import useOutsideClick from "hooks/useOutsideClick";
 
-// Custom hook for outside click detection
-const useOutsideClick = (ref, handler) => {
-  useEffect(() => {
-    const listener = (event) => {
-      if (!ref.current || ref.current.contains(event.target)) {
-        return;
-      }
-      handler(event);
-    };
 
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
-
-    return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
-    };
-  }, [ref, handler]);
-};
 
 // Menu toggle button component
 const MenuToggleButton = memo(({ onToggle, isOpen }) => (
@@ -267,6 +250,7 @@ const ProfileDropdown = memo(
 
               {/* Menu items */}
               <div className="space-y-1">
+                <LanguageSelector />
                 <button
                   onClick={onEditProfile}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-gray-50 text-gray-700 transition-all duration-200"
@@ -310,7 +294,7 @@ const Navbar = memo(({ onMenuToggle, isSidebarOpen, admin }) => {
   const auth = getAuth();
   const { selectedHotel, availableHotels, selectHotel, user } =
     useHotelSelection();
-
+  console.log("availableHotelsavailableHotels", availableHotels);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isHotelDropdownOpen, setIsHotelDropdownOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -379,12 +363,11 @@ const Navbar = memo(({ onMenuToggle, isSidebarOpen, admin }) => {
           <div className="flex items-center gap-4 flex-1">
             <MenuToggleButton onToggle={onMenuToggle} isOpen={isSidebarOpen} />
           </div>
-          <LanguageSelector/>
 
           {/* Right Section */}
           <div className="flex items-center gap-3">
             {/* Hotel Switcher */}
-            {admin && (
+            {admin && availableHotels.length > 1 && (
               <HotelSwitcher
                 selectedHotel={selectedHotel}
                 availableHotels={availableHotels}

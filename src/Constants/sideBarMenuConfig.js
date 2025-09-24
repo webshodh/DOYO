@@ -63,12 +63,13 @@ export const adminMenuItems = (hotelName, t) => [
     description: t("sidebar.dashboardDesc"),
   },
   {
-    // {
-    //   name: t("sidebar.orderDashboard"),
-    //   path: `/${hotelName}/admin/order-dashboard`,
-    //   icon: "dashboard",
-    //   description: t("sidebar.dashboardDesc"),
-    // },
+      name: t("sidebar.orderDashboard"),
+      path: `/${hotelName}/admin/order-dashboard`,
+      icon: "dashboard",
+      description: t("sidebar.dashboardDesc"),
+    },
+  {
+    
     name: t("sidebar.addCategory"),
     path: `/${hotelName}/admin/add-category`,
     icon: "category",
@@ -86,36 +87,36 @@ export const adminMenuItems = (hotelName, t) => [
     icon: "menu",
     description: t("sidebar.addMenuDesc"),
   },
-  // {
-  //   name: t("sidebar.addOffers"),
-  //   path: `/${hotelName}/admin/add-offers`,
-  //   icon: "offers",
-  //   description: t("sidebar.addOffersDesc"),
-  // },
-  // {
-  //   name: t("sidebar.addCaptain"),
-  //   path: `/${hotelName}/admin/add-captain`,
-  //   icon: "addUser",
-  //   description: t("sidebar.addCaptainDesc"),
-  // },
-  // {
-  //   name: t("sidebar.kitchen"),
-  //   path: `/${hotelName}/admin/kitchen`,
-  //   icon: "kitchen",
-  //   description: t("sidebar.kitchenDesc"),
-  // },
+  {
+    name: t("sidebar.addOffers"),
+    path: `/${hotelName}/admin/add-offers`,
+    icon: "offers",
+    description: t("sidebar.addOffersDesc"),
+  },
+  {
+    name: t("sidebar.addCaptain"),
+    path: `/${hotelName}/admin/add-captain`,
+    icon: "addUser",
+    description: t("sidebar.addCaptainDesc"),
+  },
+  {
+    name: t("sidebar.kitchen"),
+    path: `/${hotelName}/admin/kitchen`,
+    icon: "kitchen",
+    description: t("sidebar.kitchenDesc"),
+  },
   {
     name: t("sidebar.preview"),
     path: `/viewMenu/${hotelName}/home`,
     icon: "preview",
     description: t("sidebar.previewDesc"),
   },
-  // {
-  //   name: t("sidebar.settings"),
-  //   path: `/${hotelName}/admin/profile`,
-  //   icon: "settings",
-  //   description: t("sidebar.settingsDesc"),
-  // },
+  {
+    name: t("sidebar.settings"),
+    path: `/${hotelName}/admin/profile`,
+    icon: "settings",
+    description: t("sidebar.settingsDesc"),
+  },
 ];
 
 // Super Admin menu items

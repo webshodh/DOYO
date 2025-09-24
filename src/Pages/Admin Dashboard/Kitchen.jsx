@@ -135,7 +135,7 @@ const KitchenAdminPage = memo(() => {
     <div className="min-h-screen bg-gray-50">
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle="Kitchen Dashboard"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
@@ -156,17 +156,7 @@ const KitchenAdminPage = memo(() => {
                 />
               </div>
             )}
-            <button
-              onClick={handleRefresh}
-              disabled={submitting}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
-            >
-              <LoaderCircle
-                size={16}
-                className={submitting ? "animate-spin" : ""}
-              />
-              Refresh
-            </button>
+            
           </div>
         </div>
 
@@ -185,7 +175,7 @@ const KitchenAdminPage = memo(() => {
 
         {/* Stats Cards */}
         {hasOrders && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={ChefHat}
               title="Total Orders"

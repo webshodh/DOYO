@@ -17,7 +17,7 @@ const THEME_CONFIG = {
     border: "border-gray-200",
   },
   primary: {
-    headerBg: "bg-gradient-to-r from-blue-500 to-blue-600",
+    headerBg: "bg-gradient-to-r from-orange-500 to-blue-600",
     headerText: "text-white",
     closeButtonHover: "hover:bg-white/20",
     border: "border-blue-200",
@@ -181,13 +181,13 @@ const ModalHeader = memo(
   ({
     title,
     onClose,
-    theme = "default",
+    theme = "primary",
     size = "md",
     showCloseButton = true,
     icon: Icon = null,
     className = "",
   }) => {
-    const themeConfig = THEME_CONFIG[theme] || THEME_CONFIG.default;
+    const themeConfig = THEME_CONFIG[theme] || THEME_CONFIG.primary;
     const sizeConfig = SIZE_CONFIG[size] || SIZE_CONFIG.md;
 
     return (

@@ -183,7 +183,7 @@ const AddOffers = memo(() => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle="Offers Management"
             className="text-2xl sm:text-3xl font-bold text-gray-900"

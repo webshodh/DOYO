@@ -255,35 +255,21 @@ const OrderDashboard = () => {
           </div>
         </div>
 
-        {/* Enhanced Analytics Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Order Analytics
-              </h2>
-              <p className="text-gray-600">
-                Comprehensive insights and performance metrics
-              </p>
-            </div>
-          </div>
-
-          {/* Enhanced Time Period Navigation */}
-          <TimePeriodSelector
-            selectedTimePeriod={selectedTimePeriod}
-            onTimePeriodChange={handleTimePeriodChange}
-            selectedDate={selectedDate}
-            onDateChange={handleDateChange}
-            variant="default"
-            showDatePicker={true}
-            className="mb-6"
-            options={timePeriodOptions}
-            disableFutureDates={true}
-          />
-        </div>
+        {/* Enhanced Time Period Navigation */}
+        <TimePeriodSelector
+          selectedTimePeriod={selectedTimePeriod}
+          onTimePeriodChange={handleTimePeriodChange}
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+          variant="default"
+          showDatePicker={true}
+          className="mb-6"
+          options={timePeriodOptions}
+          disableFutureDates={true}
+        />
 
         {/* Enhanced Menu Management Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title="Total Orders"

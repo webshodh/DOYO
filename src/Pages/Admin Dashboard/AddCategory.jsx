@@ -165,7 +165,7 @@ const AddCategory = memo(() => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle={t("categories.pageTitle")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
@@ -180,7 +180,7 @@ const AddCategory = memo(() => {
         </div>
 
         {/* Stats Cards */}
-        {hasCategories && (
+        {/* {hasCategories && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Tags}
@@ -189,7 +189,7 @@ const AddCategory = memo(() => {
               color="blue"
             />
           </div>
-        )}
+        )} */}
 
         {/* Search and Filters */}
         {hasCategories && (

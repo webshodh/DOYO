@@ -276,7 +276,7 @@ const AddMenu = memo(({ onlyView = false }) => {
         {/* Header */}
         {!onlyView && (
           <>
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+            <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
               <PageTitle
                 pageTitle={
                   onlyView ? t("menu.viewPageTitle") : t("menu.managePageTitle")
@@ -298,7 +298,7 @@ const AddMenu = memo(({ onlyView = false }) => {
 
             {/* Stats Cards */}
             {hasMenus && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                   icon={ChefHat}
                   title={t("menu.totalItems")}

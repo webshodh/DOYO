@@ -143,6 +143,8 @@ const AdminDashboard = () => {
     error: categoriesError,
   } = useCategoriesData(hotelName);
 
+  
+
   const {
     optionsData,
     totalOptionsCount,
@@ -340,7 +342,7 @@ const AdminDashboard = () => {
         {/* </div> */}
 
         {/* Enhanced Menu Management Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title={t("dashboard.totalMenuItems")}

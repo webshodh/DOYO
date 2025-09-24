@@ -439,7 +439,7 @@ const MenuFormModal = ({
                         ? "Saving..."
                         : editMode
                         ? "Update"
-                        : "Create"}
+                        : "Add"}
                     </button>
                   </div>
                 </div>
