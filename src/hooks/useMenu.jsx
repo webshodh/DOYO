@@ -1,11 +1,11 @@
+// useMenu.js
 import { useState, useEffect, useCallback } from "react";
-import { db } from "../services/firebase/firebaseConfig";
-import { ref, onValue } from "firebase/database";
-import { getAuth } from "firebase/auth";
 import { menuServices } from "../services/api/menuService";
+import { getAuth } from "firebase/auth";
+import { collection, onSnapshot } from "firebase/firestore";
+import { firestore } from "services/firebase/firebaseConfig";
 
 export const useMenu = (hotelName) => {
-  // State management
   const [menus, setMenus] = useState([]);
   const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
@@ -18,10 +18,6 @@ export const useMenu = (hotelName) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const auth = getAuth();
-  const currentAdminId = auth.currentUser?.uid;
-
-  // Subscribe to menus data
   useEffect(() => {
     if (!hotelName) {
       setMenus([]);
@@ -32,90 +28,75 @@ export const useMenu = (hotelName) => {
     setLoading(true);
     setError(null);
 
-    const menuRef = ref(db, `/hotels/${hotelName}/menu`);
-    const unsubscribe = onValue(
-      menuRef,
-      (snapshot) => {
-        const data = snapshot.val();
-        setMenus(data ? Object.values(data) : []);
+    const menusRef = collection(firestore, `hotels/${hotelName}/menu`);
+    const unsubscribeMenus = onSnapshot(
+      menusRef,
+      (querySnapshot) => {
+        const menusArray = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setMenus(menusArray);
         setLoading(false);
         setError(null);
       },
-      (error) => {
-        console.error("Error fetching menus:", error);
-        setError(error);
+      (err) => {
+        console.error("Error fetching menus:", err);
+        setError(err);
         setLoading(false);
       }
     );
 
-    // Handle potential connection errors
-    // const errorTimeout = setTimeout(() => {
-    //   if (loading) {
-    //     setError(new Error("Taking longer than expected to load menu items"));
-    //     setLoading(false);
-    //   }
-    // }, 50000);
+    const categoriesRef = collection(
+      firestore,
+      `hotels/${hotelName}/categories`
+    );
+    const unsubscribeCategories = onSnapshot(
+      categoriesRef,
+      (querySnapshot) => {
+        const categoriesArray = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setCategories(categoriesArray);
+      },
+      (err) => {
+        console.error("Error fetching categories:", err);
+        setError(err);
+      }
+    );
 
-    // Cleanup subscription on component unmount or hotelName change
+    const mainCategoriesRef = collection(
+      firestore,
+      `hotels/${hotelName}/Maincategories`
+    );
+    const unsubscribeMainCategories = onSnapshot(
+      mainCategoriesRef,
+      (querySnapshot) => {
+        const mainCategoriesArray = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setMainCategories(mainCategoriesArray);
+      },
+      (err) => {
+        console.error("Error fetching main categories:", err);
+        setError(err);
+      }
+    );
+
     return () => {
-      unsubscribe();
-      // clearTimeout(errorTimeout);
+      unsubscribeMenus();
+      unsubscribeCategories();
+      unsubscribeMainCategories();
     };
   }, [hotelName]);
 
-  // Subscribe to categories data
-  useEffect(() => {
-    if (!hotelName) {
-      setCategories([]);
-      return;
-    }
-
-    const categoryRef = ref(db, `/hotels/${hotelName}/categories/`);
-    const unsubscribe = onValue(
-      categoryRef,
-      (snapshot) => {
-        const data = snapshot.val();
-        setCategories(data ? Object.values(data) : []);
-      },
-      (error) => {
-        console.error("Error fetching categories:", error);
-        setError(error);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [hotelName]);
-
-  // Subscribe to main categories data
-  useEffect(() => {
-    if (!hotelName) {
-      setMainCategories([]);
-      return;
-    }
-
-    const mainCategoryRef = ref(db, `/hotels/${hotelName}/Maincategories/`);
-    const unsubscribe = onValue(
-      mainCategoryRef,
-      (snapshot) => {
-        const data = snapshot.val();
-        setMainCategories(data ? Object.values(data) : []);
-      },
-      (error) => {
-        console.error("Error fetching main categories:", error);
-        setError(error);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [hotelName]);
-
-  // Calculate menu counts by category
   useEffect(() => {
     const counts = menuServices.calculateMenuCountsByCategory(menus);
     setMenuCountsByCategory(counts);
   }, [menus]);
 
-  // Filter and sort menus
   const filteredAndSortedMenus = menuServices.filterAndSortMenus(
     menus,
     searchTerm,
@@ -123,67 +104,21 @@ export const useMenu = (hotelName) => {
     sortOrder
   );
 
-  // Add new menu
   const addMenu = useCallback(
     async (menuData) => {
       if (submitting) return false;
-
       setSubmitting(true);
       try {
+        const currentAdminId = getAuth().currentUser?.uid;
         const success = await menuServices.addMenu(
           menuData,
           hotelName,
           currentAdminId
         );
         return success;
-      } catch (error) {
-        console.error("Error in addMenu:", error);
-        setError(error);
-        return false;
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [hotelName, currentAdminId, submitting]
-  );
-
-  // Update existing menu
-  const updateMenu = useCallback(
-    async (menuData, menuId) => {
-      if (submitting) return false;
-
-      setSubmitting(true);
-      try {
-        const success = await menuServices.updateMenu(
-          menuData,
-          menuId,
-          hotelName,
-          currentAdminId
-        );
-        return success;
-      } catch (error) {
-        console.error("Error in updateMenu:", error);
-        setError(error);
-        return false;
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [hotelName, currentAdminId, submitting]
-  );
-
-  // Delete menu
-  const deleteMenu = useCallback(
-    async (menuId) => {
-      if (submitting) return false;
-
-      setSubmitting(true);
-      try {
-        const success = await menuServices.deleteMenu(menuId, hotelName);
-        return success;
-      } catch (error) {
-        console.error("Error in deleteMenu:", error);
-        setError(error);
+      } catch (err) {
+        console.error("Error in addMenu:", err);
+        setError(err);
         return false;
       } finally {
         setSubmitting(false);
@@ -192,11 +127,51 @@ export const useMenu = (hotelName) => {
     [hotelName, submitting]
   );
 
-  // Toggle menu availability
+  const updateMenu = useCallback(
+    async (menuData, menuId) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      try {
+        const currentAdminId = getAuth().currentUser?.uid;
+        const success = await menuServices.updateMenu(
+          menuData,
+          menuId,
+          hotelName,
+          currentAdminId
+        );
+        return success;
+      } catch (err) {
+        console.error("Error in updateMenu:", err);
+        setError(err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [hotelName, submitting]
+  );
+
+  const deleteMenu = useCallback(
+    async (menuId) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      try {
+        const success = await menuServices.deleteMenu(menuId, hotelName);
+        return success;
+      } catch (err) {
+        console.error("Error in deleteMenu:", err);
+        setError(err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [hotelName, submitting]
+  );
+
   const toggleMenuAvailability = useCallback(
     async (menuId, currentAvailability) => {
       if (submitting) return false;
-
       setSubmitting(true);
       try {
         const newAvailability =
@@ -207,9 +182,9 @@ export const useMenu = (hotelName) => {
           hotelName
         );
         return success;
-      } catch (error) {
-        console.error("Error in toggleMenuAvailability:", error);
-        setError(error);
+      } catch (err) {
+        console.error("Error in toggleMenuAvailability:", err);
+        setError(err);
         return false;
       } finally {
         setSubmitting(false);
@@ -218,36 +193,31 @@ export const useMenu = (hotelName) => {
     [hotelName, submitting]
   );
 
-  // Prepare menu for editing
   const prepareForEdit = useCallback(
     async (menu) => {
       try {
         const menuToEdit = await menuServices.prepareForEdit(hotelName, menu);
         return menuToEdit;
-      } catch (error) {
-        console.error("Error in prepareForEdit:", error);
-        setError(error);
+      } catch (err) {
+        console.error("Error in prepareForEdit:", err);
+        setError(err);
         return null;
       }
     },
     [hotelName]
   );
 
-  // Handle form submission (both add and edit)
   const handleFormSubmit = useCallback(
     async (menuData, menuId = null) => {
       if (menuId) {
-        // Edit mode
-        return await updateMenu(menuData, menuId);
+        return updateMenu(menuData, menuId);
       } else {
-        // Add mode
-        return await addMenu(menuData);
+        return addMenu(menuData);
       }
     },
     [addMenu, updateMenu]
   );
 
-  // Filter handlers with useCallback
   const handleCategoryFilter = useCallback((category) => {
     setSelectedCategory(category);
     setActiveCategory(category);
@@ -261,57 +231,49 @@ export const useMenu = (hotelName) => {
     setSortOrder(order);
   }, []);
 
-  // Refresh menus data
   const refreshMenus = useCallback(() => {
     setError(null);
-    // The real-time subscription will automatically refresh the data
-    // This function exists for UI consistency
+    // Firestore subscription auto updates menus
   }, []);
 
-  // Get menu statistics
   const getMenuStats = useCallback(async () => {
     try {
       return await menuServices.getMenuStats(hotelName);
-    } catch (error) {
-      console.error("Error getting menu stats:", error);
-      setError(error);
+    } catch (err) {
+      console.error("Error getting menu stats:", err);
+      setError(err);
       return null;
     }
   }, [hotelName]);
 
-  // Check if menu name already exists
   const checkDuplicateMenu = useCallback(
-    (menuName, excludeId = null) => {
-      return menus.some(
+    (menuName, excludeId = null) =>
+      menus.some(
         (menu) =>
           menu.menuName?.toLowerCase() === menuName.toLowerCase() &&
           menu.uuid !== excludeId &&
           menu.id !== excludeId &&
           menu._id !== excludeId
-      );
-    },
+      ),
     [menus]
   );
 
-  // Get menus by category
   const getMenusByCategory = useCallback(
-    (categoryName) => {
-      return menus.filter((menu) => menu.menuCategory === categoryName);
-    },
+    (categoryName) =>
+      menus.filter((menu) => menu.menuCategory === categoryName),
     [menus]
   );
 
-  // Get available menus only
-  const getAvailableMenus = useCallback(() => {
-    return menus.filter((menu) => menu.availability === "Available");
-  }, [menus]);
+  const getAvailableMenus = useCallback(
+    () => menus.filter((menu) => menu.availability === "Available"),
+    [menus]
+  );
 
-  // Get discounted menus
-  const getDiscountedMenus = useCallback(() => {
-    return menus.filter((menu) => menu.discount > 0);
-  }, [menus]);
+  const getDiscountedMenus = useCallback(
+    () => menus.filter((menu) => menu.discount > 0),
+    [menus]
+  );
 
-  // Clear all filters
   const clearAllFilters = useCallback(() => {
     setSearchTerm("");
     setSelectedCategory("");
@@ -320,7 +282,6 @@ export const useMenu = (hotelName) => {
   }, []);
 
   return {
-    // State
     menus,
     categories,
     mainCategories,
@@ -333,9 +294,7 @@ export const useMenu = (hotelName) => {
     loading,
     submitting,
     error,
-    currentAdminId,
 
-    // Actions
     addMenu,
     updateMenu,
     deleteMenu,
@@ -347,7 +306,6 @@ export const useMenu = (hotelName) => {
     handleSortChange,
     refreshMenus,
 
-    // Utilities
     getMenuStats,
     checkDuplicateMenu,
     getMenusByCategory,
@@ -355,21 +313,17 @@ export const useMenu = (hotelName) => {
     getDiscountedMenus,
     clearAllFilters,
 
-    // Computed values
     menuCount: menus.length,
     filteredCount: filteredAndSortedMenus.length,
     hasMenus: menus.length > 0,
     hasSearchResults: filteredAndSortedMenus.length > 0,
-    availableMenuCount: menus.filter(
-      (menu) => menu.availability === "Available"
-    ).length,
-    unavailableMenuCount: menus.filter(
-      (menu) => menu.availability === "Unavailable"
-    ).length,
+    availableMenuCount: menus.filter((m) => m.availability === "Available")
+      .length,
+    unavailableMenuCount: menus.filter((m) => m.availability === "Unavailable")
+      .length,
     categoryCount: categories.length,
     mainCategoryCount: mainCategories.length,
 
-    // Direct setters (if needed for specific cases)
     setSearchTerm,
     setSelectedCategory,
     setSortOrder,

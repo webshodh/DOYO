@@ -34,7 +34,7 @@ import Offers from "./Pages/User/Offers";
 import LoadingSpinner from "./atoms/LoadingSpinner";
 import AdminLayout from "./layout/AdminDashboardLayout";
 import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
-import OptionManager from "./Pages/Admin Dashboard/AddOptions";
+
 import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
 import ViewHotel from "./Pages/SuperAdminDashboard/HotelList";
 import ViewSubscription from "./Pages/SuperAdminDashboard/Subcription";
@@ -265,7 +265,10 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="order-dashboard" element={<OrderDashboard />} />
+                      <Route
+                        path="order-dashboard"
+                        element={<OrderDashboard />}
+                      />
                       <Route
                         path="profile"
                         element={
@@ -290,14 +293,7 @@ function App() {
                           </AdminLayout>
                         }
                       />
-                      <Route
-                        path="add-options"
-                        element={
-                          <AdminLayout>
-                            <OptionManager />
-                          </AdminLayout>
-                        }
-                      />
+
                       <Route
                         path="add-menu"
                         element={

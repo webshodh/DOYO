@@ -1,26 +1,42 @@
-// services/categoryService.js
-import { db } from "../firebase/firebaseConfig";
+// firestoreCategoryService.js
+import {
+  getFirestore,
+  doc,
+  collection,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  Timestamp,
+} from "firebase/firestore";
 import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+
+const firestore = getFirestore();
 
 export class CategoryService {
   constructor(hotelName) {
     this.hotelName = hotelName;
-    this.basePath = `/hotels/${hotelName}/Maincategories`;
+    this.baseCollection = collection(
+      firestore,
+      `hotels/${hotelName}/Maincategories`
+    );
   }
 
-  // Check if admin has permission for this hotel
   async checkAdminPermission(adminId) {
     try {
-      const adminUuidSnapshot = await get(
-        ref(db, `admins/${adminId}/hotels/${this.hotelName}/uuid`)
+      const adminHotelDoc = await getDoc(
+        doc(firestore, `admins/${adminId}/hotels/${this.hotelName}`)
       );
-      const generalUuidSnapshot = await get(
-        ref(db, `hotels/${this.hotelName}/uuid`)
-      );
+      const hotelDoc = await getDoc(doc(firestore, `hotels/${this.hotelName}`));
 
-      const adminHotelUuid = adminUuidSnapshot.val();
-      const generalHotelUuid = generalUuidSnapshot.val();
+      const adminHotelUuid = adminHotelDoc.exists()
+        ? adminHotelDoc.data().uuid
+        : null;
+      const generalHotelUuid = hotelDoc.exists() ? hotelDoc.data().uuid : null;
 
       return adminHotelUuid === generalHotelUuid;
     } catch (error) {
@@ -29,20 +45,17 @@ export class CategoryService {
     }
   }
 
-  // Check if category name already exists
   async checkCategoryExists(categoryName, excludeId = null) {
     try {
-      const snapshot = await get(ref(db, this.basePath));
-      const categories = snapshot.val();
-
-      if (!categories) return false;
+      const snapshot = await getDocs(this.baseCollection);
+      if (snapshot.empty) return false;
 
       const normalizedName = categoryName.trim().toLowerCase();
 
-      return Object.values(categories).some(
-        (category) =>
-          category.categoryId !== excludeId &&
-          category.categoryName.trim().toLowerCase() === normalizedName
+      return snapshot.docs.some(
+        (doc) =>
+          doc.id !== excludeId &&
+          doc.data().categoryName.trim().toLowerCase() === normalizedName
       );
     } catch (error) {
       console.error("Error checking category existence:", error);
@@ -50,18 +63,17 @@ export class CategoryService {
     }
   }
 
-  // Subscribe to categories changes
   subscribeToCategories(callback) {
-    const unsubscribe = onValue(ref(db, this.basePath), (snapshot) => {
-      const data = snapshot.val();
-      const categoriesArray = data ? Object.values(data) : [];
+    const unsubscribe = onSnapshot(this.baseCollection, (snapshot) => {
+      const categoriesArray = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        categoryId: doc.id,
+      }));
       callback(categoriesArray);
     });
-
     return unsubscribe;
   }
 
-  // Add new category
   async addCategory(categoryName, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
@@ -76,15 +88,17 @@ export class CategoryService {
     }
 
     const categoryId = uid();
-    await set(ref(db, `${this.basePath}/${categoryId}`), {
+    const categoryRef = doc(this.baseCollection, categoryId);
+    await setDoc(categoryRef, {
       categoryName: categoryName.trim(),
+      createdAt: Timestamp.fromDate(new Date()),
       categoryId,
+      status: "active",
     });
 
     return { categoryId, categoryName: categoryName.trim() };
   }
 
-  // Update category
   async updateCategory(categoryId, categoryName, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
@@ -101,15 +115,16 @@ export class CategoryService {
       throw new Error("Category with this name already exists.");
     }
 
-    await update(ref(db, `${this.basePath}/${categoryId}`), {
+    const categoryRef = doc(this.baseCollection, categoryId);
+    await updateDoc(categoryRef, {
       categoryName: categoryName.trim(),
+      updatedAt: Timestamp.fromDate(new Date()),
       categoryId,
     });
 
     return { categoryId, categoryName: categoryName.trim() };
   }
 
-  // Delete category
   async deleteCategory(categoryId, adminId) {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
@@ -118,11 +133,15 @@ export class CategoryService {
       );
     }
 
-    await remove(ref(db, `${this.basePath}/${categoryId}`));
+    const categoryRef = doc(this.baseCollection, categoryId);
+    await deleteDoc(categoryRef);
   }
+
+  // Optional: Add getCategoryStats and other utilities if needed
+  // Example:
+  // async getCategoryStats() {...}
 }
 
-// Factory function to create service instance
-export const createCategoryService = (hotelName) => {
-  return new CategoryService(hotelName);
-};
+// Factory function for convenience
+export const createCategoryService = (hotelName) =>
+  new CategoryService(hotelName);

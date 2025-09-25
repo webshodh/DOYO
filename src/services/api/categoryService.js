@@ -1,36 +1,52 @@
-import { db } from "../firebase/firebaseConfig";
-import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+// firestoreCategoryService.js
+import {
+  getFirestore,
+  doc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
+import { uid } from "uid";
 import {
   validateCategoryForm,
   sanitizeCategoryName,
 } from "../../validation/categoryValidation";
 
+const firestore = getFirestore();
+
 export const categoryServices = {
-  // Get current admin ID
   getCurrentAdminId: () => {
     const auth = getAuth();
     return auth.currentUser?.uid;
   },
 
-  // Check if admin has permission for the hotel
   checkAdminPermission: async (hotelName) => {
     try {
       const adminId = categoryServices.getCurrentAdminId();
-      if (!adminId) {
-        throw new Error("Admin not authenticated");
-      }
+      if (!adminId) throw new Error("Admin not authenticated");
 
-      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
-          (snapshot) => snapshot.val()
-        ),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
-          snapshot.val()
-        ),
-      ]);
+      const adminHotelDoc = await getDoc(
+        doc(firestore, `admins/${adminId}/hotels/${hotelName}`)
+      );
+      const generalHotelDoc = await getDoc(
+        doc(firestore, `hotels/${hotelName}`)
+      );
+
+      const adminHotelUuid = adminHotelDoc.exists()
+        ? adminHotelDoc.data().uuid
+        : null;
+      const generalHotelUuid = generalHotelDoc.exists()
+        ? generalHotelDoc.data().uuid
+        : null;
 
       return adminHotelUuid === generalHotelUuid;
     } catch (error) {
@@ -39,28 +55,28 @@ export const categoryServices = {
     }
   },
 
-  // Subscribe to categories changes with real-time updates
   subscribeToCategories: (hotelName, callback) => {
     if (!hotelName) {
       callback([]);
       return () => {};
     }
 
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/categories/`),
-      (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const categoriesArray = Object.values(data).map(
-            (category, index) => ({
-              ...category,
-              srNo: index + 1,
-            })
-          );
-          callback(categoriesArray);
-        } else {
-          callback([]);
-        }
+    const categoriesRef = collection(
+      firestore,
+      `hotels/${hotelName}/categories`
+    );
+    const unsubscribe = onSnapshot(
+      categoriesRef,
+      (querySnapshot) => {
+        const categoriesArray = [];
+        querySnapshot.forEach((docSnap, index) => {
+          categoriesArray.push({
+            ...docSnap.data(),
+            srNo: index + 1,
+            categoryId: docSnap.id,
+          });
+        });
+        callback(categoriesArray);
       },
       (error) => {
         console.error("Error fetching categories:", error);
@@ -74,15 +90,10 @@ export const categoryServices = {
     return unsubscribe;
   },
 
-  // Add new category
   addCategory: async (hotelName, categoryName, existingCategories = []) => {
     try {
-      // Validate category name and check for duplicates
-      if (!validateCategoryForm(categoryName, existingCategories)) {
-        return false;
-      }
+      if (!validateCategoryForm(categoryName, existingCategories)) return false;
 
-      // Check permissions
       const hasPermission = await categoryServices.checkAdminPermission(
         hotelName
       );
@@ -96,19 +107,16 @@ export const categoryServices = {
         return false;
       }
 
-      // Sanitize and prepare category data
       const sanitizedName = sanitizeCategoryName(categoryName);
       const categoryId = uid();
       const categoryData = {
         categoryName: sanitizedName,
-        categoryId,
-        createdAt: new Date().toISOString(),
+        createdAt: Timestamp.fromDate(new Date()),
         createdBy: categoryServices.getCurrentAdminId(),
       };
 
-      // Save to database
-      await set(
-        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+      await setDoc(
+        doc(firestore, `hotels/${hotelName}/categories/${categoryId}`),
         categoryData
       );
 
@@ -126,7 +134,6 @@ export const categoryServices = {
     }
   },
 
-  // Update existing category
   updateCategory: async (
     hotelName,
     categoryId,
@@ -134,12 +141,9 @@ export const categoryServices = {
     existingCategories = []
   ) => {
     try {
-      // Validate category name and check for duplicates (excluding current category)
-      if (!validateCategoryForm(categoryName, existingCategories, categoryId)) {
+      if (!validateCategoryForm(categoryName, existingCategories, categoryId))
         return false;
-      }
 
-      // Check permissions
       const hasPermission = await categoryServices.checkAdminPermission(
         hotelName
       );
@@ -153,26 +157,18 @@ export const categoryServices = {
         return false;
       }
 
-      // Confirm update
-      const confirmUpdate = window.confirm(
-        "Are you sure you want to update this category?"
-      );
-      if (!confirmUpdate) {
+      if (!window.confirm("Are you sure you want to update this category?"))
         return false;
-      }
 
-      // Sanitize and prepare updated data
       const sanitizedName = sanitizeCategoryName(categoryName);
       const updateData = {
         categoryName: sanitizedName,
-        categoryId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Timestamp.fromDate(new Date()),
         updatedBy: categoryServices.getCurrentAdminId(),
       };
 
-      // Update in database
-      await update(
-        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+      await updateDoc(
+        doc(firestore, `hotels/${hotelName}/categories/${categoryId}`),
         updateData
       );
 
@@ -190,10 +186,8 @@ export const categoryServices = {
     }
   },
 
-  // Delete category
   deleteCategory: async (hotelName, category) => {
     try {
-      // Check permissions
       const hasPermission = await categoryServices.checkAdminPermission(
         hotelName
       );
@@ -207,15 +201,13 @@ export const categoryServices = {
         return false;
       }
 
-      // Confirm deletion
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete the category "${category.categoryName}"? This action cannot be undone.`
-      );
-      if (!confirmDelete) {
+      if (
+        !window.confirm(
+          `Are you sure you want to delete the category "${category.categoryName}"? This action cannot be undone.`
+        )
+      )
         return false;
-      }
 
-      // Check if category is being used by any menus (optional check)
       const isInUse = await categoryServices.checkCategoryUsage(
         hotelName,
         category.categoryName
@@ -224,14 +216,11 @@ export const categoryServices = {
         const forceDelete = window.confirm(
           "This category is being used by some menu items. Deleting it may affect those items. Do you still want to continue?"
         );
-        if (!forceDelete) {
-          return false;
-        }
+        if (!forceDelete) return false;
       }
 
-      // Delete from database
-      await remove(
-        ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`)
+      await deleteDoc(
+        doc(firestore, `hotels/${hotelName}/categories/${category.categoryId}`)
       );
 
       toast.success("Category deleted successfully!", {
@@ -248,26 +237,20 @@ export const categoryServices = {
     }
   },
 
-  // Check if category is being used by menus (optional utility)
   checkCategoryUsage: async (hotelName, categoryName) => {
     try {
-      const menuSnapshot = await get(ref(db, `/hotels/${hotelName}/menu`));
-      if (menuSnapshot.exists()) {
-        const menus = Object.values(menuSnapshot.val());
-        return menus.some(
-          (menu) =>
-            menu.menuCategory === categoryName ||
-            menu.mainCategory === categoryName
-        );
-      }
-      return false;
+      const menuRef = collection(firestore, `hotels/${hotelName}/menu`);
+      const snapshot = await getDocs(
+        query(menuRef, where("menuCategory", "==", categoryName))
+      );
+
+      return !snapshot.empty;
     } catch (error) {
       console.error("Error checking category usage:", error);
       return false;
     }
   },
 
-  // Prepare category for editing (with permission check)
   prepareForEdit: async (hotelName, category) => {
     try {
       const hasPermission = await categoryServices.checkAdminPermission(
@@ -292,7 +275,6 @@ export const categoryServices = {
     }
   },
 
-  // Filter categories based on search term
   filterCategories: (categories, searchTerm) => {
     if (!searchTerm.trim()) {
       return categories.map((category, index) => ({
@@ -300,7 +282,6 @@ export const categoryServices = {
         srNo: index + 1,
       }));
     }
-
     return categories
       .filter((category) =>
         category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -311,28 +292,25 @@ export const categoryServices = {
       }));
   },
 
-  // Get category statistics (optional utility)
   getCategoryStats: async (hotelName) => {
     try {
-      const [categorySnapshot, menuSnapshot] = await Promise.all([
-        get(ref(db, `/hotels/${hotelName}/categories`)),
-        get(ref(db, `/hotels/${hotelName}/menu`)),
-      ]);
+      const categorySnapshot = await getDocs(
+        collection(firestore, `hotels/${hotelName}/categories`)
+      );
+      const menuSnapshot = await getDocs(
+        collection(firestore, `hotels/${hotelName}/menu`)
+      );
 
-      const totalCategories = categorySnapshot.exists()
-        ? Object.keys(categorySnapshot.val()).length
-        : 0;
+      const totalCategories = categorySnapshot.size;
+      const categoryUsage = {};
 
-      let categoryUsage = {};
-      if (menuSnapshot.exists()) {
-        const menus = Object.values(menuSnapshot.val());
-        menus.forEach((menu) => {
-          if (menu.menuCategory) {
-            categoryUsage[menu.menuCategory] =
-              (categoryUsage[menu.menuCategory] || 0) + 1;
-          }
-        });
-      }
+      menuSnapshot.forEach((docSnap) => {
+        const menu = docSnap.data();
+        if (menu.menuCategory) {
+          categoryUsage[menu.menuCategory] =
+            (categoryUsage[menu.menuCategory] || 0) + 1;
+        }
+      });
 
       return {
         totalCategories,
