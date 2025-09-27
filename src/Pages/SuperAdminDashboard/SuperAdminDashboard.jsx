@@ -400,10 +400,7 @@ const SuperAdminDashboard = () => {
                 {enhancedStats.activeSubscriptions} active subscriptions.
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Clock className="w-4 h-4" />
-              <span>Last updated: {new Date().toLocaleString()}</span>
-            </div>
+           
           </div>
         </div>
 
@@ -425,7 +422,7 @@ const SuperAdminDashboard = () => {
         {(!loading || enhancedStats.totalHotels > 0) && !error && (
           <>
             {/* Key Performance Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 p-2">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 p-2">
               <StatCard
                 title="Total Revenue"
                 value={`₹${(enhancedStats.totalRevenue / 1000).toFixed(1)}K`}
@@ -507,7 +504,7 @@ const SuperAdminDashboard = () => {
             </div>
 
             {/* Admin & Subscription Management */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 p-2">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 p-2">
               <StatCard
                 title="Total Admins"
                 value={enhancedStats.totalAdmins}
@@ -543,7 +540,7 @@ const SuperAdminDashboard = () => {
             </div>
 
             {/* Geographic Coverage */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 p-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 p-2">
               <StatCard
                 title="States Covered"
                 value={Object.keys(enhancedStats.geographicStats.states).length}

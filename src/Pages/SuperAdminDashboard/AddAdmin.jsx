@@ -309,15 +309,24 @@ const AdminManagement = memo(() => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <PageTitle
-              pageTitle={hotelId ? `Hotel Admins` : "Admin Management"}
-              className="text-2xl sm:text-3xl font-bold text-gray-900"
-              description={
-                hotelId
-                  ? "Manage admins for this specific hotel"
-                  : "Manage all admin users across all hotels"
-              }
-            />
+            <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+              <PageTitle
+                pageTitle={hotelId ? `Hotel Admins` : "Admin Management"}
+                className="text-2xl sm:text-3xl font-bold text-gray-900"
+                description={
+                  hotelId
+                    ? "Manage admins for this specific hotel"
+                    : "Manage all admin users across all hotels"
+                }
+              />
+              <PrimaryButton
+                onAdd={handleAddClick}
+                btnText={hotelId ? "Add Hotel Admin" : "Add New Admin"}
+                loading={submitting}
+                icon={Plus}
+                className="bg-blue-600 hover:bg-blue-700"
+              />
+            </div>
             {hasAdmins && (
               <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
                 <span>Total: {adminStats.total}</span>
@@ -333,19 +342,11 @@ const AdminManagement = memo(() => {
               </div>
             )}
           </div>
-
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText={hotelId ? "Add Hotel Admin" : "Add New Admin"}
-            loading={submitting}
-            icon={Plus}
-            className="bg-blue-600 hover:bg-blue-700"
-          />
         </div>
 
         {/* Enhanced Stats Cards */}
         {hasAdmins && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={Users}
               title="Total Admins"

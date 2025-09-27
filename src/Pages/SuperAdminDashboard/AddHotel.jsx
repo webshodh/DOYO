@@ -226,82 +226,69 @@ const AddHotel = memo(() => {
 
       <div className="p-6">
         {/* Enhanced Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <PageTitle
-              pageTitle="Hotel Management"
-              className="text-2xl sm:text-3xl font-bold text-gray-900"
-              description="Manage all your hotels and their operations from one place"
-            />
-            {hasHotels && (
-              <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-                <span>Total: {hotelStats.total}</span>
-                <span className="text-green-600">
-                  Active: {hotelStats.active}
-                </span>
-                <span className="text-red-600">
-                  Inactive: {hotelStats.inactive}
-                </span>
-                {hasFiltersApplied && (
-                  <span className="text-blue-600">
-                    Showing: {filteredHotels.length}
-                  </span>
-                )}
-              </div>
+
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+          <PageTitle
+            pageTitle="Hotel Management"
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description="Manage all your hotels and their operations from one place"
+          />
+          <PrimaryButton
+            onAdd={handleAddClick}
+            btnText="Add New Hotel"
+            loading={submitting}
+            icon={Plus}
+            className="bg-green-600 hover:bg-green-700"
+          />
+        </div>
+        {hasHotels && (
+          <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
+            <span>Total: {hotelStats.total}</span>
+            <span className="text-green-600">Active: {hotelStats.active}</span>
+            <span className="text-red-600">
+              Inactive: {hotelStats.inactive}
+            </span>
+            {hasFiltersApplied && (
+              <span className="text-blue-600">
+                Showing: {filteredHotels.length}
+              </span>
             )}
           </div>
+        )}
 
-          <div className="flex items-center gap-3">
-            {selectedHotels.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
-                  {selectedHotels.length} selected
-                </span>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleBulkStatusUpdate("active")}
-                    className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
-                  >
-                    Activate
-                  </button>
-                  <button
-                    onClick={() => handleBulkStatusUpdate("inactive")}
-                    className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors"
-                  >
-                    Deactivate
-                  </button>
-                  <button
-                    onClick={clearSelection}
-                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    Clear
-                  </button>
-                </div>
+        <div className="flex items-center gap-3">
+          {selectedHotels.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                {selectedHotels.length} selected
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleBulkStatusUpdate("active")}
+                  className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+                >
+                  Activate
+                </button>
+                <button
+                  onClick={() => handleBulkStatusUpdate("inactive")}
+                  className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors"
+                >
+                  Deactivate
+                </button>
+                <button
+                  onClick={clearSelection}
+                  className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                  Clear
+                </button>
               </div>
-            )}
-
-            <button
-              onClick={handleExport}
-              disabled={!hasHotels}
-              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              <Download size={16} />
-              Export
-            </button>
-
-            <PrimaryButton
-              onAdd={handleAddClick}
-              btnText="Add New Hotel"
-              loading={submitting}
-              icon={Plus}
-              className="bg-green-600 hover:bg-green-700"
-            />
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Enhanced Stats Cards */}
         {hasHotels && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={Building2}
               title="Total Hotels"

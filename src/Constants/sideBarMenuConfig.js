@@ -141,7 +141,7 @@ export const superAdminMenuItems = (t, hotelName) => [
   },
   {
     name: t("sidebar.subscriptions"),
-    path: "/super-admin/add-subscription-plans",
+    path: "/super-admin/add-subscription-plan",
     icon: "subscriptions",
     description: t("sidebar.subscriptionsDesc"),
   },

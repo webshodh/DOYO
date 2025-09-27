@@ -305,26 +305,13 @@ const SubscriptionManagement = memo(() => {
 
       <div className="p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <PageTitle
-              pageTitle="Subscription Plans"
-              className="text-2xl sm:text-3xl font-bold text-gray-900"
-              description="Manage subscription plans and hotel assignments"
-            />
-            {hasPlans && (
-              <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-                <span>Total Plans: {planStats.total}</span>
-                <span className="text-green-600">
-                  Active: {planStats.active}
-                </span>
-                <span className="text-blue-600">
-                  Subscribed Hotels: {planStats.subscribedHotels}
-                </span>
-              </div>
-            )}
-          </div>
 
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+          <PageTitle
+            pageTitle="Subscription Plans"
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description="Manage subscription plans and hotel assignments"
+          />
           <PrimaryButton
             onAdd={handleAddClick}
             btnText="Create New Plan"
@@ -334,9 +321,19 @@ const SubscriptionManagement = memo(() => {
           />
         </div>
 
+        {hasPlans && (
+          <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
+            <span>Total Plans: {planStats.total}</span>
+            <span className="text-green-600">Active: {planStats.active}</span>
+            <span className="text-blue-600">
+              Subscribed Hotels: {planStats.subscribedHotels}
+            </span>
+          </div>
+        )}
+
         {/* Enhanced Stats Cards */}
         {hasPlans && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={Package}
               title="Total Plans"
