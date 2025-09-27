@@ -24,7 +24,7 @@ import {
 
 // Services and utilities
 import { captainServices } from "../../services/api/captainServices";
-import { useOrderData } from "../../hooks/useOrder";
+import { useOrder, useOrderData } from "../../hooks/useOrder";
 import { toast } from "react-toastify";
 
 // Components
@@ -114,7 +114,7 @@ const CaptainDashboard = memo(() => {
     // Options for UI
     statusOptions,
     timePeriodOptions,
-  } = useOrderData(captain?.hotelName, {
+  } = useOrder(captain?.hotelName, {
     defaultTimePeriod: "daily", // Show today's orders by default
     defaultStatusFilter: "all",
     includeMenuData: true, // Include menu data for analytics

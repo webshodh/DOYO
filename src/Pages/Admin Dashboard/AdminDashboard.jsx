@@ -16,13 +16,7 @@ import {
 } from "lucide-react";
 
 // Hooks and utilities
-import { useOrderData } from "../../hooks/useOrder"; // Updated import path
-import {
-  useCategoriesData,
-  useMainCategoriesData,
-  useMenuData,
-} from "../../data";
-import useOptionsData from "../../data/useOptionsData";
+import { useOrder, useOrderData } from "../../hooks/useOrder"; // Updated import path
 
 // Context
 import { useHotelSelection } from "../../context/HotelSelectionContext";
@@ -45,6 +39,8 @@ import { useMenu } from "hooks/useMenu";
 import AddMenu from "./AddMenu";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
+import { useCategory } from "hooks/useCategory";
+import { useMainCategory } from "hooks/useMainCategory";
 
 /**
  * Admin Dashboard Component
@@ -114,7 +110,7 @@ const AdminDashboard = () => {
     // Options for UI
     statusOptions,
     timePeriodOptions,
-  } = useOrderData(hotelName, {
+  } = useOrder(hotelName, {
     includeMenuData: true,
     defaultTimePeriod: "daily",
     defaultStatusFilter: "all",
@@ -139,19 +135,11 @@ const AdminDashboard = () => {
     totalCategories,
     loading: categoriesLoading,
     error: categoriesError,
-  } = useCategoriesData(hotelName);
-
-  const {
-    optionsData,
-    totalOptionsCount,
-    categories,
-    optionTypes,
-    error: optionsError,
-  } = useOptionsData(hotelName);
+  } = useCategory(hotelName);
 
   // Derived values
-  const optionsCategoryCount = categories?.length || 0;
-  const { totalMainCategories } = useMainCategoriesData(hotelName);
+
+  const { totalMainCategories } = useMainCategory(hotelName);
 
   // Connection status indicator
   const connectionStatusInfo = useMemo(() => {
@@ -255,7 +243,7 @@ const AdminDashboard = () => {
 
   // Loading state for menu management data
   const isMenuManagementLoading = menuLoading || categoriesLoading;
-  const menuManagementError = menuError || categoriesError || optionsError;
+  const menuManagementError = menuError || categoriesError;
 
   // Memoized calculations for menu statistics
   const stats = useMemo(
@@ -295,14 +283,7 @@ const AdminDashboard = () => {
         </div>
         {/* Enhanced Analytics Section */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-4">
-          <div className="flex justify-between items-center mb-1">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {t("dashboard.orderAnalytics")}
-              </h2>
-              <p className="text-gray-600">{t("dashboard.insights")}</p>
-            </div>
-          </div>
+          
 
           {/* Enhanced Time Period Navigation */}
           <TimePeriodSelector
@@ -388,7 +369,7 @@ const AdminDashboard = () => {
           />
         </div>
         {/* Enhanced Menu Management Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title={t("dashboard.totalOrders")}

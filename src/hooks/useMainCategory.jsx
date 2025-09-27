@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import { createCategoryService } from "../services/api/mainCategoryService";
 
-export const useCategoryManager = (hotelName) => {
+export const useMainCategory = (hotelName) => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);

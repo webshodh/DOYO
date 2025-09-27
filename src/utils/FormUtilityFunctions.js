@@ -1,7 +1,7 @@
 import { CheckCircle } from "lucide-react";
 // import { OPTIONS as STATIC_OPTIONS } from "../Constants/addMenuFormConfig";
 import { simplifyOptions } from "./ConvertOptions";
-import useOptionsData from "data/useOptionsData";
+// import useOptionsData from "data/useOptionsData";
 
 // Default form values
 export const getDefaultFormData = () => ({
@@ -95,8 +95,8 @@ export const FormField = ({
   disabled = false,
   hotelName,
 }) => {
-  const { optionsData } = useOptionsData(hotelName);
-  const OPTIONS = simplifyOptions(optionsData);
+  // const { optionsData } = useOptionsData(hotelName);
+  // const OPTIONS = simplifyOptions(optionsData);
 
   const fieldValue = field.name.includes(".")
     ? getNestedValue(value, field.name)
@@ -122,9 +122,12 @@ export const FormField = ({
     if (typeof field.options === "string") {
       // Debug logs to help identify the issue
       console.log(`Looking for options for field: ${field.options}`);
-      console.log('External options available:', Object.keys(externalOptions || {}));
-      console.log('Dynamic OPTIONS available:', Object.keys(OPTIONS || {}));
-      console.log('OPTIONS data:', OPTIONS);
+      console.log(
+        "External options available:",
+        Object.keys(externalOptions || {})
+      );
+      // console.log('Dynamic OPTIONS available:', Object.keys(OPTIONS || {}));
+      // console.log('OPTIONS data:', OPTIONS);
 
       // First check external options (categories, mainCategories passed from parent)
       if (externalOptions?.[field.options]) {
@@ -134,31 +137,31 @@ export const FormField = ({
       }
 
       // Then check dynamic options from API (simplified options)
-      if (OPTIONS && OPTIONS[field.options]) {
-        console.log(`Found in dynamic OPTIONS:`, OPTIONS[field.options]);
-        return OPTIONS[field.options];
-      }
+      // if (OPTIONS && OPTIONS[field.options]) {
+      //   console.log(`Found in dynamic OPTIONS:`, OPTIONS[field.options]);
+      //   return OPTIONS[field.options];
+      // }
 
       // Try common variations of the field name
       const variations = [
         field.options,
         field.options.toLowerCase(),
-        field.options.replace(/s$/, ''), // Remove trailing 's'
-        field.options + 's', // Add trailing 's'
-        field.options.replace(/([A-Z])/g, '_$1').toLowerCase(), // camelCase to snake_case
-        field.options.replace(/_/g, ''), // Remove underscores
+        field.options.replace(/s$/, ""), // Remove trailing 's'
+        field.options + "s", // Add trailing 's'
+        field.options.replace(/([A-Z])/g, "_$1").toLowerCase(), // camelCase to snake_case
+        field.options.replace(/_/g, ""), // Remove underscores
       ];
 
-      for (const variation of variations) {
-        if (OPTIONS && OPTIONS[variation]) {
-          console.log(`Found with variation '${variation}':`, OPTIONS[variation]);
-          return OPTIONS[variation];
-        }
-      }
+      // for (const variation of variations) {
+      //   if (OPTIONS && OPTIONS[variation]) {
+      //     console.log(`Found with variation '${variation}':`, OPTIONS[variation]);
+      //     return OPTIONS[variation];
+      //   }
+      // }
 
       // Fallback: return empty array if no options found
       console.warn(`No options found for field: ${field.options}`);
-      console.warn('Available option keys:', Object.keys(OPTIONS || {}));
+      // console.warn('Available option keys:', Object.keys(OPTIONS || {}));
       return [];
     }
 

@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { Plus, Tags, TrendingUp, Star } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
 import useColumns from "../../Constants/Columns";
-import { useCategoryManager } from "../../hooks/useMainCategory";
+import { useCategoryManager, useMainCategory } from "../../hooks/useMainCategory";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import NoSearchResults from "molecules/NoSearchResults";
@@ -45,7 +45,7 @@ const AddMainCategory = memo(() => {
     categoryCount,
     hasCategories,
     hasSearchResults,
-  } = useCategoryManager(hotelName);
+  } = useMainCategory(hotelName);
 
   // Memoized calculations for special categories
   const stats = useMemo(

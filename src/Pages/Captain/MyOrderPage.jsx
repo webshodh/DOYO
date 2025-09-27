@@ -13,7 +13,7 @@ import {
 
 // Services and utilities
 import { captainServices } from "../../services/api/captainServices";
-import { useOrderData } from "../../hooks/useOrder";
+import { useOrder } from "../../hooks/useOrder";
 import { db } from "../../services/firebase/firebaseConfig";
 
 // Components
@@ -96,7 +96,7 @@ const MyOrdersPage = () => {
     // Options for UI
     statusOptions,
     timePeriodOptions,
-  } = useOrderData(hotelName || captain?.hotelName, {
+  } = useOrder(hotelName || captain?.hotelName, {
     defaultTimePeriod: "total",
     defaultStatusFilter: "all",
     includeMenuData: false,

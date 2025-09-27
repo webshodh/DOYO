@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
  * Compatible with AdminDashboard, CaptainDashboard, and MyOrders pages
  * Simplified to only track: received, completed, and rejected orders
  */
-export const useOrderData = (hotelName, options = {}) => {
+export const useOrder = (hotelName, options = {}) => {
   const {
     includeMenuData = false,
     defaultTimePeriod = "daily",

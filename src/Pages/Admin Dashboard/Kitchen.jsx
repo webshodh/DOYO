@@ -15,6 +15,7 @@ import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import StatCard from "components/Cards/StatCard";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useOrder } from "hooks/useOrder";
 
 // Lazy load heavy components
 const HeaderStats = React.lazy(() => import("components/HeaderStats"));
@@ -81,12 +82,12 @@ const KitchenAdminPage = memo(() => {
     handleDateChange,
     handleTimePeriodChange,
     refreshOrders,
-    getPeriodDisplayText,
+    // getPeriodDisplayText,
     hasOrders,
     hasFilteredOrders,
     processedOrdersCount,
     filteredOrdersCount,
-  } = useKitchenOrders(hotelName);
+  } = useOrder(hotelName);
 
   // Memoized calculations for dashboard stats
   const dashboardStats = useMemo(
@@ -168,7 +169,7 @@ const KitchenAdminPage = memo(() => {
               onTimePeriodChange={handleTimePeriodChange}
             />
             <div className="text-sm text-gray-600 font-medium">
-              {getPeriodDisplayText()}
+              {/* {getPeriodDisplayText()} */}
             </div>
           </div>
         </div>
