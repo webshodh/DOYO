@@ -17,13 +17,22 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import "./i18n/index";
 import "./styles/theme.css";
+import { AuthProvider } from "context/AuthContext";
+import { HotelProvider } from "context/HotelContext";
+import { HotelSelectionProvider } from "context/HotelSelectionContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <ThemeProvider>
       <LanguageProvider>
-        <App />
+        <AuthProvider>
+          <HotelProvider>
+            <HotelSelectionProvider>
+              <App />
+            </HotelSelectionProvider>
+          </HotelProvider>
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   </React.StrictMode>

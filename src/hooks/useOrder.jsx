@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ref, onValue, update, remove, get } from "firebase/database";
-import { db } from "../services/firebase/firebaseConfig";
+import { rtdb } from "../services/firebase/firebaseConfig";
 import { toast } from "react-toastify";
 
 /**
@@ -327,7 +327,7 @@ export const useOrderData = (hotelName, options = {}) => {
       setError(null);
       setConnectionStatus("connecting");
 
-      const ordersRef = ref(db, `/hotels/${hotelName}/orders`);
+      const ordersRef = ref(rtdb, `/hotels/${hotelName}/orders`);
 
       unsubscribe = onValue(
         ordersRef,
@@ -401,7 +401,7 @@ export const useOrderData = (hotelName, options = {}) => {
   useEffect(() => {
     if (!hotelName || !includeMenuData) return;
 
-    const menuRef = ref(db, `/hotels/${hotelName}/menu`);
+    const menuRef = ref(rtdb, `/hotels/${hotelName}/menu`);
     const unsubscribe = onValue(
       menuRef,
       (snapshot) => {
@@ -649,7 +649,7 @@ export const useOrderData = (hotelName, options = {}) => {
       setSubmitting(true);
 
       try {
-        const orderRef = ref(db, `/hotels/${hotelName}/orders/${orderId}`);
+        const orderRef = ref(rtdb, `/hotels/${hotelName}/orders/${orderId}`);
         const now = new Date().toISOString();
 
         // Verify order exists first
@@ -735,7 +735,7 @@ export const useOrderData = (hotelName, options = {}) => {
       setSubmitting(true);
 
       try {
-        const orderRef = ref(db, `/hotels/${hotelName}/orders/${orderId}`);
+        const orderRef = ref(rtdb, `/hotels/${hotelName}/orders/${orderId}`);
         const orderSnapshot = await get(orderRef);
 
         if (!orderSnapshot.exists()) {
@@ -772,7 +772,7 @@ export const useOrderData = (hotelName, options = {}) => {
       setSubmitting(true);
 
       try {
-        const orderRef = ref(db, `/hotels/${hotelName}/orders/${orderId}`);
+        const orderRef = ref(rtdb, `/hotels/${hotelName}/orders/${orderId}`);
         const orderSnapshot = await get(orderRef);
 
         if (!orderSnapshot.exists()) {

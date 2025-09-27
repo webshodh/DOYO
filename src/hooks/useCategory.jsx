@@ -1,13 +1,24 @@
-// useCategory.js
-import { useState, useEffect, useCallback } from "react";
-import { categoryServices } from "../services/api/categoryService";
+// hooks/useCategory.js
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
 
 export const useCategory = (hotelName) => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Subscribe to Firestore categories collection
   useEffect(() => {
     if (!hotelName) {
       setCategories([]);
@@ -16,10 +27,18 @@ export const useCategory = (hotelName) => {
     }
 
     setLoading(true);
-    const unsubscribe = categoryServices.subscribeToCategories(
-      hotelName,
-      (data) => {
-        setCategories(data);
+    setError(null);
+
+    const colRef = collection(db, `hotels/${hotelName}/categories`);
+    const unsubscribe = onSnapshot(
+      colRef,
+      (snapshot) => {
+        setCategories(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching categories:", err);
+        setError(err);
         setLoading(false);
       }
     );
@@ -27,61 +46,30 @@ export const useCategory = (hotelName) => {
     return () => unsubscribe();
   }, [hotelName]);
 
-  const filteredCategories = categoryServices.filterCategories(
-    categories,
-    searchTerm
+  // Memoized filtered categories
+  const filteredCategories = useMemo(
+    () =>
+      categories.filter((c) =>
+        c.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [categories, searchTerm]
   );
 
+  // Add category
   const addCategory = useCallback(
     async (categoryName) => {
       if (submitting) return false;
-
       setSubmitting(true);
       try {
-        const success = await categoryServices.addCategory(
-          hotelName,
+        await addDoc(collection(db, `hotels/${hotelName}/categories`), {
           categoryName,
-          categories
-        );
-        return success;
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [hotelName, categories, submitting]
-  );
-
-  const updateCategory = useCallback(
-    async (categoryName, categoryId) => {
-      if (submitting) return false;
-
-      setSubmitting(true);
-      try {
-        const success = await categoryServices.updateCategory(
-          hotelName,
-          categoryId,
-          categoryName,
-          categories
-        );
-        return success;
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [hotelName, categories, submitting]
-  );
-
-  const deleteCategory = useCallback(
-    async (category) => {
-      if (submitting) return false;
-
-      setSubmitting(true);
-      try {
-        const success = await categoryServices.deleteCategory(
-          hotelName,
-          category
-        );
-        return success;
+          createdAt: new Date(),
+        });
+        return true;
+      } catch (err) {
+        console.error("Error adding category:", err);
+        setError(err);
+        return false;
       } finally {
         setSubmitting(false);
       }
@@ -89,21 +77,55 @@ export const useCategory = (hotelName) => {
     [hotelName, submitting]
   );
 
-  const prepareForEdit = useCallback(
-    async (category) => {
-      return await categoryServices.prepareForEdit(hotelName, category);
-    },
-    [hotelName]
-  );
-
-  const handleFormSubmit = useCallback(
-    async (categoryName, categoryId = null) => {
-      if (categoryId) {
-        return await updateCategory(categoryName, categoryId);
-      } else {
-        return await addCategory(categoryName);
+  // Update category
+  const updateCategory = useCallback(
+    async (categoryName, categoryId) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      try {
+        const docRef = doc(db, `hotels/${hotelName}/categories`, categoryId);
+        await updateDoc(docRef, { categoryName });
+        return true;
+      } catch (err) {
+        console.error("Error updating category:", err);
+        setError(err);
+        return false;
+      } finally {
+        setSubmitting(false);
       }
     },
+    [hotelName, submitting]
+  );
+
+  // Delete category
+  const deleteCategory = useCallback(
+    async (categoryId) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      try {
+        const docRef = doc(db, `hotels/${hotelName}/categories`, categoryId);
+        await deleteDoc(docRef);
+        return true;
+      } catch (err) {
+        console.error("Error deleting category:", err);
+        setError(err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [hotelName, submitting]
+  );
+
+  const prepareForEdit = useCallback(async (category) => {
+    return { id: category.id, categoryName: category.categoryName };
+  }, []);
+
+  const handleFormSubmit = useCallback(
+    (categoryName, categoryId = null) =>
+      categoryId
+        ? updateCategory(categoryName, categoryId)
+        : addCategory(categoryName),
     [addCategory, updateCategory]
   );
 
@@ -111,20 +133,24 @@ export const useCategory = (hotelName) => {
     setSearchTerm(term);
   }, []);
 
-  const getCategoryStats = useCallback(async () => {
-    return await categoryServices.getCategoryStats(hotelName);
-  }, [hotelName]);
-
   const checkDuplicateCategory = useCallback(
-    (categoryName, excludeId = null) => {
-      return categories.some(
-        (category) =>
-          category.categoryName.toLowerCase() === categoryName.toLowerCase() &&
-          category.categoryId !== excludeId
-      );
-    },
+    (name, excludeId = null) =>
+      categories.some(
+        (c) =>
+          c.categoryName.toLowerCase() === name.toLowerCase() &&
+          c.id !== excludeId
+      ),
     [categories]
   );
+
+  const getCategoryStats = useCallback(
+    () => ({ total: categories.length, filtered: filteredCategories.length }),
+    [categories, filteredCategories]
+  );
+
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm("");
+  }, []);
 
   return {
     categories,
@@ -132,14 +158,19 @@ export const useCategory = (hotelName) => {
     searchTerm,
     loading,
     submitting,
+    error,
+
     addCategory,
     updateCategory,
     deleteCategory,
     prepareForEdit,
     handleFormSubmit,
     handleSearchChange,
+
     getCategoryStats,
     checkDuplicateCategory,
+    clearAllFilters,
+
     categoryCount: categories.length,
     filteredCount: filteredCategories.length,
     hasCategories: categories.length > 0,

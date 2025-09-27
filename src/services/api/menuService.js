@@ -279,8 +279,10 @@ export const menuServices = {
   },
 
   filterAndSortMenus: (menus, searchTerm, selectedCategory, sortOrder) => {
-    let filteredItems = menus.filter((menu) =>
-      menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
+    let filteredItems = menus.filter(
+      (menu) =>
+        typeof menu.menuName === "string" &&
+        menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (selectedCategory) {
@@ -312,3 +314,4 @@ export const menuServices = {
     return countsByCategory;
   },
 };
+

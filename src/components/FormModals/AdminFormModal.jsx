@@ -1,4 +1,5 @@
-// Corrected Admin Form Modal - components/FormModals/AdminFormModal.jsx
+// Fixed Admin Form Modal - components/FormModals/AdminFormModal.jsx
+// Key changes: Fixed password field rendering and validation
 
 import React, {
   useState,
@@ -24,6 +25,8 @@ import {
   Phone,
   Building2,
   Settings,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Modal from "../Modal";
 import {
@@ -33,22 +36,23 @@ import {
   getAdminValidationSchema,
   rolePermissionPresets,
 } from "../../Constants/ConfigForms/adminFormFields";
-import { FormSection } from "components/Forms/useFormValidation";
 
 // Helper to initialize form data using your structure
 const getInitialFormData = (editData = null) => {
   if (editData) {
+    // For edit mode, exclude password fields
+    const { password, confirmPassword, ...editDataWithoutPasswords } = editData;
     return {
       ...adminFormInitialValues,
-      ...editData,
+      ...editDataWithoutPasswords,
     };
   }
   return adminFormInitialValues;
 };
 
-// Dynamic validation using your validation schema
-const validateDynamicForm = (formData) => {
-  const validationSchema = getAdminValidationSchema();
+// FIXED: Dynamic validation with proper edit mode handling
+const validateDynamicForm = (formData, isEditMode = false) => {
+  const validationSchema = getAdminValidationSchema(isEditMode);
   const errors = validationSchema.validate(formData);
   return {
     isValid: Object.keys(errors).length === 0,
@@ -68,7 +72,13 @@ const AdminFormSection = memo(
     onToggle,
     firstFieldRef,
     availableHotels = [],
+    isEditMode = false, // ADDED: Pass edit mode to section
   }) => {
+    const [showPasswords, setShowPasswords] = useState({
+      password: false,
+      confirmPassword: false,
+    });
+
     const getSectionIcon = (iconName) => {
       const icons = {
         User: User,
@@ -80,8 +90,23 @@ const AdminFormSection = memo(
       return <IconComponent size={20} />;
     };
 
+    const togglePasswordVisibility = (fieldName) => {
+      setShowPasswords((prev) => ({
+        ...prev,
+        [fieldName]: !prev[fieldName],
+      }));
+    };
+
     const renderField = useCallback(
       (field) => {
+        // FIXED: Skip password fields in edit mode
+        if (
+          isEditMode &&
+          (field.name === "password" || field.name === "confirmPassword")
+        ) {
+          return null;
+        }
+
         const value = formData[field.name];
         const error = errors[field.name];
         const hasError = Boolean(error);
@@ -108,7 +133,7 @@ const AdminFormSection = memo(
               <div key={field.name} className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700">
                   {field.label}
-                  {field.required && (
+                  {field.required && !isEditMode && (
                     <span className="text-red-500 ml-1">*</span>
                   )}
                 </label>
@@ -138,9 +163,64 @@ const AdminFormSection = memo(
                         : ""
                     }`}
                     disabled={disabled}
-                    required={field.required}
+                    required={field.required && !isEditMode}
                     autoFocus={field.name === "fullName"}
                   />
+                </div>
+                {field.description && (
+                  <p className="text-xs text-gray-500">{field.description}</p>
+                )}
+                {hasError && (
+                  <p className="text-red-600 text-xs flex items-center">
+                    <AlertCircle size={12} className="mr-1" />
+                    {error}
+                  </p>
+                )}
+              </div>
+            );
+
+          case "password":
+            // FIXED: Proper password field rendering
+            return (
+              <div key={field.name} className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  {field.label}
+                  {field.required && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <Key
+                    size={16}
+                    className="absolute left-3 top-2.5 text-gray-400"
+                  />
+                  <input
+                    type={showPasswords[field.name] ? "text" : "password"}
+                    name={field.name}
+                    value={value || ""}
+                    onChange={(e) => onChange(field.name, e.target.value)}
+                    placeholder={field.placeholder}
+                    className={`${baseClasses} pl-10 pr-10`}
+                    disabled={disabled}
+                    required={field.required}
+                    autoComplete={
+                      field.name === "password"
+                        ? "new-password"
+                        : "new-password"
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility(field.name)}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPasswords[field.name] ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </button>
                 </div>
                 {field.description && (
                   <p className="text-xs text-gray-500">{field.description}</p>
@@ -284,14 +364,32 @@ const AdminFormSection = memo(
             return null;
         }
       },
-      [formData, onChange, errors, disabled, firstFieldRef, availableHotels]
+      [
+        formData,
+        onChange,
+        errors,
+        disabled,
+        firstFieldRef,
+        availableHotels,
+        isEditMode,
+        showPasswords,
+      ]
     );
 
     const sectionFields = adminFormFields[section.fields] || [];
-    const sectionErrorCount = sectionFields.filter(
+    // FIXED: Filter out password fields for edit mode when counting
+    const relevantFields = isEditMode
+      ? sectionFields.filter(
+          (field) =>
+            field.name !== "password" && field.name !== "confirmPassword"
+        )
+      : sectionFields;
+
+    const sectionErrorCount = relevantFields.filter(
       (field) => errors[field.name]
     ).length;
-    const completedFields = sectionFields.filter((field) => {
+
+    const completedFields = relevantFields.filter((field) => {
       const value = formData[field.name];
       return value !== null && value !== undefined && value !== "";
     }).length;
@@ -320,10 +418,15 @@ const AdminFormSection = memo(
                 }`}
               >
                 {section.title}
+                {isEditMode && section.fields === "authCredentials" && (
+                  <span className="text-xs ml-2 px-2 py-1 bg-gray-200 text-gray-600 rounded">
+                    Hidden in edit mode
+                  </span>
+                )}
               </h3>
               <p className="text-sm text-gray-600">{section.description}</p>
               <div className="text-xs text-gray-500 mt-1">
-                {completedFields}/{sectionFields.length} completed
+                {completedFields}/{relevantFields.length} completed
               </div>
             </div>
           </div>
@@ -334,8 +437,8 @@ const AdminFormSection = memo(
               </span>
             )}
             {sectionErrorCount === 0 &&
-              completedFields === sectionFields.length &&
-              sectionFields.length > 0 && (
+              completedFields === relevantFields.length &&
+              relevantFields.length > 0 && (
                 <CheckCircle size={16} className="text-green-600" />
               )}
             {isExpanded ? (
@@ -348,9 +451,22 @@ const AdminFormSection = memo(
 
         {isExpanded && (
           <div className="p-6 bg-white">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {sectionFields.map(renderField)}
-            </div>
+            {/* FIXED: Show message when section is hidden in edit mode */}
+            {isEditMode && section.fields === "authCredentials" ? (
+              <div className="text-center py-8 text-gray-500">
+                <Key size={32} className="mx-auto mb-4 text-gray-400" />
+                <p className="text-sm">
+                  Password fields are hidden when editing existing admins.
+                  <br />
+                  Password changes should be handled through a separate security
+                  process.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {sectionFields.map(renderField).filter(Boolean)}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -433,8 +549,8 @@ const AdminFormModal = memo(
     submitText,
     cancelText = "Cancel",
     submitting = false,
-    hotelId = null, // If provided, auto-assign to this hotel
-    availableHotels = [], // Hotels available for assignment
+    hotelId = null,
+    availableHotels = [],
     className = "",
     modalProps = {},
     ...rest
@@ -461,8 +577,13 @@ const AdminFormModal = memo(
         setErrors({});
         setIsDirty(false);
 
-        // Expand first section by default
-        const initialExpanded = { [adminFormSections[0].fields]: true };
+        // Expand first section by default, but skip auth section in edit mode
+        const firstSection = isEditMode
+          ? adminFormSections.find((s) => s.fields !== "authCredentials") ||
+            adminFormSections[0]
+          : adminFormSections[0];
+
+        const initialExpanded = { [firstSection.fields]: true };
         setExpandedSections(initialExpanded);
 
         // Focus first field after modal opens
@@ -476,9 +597,9 @@ const AdminFormModal = memo(
         setIsDirty(false);
         setExpandedSections({});
       }
-    }, [show, editAdmin, hotelId]);
+    }, [show, editAdmin, hotelId, isEditMode]);
 
-    // Auto-apply role permissions when role changes
+    // Auto-apply role permissions when role changes (only for new admins)
     useEffect(() => {
       if (
         formData.role &&
@@ -493,27 +614,33 @@ const AdminFormModal = memo(
       }
     }, [formData.role, isEditMode]);
 
-    // Real-time validation
+    // Real-time validation with edit mode consideration
     useEffect(() => {
       if (isDirty) {
-        const validation = validateDynamicForm(formData);
+        const validation = validateDynamicForm(formData, isEditMode);
         setErrors(validation.errors);
       }
-    }, [formData, isDirty]);
+    }, [formData, isDirty, isEditMode]);
 
     // Check if form can be submitted
     const canSubmit = useMemo(() => {
-      const validation = validateDynamicForm(formData);
+      const validation = validateDynamicForm(formData, isEditMode);
       return validation.isValid && !isSubmitting && !submitting && isDirty;
-    }, [formData, isSubmitting, submitting, isDirty]);
+    }, [formData, isSubmitting, submitting, isDirty, isEditMode]);
 
-    // Calculate form completion
+    // Calculate form completion (exclude password fields in edit mode)
     const formCompletion = useMemo(() => {
       const requiredFields = [];
       adminFormSections.forEach((section) => {
         const sectionFields = adminFormFields[section.fields] || [];
         sectionFields.forEach((field) => {
-          if (field.required) {
+          if (
+            field.required &&
+            !(
+              isEditMode &&
+              (field.name === "password" || field.name === "confirmPassword")
+            )
+          ) {
             requiredFields.push(field.name);
           }
         });
@@ -527,7 +654,7 @@ const AdminFormModal = memo(
       return requiredFields.length > 0
         ? Math.round((completedFields / requiredFields.length) * 100)
         : 0;
-    }, [formData]);
+    }, [formData, isEditMode]);
 
     // Get selected hotel info
     const selectedHotel = useMemo(() => {
@@ -561,7 +688,7 @@ const AdminFormModal = memo(
       async (e) => {
         e.preventDefault();
 
-        const validation = validateDynamicForm(formData);
+        const validation = validateDynamicForm(formData, isEditMode);
         setErrors(validation.errors);
         if (!validation.isValid) {
           // Expand sections with errors
@@ -593,7 +720,7 @@ const AdminFormModal = memo(
           setIsSubmitting(false);
         }
       },
-      [formData, editAdmin, onSubmit]
+      [formData, editAdmin, onSubmit, isEditMode]
     );
 
     const handleClose = useCallback(() => {
@@ -710,8 +837,8 @@ const AdminFormModal = memo(
             </div>
           </div>
 
-          {/* Role Preset Selector */}
-          {formData.role && (
+          {/* Role Preset Selector - only show for new admins */}
+          {!isEditMode && formData.role && (
             <div className="p-4 bg-blue-50 border-b border-blue-200">
               <RolePresetSelector
                 currentRole={formData.role}
@@ -743,6 +870,7 @@ const AdminFormModal = memo(
                       : null
                   }
                   availableHotels={availableHotels}
+                  isEditMode={isEditMode}
                 />
               ))}
             </div>

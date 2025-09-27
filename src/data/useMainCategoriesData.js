@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../services/firebase/firebaseConfig";
+import { rtdb } from "../services/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 import { getAuth } from "firebase/auth";
 const useMainCategoriesData = (hotelName) => {
@@ -10,7 +10,7 @@ const useMainCategoriesData = (hotelName) => {
   const currentAdminId = auth.currentUser?.uid;
   const adminID = currentAdminId;
   useEffect(() => {
-    const categoriesRef = ref(db, `/hotels/${hotelName}/Maincategories/`);
+    const categoriesRef = ref(rtdb, `/hotels/${hotelName}/Maincategories/`);
     const unsubscribe = onValue(categoriesRef, (snapshot) => {
       try {
         const data = snapshot.val();

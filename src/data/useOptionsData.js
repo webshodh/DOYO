@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../services/firebase/firebaseConfig";
+import { rtdb } from "../services/firebase/firebaseConfig";
 import { onValue, ref } from "firebase/database";
 
 const useOptionsData = (hotelName) => {
@@ -10,7 +10,7 @@ const useOptionsData = (hotelName) => {
   useEffect(() => {
     if (!hotelName) return;
 
-    const categoriesRef = ref(db, `/hotels/${hotelName}/optionCategories`);
+    const categoriesRef = ref(rtdb, `/hotels/${hotelName}/optionCategories`);
 
     const unsubscribe = onValue(
       categoriesRef,

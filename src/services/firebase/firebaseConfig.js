@@ -1,3 +1,5 @@
+// services/firebase/firebaseConfig.js
+
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
 import {
@@ -9,32 +11,32 @@ import {
 } from "firebase/auth";
 import {
   getDatabase,
-  ref,
+  ref as rtdbRef,
   push,
   get as getRTDB,
-  set,
-  serverTimestamp,
+  set as rtdbSet,
+  serverTimestamp as rtdbServerTimestamp,
   onValue,
-  update,
-  remove,
+  update as rtdbUpdate,
+  remove as rtdbRemove,
 } from "firebase/database";
 import {
   getFirestore,
-  doc,
+  doc as fsDoc,
   setDoc,
   getDoc,
   updateDoc,
   deleteDoc,
-  collection,
+  collection as fsCollection,
   addDoc,
   getDocs,
   Timestamp,
   onSnapshot,
-  query,
-  where,
+  query as fsQuery,
+  where as fsWhere,
 } from "firebase/firestore";
 
-// Set up dynamic env variables for dev/int/prod
+// Dynamic environment vars
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -46,44 +48,50 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
+// Initialize Firebase app
 export const app = initializeApp(firebaseConfig);
 
-// Databases: Realtime Database and Firestore (hybrid approach)
-export const db = getDatabase(app); // Realtime Database
-const firestore = getFirestore(app); // Firestore
+// Firestore instance → use for `collection()`, `doc()`, etc.
+export const db = getFirestore(app);
+
+// Realtime Database instance → use for `ref()`, `getRTDB()`, etc.
+export const rtdb = getDatabase(app);
 
 // Storage
 export const storage = getStorage(app);
 
-// Realtime Database exports
-export { ref, push, set, getRTDB, serverTimestamp, onValue, update, remove };
+// Auth
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+export { signInWithPhoneNumber, signInWithPopup, OAuthProvider };
 
 // Firestore exports
 export {
-  firestore,
-  doc,
+  fsDoc as doc,
   setDoc,
   getDoc,
   updateDoc,
   deleteDoc,
-  collection,
+  fsCollection as collection,
   addDoc,
   getDocs,
   Timestamp,
   onSnapshot,
-  query,
-  where,
+  fsQuery as query,
+  fsWhere as where,
 };
 
-// Auth
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+// Realtime Database exports
 export {
-  auth,
-  googleProvider,
-  signInWithPhoneNumber,
-  signInWithPopup,
-  OAuthProvider,
-  firebaseConfig,
+  rtdbRef as ref,
+  push,
+  getRTDB as get,
+  rtdbSet as set,
+  rtdbServerTimestamp as serverTimestamp,
+  onValue,
+  rtdbUpdate as update,
+  rtdbRemove as remove,
 };
+
+// Config
+export { firebaseConfig };

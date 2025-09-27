@@ -52,36 +52,36 @@ export const adminFormFields = {
   ],
 
   // Authentication Credentials Section - NEW
-//   authCredentials: [
-//     {
-//       name: "password",
-//       label: "Password",
-//       type: "password",
-//       placeholder: "Enter secure password",
-//       required: true,
-//       validation: {
-//         minLength: 8,
-//         pattern:
-//           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-//         message:
-//           "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character",
-//       },
-//       description:
-//         "Minimum 8 characters with uppercase, lowercase, number, and special character",
-//     },
-//     {
-//       name: "confirmPassword",
-//       label: "Confirm Password",
-//       type: "password",
-//       placeholder: "Confirm the password",
-//       required: true,
-//       validation: {
-//         matchField: "password",
-//         message: "Passwords do not match",
-//       },
-//       description: "Re-enter the same password for confirmation",
-//     },
-//   ],
+  authCredentials: [
+    {
+      name: "password",
+      label: "Password",
+      type: "password",
+      placeholder: "Enter secure password",
+      required: true,
+      validation: {
+        minLength: 8,
+        pattern:
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        message:
+          "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character",
+      },
+      description:
+        "Minimum 8 characters with uppercase, lowercase, number, and special character",
+    },
+    {
+      name: "confirmPassword",
+      label: "Confirm Password",
+      type: "password",
+      placeholder: "Confirm the password",
+      required: true,
+      validation: {
+        matchField: "password",
+        message: "Passwords do not match",
+      },
+      description: "Re-enter the same password for confirmation",
+    },
+  ],
 
   // Role and Access Section
   roleAccess: [
@@ -256,13 +256,13 @@ export const adminFormSections = [
     icon: "User",
     required: true,
   },
-//   {
-//     title: "Authentication Credentials",
-//     description: "Login credentials and security settings",
-//     fields: "authCredentials",
-//     icon: "Key",
-//     required: true,
-//   },
+  {
+    title: "Authentication Credentials",
+    description: "Login credentials and security settings",
+    fields: "authCredentials",
+    icon: "Key",
+    required: true,
+  },
   {
     title: "Role & Access",
     description: "Admin role and hotel assignment",
@@ -294,8 +294,8 @@ export const adminFormInitialValues = {
   alternatePhone: "",
 
   // Authentication
-//   password: "",
-//   confirmPassword: "",
+  password: "",
+  confirmPassword: "",
 
   // Role & Access
   role: "admin",
@@ -343,24 +343,24 @@ export const getAdminValidationSchema = () => {
       }
 
       // Authentication Validation
-    //   if (!values.password?.trim()) {
-    //     newErrors.password = "Password is required";
-    //   } else if (values.password.length < 8) {
-    //     newErrors.password = "Password must be at least 8 characters long";
-    //   } else if (
-    //     !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
-    //       values.password
-    //     )
-    //   ) {
-    //     newErrors.password =
-    //       "Password must contain uppercase, lowercase, number, and special character";
-    //   }
+      if (!values.password?.trim()) {
+        newErrors.password = "Password is required";
+      } else if (values.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters long";
+      } else if (
+        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
+          values.password
+        )
+      ) {
+        newErrors.password =
+          "Password must contain uppercase, lowercase, number, and special character";
+      }
 
-    //   if (!values.confirmPassword?.trim()) {
-    //     newErrors.confirmPassword = "Please confirm your password";
-    //   } else if (values.password !== values.confirmPassword) {
-    //     newErrors.confirmPassword = "Passwords do not match";
-    //   }
+      if (!values.confirmPassword?.trim()) {
+        newErrors.confirmPassword = "Please confirm your password";
+      } else if (values.password !== values.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
 
       // Role validation
       if (!values.role) {
