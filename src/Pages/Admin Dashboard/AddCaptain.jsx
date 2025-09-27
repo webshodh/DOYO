@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import PageTitle from "../../atoms/PageTitle";
 
@@ -14,6 +15,7 @@ import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import useColumns from "../../Constants/Columns";
+
 // Lazy load heavy components
 const CaptainFormModal = React.lazy(() =>
   import("../../components/FormModals/CaptainFormModal")
@@ -22,8 +24,10 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 // Main AddCaptain component
 const AddCaptain = memo(() => {
+  const { t } = useTranslation();
   const { hotelName } = useParams();
   const { ViewCaptainColumns } = useColumns();
+
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingCaptain, setEditingCaptain] = useState(null);
@@ -80,27 +84,30 @@ const AddCaptain = memo(() => {
           setShowModal(true);
         }
       } catch (error) {
-        console.error("Error preparing captain for edit:", error);
+        console.error(t("errors.prepareCaptainEdit"), error);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit, t]
   );
 
   const handleDeleteClick = useCallback(
     async (captain) => {
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${captain.firstName} ${captain.lastName}"? This action cannot be undone.`
+        t("confirmations.deleteCaptain", {
+          firstName: captain.firstName,
+          lastName: captain.lastName,
+        })
       );
 
       if (confirmed) {
         try {
           await deleteCaptain(captain);
         } catch (error) {
-          console.error("Error deleting captain:", error);
+          console.error(t("errors.deleteCaptain"), error);
         }
       }
     },
-    [deleteCaptain]
+    [deleteCaptain, t]
   );
 
   const handleToggleStatus = useCallback(
@@ -108,10 +115,10 @@ const AddCaptain = memo(() => {
       try {
         await toggleCaptainStatus(captainId, currentStatus);
       } catch (error) {
-        console.error("Error toggling captain status:", error);
+        console.error(t("errors.toggleCaptainStatus"), error);
       }
     },
-    [toggleCaptainStatus]
+    [toggleCaptainStatus, t]
   );
 
   const handleModalClose = useCallback(() => {
@@ -125,11 +132,11 @@ const AddCaptain = memo(() => {
         const success = await handleFormSubmit(captainData, captainId);
         return success;
       } catch (error) {
-        console.error("Error submitting form:", error);
+        console.error(t("errors.submitForm"), error);
         return false;
       }
     },
-    [handleFormSubmit]
+    [handleFormSubmit, t]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -146,14 +153,14 @@ const AddCaptain = memo(() => {
       <ErrorMessage
         error={error}
         onRetry={handleRefresh}
-        title="Error Loading Captains"
+        title={t("errors.loadingCaptains")}
       />
     );
   }
 
   // Loading state
   if (loading && !captains.length) {
-    return <LoadingSpinner size="lg" text="Loading captains..." />;
+    return <LoadingSpinner size="lg" text={t("loading.captains")} />;
   }
 
   return (
@@ -166,7 +173,9 @@ const AddCaptain = memo(() => {
           onSubmit={handleModalSubmit}
           editCaptain={editingCaptain}
           existingCaptains={captains}
-          title={editingCaptain ? "Edit Captain" : "Add Captain"}
+          title={
+            editingCaptain ? t("titles.editCaptain") : t("titles.addCaptain")
+          }
           submitting={submitting}
         />
       </Suspense>
@@ -175,14 +184,14 @@ const AddCaptain = memo(() => {
         {/* Header */}
         <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
-            pageTitle="Captain Management"
+            pageTitle={t("pages.captainManagement")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description="Manage your restaurant captains and service staff"
+            description={t("descriptions.captainManagement")}
           />
 
           <PrimaryButton
             onAdd={handleAddClick}
-            btnText="Add Captain"
+            btnText={t("buttons.addCaptain")}
             loading={loading}
           />
         </div>
@@ -192,25 +201,25 @@ const AddCaptain = memo(() => {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={Users}
-              title="Total Captains"
+              title={t("stats.totalCaptains")}
               value={stats.total}
               color="blue"
             />
             <StatCard
               icon={UserCheck}
-              title="Active Captains"
+              title={t("stats.activeCaptains")}
               value={stats.active}
               color="green"
             />
             <StatCard
               icon={UserX}
-              title="Inactive Captains"
+              title={t("stats.inactiveCaptains")}
               value={stats.inactive}
               color="red"
             />
             <StatCard
               icon={Clock}
-              title="Recent (7 days)"
+              title={t("stats.recentCaptains")}
               value={stats.recent}
               color="purple"
             />
@@ -222,11 +231,11 @@ const AddCaptain = memo(() => {
           <SearchWithResults
             searchTerm={searchTerm}
             onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search captains by name, email, mobile, or Aadhar..."
+            placeholder={t("placeholders.searchCaptains")}
             totalCount={captainCount}
             filteredCount={filteredCaptains.length}
             onClearSearch={handleClearSearch}
-            totalLabel="total captains"
+            totalLabel={t("labels.totalCaptains")}
           />
         )}
 
@@ -235,7 +244,9 @@ const AddCaptain = memo(() => {
           {hasCaptains ? (
             <>
               {hasSearchResults ? (
-                <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
+                <Suspense
+                  fallback={<LoadingSpinner text={t("loading.table")} />}
+                >
                   <DynamicTable
                     columns={ViewCaptainColumns}
                     data={filteredCaptains}
@@ -243,7 +254,7 @@ const AddCaptain = memo(() => {
                     onDelete={handleDeleteClick}
                     onToggleStatus={handleToggleStatus}
                     loading={submitting}
-                    emptyMessage="No captains match your search criteria"
+                    emptyMessage={t("messages.noSearchResults")}
                     showPagination={true}
                     initialRowsPerPage={10}
                     sortable={true}
@@ -252,7 +263,7 @@ const AddCaptain = memo(() => {
                 </Suspense>
               ) : (
                 <NoSearchResults
-                  btnText="Add Captain"
+                  btnText={t("buttons.addCaptain")}
                   searchTerm={searchTerm}
                   onClearSearch={handleClearSearch}
                   onAddNew={handleAddClick}
@@ -262,9 +273,9 @@ const AddCaptain = memo(() => {
           ) : (
             <EmptyState
               icon={Users}
-              title="No Captains Yet"
-              description="Add your first captain to start managing your service staff. Captains help coordinate between kitchen and customers for better service."
-              actionLabel="Add Your First Captain"
+              title={t("emptyStates.noCaptains.title")}
+              description={t("emptyStates.noCaptains.description")}
+              actionLabel={t("emptyStates.noCaptains.actionLabel")}
               onAction={handleAddClick}
               loading={submitting}
             />

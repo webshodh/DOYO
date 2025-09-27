@@ -223,7 +223,7 @@
     "updateProfile": "Update Profile",
     "changePassword": "Change Password"
   },
-  
+
   "validation": {
     "required": "This field is required",
     "email": "Please enter a valid email",
@@ -247,7 +247,7 @@
     "loading": "Loading admins...",
     "errorLoading": "Failed to load admins"
   },
-  
+
   "hotels": {
     "pageTitle": "Hotels",
     "pageDescription": "Manage hotels in your system",
@@ -271,7 +271,77 @@
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive"
+  },
+
+  "pages": {
+    "captainManagement": "Captain Management",
+    "specialCategoriesManagement": "Special Categories Management"
+  },
+  "descriptions": {
+    "captainManagement": "Manage your restaurant captains and service staff",
+    "specialCategoriesManagement": "Manage your special menu categories"
+  },
+  "titles": {
+    "addCaptain": "Add Captain",
+    "editCaptain": "Edit Captain",
+    "addSpecialCategory": "Add Special Category",
+    "editSpecialCategory": "Edit Special Category"
+  },
+  "buttons": {
+    "addCaptain": "Add Captain",
+    "addSpecialCategory": "Add Special Category"
+  },
+  "stats": {
+    "totalCaptains": "Total Captains",
+    "activeCaptains": "Active Captains",
+    "inactiveCaptains": "Inactive Captains",
+    "recentCaptains": "Recent (7 days)",
+    "totalCategories": "Total Categories",
+    "activeCategories": "Active Categories",
+    "specialCategories": "Special Categories",
+    "recentCategories": "Recent (7 days)"
+  },
+  "placeholders": {
+    "searchCaptains": "Search captains by name, email, mobile, or Aadhar...",
+    "searchSpecialCategories": "Search special categories by name..."
+  },
+  "labels": {
+    "totalCaptains": "total captains",
+    "totalSpecialCategories": "total special categories"
+  },
+  "loading": {
+    "captains": "Loading captains...",
+    "table": "Loading table...",
+    "categories": "Loading special categories..."
+  },
+  "messages": {
+    "noSearchResults": "No captains match your search criteria",
+    "noSearchResultsSpecial": "No special categories match your search criteria"
+  },
+  "emptyStates": {
+    "noCaptains": {
+      "title": "No Captains Yet",
+      "description": "Add your first captain to start managing your service staff. Captains help coordinate between kitchen and customers for better service.",
+      "actionLabel": "Add Your First Captain"
+    },
+    "noSpecialCategories": {
+      "title": "No Special Categories Yet",
+      "description": "Create your first special category to highlight premium menu items. Special categories help showcase your signature dishes and seasonal offerings.",
+      "actionLabel": "Add Your First Special Category"
+    }
+  },
+  "confirmations": {
+    "deleteCaptain": "Are you sure you want to delete \"{{firstName}} {{lastName}}\"? This action cannot be undone.",
+    "deleteCategory": "Are you sure you want to delete \"{{categoryName}}\"? This action cannot be undone."
+  },
+  "errors": {
+    "prepareCaptainEdit": "Error preparing captain for edit:",
+    "deleteCaptain": "Error deleting captain:",
+    "toggleCaptainStatus": "Error toggling captain status:",
+    "submitForm": "Error submitting form:",
+    "loadingCaptains": "Error Loading Captains",
+    "prepareCategoryEdit": "Error preparing category for edit:",
+    "deleteCategory": "Error deleting category:",
+    "loadingCategories": "Error Loading Special Categories"
   }
-
-
 }

@@ -131,7 +131,7 @@ const AdminDashboard = () => {
   } = useMenu(hotelName);
 
   const {
-    categoriesData,
+    categoryCount,
     totalCategories,
     loading: categoriesLoading,
     error: categoriesError,
@@ -283,8 +283,6 @@ const AdminDashboard = () => {
         </div>
         {/* Enhanced Analytics Section */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-4">
-          
-
           {/* Enhanced Time Period Navigation */}
           <TimePeriodSelector
             selectedTimePeriod={selectedTimePeriod}
@@ -342,7 +340,7 @@ const AdminDashboard = () => {
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title={t("dashboard.totalCategories")}
-              value={totalCategories || 0}
+              value={categoryCount || 0}
               color="green"
               icon={BarChart3}
               subtitle={
