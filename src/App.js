@@ -22,11 +22,9 @@ import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "./Pages/Admin Dashboard/AddMenu";
 import {
   AddHotel,
-  AdminList,
   Home,
   NotAuthorized,
   NotFound,
-  SignupPage,
   SuperAdminDashboard,
 } from "./Pages";
 import AddOffers from "./Pages/Admin Dashboard/AddOffers";
@@ -36,8 +34,7 @@ import AdminLayout from "./layout/AdminDashboardLayout";
 import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
 
 import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
-import ViewHotel from "./Pages/SuperAdminDashboard/HotelList";
-import ViewSubscription from "./Pages/SuperAdminDashboard/Subcription";
+
 import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
 import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
@@ -47,6 +44,8 @@ import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
 import CaptainLogin from "Pages/Captain/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
 import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
+import AddAdmin from "Pages/SuperAdminDashboard/AddAdmin";
+import AddSubscriptionPlan from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -223,30 +222,24 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
+
                       <Route
-                        path="view-admin"
+                        path="add-subscription-plan"
                         element={
                           <SuperAdminLayout>
-                            <AdminList />
+                            <AddSubscriptionPlan />
                           </SuperAdminLayout>
                         }
                       />
                       <Route
-                        path="view-hotel"
+                        path="add-admin"
                         element={
                           <SuperAdminLayout>
-                            <ViewHotel />
+                            <AddAdmin />
                           </SuperAdminLayout>
                         }
                       />
-                      <Route
-                        path="view-hotel-subscriptions"
-                        element={
-                          <SuperAdminLayout>
-                            <ViewSubscription />
-                          </SuperAdminLayout>
-                        }
-                      />
+
                       <Route
                         path=""
                         element={<Navigate to="dashboard" replace />}

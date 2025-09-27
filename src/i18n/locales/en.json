@@ -223,7 +223,45 @@
     "updateProfile": "Update Profile",
     "changePassword": "Change Password"
   },
+  
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email",
+    "minLength": "Must be at least {{count}} characters",
+    "maxLength": "Must be no more than {{count}} characters",
+    "phone": "Please enter a valid phone number"
+  },
+
+  "admins": {
+    "pageTitle": "Admins",
+    "pageDescription": "Manage hotel admins here",
+    "addButton": "Add Admin",
+    "editTitle": "Edit Admin",
+    "addTitle": "Add Admin",
+    "searchPlaceholder": "Search admins...",
+    "totalLabel": "Total Admins",
+    "noSearchResults": "No matching admins found.",
+    "emptyTitle": "No Admins Yet",
+    "emptyDescription": "Get started by adding your first admin.",
+    "emptyAction": "Add Admin",
+    "loading": "Loading admins...",
+    "errorLoading": "Failed to load admins"
+  },
+  
   "hotels": {
+    "pageTitle": "Hotels",
+    "pageDescription": "Manage hotels in your system",
+    "addButton": "Add Hotel",
+    "editTitle": "Edit Hotel",
+    "addTitle": "Add Hotel",
+    "searchPlaceholder": "Search hotels...",
+    "totalLabel": "Total Hotels",
+    "noSearchResults": "No matching hotels found.",
+    "emptyTitle": "No Hotels Yet",
+    "emptyDescription": "Start by adding your first hotel.",
+    "emptyAction": "Add Hotel",
+    "loading": "Loading hotels...",
+    "errorLoading": "Failed to load hotels",
     "title": "Hotel Management",
     "addHotel": "Add Hotel",
     "editHotel": "Edit Hotel",
@@ -233,12 +271,7 @@
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive"
-  },
-  "validation": {
-    "required": "This field is required",
-    "email": "Please enter a valid email",
-    "minLength": "Must be at least {{count}} characters",
-    "maxLength": "Must be no more than {{count}} characters",
-    "phone": "Please enter a valid phone number"
   }
+
+
 }

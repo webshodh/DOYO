@@ -59,22 +59,22 @@ export const adminMenuItems = (hotelName, t) => [
   {
     name: t("sidebar.dashboard"),
     path: `/${hotelName}/admin/dashboard`,
-    icon: "dashboard",
+    icon: "dashboard", // assuming icon name matches your icon set
     description: t("sidebar.dashboardDesc"),
   },
   {
-      name: t("sidebar.orderDashboard"),
-      path: `/${hotelName}/admin/order-dashboard`,
-      icon: "dashboard",
-      description: t("sidebar.dashboardDesc"),
-    },
+    name: t("sidebar.orderDashboard"),
+    path: `/${hotelName}/admin/order-dashboard`,
+    icon: "dashboard",
+    description: t("sidebar.orderDashboardDesc"),
+  },
   {
-    
     name: t("sidebar.addCategory"),
     path: `/${hotelName}/admin/add-category`,
     icon: "category",
     description: t("sidebar.addCategoryDesc"),
   },
+  // Uncomment or remove as needed
   // {
   //   name: t("sidebar.addOptions"),
   //   path: `/${hotelName}/admin/add-options`,
@@ -120,7 +120,7 @@ export const adminMenuItems = (hotelName, t) => [
 ];
 
 // Super Admin menu items
-export const superAdminMenuItems = (t) => [
+export const superAdminMenuItems = (t, hotelName) => [
   {
     name: t("sidebar.dashboard"),
     path: "/super-admin/dashboard",
@@ -129,19 +129,19 @@ export const superAdminMenuItems = (t) => [
   },
   {
     name: t("sidebar.addHotels"),
-    path: "/super-admin/view-hotel",
+    path: "/super-admin/add-hotel",
     icon: "hotels",
     description: t("sidebar.addHotelsDesc"),
   },
   {
-    name: t("sidebar.viewAdmins"),
-    path: "/super-admin/view-admin",
+    name: t("sidebar.addAdmin"),
+    path: "/super-admin/add-admin",
     icon: "users",
     description: t("sidebar.viewAdminsDesc"),
   },
   {
     name: t("sidebar.subscriptions"),
-    path: "/super-admin/view-hotel-subscriptions",
+    path: "/super-admin/add-subscription-plans",
     icon: "subscriptions",
     description: t("sidebar.subscriptionsDesc"),
   },
@@ -225,6 +225,6 @@ export const getMenuItems = (role, t, hotelName = null) => {
       return captainMenuItems(hotelName, t);
     case "superAdmin":
     default:
-      return superAdminMenuItems(t);
+      return superAdminMenuItems(t, hotelName);
   }
 };

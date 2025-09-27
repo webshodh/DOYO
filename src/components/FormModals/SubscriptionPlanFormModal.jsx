@@ -10,45 +10,37 @@ import {
   Edit3,
   Plus,
   Loader,
-  Building2,
-  MapPin,
-  Store,
-  Settings,
   Info,
+  Star,
+  Zap,
+  BarChart,
   CheckCircle,
   AlertCircle,
   ChevronDown,
   ChevronRight,
+  DollarSign,
+  Clock,
+  Check,
+  X,
 } from "lucide-react";
 import Modal from "../Modal";
 import {
-  hotelFormFields,
-  hotelFormSections,
-  hotelFormInitialValues,
-  getHotelValidationSchema,
-  businessTypeTemplates,
-} from "../../Constants/ConfigForms/addHotelFormConfig";
+  subscriptionFormFields,
+  subscriptionFormSections,
+  subscriptionFormInitialValues,
+  getSubscriptionValidationSchema,
+  planTemplates,
+} from "../../Constants/ConfigForms/subscriptionFormFields";
 
 // Helper function to get initial form data
 const getInitialFormData = (editData = null) => {
   if (editData) {
     return {
-      ...hotelFormInitialValues,
+      ...subscriptionFormInitialValues,
       ...editData,
-      // Ensure nested objects are properly initialized
-      operatingHours: {
-        ...hotelFormInitialValues.operatingHours,
-        ...(editData.operatingHours || {}),
-      },
-      socialMedia: {
-        ...hotelFormInitialValues.socialMedia,
-        ...(editData.socialMedia || {}),
-      },
-      features: editData.features || [],
-      cuisine: editData.cuisine || [],
     };
   }
-  return hotelFormInitialValues;
+  return subscriptionFormInitialValues;
 };
 
 // Form Section Component
@@ -65,11 +57,10 @@ const FormSection = memo(
   }) => {
     const getSectionIcon = (iconName) => {
       const icons = {
-        Building2: Building2,
-        MapPin: MapPin,
-        Store: Store,
-        Settings: Settings,
         Info: Info,
+        Star: Star,
+        Zap: Zap,
+        BarChart: BarChart,
       };
       const IconComponent = icons[iconName] || Info;
       return <IconComponent size={20} />;
@@ -87,8 +78,6 @@ const FormSection = memo(
 
         switch (field.type) {
           case "text":
-          case "email":
-          case "tel":
           case "url":
             return (
               <div key={field.name} className="space-y-1">
@@ -99,7 +88,7 @@ const FormSection = memo(
                   )}
                 </label>
                 <input
-                  ref={field.name === "businessName" ? firstFieldRef : null}
+                  ref={field.name === "planName" ? firstFieldRef : null}
                   type={field.type}
                   name={field.name}
                   value={value || ""}
@@ -130,18 +119,28 @@ const FormSection = memo(
                     <span className="text-red-500 ml-1">*</span>
                   )}
                 </label>
-                <input
-                  type="number"
-                  name={field.name}
-                  value={value || ""}
-                  onChange={(e) => onChange(field.name, e.target.value)}
-                  placeholder={field.placeholder}
-                  min={field.min}
-                  max={field.max}
-                  className={baseClasses}
-                  disabled={disabled}
-                  required={field.required}
-                />
+                <div className="relative">
+                  {field.name === "price" && (
+                    <span className="absolute left-3 top-2 text-gray-500">
+                      ₹
+                    </span>
+                  )}
+                  <input
+                    type="number"
+                    name={field.name}
+                    value={value || ""}
+                    onChange={(e) => onChange(field.name, e.target.value)}
+                    placeholder={field.placeholder}
+                    min={field.min}
+                    max={field.max}
+                    step={field.step}
+                    className={`${baseClasses} ${
+                      field.name === "price" ? "pl-8" : ""
+                    }`}
+                    disabled={disabled}
+                    required={field.required}
+                  />
+                </div>
                 {field.description && (
                   <p className="text-xs text-gray-500">{field.description}</p>
                 )}
@@ -226,7 +225,7 @@ const FormSection = memo(
           case "checkbox":
             return (
               <div key={field.name} className="space-y-1">
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                   <input
                     type="checkbox"
                     name={field.name}
@@ -236,7 +235,7 @@ const FormSection = memo(
                     disabled={disabled}
                   />
                   <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-gray-700 cursor-pointer">
                       {field.label}
                     </label>
                     {field.description && (
@@ -245,164 +244,18 @@ const FormSection = memo(
                       </p>
                     )}
                   </div>
-                </div>
-                {hasError && (
-                  <p className="text-red-600 text-xs flex items-center ml-7">
-                    <AlertCircle size={12} className="mr-1" />
-                    {error}
-                  </p>
-                )}
-              </div>
-            );
-
-          case "checkbox-group":
-            return (
-              <div key={field.name} className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                  {field.required && (
-                    <span className="text-red-500 ml-1">*</span>
+                  {value ? (
+                    <Check size={16} className="text-green-600 mt-0.5" />
+                  ) : (
+                    <X size={16} className="text-gray-400 mt-0.5" />
                   )}
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {field.options?.map((option) => (
-                    <div
-                      key={option.value}
-                      className="flex items-center space-x-2"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`${field.name}-${option.value}`}
-                        checked={(value || []).includes(option.value)}
-                        onChange={(e) => {
-                          const currentValues = value || [];
-                          const newValues = e.target.checked
-                            ? [...currentValues, option.value]
-                            : currentValues.filter((v) => v !== option.value);
-                          onChange(field.name, newValues);
-                        }}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        disabled={disabled}
-                      />
-                      <label
-                        htmlFor={`${field.name}-${option.value}`}
-                        className="text-sm text-gray-600"
-                      >
-                        {option.label}
-                      </label>
-                    </div>
-                  ))}
                 </div>
-                {field.description && (
-                  <p className="text-xs text-gray-500">{field.description}</p>
-                )}
                 {hasError && (
                   <p className="text-red-600 text-xs flex items-center">
                     <AlertCircle size={12} className="mr-1" />
                     {error}
                   </p>
                 )}
-              </div>
-            );
-
-          case "multiselect":
-            return (
-              <div key={field.name} className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                  {field.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </label>
-                <div className="border rounded-lg p-2 max-h-32 overflow-y-auto bg-white">
-                  {field.options?.map((option) => (
-                    <div
-                      key={option.value}
-                      className="flex items-center space-x-2 py-1"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`${field.name}-${option.value}`}
-                        checked={(value || []).includes(option.value)}
-                        onChange={(e) => {
-                          const currentValues = value || [];
-                          const newValues = e.target.checked
-                            ? [...currentValues, option.value]
-                            : currentValues.filter((v) => v !== option.value);
-                          onChange(field.name, newValues);
-                        }}
-                        className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        disabled={disabled}
-                      />
-                      <label
-                        htmlFor={`${field.name}-${option.value}`}
-                        className="text-xs text-gray-600 flex-1"
-                      >
-                        {option.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                {field.description && (
-                  <p className="text-xs text-gray-500">{field.description}</p>
-                )}
-                {hasError && (
-                  <p className="text-red-600 text-xs flex items-center">
-                    <AlertCircle size={12} className="mr-1" />
-                    {error}
-                  </p>
-                )}
-              </div>
-            );
-
-          case "time":
-            return (
-              <div key={field.name} className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                  {field.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </label>
-                <input
-                  type="time"
-                  name={field.name}
-                  value={value || field.defaultValue || ""}
-                  onChange={(e) => onChange(field.name, e.target.value)}
-                  className={baseClasses}
-                  disabled={disabled}
-                  required={field.required}
-                />
-              </div>
-            );
-
-          case "object":
-            return (
-              <div key={field.name} className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                  {field.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-gray-200">
-                  {field.fields?.map((subField) => {
-                    const subValue = (value || {})[subField.name];
-                    const subFieldProps = {
-                      ...subField,
-                      name: `${field.name}.${subField.name}`,
-                    };
-
-                    return (
-                      <div key={subField.name}>
-                        {renderField({
-                          ...subFieldProps,
-                          name: subField.name, // Keep original name for rendering
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             );
 
@@ -413,7 +266,7 @@ const FormSection = memo(
       [formData, onChange, errors, disabled, firstFieldRef]
     );
 
-    const sectionFields = hotelFormFields[section.fields] || [];
+    const sectionFields = subscriptionFormFields[section.fields] || [];
     const sectionErrorCount = sectionFields.filter(
       (field) => errors[field.name]
     ).length;
@@ -424,13 +277,13 @@ const FormSection = memo(
           type="button"
           onClick={() => onToggle(section.title)}
           className={`w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors ${
-            isExpanded ? "bg-blue-50 border-b border-gray-200" : ""
+            isExpanded ? "bg-purple-50 border-b border-gray-200" : ""
           }`}
         >
           <div className="flex items-center space-x-3">
             <div
               className={`p-2 rounded-lg ${
-                isExpanded ? "bg-blue-100" : "bg-gray-100"
+                isExpanded ? "bg-purple-100" : "bg-gray-100"
               }`}
             >
               {getSectionIcon(section.icon)}
@@ -438,13 +291,10 @@ const FormSection = memo(
             <div>
               <h3
                 className={`font-semibold ${
-                  isExpanded ? "text-blue-900" : "text-gray-900"
+                  isExpanded ? "text-purple-900" : "text-gray-900"
                 }`}
               >
                 {section.title}
-                {section.required && (
-                  <span className="text-red-500 ml-1">*</span>
-                )}
               </h3>
               <p className="text-sm text-gray-600">{section.description}</p>
             </div>
@@ -475,13 +325,66 @@ const FormSection = memo(
   }
 );
 
-// Main HotelFormModal component
-const HotelFormModal = memo(
+// Quick Template Selector Component
+const TemplateSelector = memo(({ onSelectTemplate, disabled }) => {
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  const handleTemplateSelect = (templateKey) => {
+    const template = planTemplates[templateKey];
+    onSelectTemplate(template);
+    setShowTemplates(false);
+  };
+
+  if (!showTemplates) {
+    return (
+      <button
+        type="button"
+        onClick={() => setShowTemplates(true)}
+        disabled={disabled}
+        className="text-sm text-blue-600 hover:text-blue-800 underline disabled:opacity-50"
+      >
+        Use Template
+      </button>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm font-medium text-gray-700">Quick Templates:</div>
+      <div className="grid grid-cols-2 gap-2">
+        {Object.entries(planTemplates).map(([key, template]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => handleTemplateSelect(key)}
+            disabled={disabled}
+            className="p-2 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="text-sm font-medium text-gray-900">
+              {template.planName}
+            </div>
+            <div className="text-xs text-gray-600">₹{template.price}/month</div>
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => setShowTemplates(false)}
+        className="text-xs text-gray-600 hover:text-gray-800"
+      >
+        Hide Templates
+      </button>
+    </div>
+  );
+});
+
+// Main SubscriptionFormModal component
+const SubscriptionFormModal = memo(
   ({
     show = false,
     onClose,
     onSubmit,
-    editHotel = null,
+    editPlan = null,
     title,
     submitText,
     cancelText = "Cancel",
@@ -496,20 +399,23 @@ const HotelFormModal = memo(
     const [isDirty, setIsDirty] = useState(false);
     const [expandedSections, setExpandedSections] = useState({});
     const firstFieldRef = useRef(null);
-    const isEditMode = Boolean(editHotel);
+    const isEditMode = Boolean(editPlan);
 
-    const validationSchema = useMemo(() => getHotelValidationSchema(), []);
+    const validationSchema = useMemo(
+      () => getSubscriptionValidationSchema(),
+      []
+    );
 
     // Initialize form data
     useEffect(() => {
       if (show) {
-        const initialData = getInitialFormData(editHotel);
+        const initialData = getInitialFormData(editPlan);
         setFormData(initialData);
         setErrors({});
         setIsDirty(false);
 
         // Expand first section by default
-        const initialExpanded = { [hotelFormSections.title]: true };
+        const initialExpanded = { [subscriptionFormSections.title]: true };
         setExpandedSections(initialExpanded);
 
         // Focus first field after modal opens
@@ -523,22 +429,7 @@ const HotelFormModal = memo(
         setIsDirty(false);
         setExpandedSections({});
       }
-    }, [show, editHotel]);
-
-    // Apply business type template when business type changes
-    useEffect(() => {
-      if (
-        formData.businessType &&
-        businessTypeTemplates[formData.businessType] &&
-        !isEditMode
-      ) {
-        const template = businessTypeTemplates[formData.businessType];
-        setFormData((prev) => ({
-          ...prev,
-          ...template,
-        }));
-      }
-    }, [formData.businessType, isEditMode]);
+    }, [show, editPlan]);
 
     // Real-time validation
     useEffect(() => {
@@ -562,8 +453,8 @@ const HotelFormModal = memo(
     // Calculate form completion
     const formCompletion = useMemo(() => {
       const requiredFields = [];
-      hotelFormSections.forEach((section) => {
-        const sectionFields = hotelFormFields[section.fields] || [];
+      subscriptionFormSections.forEach((section) => {
+        const sectionFields = subscriptionFormFields[section.fields] || [];
         sectionFields.forEach((field) => {
           if (field.required) {
             requiredFields.push(field.name);
@@ -580,21 +471,22 @@ const HotelFormModal = memo(
         : 0;
     }, [formData]);
 
+    // Calculate monthly revenue based on price
+    const monthlyRevenue = useMemo(() => {
+      const price = parseFloat(formData.price) || 0;
+      return price;
+    }, [formData.price]);
+
     const handleFieldChange = useCallback((fieldName, value) => {
-      setFormData((prev) => {
-        // Handle nested object fields
-        if (fieldName.includes(".")) {
-          const [parentKey, childKey] = fieldName.split(".");
-          return {
-            ...prev,
-            [parentKey]: {
-              ...(prev[parentKey] || {}),
-              [childKey]: value,
-            },
-          };
-        }
-        return { ...prev, [fieldName]: value };
-      });
+      setFormData((prev) => ({ ...prev, [fieldName]: value }));
+      setIsDirty(true);
+    }, []);
+
+    const handleTemplateSelect = useCallback((template) => {
+      setFormData((prev) => ({
+        ...prev,
+        ...template,
+      }));
       setIsDirty(true);
     }, []);
 
@@ -615,8 +507,8 @@ const HotelFormModal = memo(
         if (Object.keys(validation).length > 0) {
           // Expand sections with errors
           const sectionsWithErrors = {};
-          hotelFormSections.forEach((section) => {
-            const sectionFields = hotelFormFields[section.fields] || [];
+          subscriptionFormSections.forEach((section) => {
+            const sectionFields = subscriptionFormFields[section.fields] || [];
             if (sectionFields.some((field) => validation[field.name])) {
               sectionsWithErrors[section.title] = true;
             }
@@ -639,7 +531,7 @@ const HotelFormModal = memo(
 
         setIsSubmitting(true);
         try {
-          const result = await onSubmit(formData, editHotel?.hotelId);
+          const result = await onSubmit(formData, editPlan?.planId);
           if (result !== false) {
             handleClose();
           }
@@ -649,7 +541,7 @@ const HotelFormModal = memo(
           setIsSubmitting(false);
         }
       },
-      [formData, editHotel, onSubmit, validationSchema]
+      [formData, editPlan, onSubmit, validationSchema]
     );
 
     const handleClose = useCallback(() => {
@@ -672,7 +564,7 @@ const HotelFormModal = memo(
 
     const expandAllSections = useCallback(() => {
       const allExpanded = {};
-      hotelFormSections.forEach((section) => {
+      subscriptionFormSections.forEach((section) => {
         allExpanded[section.title] = true;
       });
       setExpandedSections(allExpanded);
@@ -689,7 +581,7 @@ const HotelFormModal = memo(
         isOpen={show}
         onClose={handleClose}
         title={
-          title || (isEditMode ? "Edit Hotel Details" : "Create New Hotel")
+          title || (isEditMode ? "Edit Subscription Plan" : "Create New Plan")
         }
         size="4xl"
         closeOnBackdrop={!isDirty}
@@ -702,24 +594,24 @@ const HotelFormModal = memo(
             <div className="flex items-center gap-4">
               <div
                 className={`p-3 rounded-xl ${
-                  isEditMode ? "bg-blue-100" : "bg-green-100"
+                  isEditMode ? "bg-purple-100" : "bg-green-100"
                 }`}
               >
                 {isEditMode ? (
-                  <Edit3 className="w-6 h-6 text-blue-600" />
+                  <Edit3 className="w-6 h-6 text-purple-600" />
                 ) : (
                   <Plus className="w-6 h-6 text-green-600" />
                 )}
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  {isEditMode ? "Update Hotel Details" : "Create New Hotel"}
+                  {isEditMode ? "Update Subscription Plan" : "Create New Plan"}
                 </h3>
                 <div className="flex items-center gap-4 mt-1">
                   <p className="text-sm text-gray-600">
                     {isEditMode
-                      ? "Modify the hotel information below"
-                      : "Fill in all the required details to create a new hotel"}
+                      ? "Modify the subscription plan details below"
+                      : "Define features, pricing, and limits for your new plan"}
                   </p>
                   {!isEditMode && (
                     <div className="flex items-center gap-2">
@@ -729,7 +621,7 @@ const HotelFormModal = memo(
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-green-500 transition-all duration-300 ease-out"
+                            className="h-full bg-purple-500 transition-all duration-300 ease-out"
                             style={{ width: `${formCompletion}%` }}
                           />
                         </div>
@@ -743,31 +635,51 @@ const HotelFormModal = memo(
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={expandAllSections}
-                className="text-xs text-blue-600 hover:text-blue-800 underline transition-colors"
-              >
-                Expand All
-              </button>
-              <button
-                type="button"
-                onClick={collapseAllSections}
-                className="text-xs text-gray-600 hover:text-gray-800 underline transition-colors"
-              >
-                Collapse All
-              </button>
+            <div className="flex flex-col items-end gap-2">
+              {monthlyRevenue > 0 && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">Monthly Price</div>
+                  <div className="text-lg font-bold text-purple-600">
+                    ₹{monthlyRevenue}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={expandAllSections}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline transition-colors"
+                >
+                  Expand All
+                </button>
+                <button
+                  type="button"
+                  onClick={collapseAllSections}
+                  className="text-xs text-gray-600 hover:text-gray-800 underline transition-colors"
+                >
+                  Collapse All
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Template Selector */}
+          {!isEditMode && (
+            <div className="p-4 bg-blue-50 border-b border-blue-200">
+              <TemplateSelector
+                onSelectTemplate={handleTemplateSelect}
+                disabled={isSubmitting || submitting}
+              />
+            </div>
+          )}
 
           {/* Form */}
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col max-h-[calc(95vh-200px)]"
+            className="flex flex-col max-h-[calc(95vh-280px)]"
           >
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {hotelFormSections.map((section) => (
+              {subscriptionFormSections.map((section) => (
                 <FormSection
                   key={section.title}
                   section={section}
@@ -778,7 +690,7 @@ const HotelFormModal = memo(
                   isExpanded={expandedSections[section.title] || false}
                   onToggle={handleSectionToggle}
                   firstFieldRef={
-                    section.title === hotelFormSections.title
+                    section.title === subscriptionFormSections.title
                       ? firstFieldRef
                       : null
                   }
@@ -819,11 +731,11 @@ const HotelFormModal = memo(
                 <button
                   type="submit"
                   disabled={!canSubmit}
-                  className={`flex items-center justify-center gap-2 px-8 py-3 text-sm font-semibold rounded-lg transition-all duration-200 min-w-[120px]
+                  className={`flex items-center justify-center gap-2 px-8 py-3 text-sm font-semibold rounded-lg transition-all duration-200 min-w-[140px]
                   ${
                     canSubmit
                       ? isEditMode
-                        ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+                        ? "bg-purple-600 text-white hover:bg-purple-700 shadow-lg hover:shadow-xl"
                         : "bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-xl"
                       : "bg-gray-400 text-white cursor-not-allowed"
                   }`}
@@ -842,7 +754,7 @@ const HotelFormModal = memo(
                       )}
                       <span>
                         {submitText ||
-                          (isEditMode ? "Update Hotel" : "Create Hotel")}
+                          (isEditMode ? "Update Plan" : "Create Plan")}
                       </span>
                     </>
                   )}
@@ -856,5 +768,5 @@ const HotelFormModal = memo(
   }
 );
 
-HotelFormModal.displayName = "HotelFormModal";
-export default HotelFormModal;
+SubscriptionFormModal.displayName = "SubscriptionFormModal";
+export default SubscriptionFormModal;

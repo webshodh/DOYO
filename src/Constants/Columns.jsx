@@ -597,6 +597,212 @@ const useColumns = () => {
     },
   ];
 
+  const ViewAdminColumns = [
+    {
+      Header: "S.No",
+      accessor: "srNo",
+      Cell: ({ value }) => <span>{value}</span>,
+    },
+    {
+      Header: "Name",
+      accessor: "name",
+    },
+    {
+      Header: "Email",
+      accessor: "email",
+    },
+    {
+      Header: "Phone",
+      accessor: "phone",
+    },
+    {
+      Header: "Role",
+      accessor: "role",
+    },
+    {
+      Header: "Actions",
+      accessor: "actions",
+      Cell: ({ row, onEdit, onDelete }) => (
+        <div className="flex gap-2">
+          <button onClick={() => onEdit(row.original)}>Edit</button>
+          <button onClick={() => onDelete(row.original)}>Delete</button>
+        </div>
+      ),
+    },
+  ];
+
+  const ViewHotelColumns = [
+    {
+      Header: "S.No",
+      accessor: "srNo",
+    },
+    {
+      Header: "Hotel Name",
+      accessor: "hotelName",
+    },
+    {
+      Header: "Address",
+      accessor: "address",
+    },
+    {
+      Header: "Phone",
+      accessor: "phone",
+    },
+    {
+      Header: "Actions",
+      accessor: "actions",
+      Cell: ({ row, onEdit, onDelete }) => (
+        <div className="flex gap-2">
+          <button onClick={() => onEdit(row.original)}>Edit</button>
+          <button onClick={() => onDelete(row.original)}>Delete</button>
+        </div>
+      ),
+    },
+  ];
+
+  const ViewSubscriptionPlanColumns = [
+    {
+      Header: "Sr No",
+      accessor: "srNo",
+      width: "60px",
+      disableSortBy: true,
+      Cell: ({ value }) => (
+        <span className="text-sm font-medium text-gray-900">{value}</span>
+      ),
+    },
+    {
+      Header: "Plan Name",
+      accessor: "planName",
+      Cell: ({ value }) => (
+        <div className="flex items-center">
+          <span className="text-sm font-semibold text-gray-900">{value}</span>
+        </div>
+      ),
+    },
+    {
+      Header: "Price",
+      accessor: "price",
+      Cell: ({ value }) => (
+        <span className="text-sm font-medium text-green-600">
+          ₹{parseFloat(value || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      Header: "Duration",
+      accessor: "duration",
+      Cell: ({ value }) => (
+        <span className="text-sm text-gray-700 capitalize">
+          {value || "N/A"}
+        </span>
+      ),
+    },
+    {
+      Header: "Max Users",
+      accessor: "maxUsers",
+      Cell: ({ value }) => (
+        <span className="text-sm text-gray-700">
+          {value ? `${value} users` : "Unlimited"}
+        </span>
+      ),
+    },
+    {
+      Header: "Status",
+      accessor: "status",
+      Cell: ({ value }) => {
+        const status = value || "active";
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              status === "active"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {status === "active" ? "Active" : "Inactive"}
+          </span>
+        );
+      },
+    },
+    {
+      Header: "Features",
+      accessor: "features",
+      Cell: ({ value }) => (
+        <div className="text-sm text-gray-600 max-w-xs">
+          <div className="truncate" title={value}>
+            {value
+              ? value.slice(0, 50) + (value.length > 50 ? "..." : "")
+              : "No features"}
+          </div>
+        </div>
+      ),
+    },
+    // {
+    //   Header: "Created",
+    //   accessor: "createdAt",
+    //   Cell: ({ value }) => {
+    //     if (!value) return <span className="text-sm text-gray-500">N/A</span>;
+
+    //     try {
+    //       // Handle Firebase Timestamp objects
+    //       let date;
+    //       if (value && typeof value === "object" && value.seconds) {
+    //         // Firebase Timestamp object
+    //         date = new Date(value.seconds * 1000);
+    //       } else if (value && value.toDate) {
+    //         // Firebase Timestamp with toDate method
+    //         date = value.toDate();
+    //       } else if (value instanceof Date) {
+    //         // Already a Date object
+    //         date = value;
+    //       } else if (typeof value === "string" || typeof value === "number") {
+    //         // String or number timestamp
+    //         date = new Date(value);
+    //       } else {
+    //         return <span className="text-sm text-gray-500">N/A</span>;
+    //       }
+
+    //       return (
+    //         <span className="text-sm text-gray-600">
+    //           {date.toLocaleDateString()}
+    //         </span>
+    //       );
+    //     } catch (error) {
+    //       console.error("Error formatting date:", error);
+    //       return <span className="text-sm text-gray-500">Invalid Date</span>;
+    //     }
+    //   },
+    // },
+    {
+      Header: "Actions",
+      accessor: "actions",
+      disableSortBy: true,
+      Cell: ({ row }) => (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() =>
+              row.original.onEdit && row.original.onEdit(row.original)
+            }
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            title="Edit Plan"
+          >
+            Edit
+          </button>
+          <span className="text-gray-300">|</span>
+          <button
+            onClick={() =>
+              row.original.onDelete && row.original.onDelete(row.original)
+            }
+            className="text-red-600 hover:text-red-800 text-sm font-medium"
+            title="Delete Plan"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return {
     ViewCategoryColumns,
     ViewMenuColumns,
@@ -610,6 +816,9 @@ const useColumns = () => {
     OrdersByMenuColumn,
     orderStatuses,
     ORDER_STATUSES,
+    ViewAdminColumns,
+    ViewHotelColumns,
+    ViewSubscriptionPlanColumns,
   };
 };
 

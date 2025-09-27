@@ -1,537 +1,568 @@
-import React from "react";
+import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import {
+  Plus,
+  Building2,
+  Activity,
+  TrendingUp,
+  AlertTriangle,
+  Home,
   Search,
-  CheckCircle,
-  UserPlus,
-  User,
-  AlertCircle,
-  Save,
-  X,
-  ArrowLeft,
+  Users,
+  Filter,
+  Download,
+  Settings,
+  MoreHorizontal,
 } from "lucide-react";
-import {
-  validateEmail,
-  validateContact,
-  validatePassword,
-} from "../../validation/hotelValidation";
-import { FormSection } from "utils/FormUtilityFunctions";
-import { hotelFormConfig } from "Constants/ConfigForms/addHotelFormConfig";
-import useHotel from "../../hooks/useHotel";
+import { ToastContainer } from "react-toastify";
+import PageTitle from "../../atoms/PageTitle";
+import useColumns from "../../Constants/Columns";
+import { useHotel } from "../../hooks/useHotel";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
+import EmptyState from "atoms/Messages/EmptyState";
+import NoSearchResults from "molecules/NoSearchResults";
+import PrimaryButton from "atoms/Buttons/PrimaryButton";
+import StatCard from "components/Cards/StatCard";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "context/ThemeContext";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useNavigate } from "react-router-dom";
 
-const HotelFormPage = ({ editMode = false, onCancel }) => {
-  // Use the custom hook for all hotel and admin management
+const HotelFormModal = React.lazy(() =>
+  import("../../components/FormModals/HotelFormModal")
+);
+const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+
+const AddHotel = memo(() => {
+  const { ViewHotelColumns } = useColumns();
+  const { t } = useTranslation();
+  const { currentTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const [showModal, setShowModal] = useState(false);
+  const [editingHotel, setEditingHotel] = useState(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
   const {
-    // Hotel form state
-    formData,
-    setFormData,
-
-    // Admin state
-    admin,
-    updateAdmin,
-    searchAdmin,
-    createNewAdmin,
-
-    // Loading states
+    hotels,
+    filteredHotels,
+    searchTerm,
+    filters,
+    filterOptions,
+    analytics,
+    loading,
     submitting,
-    searching,
+    error,
+    hotelStats,
+    handleFormSubmit,
+    handleSearchChange,
+    handleFilterChange,
+    clearAllFilters,
+    deleteHotel,
+    bulkUpdateHotels,
+    prepareForEdit,
+    exportHotels,
+    selectedHotels,
+    handleHotelSelection,
+    handleSelectAllHotels,
+    clearSelection,
+    hotelCount,
+    hasHotels,
+    hasSearchResults,
+    hasFiltersApplied,
+    clearError,
+  } = useHotel({
+    onHotelAdded: (hotelData) => {
+      // Generate hotelId the same way as in services
+      const hotelId = hotelData.businessName
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .toLowerCase();
 
-    // Actions
-    submitHotelWithAdmin,
-    resetForm,
+      // Redirect to add admin route for this newly created hotel
+      navigate(`/super-admin/${hotelId}/add-admin`);
+    },
+  });
 
-    // Validation
-    getAdminValidationStatus,
-    getFormValidationStatus,
+  const handleAddClick = useCallback(() => {
+    setEditingHotel(null);
+    setShowModal(true);
+    if (error) clearError();
+  }, [error, clearError]);
 
-    // Utilities
-    adminExists,
-  } = useHotel();
-
-  // Get default form data from config
-  const getDefaultFormData = () => {
-    const defaultData = {};
-    hotelFormConfig.sections.forEach((section) => {
-      section.fields.forEach((field) => {
-        defaultData[field.name] = field.defaultValue || "";
-      });
-    });
-    return defaultData;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Create combined data for submission
-    const hotelData = {
-      ...formData,
-      // Map businessName to hotelName for backward compatibility
-      hotelName: formData.businessName,
-    };
-
-    const result = await submitHotelWithAdmin(hotelData);
-
-    if (result.success) {
-      handleCancel();
-    }
-  };
-
-  const handleCancel = () => {
-    resetForm();
-    setFormData(getDefaultFormData());
-    if (onCancel) {
-      onCancel();
-    }
-  };
-
-  const handleReset = () => {
-    resetForm();
-    setFormData(getDefaultFormData());
-  };
-
-  // Validate required hotel fields based on config
-  const isHotelFormValid = () => {
-    // Get all required fields from config
-    const requiredFields = [];
-    hotelFormConfig.sections.forEach((section) => {
-      section.fields.forEach((field) => {
-        if (field.required) {
-          requiredFields.push(field.name);
+  const handleEditClick = useCallback(
+    async (hotel) => {
+      try {
+        const hotelToEdit = await prepareForEdit(hotel);
+        if (hotelToEdit) {
+          setEditingHotel(hotelToEdit);
+          setShowModal(true);
         }
-      });
-    });
+      } catch (err) {
+        console.error("Error preparing hotel for edit:", err);
+      }
+    },
+    [prepareForEdit]
+  );
 
-    // Check if all required fields have values
-    return requiredFields.every((fieldName) =>
-      formData[fieldName]?.toString().trim()
+  const handleDeleteClick = useCallback(
+    async (hotel) => {
+      const hotelName = hotel.businessName || hotel.hotelName || "this hotel";
+      const adminCount = hotel.metrics?.totalAdmins || 0;
+      const menuCount = hotel.metrics?.totalMenuItems || 0;
+
+      const message =
+        adminCount > 0 || menuCount > 0
+          ? `⚠️ WARNING: "${hotelName}" has ${adminCount} admin(s) and ${menuCount} menu item(s). Deleting will permanently remove ALL data including orders, categories, and admin accounts.\n\nThis action cannot be undone. Are you sure?`
+          : `Are you sure you want to delete "${hotelName}"? This action cannot be undone.`;
+
+      const confirmed = window.confirm(message);
+
+      if (confirmed) {
+        try {
+          await deleteHotel(hotel);
+        } catch (err) {
+          console.error("Error deleting hotel:", err);
+        }
+      }
+    },
+    [deleteHotel]
+  );
+
+  const handleBulkStatusUpdate = useCallback(
+    async (status) => {
+      if (selectedHotels.length === 0) return;
+
+      const confirmed = window.confirm(
+        `Are you sure you want to ${status} ${selectedHotels.length} selected hotel(s)?`
+      );
+
+      if (confirmed) {
+        try {
+          await bulkUpdateHotels(selectedHotels, {
+            status: status,
+            isActive: status,
+          });
+          clearSelection();
+        } catch (err) {
+          console.error("Error updating hotels:", err);
+        }
+      }
+    },
+    [selectedHotels, bulkUpdateHotels, clearSelection]
+  );
+
+  const handleExport = useCallback(() => {
+    const data = exportHotels("csv");
+    // Here you would typically trigger a file download
+    console.log("Exported data:", data);
+  }, [exportHotels]);
+
+  const handleModalClose = useCallback(() => {
+    setShowModal(false);
+    setEditingHotel(null);
+    if (error) clearError();
+  }, [error, clearError]);
+
+  const handleModalSubmit = useCallback(
+    async (hotelData, hotelId = null) => {
+      try {
+        const success = await handleFormSubmit(hotelData, hotelId);
+        return success;
+      } catch (error) {
+        console.error("Error submitting hotel form:", error);
+        return false;
+      }
+    },
+    [handleFormSubmit]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    handleSearchChange("");
+  }, [handleSearchChange]);
+
+  const handleManageHotel = useCallback(
+    (hotel) => {
+      const hotelId =
+        hotel.hotelId ||
+        hotel.businessName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+      navigate(`/super-admin/${hotelId}/dashboard`);
+    },
+    [navigate]
+  );
+
+  // Error Handling
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ErrorMessage
+          error={error}
+          title="Error Loading Hotels"
+          onRetry={clearError}
+        />
+      </div>
     );
-  };
+  }
+
+  if (loading && !hotels.length) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading hotels..." />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            {onCancel && (
-              <button
-                onClick={handleCancel}
-                disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Modal for Add/Edit Hotel */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <HotelFormModal
+          show={showModal}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          editHotel={editingHotel}
+          title={editingHotel ? "Edit Hotel Details" : "Create New Hotel"}
+          submitting={submitting}
+        />
+      </Suspense>
+
+      <div className="p-6">
+        {/* Enhanced Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <PageTitle
+              pageTitle="Hotel Management"
+              className="text-2xl sm:text-3xl font-bold text-gray-900"
+              description="Manage all your hotels and their operations from one place"
+            />
+            {hasHotels && (
+              <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
+                <span>Total: {hotelStats.total}</span>
+                <span className="text-green-600">
+                  Active: {hotelStats.active}
+                </span>
+                <span className="text-red-600">
+                  Inactive: {hotelStats.inactive}
+                </span>
+                {hasFiltersApplied && (
+                  <span className="text-blue-600">
+                    Showing: {filteredHotels.length}
+                  </span>
+                )}
+              </div>
             )}
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {editMode ? "Edit Restaurant" : "Add Restaurant with Admin"}
-              </h1>
-              <p className="text-gray-600 mt-2">
-                {editMode 
-                  ? "Update restaurant information and admin details" 
-                  : "Create a new restaurant and assign an admin"}
-              </p>
-            </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="flex items-center gap-3">
+            {selectedHotels.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  {selectedHotels.length} selected
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleBulkStatusUpdate("active")}
+                    className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+                  >
+                    Activate
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusUpdate("inactive")}
+                    className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors"
+                  >
+                    Deactivate
+                  </button>
+                  <button
+                    onClick={clearSelection}
+                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
+
             <button
-              type="button"
-              onClick={handleReset}
-              disabled={submitting}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleExport}
+              disabled={!hasHotels}
+              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              Reset Form
+              <Download size={16} />
+              Export
             </button>
+
+            <PrimaryButton
+              onAdd={handleAddClick}
+              btnText="Add New Hotel"
+              loading={submitting}
+              icon={Plus}
+              className="bg-green-600 hover:bg-green-700"
+            />
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Restaurant Information */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
-              <h2 className="text-xl font-semibold text-white">
-                Restaurant Information
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-6">
-                {hotelFormConfig.sections.map((section) => (
-                  <FormSection
-                    key={section.id}
-                    section={section}
-                    formData={formData}
-                    onChange={setFormData}
-                    disabled={submitting}
-                  />
-                ))}
-              </div>
-            </div>
+        {/* Enhanced Stats Cards */}
+        {hasHotels && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Building2}
+              title="Total Hotels"
+              value={hotelStats.total}
+              color="blue"
+              loading={loading}
+              subtitle={`${hotelStats.businessTypes} business types`}
+            />
+            <StatCard
+              icon={Activity}
+              title="Active Hotels"
+              value={hotelStats.active}
+              color="green"
+              subtitle={
+                hotelStats.total
+                  ? `${Math.round(
+                      (hotelStats.active / hotelStats.total) * 100
+                    )}% active`
+                  : ""
+              }
+              loading={loading}
+            />
+            <StatCard
+              icon={AlertTriangle}
+              title="Inactive Hotels"
+              value={hotelStats.inactive}
+              color="red"
+              loading={loading}
+              subtitle={
+                hotelStats.inactive > 0 ? "Requires attention" : "All active"
+              }
+            />
+            <StatCard
+              icon={TrendingUp}
+              title="Avg. Admins/Hotel"
+              value={hotelStats.avgAdminsPerHotel}
+              color="purple"
+              subtitle="Per hotel"
+              loading={loading}
+            />
           </div>
+        )}
 
-          {/* Admin Search and Management */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4">
-              <div className="flex items-center space-x-3">
-                <User className="w-6 h-6 text-white" />
-                <h2 className="text-xl font-semibold text-white">
-                  Admin Management
-                </h2>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
-              {/* Admin Email Search */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Search Admin by Email{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex space-x-3">
-                    <input
-                      type="email"
-                      value={admin.email || ""}
-                      onChange={(e) =>
-                        updateAdmin("email", e.target.value)
-                      }
-                      placeholder="Enter admin email to search"
-                      disabled={submitting}
-                      className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-100 ${
-                        admin.email?.trim() && !validateEmail(admin.email)
-                          ? "border-red-300 focus:border-red-500"
-                          : admin.email?.trim() &&
-                            validateEmail(admin.email)
-                          ? "border-green-300 focus:border-purple-500"
-                          : "border-gray-300 focus:border-purple-500"
-                      } ${
-                        submitting
-                          ? "bg-gray-100 cursor-not-allowed"
-                          : "bg-white"
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={searchAdmin}
-                      disabled={
-                        !admin.email?.trim() ||
-                        !validateEmail(admin.email) ||
-                        searching ||
-                        submitting
-                      }
-                      className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      {searching ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Searching...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  {admin.email?.trim() && !validateEmail(admin.email) && (
-                    <p className="text-red-500 text-sm font-medium">
-                      Valid email is required
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Admin Details */}
-              {admin.email?.trim() && validateEmail(admin.email) && (
-                <div
-                  className={`rounded-2xl border-2 overflow-hidden transition-all duration-300 ${
-                    getAdminValidationStatus()
-                      ? "border-green-300 bg-green-50"
-                      : "border-red-300 bg-red-50"
-                  }`}
-                >
-                  <div className="bg-white px-6 py-4 border-b border-gray-200">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          Admin Details
-                        </h3>
-                        {admin.isExisting && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Existing Admin Found
-                          </span>
-                        )}
-                        {!admin.isExisting && admin.searched && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                            <UserPlus className="w-4 h-4 mr-1" />
-                            New Admin (Will be created)
-                          </span>
-                        )}
-                      </div>
-                      {!admin.isExisting && admin.searched && (
-                        <button
-                          type="button"
-                          onClick={createNewAdmin}
-                          disabled={submitting}
-                          className="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          <span>Create New Admin</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-6 space-y-6">
-                    {admin.isExisting && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <CheckCircle className="w-5 h-5 text-blue-600" />
-                          <p className="text-blue-800 font-medium">
-                            This admin already exists and will be assigned
-                            to this restaurant.
-                          </p>
-                        </div>
-                        {admin.existingHotels &&
-                          admin.existingHotels.length > 0 && (
-                            <p className="text-blue-700 text-sm">
-                              <strong>
-                                Currently managing restaurants:
-                              </strong>{" "}
-                              {admin.existingHotels.join(", ")}
-                            </p>
-                          )}
-                      </div>
-                    )}
-
-                    {!admin.isExisting && admin.searched && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                        <div className="flex items-center space-x-2">
-                          <UserPlus className="w-5 h-5 text-yellow-600" />
-                          <p className="text-yellow-800 font-medium">
-                            Admin with this email doesn't exist. Please
-                            fill in the details below to create a new
-                            admin.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Admin Name{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={admin.name || ""}
-                          onChange={(e) =>
-                            updateAdmin("name", e.target.value)
-                          }
-                          placeholder="Enter admin name"
-                          disabled={admin.isExisting || submitting}
-                          className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-100 ${
-                            !admin.name?.trim()
-                              ? "border-red-300 focus:border-red-500"
-                              : "border-green-300 focus:border-purple-500"
-                          } ${
-                            admin.isExisting || submitting
-                              ? "bg-gray-100 cursor-not-allowed"
-                              : "bg-white"
-                          }`}
-                        />
-                        {!admin.name?.trim() && (
-                          <p className="text-red-500 text-sm font-medium">
-                            Admin name is required
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Contact Number{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          value={admin.contact || ""}
-                          onChange={(e) =>
-                            updateAdmin("contact", e.target.value)
-                          }
-                          placeholder="Enter 10-digit contact"
-                          maxLength="10"
-                          disabled={admin.isExisting || submitting}
-                          className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-100 ${
-                            !admin.contact?.trim() ||
-                            !validateContact(admin.contact)
-                              ? "border-red-300 focus:border-red-500"
-                              : "border-green-300 focus:border-purple-500"
-                          } ${
-                            admin.isExisting || submitting
-                              ? "bg-gray-100 cursor-not-allowed"
-                              : "bg-white"
-                          }`}
-                        />
-                        {(!admin.contact?.trim() ||
-                          !validateContact(admin.contact)) && (
-                          <p className="text-red-500 text-sm font-medium">
-                            Valid 10-digit contact number is required
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Password{" "}
-                          {admin.isExisting
-                            ? "(Not Required - Existing Admin)"
-                            : "*"}
-                        </label>
-                        <input
-                          type="password"
-                          value={admin.password || ""}
-                          onChange={(e) =>
-                            updateAdmin("password", e.target.value)
-                          }
-                          placeholder="Enter password (min 6 characters)"
-                          disabled={admin.isExisting || submitting}
-                          className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-100 ${
-                            !admin.isExisting &&
-                            (!admin.password?.trim() ||
-                              !validatePassword(admin.password))
-                              ? "border-red-300 focus:border-red-500"
-                              : "border-green-300 focus:border-purple-500"
-                          } ${
-                            admin.isExisting || submitting
-                              ? "bg-gray-100 cursor-not-allowed"
-                              : "bg-white"
-                          }`}
-                        />
-                        {!admin.isExisting && (
-                          <p className="text-gray-500 text-sm">
-                            Password must be at least 6 characters long
-                          </p>
-                        )}
-                        {!admin.isExisting &&
-                          (!admin.password?.trim() ||
-                            !validatePassword(admin.password)) && (
-                            <p className="text-red-500 text-sm font-medium">
-                              Password must be at least 6 characters
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-              Form Progress
-            </h3>
-            <div className="flex items-center justify-center space-x-8">
-              {hotelFormConfig.sections.map((section, index) => {
-                // Check if section is complete based on its required fields
-                const sectionComplete = section.fields
-                  .filter((field) => field.required)
-                  .every((field) =>
-                    formData[field.name]?.toString().trim()
-                  );
-
-                return (
-                  <div
-                    key={section.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <div
-                      className={`w-3 h-3 rounded-full ${
-                        sectionComplete ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    />
-                    <span
-                      className={`text-sm font-medium ${
-                        sectionComplete
-                          ? "text-green-700"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {section.title}
-                    </span>
-                  </div>
-                );
-              })}
-
-              {/* Admin section indicator */}
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-3 h-3 rounded-full ${
-                    getAdminValidationStatus()
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                  }`}
+        {/* Enhanced Filters */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            {/* Search */}
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 />
-                <span
-                  className={`text-sm font-medium ${
-                    getAdminValidationStatus()
-                      ? "text-green-700"
-                      : "text-gray-500"
-                  }`}
-                >
-                  Admin
-                </span>
+                <input
+                  type="text"
+                  placeholder="Search by business name, type, location, email, or contact..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
+            </div>
+
+            {/* Quick Filters */}
+            <div className="flex gap-2 flex-wrap">
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+
+              <select
+                value={filters.businessType}
+                onChange={(e) =>
+                  handleFilterChange("businessType", e.target.value)
+                }
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Types</option>
+                {filterOptions.businessTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() +
+                      type.slice(1).replace("_", " ")}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
+                  showAdvancedFilters
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <Filter size={16} />
+                More
+              </button>
+
+              <button
+                onClick={handleAddClick}
+                disabled={submitting}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus size={16} />
+                Add Hotel
+              </button>
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 rounded-t-2xl shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <AlertCircle className="w-4 h-4" />
-                <span>* Required fields</span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={submitting}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select
+                  value={filters.city}
+                  onChange={(e) => handleFilterChange("city", e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <X className="w-4 h-4" />
-                  Cancel
-                </button>
+                  <option value="all">All Cities</option>
+                  {filterOptions.cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
 
-                <button
-                  type="submit"
-                  disabled={
-                    submitting ||
-                    !getAdminValidationStatus() ||
-                    !isHotelFormValid()
+                <select
+                  value={filters.state}
+                  onChange={(e) => handleFilterChange("state", e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All States</option>
+                  {filterOptions.states.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.subscriptionPlan}
+                  onChange={(e) =>
+                    handleFilterChange("subscriptionPlan", e.target.value)
                   }
-                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <Save className="w-4 h-4" />
-                  {submitting
-                    ? "Saving..."
-                    : editMode
-                    ? "Update Restaurant"
-                    : "Create Restaurant"}
-                </button>
+                  <option value="all">All Plans</option>
+                  {filterOptions.subscriptionPlans.map((plan) => (
+                    <option key={plan} value={plan}>
+                      {plan}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          </div>
-        </form>
+          )}
+
+          {/* Filter summary */}
+          {hasFiltersApplied && (
+            <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+              <span>
+                Showing {filteredHotels.length} of {hotels.length} hotel
+                {hotels.length !== 1 ? "s" : ""}
+                {searchTerm && ` for "${searchTerm}"`}
+              </span>
+              <button
+                onClick={clearAllFilters}
+                className="text-red-600 hover:text-red-800 underline"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Table/Search Results/Empty States */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {hasHotels ? (
+            filteredHotels.length > 0 ? (
+              <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
+                <DynamicTable
+                  columns={ViewHotelColumns}
+                  data={filteredHotels}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
+                  loading={submitting}
+                  emptyMessage="No hotels match your current filters"
+                  showPagination={true}
+                  initialRowsPerPage={10}
+                  sortable={true}
+                  className="border-0"
+                  selectable={true}
+                  selectedItems={selectedHotels}
+                  onItemSelect={handleHotelSelection}
+                  onSelectAll={handleSelectAllHotels}
+                  actions={[
+                    {
+                      label: "Manage",
+                      onClick: handleManageHotel,
+                      icon: Users,
+                      variant: "primary",
+                    },
+                    {
+                      label: "Settings",
+                      onClick: (hotel) =>
+                        navigate(`/super-admin/${hotel.hotelId}/settings`),
+                      icon: Settings,
+                      variant: "secondary",
+                    },
+                  ]}
+                />
+              </Suspense>
+            ) : (
+              <NoSearchResults
+                btnText="Add New Hotel"
+                searchTerm={searchTerm}
+                onClearSearch={handleClearSearch}
+                onAddNew={handleAddClick}
+              />
+            )
+          ) : (
+            <EmptyState
+              icon={Home}
+              title="No Hotels Yet"
+              description="Start by adding your first hotel to manage all your operations in one place. You can add admins, categories, menus, and more for each hotel."
+              actionLabel="Add Your First Hotel"
+              onAction={handleAddClick}
+              loading={submitting}
+            />
+          )}
+        </div>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
-};
+});
 
-export default HotelFormPage;
+AddHotel.displayName = "AddHotel";
+export default AddHotel;
