@@ -44,8 +44,12 @@ import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
 import CaptainLogin from "Pages/Captain/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
 import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
-import AddAdmin from "Pages/SuperAdminDashboard/AddAdmin";
+import AddAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
 import AddSubscriptionPlan from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
+import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
+import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
+import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
+import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -218,7 +222,15 @@ function App() {
                         path="add-hotel"
                         element={
                           <SuperAdminLayout>
-                            <AddHotel />
+                            <AddHotelPage />
+                          </SuperAdminLayout>
+                        }
+                      />
+                      <Route
+                        path="view-hotel"
+                        element={
+                          <SuperAdminLayout>
+                            <ViewHotel />
                           </SuperAdminLayout>
                         }
                       />
@@ -235,7 +247,15 @@ function App() {
                         path="add-admin"
                         element={
                           <SuperAdminLayout>
-                            <AddAdmin />
+                            <AddAdminPage />
+                          </SuperAdminLayout>
+                        }
+                      />
+                      <Route
+                        path="view-admin"
+                        element={
+                          <SuperAdminLayout>
+                            <ViewAdmin />
                           </SuperAdminLayout>
                         }
                       />
