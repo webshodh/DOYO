@@ -36,7 +36,7 @@ import PrintBill from "Pages/Captain/PrintBill";
 // Constants
 import useColumns from "../../Constants/Columns";
 import { useMenu } from "hooks/useMenu";
-import AddMenu from "./AddMenu";
+import AddMenu from "./ViewMenu";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 import { useCategory } from "hooks/useCategory";

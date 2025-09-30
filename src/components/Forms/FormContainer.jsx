@@ -1,4 +1,5 @@
 // src/components/form/FormContainer.jsx
+
 import React, {
   useState,
   useEffect,
@@ -11,7 +12,6 @@ import { FormCancelButton, FormSubmitButton } from "./FormActions";
 
 export default function FormContainer({
   sections,
-  fieldsConfig,
   initialValues,
   validationSchema,
   onSubmit,
@@ -27,11 +27,15 @@ export default function FormContainer({
   const [expanded, setExpanded] = useState({});
   const firstRef = useRef();
 
+  // Expand first section on mount
   useEffect(() => {
-    setExpanded({ [sections[0].title]: true });
-    setTimeout(() => firstRef.current?.focus(), 50);
+    if (sections.length) {
+      setExpanded({ [sections[0].title]: true });
+      setTimeout(() => firstRef.current?.focus(), 50);
+    }
   }, [sections]);
 
+  // Validate when dirty
   useEffect(() => {
     if (dirty) {
       setErrors(validationSchema.validate(data));
@@ -61,7 +65,7 @@ export default function FormContainer({
     return Object.keys(errs).length === 0 && dirty && !submitting;
   }, [data, dirty, submitting, validationSchema]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmitForm = async (e) => {
     e.preventDefault();
     const errs = validationSchema.validate(data);
     setErrors(errs);
@@ -71,12 +75,14 @@ export default function FormContainer({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmitForm} className="space-y-6">
       {sections.map((section) => (
         <FormSection
           key={section.title}
-          {...section}
-          fields={fieldsConfig[section.fields]}
+          title={section.title}
+          description={section.description}
+          icon={section.icon}
+          fields={section.fields}
           data={data}
           errors={errors}
           disabled={submitting}
@@ -94,7 +100,7 @@ export default function FormContainer({
           text={cancelText}
         />
         <FormSubmitButton
-          onClick={handleSubmit}
+          onClick={handleSubmitForm}
           disabled={!canSubmit}
           isEditMode={isEditMode}
           isLoading={submitting}

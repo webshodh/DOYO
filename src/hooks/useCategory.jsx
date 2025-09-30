@@ -1,4 +1,4 @@
-// hooks/useCategory.js
+// hooks/useCategory.js (FIXED)
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
@@ -26,34 +26,50 @@ export const useCategory = (hotelName) => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
 
-    const colRef = collection(db, `hotels/${hotelName}/categories`);
-    const unsubscribe = onSnapshot(
-      colRef,
-      (snapshot) => {
-        setCategories(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching categories:", err);
-        setError(err);
-        setLoading(false);
-      }
-    );
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
+      const colRef = collection(db, `hotels/${hotelName}/categories`);
+      unsubscribe = onSnapshot(
+        colRef,
+        (snapshot) => {
+          const categoriesData = snapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+          }));
+          setCategories(categoriesData);
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Error fetching categories:", err);
+          const errorMessage = err.message || "Error fetching categories";
+          setError(errorMessage);
+          setLoading(false);
+        }
+      );
+    };
+
+    setupSubscription();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [hotelName]);
 
-  // Memoized filtered categories
-  const filteredCategories = useMemo(
-    () =>
-      categories.filter((c) =>
-        c.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [categories, searchTerm]
-  );
+  // Memoized filtered categories with null safety
+  const filteredCategories = useMemo(() => {
+    if (!categories || categories.length === 0) return [];
+
+    return categories.filter((category) => {
+      // Add null safety checks
+      const categoryName = category?.categoryName || "";
+      const searchLower = (searchTerm || "").toLowerCase();
+      return categoryName.toLowerCase().includes(searchLower);
+    });
+  }, [categories, searchTerm]);
 
   // Add category
   const addCategory = useCallback(
@@ -68,7 +84,8 @@ export const useCategory = (hotelName) => {
         return true;
       } catch (err) {
         console.error("Error adding category:", err);
-        setError(err);
+        const errorMessage = err.message || "Error adding category";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -88,7 +105,8 @@ export const useCategory = (hotelName) => {
         return true;
       } catch (err) {
         console.error("Error updating category:", err);
-        setError(err);
+        const errorMessage = err.message || "Error updating category";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -108,7 +126,8 @@ export const useCategory = (hotelName) => {
         return true;
       } catch (err) {
         console.error("Error deleting category:", err);
-        setError(err);
+        const errorMessage = err.message || "Error deleting category";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -118,7 +137,7 @@ export const useCategory = (hotelName) => {
   );
 
   const prepareForEdit = useCallback(async (category) => {
-    return { id: category.id, categoryName: category.categoryName };
+    return { id: category.id, categoryName: category.categoryName || "" };
   }, []);
 
   const handleFormSubmit = useCallback(
@@ -130,36 +149,56 @@ export const useCategory = (hotelName) => {
   );
 
   const handleSearchChange = useCallback((term) => {
-    setSearchTerm(term);
+    setSearchTerm(term || "");
   }, []);
 
-  const checkDuplicateCategory = useCallback(
-    (name, excludeId = null) =>
-      categories.some(
+  // Memoize duplicate check function with null safety
+  const checkDuplicateCategory = useMemo(() => {
+    return (name, excludeId = null) => {
+      if (!name || !categories) return false;
+      return categories.some(
         (c) =>
-          c.categoryName.toLowerCase() === name.toLowerCase() &&
+          (c?.categoryName || "").toLowerCase() === name.toLowerCase() &&
           c.id !== excludeId
-      ),
-    [categories]
-  );
+      );
+    };
+  }, [categories]);
 
-  const getCategoryStats = useCallback(
-    () => ({ total: categories.length, filtered: filteredCategories.length }),
-    [categories, filteredCategories]
-  );
+  // Memoize category stats with null safety
+  const getCategoryStats = useMemo(() => {
+    return () => ({
+      total: categories?.length || 0,
+      filtered: filteredCategories?.length || 0,
+    });
+  }, [categories?.length, filteredCategories?.length]);
 
   const clearAllFilters = useCallback(() => {
     setSearchTerm("");
   }, []);
 
+  // Memoize computed values with null safety
+  const computedValues = useMemo(
+    () => ({
+      categoryCount: categories?.length || 0,
+      filteredCount: filteredCategories?.length || 0,
+      hasCategories: (categories?.length || 0) > 0,
+      hasSearchResults: (filteredCategories?.length || 0) > 0,
+    }),
+    [categories?.length, filteredCategories?.length]
+  );
+
   return {
-    categories,
-    filteredCategories,
+    // Data
+    categories: categories || [],
+    filteredCategories: filteredCategories || [],
     searchTerm,
+
+    // State
     loading,
     submitting,
     error,
 
+    // Actions
     addCategory,
     updateCategory,
     deleteCategory,
@@ -167,15 +206,17 @@ export const useCategory = (hotelName) => {
     handleFormSubmit,
     handleSearchChange,
 
+    // Utility functions (memoized)
     getCategoryStats,
     checkDuplicateCategory,
     clearAllFilters,
 
-    categoryCount: categories.length,
-    filteredCount: filteredCategories.length,
-    hasCategories: categories.length > 0,
-    hasSearchResults: filteredCategories.length > 0,
+    // Computed values (memoized)
+    ...computedValues,
+
+    // Setters
     setSearchTerm,
     setCategories,
+    setError,
   };
 };

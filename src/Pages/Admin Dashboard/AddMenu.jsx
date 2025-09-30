@@ -1,426 +1,149 @@
-import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+// src/pages/AddMenuItemPage.jsx
+
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import FormContainer from "../../components/Forms/FormContainer";
 import {
-  Plus,
-  ChefHat,
-  LoaderCircle,
-  AlertCircle,
-  TrendingUp,
-  Grid,
-  DollarSign,
-  Eye,
-} from "lucide-react";
-import useColumns from "Constants/Columns";
-import CategoryTabs from "molecules/CategoryTab";
-import { useMenu } from "../../hooks/useMenu";
-import PageTitle from "../../atoms/PageTitle";
-import LoadingSpinner from "../../atoms/LoadingSpinner";
-import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
-import StatCard from "components/Cards/StatCard";
-import PrimaryButton from "atoms/Buttons/PrimaryButton";
-import SearchWithResults from "molecules/SearchWithResults";
-import ErrorMessage from "atoms/Messages/ErrorMessage";
-import { useTranslation } from "react-i18next";
-import { useTheme } from "context/ThemeContext";
+  FORM_CONFIG,
+  specialCategories,
+} from "../../Constants/ConfigForms/addMenuFormConfig";
+import { menuServices } from "../../services/api/menuService";
 
-// Lazy load heavy components
-const MenuFormModal = React.lazy(() =>
-  import("../../components/FormModals/MenuFormModal")
-);
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
-
-// Main AddMenu component
-const AddMenu = memo(({ onlyView = false }) => {
-  const navigate = useNavigate();
-  const { hotelName } = useParams();
-  const { t } = useTranslation();
-  const { currentTheme, isDark } = useTheme();
-  const { ViewMenuColumns } = useColumns();
-
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [editingMenu, setEditingMenu] = useState(null);
-  const [editingMenuId, setEditingMenuId] = useState(null);
-
-  // Use custom hook for menu management
-  const {
-    categories,
-    mainCategories,
-    filteredAndSortedMenus,
-    menuCountsByCategory,
-    searchTerm,
-    activeCategory,
-    loading,
-    submitting,
-    error,
-    addMenu,
-    updateMenu,
-    deleteMenu,
-    handleCategoryFilter,
-    handleSearchChange,
-    refreshMenus,
-    menuCount,
-    hasMenus,
-    hasSearchResults,
-  } = useMenu(hotelName);
-
-  // Memoized calculations for menu statistics
-  const stats = useMemo(
-    () => ({
-      total: menuCount,
-      available: filteredAndSortedMenus.filter(
-        (menu) => menu.availability === "Available"
-      ).length,
-      discounted: filteredAndSortedMenus.filter((menu) => menu.discount > 0)
-        .length,
-      categories: new Set(
-        filteredAndSortedMenus.map((menu) => menu.menuCategory)
-      ).size,
-    }),
-    [filteredAndSortedMenus, menuCount]
-  );
-
-  // Prepare data for the table with memoization
-  const tableData = useMemo(() => {
-    return filteredAndSortedMenus.map((item, index) => ({
-      "Sr.No": index + 1,
-      Img: item.imageUrl || item.file,
-      "Menu Category": item.menuCategory || "Other",
-      "Menu Name": item.menuName,
-      Price: item.menuPrice,
-      Discount: item.discount || "-",
-      "Final Price": item.finalPrice,
-      Availability: item.availability,
-      // Ensure we include the ID fields that the handlers will look for
-      uuid: item.uuid,
-      id: item.id,
-      _id: item._id,
-    }));
-  }, [filteredAndSortedMenus]);
-
-  // Event handlers
-  const handleAddClick = useCallback(() => {
-    setEditingMenu(null);
-    setEditingMenuId(null);
-    setShowModal(true);
-  }, []);
-
-  const handleEditClick = useCallback(
-    (rowData) => {
-      console.log("=== EDIT DEBUG ===");
-      console.log("Received rowData:", rowData);
-
-      // Extract the menu ID from the row data
-      const menuId = rowData.uuid || rowData.id || rowData._id;
-      console.log("Extracted menuId:", menuId);
-
-      if (!menuId) {
-        console.error("No valid ID found in row data:", rowData);
-        alert("Error: Menu ID not found. Please refresh and try again.");
-        return;
-      }
-
-      // Find the original menu data from filteredAndSortedMenus
-      const selectedMenu = filteredAndSortedMenus.find((menu) => {
-        const matches =
-          menu.uuid === menuId ||
-          menu.id === menuId ||
-          menu._id === menuId ||
-          String(menu.uuid) === String(menuId) ||
-          String(menu.id) === String(menuId) ||
-          String(menu._id) === String(menuId);
-        return matches;
-      });
-
-      if (selectedMenu) {
-        console.log("Found original menu data:", selectedMenu);
-        setEditingMenu(selectedMenu);
-        setEditingMenuId(menuId);
-        setShowModal(true);
+// Build default initial values from FORM_CONFIG
+const buildInitialValues = () => {
+  const values = {};
+  FORM_CONFIG.sections.forEach((section) => {
+    section.fields.forEach((field) => {
+      const name = field.name;
+      if (field.type === "checkbox") {
+        values[name] = false;
+      } else if (field.type === "multiselect") {
+        values[name] = [];
       } else {
-        console.error("Original menu not found for ID:", menuId);
-        console.error("Available menus:", filteredAndSortedMenus);
-        alert("Menu not found. Please refresh the page and try again.");
+        values[name] = "";
       }
-    },
-    [filteredAndSortedMenus]
-  );
+    });
+  });
+  return values;
+};
 
-  const handleDeleteClick = useCallback(
-    async (rowData) => {
-      console.log("=== DELETE DEBUG ===");
-      console.log("Received rowData for deletion:", rowData);
+export default function AddMenuPage() {
+  const navigate = useNavigate();
+  const { id: menuId } = useParams();
+  const isEditMode = Boolean(menuId);
 
-      // Extract the menu ID from the row data
-      const menuId = rowData.uuid || rowData.id || rowData._id;
-      console.log("Extracted menuId for deletion:", menuId);
+  const [initialValues, setInitialValues] = useState(buildInitialValues());
+  const [submitting, setSubmitting] = useState(false);
 
-      if (!menuId) {
-        console.error("No valid ID found in row data:", rowData);
-        alert("Error: Menu ID not found. Please refresh and try again.");
-        return;
-      }
+  // Load existing menu item in edit mode
+  useEffect(() => {
+    if (!isEditMode) return;
+    let mounted = true;
+    setSubmitting(true);
 
-      // Get the menu name for confirmation
-      const menuName =
-        rowData["Menu Name"] || rowData.menuName || "this menu item";
+    menuServices
+      .getMenuItemById(menuId)
+      .then((data) => {
+        if (!mounted || !data) return;
+        setInitialValues((prev) => ({
+          ...prev,
+          ...data,
+          nutritionalInfo: {
+            protein: "",
+            carbs: "",
+            fat: "",
+            fiber: "",
+            ...(data.nutritionalInfo || {}),
+          },
+          allergens: Array.isArray(data.allergens) ? data.allergens : [],
+        }));
+      })
+      .catch((err) => console.error("Failed to load menu item:", err))
+      .finally(() => mounted && setSubmitting(false));
 
-      // Add confirmation dialog
-      const confirmed = window.confirm(
-        `Are you sure you want to delete "${menuName}"? This action cannot be undone.`
-      );
+    return () => {
+      mounted = false;
+    };
+  }, [isEditMode, menuId]);
 
-      if (confirmed) {
-        try {
-          console.log("Calling deleteMenu with ID:", menuId);
-          const success = await deleteMenu(menuId);
-          console.log("Delete operation result:", success);
+  const goBack = useCallback(() => navigate(-1), [navigate]);
+  const goToMenuList = useCallback(() => navigate("/menu"), [navigate]);
 
-          if (!success) {
-            console.error("Failed to delete menu - deleteMenu returned false");
-            alert("Failed to delete menu. Please try again.");
-          }
-        } catch (error) {
-          console.error("Error deleting menu:", error);
-          alert("An error occurred while deleting the menu. Please try again.");
-        }
-      }
-    },
-    [deleteMenu]
-  );
-
-  const handleModalClose = useCallback(() => {
-    setShowModal(false);
-    setEditingMenu(null);
-    setEditingMenuId(null);
-  }, []);
-
-  const handleModalSubmit = useCallback(
+  const handleSubmit = useCallback(
     async (formData) => {
-      console.log("=== FORM SUBMIT DEBUG ===");
-      console.log("Form submitted with data:", formData);
-      console.log("Edit mode:", !!editingMenuId, "Menu ID:", editingMenuId);
+      setSubmitting(true);
+
+      const submissionData = {
+        ...formData,
+        menuPrice: parseFloat(formData.menuPrice) || 0,
+        discount: parseFloat(formData.discount) || 0,
+        finalPrice:
+          parseFloat(formData.finalPrice) ||
+          parseFloat(formData.menuPrice) ||
+          0,
+        calories: parseInt(formData.calories) || 0,
+        menuCookingTime: parseInt(formData.menuCookingTime) || 0,
+        servingSize: parseInt(formData.servingSize) || 1,
+        nutritionalInfo: {
+          protein: parseFloat(formData["nutritionalInfo.protein"]) || 0,
+          carbs: parseFloat(formData["nutritionalInfo.carbs"]) || 0,
+          fat: parseFloat(formData["nutritionalInfo.fat"]) || 0,
+          fiber: parseFloat(formData["nutritionalInfo.fiber"]) || 0,
+        },
+        allergens: Array.isArray(formData.allergens) ? formData.allergens : [],
+        chefSpecial: Boolean(formData.chefSpecial),
+        isPopular: Boolean(formData.isPopular),
+        isVegan: Boolean(formData.isVegan),
+        isGlutenFree: Boolean(formData.isGlutenFree),
+        ...(isEditMode && formData.createdAt
+          ? { createdAt: formData.createdAt }
+          : {}),
+        updatedAt: new Date().toISOString(),
+      };
 
       try {
-        let success = false;
-
-        if (editingMenuId) {
-          console.log("Updating menu with ID:", editingMenuId);
-          success = await updateMenu(formData, editingMenuId);
-          console.log("Update result:", success);
+        if (isEditMode) {
+          await menuServices.updateMenuItem(menuId, submissionData);
         } else {
-          console.log("Adding new menu");
-          success = await addMenu(formData);
-          console.log("Add result:", success);
+          await menuServices.addMenuItem(submissionData);
         }
-
-        if (success) {
-          handleModalClose(); // Close modal on success
-        }
-
-        return success;
-      } catch (error) {
-        console.error("Error in form submission:", error);
-        alert("An error occurred while saving the menu. Please try again.");
-        return false;
+        goToMenuList();
+      } catch (err) {
+        console.error("Submit failed:", err);
+      } finally {
+        setSubmitting(false);
       }
     },
-    [addMenu, updateMenu, editingMenuId, handleModalClose]
+    [isEditMode, menuId, goToMenuList]
   );
 
-  const handleClearSearch = useCallback(() => {
-    handleSearchChange("");
-  }, [handleSearchChange]);
-
-  const handleRefresh = useCallback(() => {
-    refreshMenus();
-  }, [refreshMenus]);
-
-  // Error state
-  if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        onRetry={handleRefresh}
-        title={t("menu.errorLoading")}
-      />
-    );
-  }
-
-  // Loading state
-  if (loading && !filteredAndSortedMenus.length) {
-    return <LoadingSpinner size="lg" text={t("menu.loading")} />;
-  }
+  const sections = useMemo(() => FORM_CONFIG.sections, []);
+  const fieldsConfig = useMemo(
+    () => sections.flatMap((section) => section.fields),
+    [sections]
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Menu Form Modal */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <MenuFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          categories={categories}
-          mainCategories={mainCategories}
-          editMode={!!editingMenuId}
-          initialData={editingMenu}
-          hotelName={hotelName}
-          submitting={submitting}
-        />
-      </Suspense>
-
-      <div>
-        {/* Header */}
-        {!onlyView && (
-          <>
-            <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
-              <PageTitle
-                pageTitle={
-                  onlyView ? t("menu.viewPageTitle") : t("menu.managePageTitle")
-                }
-                className="text-2xl sm:text-3xl font-bold text-gray-900"
-                description={
-                  onlyView
-                    ? t("menu.viewDescription")
-                    : t("menu.manageDescription")
-                }
-              />
-
-              <PrimaryButton
-                onAdd={handleAddClick}
-                btnText={t("menu.addButton")}
-                loading={loading}
-              />
-            </div>
-
-            {/* Stats Cards */}
-            {hasMenus && (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <StatCard
-                  icon={ChefHat}
-                  title={t("menu.totalItems")}
-                  value={stats.total}
-                  color="blue"
-                />
-                <StatCard
-                  icon={TrendingUp}
-                  title={t("menu.totalAvailable")}
-                  value={stats.available}
-                  color="green"
-                />
-                <StatCard
-                  icon={DollarSign}
-                  title={t("menu.withDiscount")}
-                  value={stats.discounted}
-                  color="orange"
-                />
-                <StatCard
-                  icon={Grid}
-                  title={t("menu.totalCategories")}
-                  value={stats.categories}
-                  color="purple"
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Search and Filters */}
-        {hasMenus && (
-          <SearchWithResults
-            searchTerm={searchTerm}
-            onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder={t("menu.searchPlaceholder")}
-            totalCount={menuCount}
-            filteredCount={filteredAndSortedMenus.length}
-            onClearSearch={handleClearSearch}
-            totalLabel={t("menu.totalLabel")}
-          />
-        )}
-
-        {/* Categories Section */}
-        {hasMenus && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-4">
-            <div className="overflow-x-auto no-scrollbar">
-              <div className="flex flex-nowrap space-x-2">
-                <CategoryTabs
-                  categories={categories}
-                  menuCountsByCategory={menuCountsByCategory}
-                  handleCategoryFilter={handleCategoryFilter}
-                  activeCategory={activeCategory}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {hasMenus ? (
-            <>
-              {hasSearchResults ? (
-                <Suspense
-                  fallback={<LoadingSpinner text="Loading menu table..." />}
-                >
-                  <DynamicTable
-                    columns={ViewMenuColumns}
-                    data={tableData}
-                    onEdit={!onlyView ? handleEditClick : undefined}
-                    onDelete={!onlyView ? handleDeleteClick : undefined}
-                    loading={submitting}
-                    emptyMessage={t("menu.noSearchResults")}
-                    showPagination={true}
-                    initialRowsPerPage={10}
-                    sortable={true}
-                    className="border-0"
-                  />
-                </Suspense>
-              ) : (
-                <NoSearchResults
-                  btnText={t("menu.addButton")}
-                  searchTerm={searchTerm}
-                  onClearSearch={handleClearSearch}
-                  onAddNew={!onlyView ? handleAddClick : undefined}
-                />
-              )}
-            </>
-          ) : (
-            <EmptyState
-              icon={onlyView ? Eye : ChefHat}
-              title={onlyView ? t("menu.noItemsView") : t("menu.noItems")}
-              description={
-                onlyView
-                  ? t("menu.noItemsViewDescription")
-                  : t("menu.noItemsDescription")
-              }
-              actionLabel={onlyView ? undefined : t("menu.emptyAction")}
-              onAction={!onlyView ? handleAddClick : undefined}
-              loading={submitting}
-            />
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-8">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {isEditMode ? "Edit Menu Item" : "Add New Menu Item"}
+        </h1>
       </div>
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
+      <FormContainer
+        sections={sections}
+        fieldsConfig={fieldsConfig}
+        specialCategories={specialCategories}
+        initialValues={initialValues}
+        validationSchema={null /* replace with your Yup schema */}
+        onSubmit={handleSubmit}
+        onCancel={goBack}
+        isEditMode={isEditMode}
+        submitText={isEditMode ? "Update Menu Item" : "Add Menu Item"}
+        cancelText="Cancel"
+        submitting={submitting}
       />
     </div>
   );
-});
-
-AddMenu.displayName = "AddMenu";
-
-export default AddMenu;
+}

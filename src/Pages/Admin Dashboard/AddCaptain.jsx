@@ -1,305 +1,91 @@
-import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
-import { useParams } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import { Users, UserCheck, UserX, Clock } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import FormContainer from "../../components/Forms/FormContainer";
+import { captainFormConfig } from "../../Constants/ConfigForms/captainFormConfig";
+import { captainServices } from "../../services/api/captainServices";
+import { validateCaptainForm } from "../../validation/captainValidation";
 
-import PageTitle from "../../atoms/PageTitle";
+export default function AddCaptainPage() {
+  const navigate = useNavigate();
+  const { id: captainId } = useParams();
+  const isEditMode = Boolean(captainId);
 
-import { useCaptain } from "../../hooks/useCaptain";
-import LoadingSpinner from "../../atoms/LoadingSpinner";
-import EmptyState from "atoms/Messages/EmptyState";
-import StatCard from "components/Cards/StatCard";
-import NoSearchResults from "molecules/NoSearchResults";
-import PrimaryButton from "atoms/Buttons/PrimaryButton";
-import SearchWithResults from "molecules/SearchWithResults";
-import ErrorMessage from "atoms/Messages/ErrorMessage";
-import useColumns from "../../Constants/Columns";
+  const [initialValues, setInitialValues] = useState({});
 
-// Lazy load heavy components
-const CaptainFormModal = React.lazy(() =>
-  import("../../components/FormModals/CaptainFormModal")
-);
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+  const [submitting, setSubmitting] = useState(false);
 
-// Main AddCaptain component
-const AddCaptain = memo(() => {
-  const { t } = useTranslation();
-  const { hotelName } = useParams();
-  const { ViewCaptainColumns } = useColumns();
-
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [editingCaptain, setEditingCaptain] = useState(null);
-
-  // Use custom hook for captain management
-  const {
-    captains,
-    filteredCaptains,
-    searchTerm,
-    loading,
-    submitting,
-    error,
-    handleFormSubmit,
-    handleSearchChange,
-    deleteCaptain,
-    toggleCaptainStatus,
-    prepareForEdit,
-    refreshCaptains,
-    captainCount,
-    hasCaptains,
-    hasSearchResults,
-    activeCaptains,
-    inactiveCaptains,
-  } = useCaptain(hotelName);
-
-  // Memoized calculations
-  const stats = useMemo(() => {
-    const recentCount = captains.filter((captain) => {
-      const createdDate = new Date(captain.createdAt);
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      return createdDate > weekAgo;
-    }).length;
-
-    return {
-      total: captainCount,
-      active: activeCaptains,
-      inactive: inactiveCaptains,
-      recent: recentCount,
-    };
-  }, [captains, captainCount, activeCaptains, inactiveCaptains]);
-
-  // Event handlers
-  const handleAddClick = useCallback(() => {
-    setEditingCaptain(null);
-    setShowModal(true);
-  }, []);
-
-  const handleEditClick = useCallback(
-    async (captain) => {
-      try {
-        const captainToEdit = await prepareForEdit(captain);
-        if (captainToEdit) {
-          setEditingCaptain(captainToEdit);
-          setShowModal(true);
-        }
-      } catch (error) {
-        console.error(t("errors.prepareCaptainEdit"), error);
-      }
-    },
-    [prepareForEdit, t]
-  );
-
-  const handleDeleteClick = useCallback(
-    async (captain) => {
-      const confirmed = window.confirm(
-        t("confirmations.deleteCaptain", {
-          firstName: captain.firstName,
-          lastName: captain.lastName,
-        })
-      );
-
-      if (confirmed) {
+  useEffect(() => {
+    if (isEditMode) {
+      (async () => {
         try {
-          await deleteCaptain(captain);
+          const data = await captainServices.getCaptainById(captainId);
+          setInitialValues({ ...data });
         } catch (error) {
-          console.error(t("errors.deleteCaptain"), error);
+          console.error("Failed to load captain:", error);
         }
-      }
+      })();
+    } else {
+      // Prepare initial values from config
+      const defaultValues = {};
+      captainFormConfig.sections.forEach((section) => {
+        section.fields.forEach((field) => {
+          if (field.type === "photo") defaultValues[field.name] = null;
+          else defaultValues[field.name] = field.defaultValue ?? "";
+        });
+      });
+      setInitialValues(defaultValues);
+    }
+  }, [captainId, isEditMode]);
+
+  // Wrap your validateCaptainForm for FormContainer.validate
+  const validationSchema = {
+    validate: (values) => {
+      const validation = validateCaptainForm(values);
+      return validation.errors;
     },
-    [deleteCaptain, t]
-  );
+  };
 
-  const handleToggleStatus = useCallback(
-    async (captainId, currentStatus) => {
-      try {
-        await toggleCaptainStatus(captainId, currentStatus);
-      } catch (error) {
-        console.error(t("errors.toggleCaptainStatus"), error);
+  const handleSubmit = async (formData) => {
+    setSubmitting(true);
+    try {
+      if (isEditMode) {
+        await captainServices.updateCaptain(captainId, formData);
+      } else {
+        await captainServices.addCaptain(formData);
       }
-    },
-    [toggleCaptainStatus, t]
-  );
+      navigate("/captains");
+    } catch (error) {
+      console.error("Submit failed:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  const handleModalClose = useCallback(() => {
-    setShowModal(false);
-    setEditingCaptain(null);
-  }, []);
-
-  const handleModalSubmit = useCallback(
-    async (captainData, captainId = null) => {
-      try {
-        const success = await handleFormSubmit(captainData, captainId);
-        return success;
-      } catch (error) {
-        console.error(t("errors.submitForm"), error);
-        return false;
-      }
-    },
-    [handleFormSubmit, t]
-  );
-
-  const handleClearSearch = useCallback(() => {
-    handleSearchChange("");
-  }, [handleSearchChange]);
-
-  const handleRefresh = useCallback(() => {
-    refreshCaptains();
-  }, [refreshCaptains]);
-
-  // Error state
-  if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        onRetry={handleRefresh}
-        title={t("errors.loadingCaptains")}
-      />
-    );
-  }
-
-  // Loading state
-  if (loading && !captains.length) {
-    return <LoadingSpinner size="lg" text={t("loading.captains")} />;
-  }
+  const handleCancel = () => navigate(-1);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Captain Form Modal */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <CaptainFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          editCaptain={editingCaptain}
-          existingCaptains={captains}
-          title={
-            editingCaptain ? t("titles.editCaptain") : t("titles.addCaptain")
-          }
-          submitting={submitting}
-        />
-      </Suspense>
-
-      <div>
-        {/* Header */}
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
-          <PageTitle
-            pageTitle={t("pages.captainManagement")}
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description={t("descriptions.captainManagement")}
-          />
-
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText={t("buttons.addCaptain")}
-            loading={loading}
-          />
-        </div>
-
-        {/* Stats Cards */}
-        {hasCaptains && (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={Users}
-              title={t("stats.totalCaptains")}
-              value={stats.total}
-              color="blue"
-            />
-            <StatCard
-              icon={UserCheck}
-              title={t("stats.activeCaptains")}
-              value={stats.active}
-              color="green"
-            />
-            <StatCard
-              icon={UserX}
-              title={t("stats.inactiveCaptains")}
-              value={stats.inactive}
-              color="red"
-            />
-            <StatCard
-              icon={Clock}
-              title={t("stats.recentCaptains")}
-              value={stats.recent}
-              color="purple"
-            />
-          </div>
-        )}
-
-        {/* Search and Filters */}
-        {hasCaptains && (
-          <SearchWithResults
-            searchTerm={searchTerm}
-            onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder={t("placeholders.searchCaptains")}
-            totalCount={captainCount}
-            filteredCount={filteredCaptains.length}
-            onClearSearch={handleClearSearch}
-            totalLabel={t("labels.totalCaptains")}
-          />
-        )}
-
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {hasCaptains ? (
-            <>
-              {hasSearchResults ? (
-                <Suspense
-                  fallback={<LoadingSpinner text={t("loading.table")} />}
-                >
-                  <DynamicTable
-                    columns={ViewCaptainColumns}
-                    data={filteredCaptains}
-                    onEdit={handleEditClick}
-                    onDelete={handleDeleteClick}
-                    onToggleStatus={handleToggleStatus}
-                    loading={submitting}
-                    emptyMessage={t("messages.noSearchResults")}
-                    showPagination={true}
-                    initialRowsPerPage={10}
-                    sortable={true}
-                    className="border-0"
-                  />
-                </Suspense>
-              ) : (
-                <NoSearchResults
-                  btnText={t("buttons.addCaptain")}
-                  searchTerm={searchTerm}
-                  onClearSearch={handleClearSearch}
-                  onAddNew={handleAddClick}
-                />
-              )}
-            </>
-          ) : (
-            <EmptyState
-              icon={Users}
-              title={t("emptyStates.noCaptains.title")}
-              description={t("emptyStates.noCaptains.description")}
-              actionLabel={t("emptyStates.noCaptains.actionLabel")}
-              onAction={handleAddClick}
-              loading={submitting}
-            />
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {isEditMode ? "Edit Captain" : "Add New Captain"}
+        </h1>
       </div>
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
+      <FormContainer
+        sections={captainFormConfig.sections}
+        fieldsConfig={captainFormConfig.sections.reduce((acc, section) => {
+          acc[section.id] = section.fields;
+          return acc;
+        }, {})}
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        isEditMode={isEditMode}
+        submitText={isEditMode ? "Update Captain" : "Add Captain"}
+        cancelText="Cancel"
+        submitting={submitting}
       />
     </div>
   );
-});
-
-AddCaptain.displayName = "AddCaptain";
-
-export default AddCaptain;
+}

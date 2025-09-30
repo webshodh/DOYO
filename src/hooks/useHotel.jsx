@@ -1,3 +1,5 @@
+// useHotel.js (OPTIMIZED)
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { hotelServices } from "../services/api/hotelServices";
 
@@ -14,36 +16,45 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedHotels, setSelectedHotels] = useState([]);
 
   // Subscribe to hotels with real-time updates
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
 
-    const unsubscribe = hotelServices.subscribeToHotels((data) => {
-      setHotels(data);
-      setLoading(false);
-    });
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
-  }, []);
+      unsubscribe = hotelServices.subscribeToHotels((data) => {
+        setHotels(data);
+        setLoading(false);
+      });
+    };
 
-  // Filter options derived from hotels data
+    setupSubscription();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array to prevent re-subscriptions
+
+  // Filter options derived from hotels data (memoized)
   const filterOptions = useMemo(() => {
     return hotelServices.getFilterOptions(hotels);
   }, [hotels]);
 
-  // Filtered hotels based on search and filters
+  // Filtered hotels based on search and filters (memoized)
   const filteredHotels = useMemo(() => {
     return hotelServices.filterHotels(hotels, searchTerm, filters);
   }, [hotels, searchTerm, filters]);
 
-  // Hotel analytics
+  // Hotel analytics (memoized)
   const analytics = useMemo(() => {
     return hotelServices.getHotelAnalytics(hotels);
   }, [hotels]);
 
-  // Enhanced stats
+  // Enhanced stats (memoized and optimized)
   const hotelStats = useMemo(() => {
     const stats = {
       total: hotels.length,
@@ -56,9 +67,12 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       subscriptionBreakdown: {},
     };
 
+    if (hotels.length === 0) return stats;
+
     let totalAdmins = 0;
     let totalMenuItems = 0;
     const subscriptionCounts = {};
+    const businessTypeSet = new Set();
 
     hotels.forEach((hotel) => {
       // Status counts
@@ -71,6 +85,11 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
 
       // Revenue calculation
       stats.revenue += hotel.totalRevenue || hotel.monthlyRevenue || 0;
+
+      // Business types tracking
+      if (hotel.businessType) {
+        businessTypeSet.add(hotel.businessType);
+      }
 
       // Metrics aggregation
       if (hotel.metrics) {
@@ -88,15 +107,13 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       stats.total > 0
         ? Math.round((totalMenuItems / stats.total) * 10) / 10
         : 0;
-    stats.businessTypes = new Set(
-      hotels.map((h) => h.businessType).filter(Boolean)
-    ).size;
+    stats.businessTypes = businessTypeSet.size;
     stats.subscriptionBreakdown = subscriptionCounts;
 
     return stats;
   }, [hotels]);
 
-  // Add hotel
+  // Add hotel (optimized dependencies)
   const addHotel = useCallback(
     async (hotelData) => {
       if (submitting) return { success: false, error: "Already processing" };
@@ -118,10 +135,10 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [hotels, submitting, onHotelAdded]
+    [submitting, onHotelAdded] // Removed hotels to prevent unnecessary re-renders
   );
 
-  // Update hotel
+  // Update hotel (optimized dependencies)
   const updateHotel = useCallback(
     async (hotelData, hotelId) => {
       if (submitting) return false;
@@ -136,14 +153,15 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         );
         return success;
       } catch (err) {
-        setError(err.message || "Error updating hotel");
+        const errorMessage = err.message || "Error updating hotel";
+        setError(errorMessage);
         console.error("Error in updateHotel:", err);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotels, submitting]
+    [submitting] // Removed hotels to prevent unnecessary re-renders
   );
 
   // Delete hotel
@@ -157,7 +175,8 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         const success = await hotelServices.deleteHotel(hotel);
         return success;
       } catch (err) {
-        setError(err.message || "Error deleting hotel");
+        const errorMessage = err.message || "Error deleting hotel";
+        setError(errorMessage);
         console.error("Error in deleteHotel:", err);
         return false;
       } finally {
@@ -181,7 +200,8 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         );
         return success;
       } catch (err) {
-        setError(err.message || "Error bulk updating hotels");
+        const errorMessage = err.message || "Error bulk updating hotels";
+        setError(errorMessage);
         console.error("Error in bulkUpdateHotels:", err);
         return false;
       } finally {
@@ -196,7 +216,8 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     try {
       return await hotelServices.prepareForEdit(hotel);
     } catch (err) {
-      setError(err.message || "Error preparing hotel for edit");
+      const errorMessage = err.message || "Error preparing hotel for edit";
+      setError(errorMessage);
       console.error("Error in prepareForEdit:", err);
       return null;
     }
@@ -237,20 +258,20 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     });
   }, []);
 
-  // Export data
-  const exportHotels = useCallback(
-    (format = "csv") => {
+  // Export data (memoized)
+  const exportHotels = useMemo(() => {
+    return (format = "csv") => {
       return hotelServices.exportHotelsData(filteredHotels, format);
-    },
-    [filteredHotels]
-  );
+    };
+  }, [filteredHotels]);
 
   // Get hotel by ID with full details
   const getHotelById = useCallback(async (hotelId) => {
     try {
       return await hotelServices.getHotelById(hotelId);
     } catch (err) {
-      setError(err.message || "Error fetching hotel details");
+      const errorMessage = err.message || "Error fetching hotel details";
+      setError(errorMessage);
       console.error("Error in getHotelById:", err);
       return null;
     }
@@ -261,33 +282,54 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     setError(null);
   }, []);
 
-  // Selection handling for bulk operations
-  const [selectedHotels, setSelectedHotels] = useState([]);
+  // Selection handling for bulk operations (memoized)
+  const selectionHandlers = useMemo(
+    () => ({
+      handleHotelSelection: (hotelId, isSelected) => {
+        setSelectedHotels((prev) => {
+          if (isSelected) {
+            return [...prev, hotelId];
+          } else {
+            return prev.filter((id) => id !== hotelId);
+          }
+        });
+      },
 
-  const handleHotelSelection = useCallback((hotelId, isSelected) => {
-    setSelectedHotels((prev) => {
-      if (isSelected) {
-        return [...prev, hotelId];
-      } else {
-        return prev.filter((id) => id !== hotelId);
-      }
-    });
-  }, []);
+      handleSelectAllHotels: (isSelected) => {
+        if (isSelected) {
+          setSelectedHotels(filteredHotels.map((hotel) => hotel.hotelId));
+        } else {
+          setSelectedHotels([]);
+        }
+      },
 
-  const handleSelectAllHotels = useCallback(
-    (isSelected) => {
-      if (isSelected) {
-        setSelectedHotels(filteredHotels.map((hotel) => hotel.hotelId));
-      } else {
+      clearSelection: () => {
         setSelectedHotels([]);
-      }
-    },
+      },
+    }),
     [filteredHotels]
   );
 
-  const clearSelection = useCallback(() => {
-    setSelectedHotels([]);
-  }, []);
+  // Memoize computed values to prevent recalculation
+  const computedValues = useMemo(() => {
+    const hasFiltersApplied =
+      searchTerm || Object.values(filters).some((f) => f !== "all");
+
+    return {
+      hotelCount: hotels.length,
+      filteredCount: filteredHotels.length,
+      selectedCount: selectedHotels.length,
+      hasHotels: hotels.length > 0,
+      hasSearchResults: filteredHotels.length > 0,
+      hasFiltersApplied,
+    };
+  }, [
+    hotels.length,
+    filteredHotels.length,
+    selectedHotels.length,
+    searchTerm,
+    filters,
+  ]);
 
   return {
     // Data
@@ -320,20 +362,12 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     getHotelById,
     clearError,
 
-    // Selection
+    // Selection (memoized)
     selectedHotels,
-    handleHotelSelection,
-    handleSelectAllHotels,
-    clearSelection,
+    ...selectionHandlers,
 
-    // Computed values
-    hotelCount: hotels.length,
-    filteredCount: filteredHotels.length,
-    selectedCount: selectedHotels.length,
-    hasHotels: hotels.length > 0,
-    hasSearchResults: filteredHotels.length > 0,
-    hasFiltersApplied:
-      searchTerm || Object.values(filters).some((f) => f !== "all"),
+    // Computed values (memoized)
+    ...computedValues,
 
     // Setters for advanced usage
     setSearchTerm,
@@ -344,34 +378,46 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
   };
 };
 
-// Hook for getting hotels list (lightweight version without metrics)
+// Hook for getting hotels list (lightweight version without metrics) - OPTIMIZED
 export const useHotelsList = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
+    let isMounted = true; // Prevent state updates if component unmounted
 
-    // Use a simpler subscription without metrics for better performance
-    const unsubscribe = hotelServices.subscribeToHotels((data) => {
-      // Map to simpler format
-      const simpleHotels = data.map((hotel) => ({
-        hotelId: hotel.hotelId,
-        businessName: hotel.businessName,
-        hotelName: hotel.hotelName,
-        status: hotel.status,
-        city: hotel.city,
-        state: hotel.state,
-        businessType: hotel.businessType,
-      }));
-      setHotels(simpleHotels);
-      setLoading(false);
-    });
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
-  }, []);
+      // Use a simpler subscription without metrics for better performance
+      unsubscribe = hotelServices.subscribeToHotels((data) => {
+        if (!isMounted) return; // Component unmounted during callback
+
+        // Map to simpler format
+        const simpleHotels = data.map((hotel) => ({
+          hotelId: hotel.hotelId,
+          businessName: hotel.businessName,
+          hotelName: hotel.hotelName,
+          status: hotel.status,
+          city: hotel.city,
+          state: hotel.state,
+          businessType: hotel.businessType,
+        }));
+        setHotels(simpleHotels);
+        setLoading(false);
+      });
+    };
+
+    setupSubscription();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array prevents re-subscriptions
 
   const activeHotels = useMemo(() => {
     return hotels.filter(
@@ -379,17 +425,25 @@ export const useHotelsList = () => {
     );
   }, [hotels]);
 
+  // Memoize computed values
+  const computedValues = useMemo(
+    () => ({
+      hotelCount: hotels.length,
+      activeCount: activeHotels.length,
+    }),
+    [hotels.length, activeHotels.length]
+  );
+
   return {
     hotels,
     activeHotels,
     loading,
     error,
-    hotelCount: hotels.length,
-    activeCount: activeHotels.length,
+    ...computedValues,
   };
 };
 
-// Hook for single hotel details
+// Hook for single hotel details - OPTIMIZED
 export const useHotelDetails = (hotelId) => {
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -401,23 +455,36 @@ export const useHotelDetails = (hotelId) => {
       return;
     }
 
+    let isMounted = true; // Prevent state updates if component unmounted
+
     const fetchHotel = async () => {
       setLoading(true);
       setError(null);
 
       try {
         const hotelData = await hotelServices.getHotelById(hotelId);
-        setHotel(hotelData);
+        if (isMounted) {
+          setHotel(hotelData);
+        }
       } catch (err) {
-        setError(err.message || "Error fetching hotel details");
-        console.error("Error fetching hotel details:", err);
+        if (isMounted) {
+          const errorMessage = err.message || "Error fetching hotel details";
+          setError(errorMessage);
+          console.error("Error fetching hotel details:", err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchHotel();
-  }, [hotelId]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hotelId]); // Only re-fetch if hotelId changes
 
   const refreshHotel = useCallback(async () => {
     if (!hotelId) return;
@@ -426,17 +493,26 @@ export const useHotelDetails = (hotelId) => {
       const hotelData = await hotelServices.getHotelById(hotelId);
       setHotel(hotelData);
     } catch (err) {
-      setError(err.message || "Error refreshing hotel details");
+      const errorMessage = err.message || "Error refreshing hotel details";
+      setError(errorMessage);
       console.error("Error refreshing hotel details:", err);
     }
   }, [hotelId]);
+
+  // Memoize computed values
+  const computedValues = useMemo(
+    () => ({
+      isActive: hotel?.status === "active",
+      hasSubscription: Boolean(hotel?.metrics?.subscription),
+    }),
+    [hotel?.status, hotel?.metrics?.subscription]
+  );
 
   return {
     hotel,
     loading,
     error,
     refreshHotel,
-    isActive: hotel?.status === "active",
-    hasSubscription: Boolean(hotel?.metrics?.subscription),
+    ...computedValues,
   };
 };

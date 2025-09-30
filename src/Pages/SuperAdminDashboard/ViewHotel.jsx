@@ -27,9 +27,6 @@ import { useTheme } from "context/ThemeContext";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useNavigate } from "react-router-dom";
 
-const HotelFormModal = React.lazy(() =>
-  import("../../components/FormModals/HotelFormModal")
-);
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 const ViewHotel = memo(() => {
@@ -212,18 +209,6 @@ const ViewHotel = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Modal for Add/Edit Hotel */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <HotelFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          editHotel={editingHotel}
-          title={editingHotel ? "Edit Hotel Details" : "Create New Hotel"}
-          submitting={submitting}
-        />
-      </Suspense>
-
       <div className="p-6">
         {/* Enhanced Header */}
 

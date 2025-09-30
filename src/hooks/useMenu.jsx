@@ -1,4 +1,5 @@
-// hooks/useMenu.jsx
+
+// hooks/useMenu.jsx (OPTIMIZED)
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { menuServices } from "../services/api/menuService";
@@ -14,50 +15,63 @@ export const useMenu = (hotelName) => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
   const [activeCategory, setActiveCategory] = useState("");
-  const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Real-time subscriptions
+  // Real-time subscriptions (optimized)
   useEffect(() => {
     if (!hotelName) {
       setLoading(false);
       return;
     }
-    setLoading(true);
-    setError(null);
 
+    let isMounted = true; // Prevent state updates if component unmounted
     const unsubscribes = [];
 
-    // helper to subscribe to a collection
-    const subscribe = (path, setter) => {
-      const ref = collection(db, path);
-      const unsub = onSnapshot(
-        ref,
-        (snap) => {
-          setter(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-          setLoading(false);
-        },
-        (err) => {
-          console.error(`Error fetching ${path}:`, err);
-          setError(err);
-          setLoading(false);
-        }
-      );
-      unsubscribes.push(unsub);
+    const setupSubscriptions = () => {
+      setLoading(true);
+      setError(null);
+
+      // Helper to subscribe to a collection with mounted check
+      const subscribe = (path, setter) => {
+        const ref = collection(db, path);
+        const unsub = onSnapshot(
+          ref,
+          (snap) => {
+            if (!isMounted) return; // Component unmounted during callback
+
+            setter(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            setLoading(false);
+          },
+          (err) => {
+            if (!isMounted) return; // Component unmounted during error
+
+            console.error(`Error fetching ${path}:`, err);
+            const errorMessage = err.message || `Error fetching ${path}`;
+            setError(errorMessage);
+            setLoading(false);
+          }
+        );
+        unsubscribes.push(unsub);
+      };
+
+      subscribe(`hotels/${hotelName}/menu`, setMenus);
+      subscribe(`hotels/${hotelName}/categories`, setCategories);
+      subscribe(`hotels/${hotelName}/Maincategories`, setMainCategories);
     };
 
-    subscribe(`hotels/${hotelName}/menu`, setMenus);
-    subscribe(`hotels/${hotelName}/categories`, setCategories);
-    subscribe(`hotels/${hotelName}/Maincategories`, setMainCategories);
+    setupSubscriptions();
 
-    return () => unsubscribes.forEach((u) => u());
-  }, [hotelName]);
+    return () => {
+      isMounted = false;
+      unsubscribes.forEach((u) => u());
+    };
+  }, [hotelName]); // Only re-subscribe if hotelName changes
 
-  // Update counts when menus change
-  useEffect(() => {
-    setMenuCountsByCategory(menuServices.calculateMenuCountsByCategory(menus));
+  // Memoize menu counts by category to prevent recalculation
+  const menuCountsByCategory = useMemo(() => {
+    return menuServices.calculateMenuCountsByCategory(menus);
   }, [menus]);
 
   // Memoize filtered and sorted menus
@@ -72,29 +86,35 @@ export const useMenu = (hotelName) => {
     [menus, searchTerm, selectedCategory, sortOrder]
   );
 
+  // Memoize auth user ID to prevent getAuth calls on every render
+  const currentUserId = useMemo(() => {
+    return getAuth().currentUser?.uid;
+  }, []);
+
   // CRUD operations wrapped in useCallback to avoid recreating functions
   const addMenu = useCallback(
     async (menuData) => {
       setSubmitting(true);
       try {
-        const adminId = getAuth().currentUser?.uid;
+        const adminId = currentUserId || getAuth().currentUser?.uid;
         return await menuServices.addMenu(menuData, hotelName, adminId);
       } catch (err) {
         console.error("Error in addMenu:", err);
-        setError(err);
+        const errorMessage = err.message || "Error adding menu";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName]
+    [hotelName, currentUserId]
   );
 
   const updateMenu = useCallback(
     async (menuData, menuId) => {
       setSubmitting(true);
       try {
-        const adminId = getAuth().currentUser?.uid;
+        const adminId = currentUserId || getAuth().currentUser?.uid;
         return await menuServices.updateMenu(
           menuData,
           menuId,
@@ -103,13 +123,14 @@ export const useMenu = (hotelName) => {
         );
       } catch (err) {
         console.error("Error in updateMenu:", err);
-        setError(err);
+        const errorMessage = err.message || "Error updating menu";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName]
+    [hotelName, currentUserId]
   );
 
   const deleteMenu = useCallback(
@@ -119,7 +140,8 @@ export const useMenu = (hotelName) => {
         return await menuServices.deleteMenu(menuId, hotelName);
       } catch (err) {
         console.error("Error in deleteMenu:", err);
-        setError(err);
+        const errorMessage = err.message || "Error deleting menu";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -141,7 +163,8 @@ export const useMenu = (hotelName) => {
         );
       } catch (err) {
         console.error("Error in toggleMenuAvailability:", err);
-        setError(err);
+        const errorMessage = err.message || "Error toggling menu availability";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -156,7 +179,8 @@ export const useMenu = (hotelName) => {
         return await menuServices.prepareForEdit(hotelName, menu);
       } catch (err) {
         console.error("Error in prepareForEdit:", err);
-        setError(err);
+        const errorMessage = err.message || "Error preparing menu for edit";
+        setError(errorMessage);
         return null;
       }
     },
@@ -183,33 +207,48 @@ export const useMenu = (hotelName) => {
     setSortOrder("default");
   }, []);
 
-  // Stats and utilities
-  const getMenuStats = useCallback(
-    async () => menuServices.getMenuStats(hotelName),
-    [hotelName]
-  );
-  const checkDuplicateMenu = useCallback(
-    (name, excludeId = null) =>
+  // Memoize utility functions to prevent recreation
+  const utilityFunctions = useMemo(() => ({
+    getMenuStats: async () => menuServices.getMenuStats(hotelName),
+
+    checkDuplicateMenu: (name, excludeId = null) =>
       menus.some(
         (m) =>
           m.menuName?.toLowerCase() === name.toLowerCase() && m.id !== excludeId
       ),
-    [menus]
-  );
-  const getMenusByCategory = useCallback(
-    (cat) => menus.filter((m) => m.menuCategory === cat),
-    [menus]
-  );
-  const getAvailableMenus = useCallback(
-    () => menus.filter((m) => m.availability === "Available"),
-    [menus]
-  );
-  const getDiscountedMenus = useCallback(
-    () => menus.filter((m) => m.discount > 0),
-    [menus]
-  );
+
+    getMenusByCategory: (cat) => menus.filter((m) => m.menuCategory === cat),
+
+    getAvailableMenus: () => menus.filter((m) => m.availability === "Available"),
+
+    getDiscountedMenus: () => menus.filter((m) => m.discount > 0),
+  }), [hotelName, menus]);
+
+  // Memoize computed statistics to prevent recalculation
+  const computedStats = useMemo(() => {
+    const availableMenus = menus.filter((m) => m.availability === "Available");
+    const unavailableMenus = menus.filter((m) => m.availability === "Unavailable");
+
+    return {
+      menuCount: menus.length,
+      filteredCount: filteredAndSortedMenus.length,
+      hasMenus: menus.length > 0,
+      hasSearchResults: filteredAndSortedMenus.length > 0,
+      availableMenuCount: availableMenus.length,
+      unavailableMenuCount: unavailableMenus.length,
+      categoryCount: categories.length,
+      mainCategoryCount: mainCategories.length,
+    };
+  }, [
+    menus.length, 
+    filteredAndSortedMenus.length, 
+    categories.length, 
+    mainCategories.length,
+    menus // Need full menus array for availability filtering
+  ]);
 
   return {
+    // Data
     menus,
     categories,
     mainCategories,
@@ -219,10 +258,13 @@ export const useMenu = (hotelName) => {
     selectedCategory,
     sortOrder,
     activeCategory,
+
+    // State
     loading,
     submitting,
     error,
 
+    // Actions
     addMenu,
     updateMenu,
     deleteMenu,
@@ -234,23 +276,11 @@ export const useMenu = (hotelName) => {
     handleSortChange,
     clearAllFilters,
 
-    getMenuStats,
-    checkDuplicateMenu,
-    getMenusByCategory,
-    getAvailableMenus,
-    getDiscountedMenus,
+    // Utility functions (memoized)
+    ...utilityFunctions,
 
-    // stats
-    menuCount: menus.length,
-    filteredCount: filteredAndSortedMenus.length,
-    hasMenus: menus.length > 0,
-    hasSearchResults: filteredAndSortedMenus.length > 0,
-    availableMenuCount: menus.filter((m) => m.availability === "Available")
-      .length,
-    unavailableMenuCount: menus.filter((m) => m.availability === "Unavailable")
-      .length,
-    categoryCount: categories.length,
-    mainCategoryCount: mainCategories.length,
+    // Computed stats (memoized)
+    ...computedStats,
 
     // Setters
     setSearchTerm,

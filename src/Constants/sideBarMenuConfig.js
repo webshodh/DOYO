@@ -88,6 +88,12 @@ export const adminMenuItems = (hotelName, t) => [
     description: t("sidebar.addMenuDesc"),
   },
   {
+    name: t("sidebar.addMenu"),
+    path: `/${hotelName}/admin/view-menu`,
+    icon: "menu",
+    description: t("sidebar.addMenuDesc"),
+  },
+  {
     name: t("sidebar.addOffers"),
     path: `/${hotelName}/admin/add-offers`,
     icon: "offers",
@@ -154,6 +160,12 @@ export const superAdminMenuItems = (t, hotelName) => [
   {
     name: t("sidebar.subscriptions"),
     path: "/super-admin/add-subscription-plan",
+    icon: "subscriptions",
+    description: t("sidebar.subscriptionsDesc"),
+  },
+  {
+    name: t("sidebar.subscriptions"),
+    path: "/super-admin/view-subscription-plan",
     icon: "subscriptions",
     description: t("sidebar.subscriptionsDesc"),
   },

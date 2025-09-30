@@ -1,6 +1,6 @@
-// useAdmin Hook - hooks/useAdmin.js
+// useAdmin Hook - hooks/useAdmin.js (OPTIMIZED)
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { adminServices } from "../services/api/adminServices";
 
 export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
@@ -10,31 +10,42 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Memoize subscription setup to prevent re-subscriptions
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-
     let unsubscribe;
 
-    if (hotelId) {
-      // Subscribe to admins for specific hotel
-      unsubscribe = adminServices.subscribeToHotelAdmins(hotelId, (data) => {
-        setAdmins(data);
-        setLoading(false);
-      });
-    } else {
-      // Subscribe to all admins across all hotels
-      unsubscribe = adminServices.subscribeToAllAdmins((data) => {
-        setAdmins(data);
-        setLoading(false);
-      });
-    }
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
-  }, [hotelId]);
+      if (hotelId) {
+        // Subscribe to admins for specific hotel
+        unsubscribe = adminServices.subscribeToHotelAdmins(hotelId, (data) => {
+          setAdmins(data);
+          setLoading(false);
+        });
+      } else {
+        // Subscribe to all admins across all hotels
+        unsubscribe = adminServices.subscribeToAllAdmins((data) => {
+          setAdmins(data);
+          setLoading(false);
+        });
+      }
+    };
 
-  const filteredAdmins = adminServices.filterAdmins(admins, searchTerm);
+    setupSubscription();
 
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [hotelId]); // Only re-subscribe if hotelId changes
+
+  // Memoize filtered admins to prevent re-computation on every render
+  const filteredAdmins = useMemo(() => {
+    return adminServices.filterAdmins(admins, searchTerm);
+  }, [admins, searchTerm]);
+
+  // Optimize addAdmin with stable dependencies
   const addAdmin = useCallback(
     async (adminData, linkedHotelId = hotelId) => {
       if (submitting) return false;
@@ -47,22 +58,20 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
           linkedHotelId,
           admins
         );
-        if (success) {
-          // Call the onAdminAdded callback if provided
-          if (onAdminAdded) {
-            onAdminAdded(adminData);
-          }
+        if (success && onAdminAdded) {
+          onAdminAdded(adminData);
         }
         return success;
       } catch (err) {
-        setError(err.message || "Error adding admin");
+        const errorMessage = err.message || "Error adding admin";
+        setError(errorMessage);
         console.error("Error in addAdmin:", err);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [admins, submitting, onAdminAdded, hotelId]
+    [submitting, onAdminAdded, hotelId] // Removed admins to prevent unnecessary re-renders
   );
 
   const updateAdmin = useCallback(
@@ -75,7 +84,8 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         const success = await adminServices.updateAdmin(adminId, adminData);
         return success;
       } catch (err) {
-        setError(err.message || "Error updating admin");
+        const errorMessage = err.message || "Error updating admin";
+        setError(errorMessage);
         console.error("Error in updateAdmin:", err);
         return false;
       } finally {
@@ -95,7 +105,8 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         const success = await adminServices.deleteAdmin(admin);
         return success;
       } catch (err) {
-        setError(err.message || "Error deleting admin");
+        const errorMessage = err.message || "Error deleting admin";
+        setError(errorMessage);
         console.error("Error in deleteAdmin:", err);
         return false;
       } finally {
@@ -115,7 +126,8 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         const success = await adminServices.linkAdminToHotel(adminId, hotelId);
         return success;
       } catch (err) {
-        setError(err.message || "Error linking admin to hotel");
+        const errorMessage = err.message || "Error linking admin to hotel";
+        setError(errorMessage);
         console.error("Error in linkAdminToHotel:", err);
         return false;
       } finally {
@@ -138,7 +150,8 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         );
         return success;
       } catch (err) {
-        setError(err.message || "Error unlinking admin from hotel");
+        const errorMessage = err.message || "Error unlinking admin from hotel";
+        setError(errorMessage);
         console.error("Error in unlinkAdminFromHotel:", err);
         return false;
       } finally {
@@ -152,7 +165,8 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
     try {
       return await adminServices.prepareForEdit(admin);
     } catch (err) {
-      setError(err.message || "Error preparing admin for edit");
+      const errorMessage = err.message || "Error preparing admin for edit";
+      setError(errorMessage);
       console.error("Error in prepareForEdit:", err);
       return null;
     }
@@ -177,6 +191,17 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
     setError(null);
   }, []);
 
+  // Memoize computed values to prevent recalculation
+  const computedValues = useMemo(
+    () => ({
+      adminCount: admins.length,
+      filteredCount: filteredAdmins.length,
+      hasAdmins: admins.length > 0,
+      hasSearchResults: filteredAdmins.length > 0,
+    }),
+    [admins.length, filteredAdmins.length]
+  );
+
   return {
     // Data
     admins,
@@ -199,11 +224,8 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
     handleSearchChange,
     clearError,
 
-    // Computed values
-    adminCount: admins.length,
-    filteredCount: filteredAdmins.length,
-    hasAdmins: admins.length > 0,
-    hasSearchResults: filteredAdmins.length > 0,
+    // Computed values (memoized)
+    ...computedValues,
 
     // Setters for advanced usage
     setSearchTerm,
@@ -212,26 +234,58 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
   };
 };
 
-// Hook for getting available hotels for admin linking
+// Hook for getting available hotels for admin linking (OPTIMIZED)
 export const useHotelsForAdmin = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Import hotelServices dynamically to avoid circular dependency
-    import("../services/api/hotelServices").then(({ hotelServices }) => {
-      const unsubscribe = hotelServices.subscribeToHotels((data) => {
-        // Only get active hotels for admin linking
-        const activeHotels = data.filter(
-          (hotel) => hotel.status === "active" || hotel.isActive === "active"
-        );
-        setHotels(activeHotels);
-        setLoading(false);
-      });
+    let unsubscribe;
+    let isMounted = true; // Prevent state updates if component unmounted
 
-      return () => unsubscribe();
-    });
-  }, []);
+    const setupHotelSubscription = async () => {
+      try {
+        // Import hotelServices dynamically to avoid circular dependency
+        const { hotelServices } = await import("../services/api/hotelServices");
 
-  return { hotels, loading };
+        if (!isMounted) return; // Component unmounted during import
+
+        unsubscribe = hotelServices.subscribeToHotels((data) => {
+          if (!isMounted) return; // Component unmounted during callback
+
+          // Only get active hotels for admin linking
+          const activeHotels = data.filter(
+            (hotel) => hotel.status === "active" || hotel.isActive === "active"
+          );
+          setHotels(activeHotels);
+          setLoading(false);
+        });
+      } catch (err) {
+        if (isMounted) {
+          console.error("Error setting up hotel subscription:", err);
+          setError(err.message || "Error loading hotels");
+          setLoading(false);
+        }
+      }
+    };
+
+    setupHotelSubscription();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array to prevent re-subscriptions
+
+  // Memoize filtered hotels to avoid recalculation
+  const activeHotels = useMemo(() => hotels, [hotels]);
+
+  return {
+    hotels: activeHotels,
+    loading,
+    error,
+    hotelCount: hotels.length,
+    hasHotels: hotels.length > 0,
+  };
 };

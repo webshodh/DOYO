@@ -31,9 +31,6 @@ import { useTheme } from "context/ThemeContext";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useNavigate, useParams } from "react-router-dom";
 
-const AdminFormModal = React.lazy(() =>
-  import("../../components/FormModals/AdminFormModal")
-);
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 const ViewAdmin = memo(() => {
@@ -291,20 +288,6 @@ const ViewAdmin = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Modal for Add/Edit Admin - FIXED with proper props */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <AdminFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          editAdmin={editingAdmin}
-          title={editingAdmin ? "Edit Admin Details" : "Create New Admin"}
-          submitting={submitting}
-          hotelId={hotelId} // Pass hotelId if we're in hotel-specific mode
-          availableHotels={availableHotels || []} // FIXED: Pass available hotels
-        />
-      </Suspense>
-
       <div className="p-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">

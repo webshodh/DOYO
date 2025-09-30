@@ -40,7 +40,7 @@ export default function AddHotelPage() {
       } else {
         await hotelServices.addHotel(formData);
       }
-      navigate("/hotels"); // go back to listing
+      navigate("/super-admin/view-hotel"); // go back to listing
     } catch (err) {
       console.error("Submit failed:", err);
     } finally {

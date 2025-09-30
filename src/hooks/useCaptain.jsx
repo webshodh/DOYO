@@ -1,5 +1,5 @@
-// useCaptain.js
-import { useState, useEffect, useCallback } from "react";
+// useCaptain.js (OPTIMIZED)
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { captainServices } from "../services/api/captainServices";
 
 export const useCaptain = (hotelName) => {
@@ -16,23 +16,32 @@ export const useCaptain = (hotelName) => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
 
-    const unsubscribe = captainServices.subscribeToCaptains(
-      hotelName,
-      (data) => {
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
+
+      unsubscribe = captainServices.subscribeToCaptains(hotelName, (data) => {
         setCaptains(data);
         setLoading(false);
         setError(null);
-      }
-    );
+      });
+    };
 
-    return () => unsubscribe();
-  }, [hotelName]);
+    setupSubscription();
 
-  const filteredCaptains = captainServices.filterCaptains(captains, searchTerm);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [hotelName]); // Only re-subscribe if hotelName changes
 
+  // Memoize filtered captains to prevent re-computation on every render
+  const filteredCaptains = useMemo(() => {
+    return captainServices.filterCaptains(captains, searchTerm);
+  }, [captains, searchTerm]);
+
+  // Optimize addCaptain with stable dependencies
   const addCaptain = useCallback(
     async (captainData) => {
       if (submitting) return false;
@@ -46,13 +55,14 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in addCaptain:", error);
-        setError(error);
+        const errorMessage = error.message || error;
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, captains, submitting]
+    [hotelName, submitting] // Removed captains to prevent unnecessary re-renders
   );
 
   const updateCaptain = useCallback(
@@ -69,13 +79,14 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in updateCaptain:", error);
-        setError(error);
+        const errorMessage = error.message || error;
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, captains, submitting]
+    [hotelName, submitting] // Removed captains to prevent unnecessary re-renders
   );
 
   const deleteCaptain = useCallback(
@@ -87,7 +98,8 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in deleteCaptain:", error);
-        setError(error);
+        const errorMessage = error.message || error;
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -109,7 +121,8 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in toggleCaptainStatus:", error);
-        setError(error);
+        const errorMessage = error.message || error;
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -128,7 +141,8 @@ export const useCaptain = (hotelName) => {
         return captainToEdit;
       } catch (error) {
         console.error("Error in prepareForEdit:", error);
-        setError(error);
+        const errorMessage = error.message || error;
+        setError(errorMessage);
         return null;
       }
     },
@@ -160,56 +174,71 @@ export const useCaptain = (hotelName) => {
       return await captainServices.getCaptainStats(hotelName);
     } catch (error) {
       console.error("Error getting captain stats:", error);
-      setError(error);
+      const errorMessage = error.message || error;
+      setError(errorMessage);
       return null;
     }
   }, [hotelName]);
 
-  const checkDuplicateEmail = useCallback(
-    (email, excludeId = null) =>
-      captains.some(
-        (captain) =>
-          captain.email?.toLowerCase() === email.toLowerCase() &&
-          captain.captainId !== excludeId
-      ),
+  // Memoize duplicate check functions to prevent recalculation
+  const duplicateChecks = useMemo(
+    () => ({
+      checkDuplicateEmail: (email, excludeId = null) =>
+        captains.some(
+          (captain) =>
+            captain.email?.toLowerCase() === email.toLowerCase() &&
+            captain.captainId !== excludeId
+        ),
+
+      checkDuplicateMobile: (mobileNo, excludeId = null) =>
+        captains.some(
+          (captain) =>
+            captain.mobileNo === mobileNo && captain.captainId !== excludeId
+        ),
+
+      checkDuplicateAdhar: (adharNo, excludeId = null) =>
+        captains.some(
+          (captain) =>
+            captain.adharNo === adharNo && captain.captainId !== excludeId
+        ),
+
+      checkDuplicatePan: (panNo, excludeId = null) =>
+        captains.some(
+          (captain) =>
+            captain.panNo?.toUpperCase() === panNo.toUpperCase() &&
+            captain.captainId !== excludeId
+        ),
+    }),
     [captains]
   );
 
-  const checkDuplicateMobile = useCallback(
-    (mobileNo, excludeId = null) =>
-      captains.some(
-        (captain) =>
-          captain.mobileNo === mobileNo && captain.captainId !== excludeId
-      ),
-    [captains]
-  );
+  // Memoize computed values to prevent recalculation on every render
+  const computedValues = useMemo(() => {
+    const activeCaptains = captains.filter((c) => c.status === "active");
+    const inactiveCaptains = captains.filter((c) => c.status === "inactive");
 
-  const checkDuplicateAdhar = useCallback(
-    (adharNo, excludeId = null) =>
-      captains.some(
-        (captain) =>
-          captain.adharNo === adharNo && captain.captainId !== excludeId
-      ),
-    [captains]
-  );
-
-  const checkDuplicatePan = useCallback(
-    (panNo, excludeId = null) =>
-      captains.some(
-        (captain) =>
-          captain.panNo?.toUpperCase() === panNo.toUpperCase() &&
-          captain.captainId !== excludeId
-      ),
-    [captains]
-  );
+    return {
+      captainCount: captains.length,
+      filteredCount: filteredCaptains.length,
+      hasCaptains: captains.length > 0,
+      hasSearchResults: filteredCaptains.length > 0,
+      activeCaptains: activeCaptains.length,
+      inactiveCaptains: inactiveCaptains.length,
+    };
+  }, [captains.length, filteredCaptains.length, captains]);
 
   return {
+    // Data
     captains,
     filteredCaptains,
     searchTerm,
+
+    // State
     loading,
     submitting,
     error,
+
+    // Actions
     addCaptain,
     updateCaptain,
     deleteCaptain,
@@ -219,16 +248,14 @@ export const useCaptain = (hotelName) => {
     handleSearchChange,
     refreshCaptains,
     getCaptainStats,
-    checkDuplicateEmail,
-    checkDuplicateMobile,
-    checkDuplicateAdhar,
-    checkDuplicatePan,
-    captainCount: captains.length,
-    filteredCount: filteredCaptains.length,
-    hasCaptains: captains.length > 0,
-    hasSearchResults: filteredCaptains.length > 0,
-    activeCaptains: captains.filter((c) => c.status === "active").length,
-    inactiveCaptains: captains.filter((c) => c.status === "inactive").length,
+
+    // Duplicate checks (memoized)
+    ...duplicateChecks,
+
+    // Computed values (memoized)
+    ...computedValues,
+
+    // Setters for advanced usage
     setSearchTerm,
     setCaptains,
     setError,

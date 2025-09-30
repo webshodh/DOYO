@@ -1,5 +1,7 @@
+// KitchenAdminPage.jsx
+
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import {
   Calendar,
@@ -9,7 +11,6 @@ import {
   Grid,
   ChefHat,
 } from "lucide-react";
-import { useKitchenOrders } from "../../hooks/useKitchenOrders";
 import PageTitle from "../../atoms/PageTitle";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
@@ -54,7 +55,6 @@ const TimePeriodTabs = memo(({ selectedTimePeriod, onTimePeriodChange }) => {
     </div>
   );
 });
-
 TimePeriodTabs.displayName = "TimePeriodTabs";
 
 // Main KitchenAdminPage component
@@ -65,40 +65,41 @@ const KitchenAdminPage = memo(() => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
 
-  // Use custom hook for kitchen orders management
+  // Use optimized useOrder hook
   const {
-    orders,
-    processedOrders,
     filteredOrders,
+    orders,
+    timeFilteredOrders,
     loading,
     submitting,
     error,
-    activeFilter,
+    statusFilter,
     selectedDate,
     selectedTimePeriod,
     orderStats,
-    handleStatusChange,
-    handleFilterChange,
+    handleStatusFilterChange,
+    handleSearchChange,
     handleDateChange,
     handleTimePeriodChange,
     refreshOrders,
-    // getPeriodDisplayText,
     hasOrders,
     hasFilteredOrders,
-    processedOrdersCount,
-    filteredOrdersCount,
+    orderStats: stats,
+    // computed counts
+    offerCount, // not used here
+    // additional fields renamed:
+    // use `filteredOrders.length`, `timeFilteredOrders.length` directly
   } = useOrder(hotelName);
 
   // Memoized calculations for dashboard stats
   const dashboardStats = useMemo(
     () => ({
-      totalOrders: processedOrdersCount,
-      pending: orderStats.pending,
-      preparing: orderStats.preparing,
-      ready: orderStats.ready,
-      completed: orderStats.completed,
+      totalOrders: timeFilteredOrders.length,
+      received: stats.received,
+      completed: stats.completed,
+      rejected: stats.rejected,
     }),
-    [orderStats, processedOrdersCount]
+    [stats, timeFilteredOrders.length]
   );
 
   // Event handlers
@@ -112,16 +113,12 @@ const KitchenAdminPage = memo(() => {
     setSelectedOrder(null);
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    refreshOrders();
-  }, [refreshOrders]);
-
   // Error state
   if (error) {
     return (
       <ErrorMessage
         error={error}
-        onRetry={handleRefresh}
+        onRetry={refreshOrders}
         title="Error Loading Kitchen Orders"
       />
     );
@@ -136,29 +133,24 @@ const KitchenAdminPage = memo(() => {
     <div className="min-h-screen bg-gray-50">
       <div>
         {/* Header */}
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row items-center justify-between gap-4 mb-1">
           <PageTitle
             pageTitle="Kitchen Dashboard"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description={`Manage orders for ${hotelName}`}
           />
-
-          <div className="flex items-center gap-4">
-            {/* Date picker - only show for daily view */}
-            {selectedTimePeriod === "daily" && (
-              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
-                <Calendar size={16} className="text-gray-500" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="bg-transparent border-none focus:outline-none text-sm"
-                />
-              </div>
-            )}
-            
-          </div>
+          {selectedTimePeriod === "daily" && (
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+              <Calendar size={16} className="text-gray-500" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => handleDateChange(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                className="bg-transparent border-none focus:outline-none text-sm"
+              />
+            </div>
+          )}
         </div>
 
         {/* Time Period Navigation */}
@@ -169,7 +161,7 @@ const KitchenAdminPage = memo(() => {
               onTimePeriodChange={handleTimePeriodChange}
             />
             <div className="text-sm text-gray-600 font-medium">
-              {/* {getPeriodDisplayText()} */}
+              {/* optional period display text */}
             </div>
           </div>
         </div>
@@ -185,21 +177,21 @@ const KitchenAdminPage = memo(() => {
             />
             <StatCard
               icon={LoaderCircle}
-              title="Pending"
-              value={dashboardStats.pending}
+              title="Received"
+              value={dashboardStats.received}
               color="orange"
             />
             <StatCard
               icon={TrendingUp}
-              title="Preparing"
-              value={dashboardStats.preparing}
-              color="yellow"
+              title="Completed"
+              value={dashboardStats.completed}
+              color="green"
             />
             <StatCard
               icon={Grid}
-              title="Ready"
-              value={dashboardStats.ready}
-              color="green"
+              title="Rejected"
+              value={dashboardStats.rejected}
+              color="red"
             />
           </div>
         )}
@@ -208,12 +200,12 @@ const KitchenAdminPage = memo(() => {
         {hasOrders && (
           <Suspense fallback={<LoadingSpinner text="Loading filters..." />}>
             <OrderFilters
-              activeFilter={activeFilter}
-              onFilterChange={handleFilterChange}
+              statusFilter={statusFilter}
+              onFilterChange={handleStatusFilterChange}
               selectedDate={selectedDate}
-              onDateChange={handleDateChange}
+              onSearchChange={handleSearchChange}
               orderStats={orderStats}
-              totalOrders={processedOrdersCount}
+              totalOrders={timeFilteredOrders.length}
             />
           </Suspense>
         )}
@@ -221,46 +213,39 @@ const KitchenAdminPage = memo(() => {
         {/* Orders List */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {hasOrders ? (
-            <>
-              {hasFilteredOrders ? (
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <Suspense
-                      fallback={<LoadingSpinner text="Loading orders..." />}
-                    >
-                      {filteredOrders.map((order) => (
-                        <OrderCard
-                          key={order.id}
-                          order={order}
-                          onStatusChange={handleStatusChange}
-                          onViewDetails={handleViewDetails}
-                          loading={submitting}
-                        />
-                      ))}
-                    </Suspense>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="mt-6 text-center text-sm text-gray-600">
-                    Showing {filteredOrdersCount} of {processedOrdersCount}{" "}
-                    orders
-                    {activeFilter !== "all" && ` (${activeFilter} only)`}
-                  </div>
+            hasFilteredOrders ? (
+              <div className="p-6 space-y-4">
+                <Suspense
+                  fallback={<LoadingSpinner text="Loading orders..." />}
+                >
+                  {filteredOrders.map((order) => (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      onStatusChange={handleStatusFilterChange}
+                      onViewDetails={handleViewDetails}
+                      loading={submitting}
+                    />
+                  ))}
+                </Suspense>
+                <div className="mt-6 text-center text-sm text-gray-600">
+                  Showing {filteredOrders.length} of {timeFilteredOrders.length}{" "}
+                  orders
                 </div>
-              ) : (
-                <EmptyState
-                  icon={AlertCircle}
-                  title={`No ${
-                    activeFilter === "all" ? "" : activeFilter
-                  } Orders Found`}
-                  description={
-                    activeFilter === "all"
-                      ? `No orders found for the selected ${selectedTimePeriod} period.`
-                      : `No ${activeFilter} orders found for the selected period. Try changing the filter or time period.`
-                  }
-                />
-              )}
-            </>
+              </div>
+            ) : (
+              <EmptyState
+                icon={AlertCircle}
+                title={`No ${
+                  statusFilter !== "all" ? statusFilter : ""
+                } Orders Found`}
+                description={
+                  statusFilter === "all"
+                    ? `No orders found for the selected ${selectedTimePeriod} period.`
+                    : `No ${statusFilter} orders found for the selected period.`
+                }
+              />
+            )
           ) : (
             <EmptyState
               icon={ChefHat}
@@ -285,13 +270,9 @@ const KitchenAdminPage = memo(() => {
       <ToastContainer
         position="top-right"
         autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
         closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
         pauseOnHover
+        draggable
         theme="light"
       />
     </div>

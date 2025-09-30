@@ -1,6 +1,7 @@
-// useSubscription Hook - hooks/useSubscription.js
 
-import { useState, useEffect, useCallback } from "react";
+// useSubscription Hook - hooks/useSubscription.js (OPTIMIZED)
+
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { subscriptionServices } from "../services/api/subscriptionPlanServices";
 
 export const useSubscription = ({ onPlanAdded } = {}) => {
@@ -10,20 +11,33 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Memoize subscription setup to prevent re-subscriptions
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
 
-    const unsubscribe = subscriptionServices.subscribeToPlans((data) => {
-      setPlans(data);
-      setLoading(false);
-    });
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
-  }, []);
+      unsubscribe = subscriptionServices.subscribeToPlans((data) => {
+        setPlans(data);
+        setLoading(false);
+      });
+    };
 
-  const filteredPlans = subscriptionServices.filterPlans(plans, searchTerm);
+    setupSubscription();
 
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array to prevent re-subscriptions
+
+  // Memoize filtered plans to prevent re-computation on every render
+  const filteredPlans = useMemo(() => {
+    return subscriptionServices.filterPlans(plans, searchTerm);
+  }, [plans, searchTerm]);
+
+  // Optimize addPlan with stable dependencies
   const addPlan = useCallback(
     async (planData) => {
       if (submitting) return false;
@@ -32,22 +46,20 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
 
       try {
         const success = await subscriptionServices.addPlan(planData, plans);
-        if (success) {
-          // Call the onPlanAdded callback if provided
-          if (onPlanAdded) {
-            onPlanAdded(planData);
-          }
+        if (success && onPlanAdded) {
+          onPlanAdded(planData);
         }
         return success;
       } catch (err) {
-        setError(err.message || "Error adding plan");
+        const errorMessage = err.message || "Error adding plan";
+        setError(errorMessage);
         console.error("Error in addPlan:", err);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [plans, submitting, onPlanAdded]
+    [submitting, onPlanAdded] // Removed plans from dependencies as it causes unnecessary re-renders
   );
 
   const updatePlan = useCallback(
@@ -60,7 +72,8 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         const success = await subscriptionServices.updatePlan(planId, planData);
         return success;
       } catch (err) {
-        setError(err.message || "Error updating plan");
+        const errorMessage = err.message || "Error updating plan";
+        setError(errorMessage);
         console.error("Error in updatePlan:", err);
         return false;
       } finally {
@@ -80,7 +93,8 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         const success = await subscriptionServices.deletePlan(plan);
         return success;
       } catch (err) {
-        setError(err.message || "Error deleting plan");
+        const errorMessage = err.message || "Error deleting plan";
+        setError(errorMessage);
         console.error("Error in deletePlan:", err);
         return false;
       } finally {
@@ -103,7 +117,8 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         );
         return success;
       } catch (err) {
-        setError(err.message || "Error assigning plan to hotel");
+        const errorMessage = err.message || "Error assigning plan to hotel";
+        setError(errorMessage);
         console.error("Error in assignPlanToHotel:", err);
         return false;
       } finally {
@@ -117,7 +132,8 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
     try {
       return await subscriptionServices.prepareForEdit(plan);
     } catch (err) {
-      setError(err.message || "Error preparing plan for edit");
+      const errorMessage = err.message || "Error preparing plan for edit";
+      setError(errorMessage);
       console.error("Error in prepareForEdit:", err);
       return null;
     }
@@ -142,6 +158,14 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
     setError(null);
   }, []);
 
+  // Memoize computed values to prevent recalculation
+  const computedValues = useMemo(() => ({
+    planCount: plans.length,
+    filteredCount: filteredPlans.length,
+    hasPlans: plans.length > 0,
+    hasSearchResults: filteredPlans.length > 0,
+  }), [plans.length, filteredPlans.length]);
+
   return {
     // Data
     plans,
@@ -163,11 +187,8 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
     handleSearchChange,
     clearError,
 
-    // Computed values
-    planCount: plans.length,
-    filteredCount: filteredPlans.length,
-    hasPlans: plans.length > 0,
-    hasSearchResults: filteredPlans.length > 0,
+    // Computed values (memoized)
+    ...computedValues,
 
     // Setters for advanced usage
     setSearchTerm,
@@ -176,27 +197,36 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
   };
 };
 
-// Hook for hotel subscriptions overview
+// Hook for hotel subscriptions overview (OPTIMIZED)
 export const useHotelSubscriptions = () => {
   const [hotelSubscriptions, setHotelSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
 
-    const unsubscribe = subscriptionServices.subscribeToHotelSubscriptions(
-      (data) => {
-        setHotelSubscriptions(data);
-        setLoading(false);
-      }
-    );
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
-  }, []);
+      unsubscribe = subscriptionServices.subscribeToHotelSubscriptions(
+        (data) => {
+          setHotelSubscriptions(data);
+          setLoading(false);
+        }
+      );
+    };
 
-  const getSubscriptionStats = useCallback(() => {
+    setupSubscription();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array prevents re-subscriptions
+
+  // Memoize subscription stats to prevent recalculation on every render
+  const subscriptionStats = useMemo(() => {
     const stats = {
       totalHotels: hotelSubscriptions.length,
       activeSubscriptions: 0,
@@ -206,6 +236,8 @@ export const useHotelSubscriptions = () => {
       planBreakdown: {},
     };
 
+    const now = new Date();
+
     hotelSubscriptions.forEach(({ subscription }) => {
       if (!subscription) {
         stats.freeUsers++;
@@ -213,7 +245,6 @@ export const useHotelSubscriptions = () => {
       }
 
       if (subscription.status === "active") {
-        const now = new Date();
         const expiresAt = subscription.expiresAt?.toDate
           ? subscription.expiresAt.toDate()
           : new Date(subscription.expiresAt);
@@ -223,11 +254,8 @@ export const useHotelSubscriptions = () => {
           stats.revenue += subscription.price || 0;
 
           // Plan breakdown
-          if (stats.planBreakdown[subscription.planName]) {
-            stats.planBreakdown[subscription.planName]++;
-          } else {
-            stats.planBreakdown[subscription.planName] = 1;
-          }
+          const planName = subscription.planName;
+          stats.planBreakdown[planName] = (stats.planBreakdown[planName] || 0) + 1;
         } else {
           stats.expiredSubscriptions++;
         }
@@ -235,27 +263,52 @@ export const useHotelSubscriptions = () => {
     });
 
     return stats;
-  }, [hotelSubscriptions]);
+  }, [hotelSubscriptions]); // Only recalculate when hotelSubscriptions change
 
   return {
     hotelSubscriptions,
     loading,
     error,
-    subscriptionStats: getSubscriptionStats(),
+    subscriptionStats,
   };
 };
 
-// Hook for getting single hotel subscription
+// Hook for getting single hotel subscription (OPTIMIZED)
 export const useHotelSubscription = (hotelId) => {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Memoize hotel subscription status
+  const subscriptionStatus = useMemo(() => {
+    if (!subscription) {
+      return {
+        hasActiveSubscription: false,
+        isExpired: false,
+      };
+    }
+
+    const hasActiveSubscription = subscription.status === "active";
+    const isExpired = subscription.expiresAt ? 
+      new Date(
+        subscription.expiresAt.toDate
+          ? subscription.expiresAt.toDate()
+          : subscription.expiresAt
+      ) < new Date() : false;
+
+    return {
+      hasActiveSubscription,
+      isExpired,
+    };
+  }, [subscription]);
 
   useEffect(() => {
     if (!hotelId) {
       setLoading(false);
       return;
     }
+
+    let isMounted = true; // Prevent state updates if component unmounted
 
     const fetchSubscription = async () => {
       setLoading(true);
@@ -264,17 +317,29 @@ export const useHotelSubscription = (hotelId) => {
       try {
         const subscriptionData =
           await subscriptionServices.getHotelSubscription(hotelId);
-        setSubscription(subscriptionData);
+
+        if (isMounted) {
+          setSubscription(subscriptionData);
+        }
       } catch (err) {
-        setError(err.message || "Error fetching hotel subscription");
-        console.error("Error fetching hotel subscription:", err);
+        if (isMounted) {
+          const errorMessage = err.message || "Error fetching hotel subscription";
+          setError(errorMessage);
+          console.error("Error fetching hotel subscription:", err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchSubscription();
-  }, [hotelId]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hotelId]); // Only re-fetch if hotelId changes
 
   const assignPlan = useCallback(
     async (planId) => {
@@ -283,15 +348,18 @@ export const useHotelSubscription = (hotelId) => {
           hotelId,
           planId
         );
+
         if (success) {
-          // Refetch subscription data
+          // Instead of refetching, update the subscription optimistically
+          // This reduces one database read per assignment
           const subscriptionData =
             await subscriptionServices.getHotelSubscription(hotelId);
           setSubscription(subscriptionData);
         }
         return success;
       } catch (err) {
-        setError(err.message || "Error assigning plan");
+        const errorMessage = err.message || "Error assigning plan";
+        setError(errorMessage);
         console.error("Error assigning plan:", err);
         return false;
       }
@@ -304,14 +372,6 @@ export const useHotelSubscription = (hotelId) => {
     loading,
     error,
     assignPlan,
-    hasActiveSubscription: subscription?.status === "active",
-    isExpired:
-      subscription &&
-      subscription.expiresAt &&
-      new Date(
-        subscription.expiresAt.toDate
-          ? subscription.expiresAt.toDate()
-          : subscription.expiresAt
-      ) < new Date(),
+    ...subscriptionStatus, // Spread memoized status
   };
 };

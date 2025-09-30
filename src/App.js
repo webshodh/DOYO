@@ -19,7 +19,7 @@ import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
 import Profile from "./organisms/ProfileComponent";
 import AddCategory from "./Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
-import AddMenu from "./Pages/Admin Dashboard/AddMenu";
+import AddMenu from "./Pages/Admin Dashboard/ViewMenu";
 import {
   AddHotel,
   Home,
@@ -38,18 +38,24 @@ import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
 import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
 import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
-import AddCaptain from "Pages/Admin Dashboard/AddCaptain";
+import AddCaptain from "Pages/Admin Dashboard/ViewCaptain";
 import CaptainDashboardLayout from "layout/CaptainDashboardLayout";
 import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
 import CaptainLogin from "Pages/Captain/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
 import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
 import AddAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
-import AddSubscriptionPlan from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
+import AddSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
 import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
 import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
 import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
+import AddCaptainPage from "Pages/Admin Dashboard/AddCaptain";
+import ViewCaptain from "Pages/Admin Dashboard/ViewCaptain";
+import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
+import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
+import AddMenuPage from "Pages/Admin Dashboard/AddMenu";
+import ViewMenu from "./Pages/Admin Dashboard/ViewMenu";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -239,7 +245,15 @@ function App() {
                         path="add-subscription-plan"
                         element={
                           <SuperAdminLayout>
-                            <AddSubscriptionPlan />
+                            <AddSubscriptionPlanPage />
+                          </SuperAdminLayout>
+                        }
+                      />
+                      <Route
+                        path="view-subscription-plan"
+                        element={
+                          <SuperAdminLayout>
+                            <ViewSubscriptionPlan />
                           </SuperAdminLayout>
                         }
                       />
@@ -311,7 +325,15 @@ function App() {
                         path="add-menu"
                         element={
                           <AdminLayout>
-                            <AddMenu />
+                            <AddMenuPage />
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path="view-menu"
+                        element={
+                          <AdminLayout>
+                            <ViewMenu />
                           </AdminLayout>
                         }
                       />
@@ -327,7 +349,15 @@ function App() {
                         path="add-captain"
                         element={
                           <AdminLayout>
-                            <AddCaptain />
+                            <AddCaptainPage />
+                          </AdminLayout>
+                        }
+                      />
+                      <Route
+                        path="add-captain"
+                        element={
+                          <AdminLayout>
+                            <ViewCaptain />
                           </AdminLayout>
                         }
                       />

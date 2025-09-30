@@ -1,5 +1,5 @@
-// useCategoryManager.js
-import { useState, useEffect, useCallback } from "react";
+// useCategoryManager.js (OPTIMIZED)
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import { createCategoryService } from "../services/api/mainCategoryService";
@@ -11,9 +11,13 @@ export const useMainCategory = (hotelName) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const auth = getAuth();
-  const adminId = auth.currentUser?.uid;
-  const categoryService = createCategoryService(hotelName);
+  // Memoize auth and service instances to prevent recreation
+  const auth = useMemo(() => getAuth(), []);
+  const adminId = useMemo(() => auth.currentUser?.uid, [auth.currentUser?.uid]);
+  const categoryService = useMemo(
+    () => createCategoryService(hotelName),
+    [hotelName]
+  );
 
   useEffect(() => {
     if (!hotelName) {
@@ -22,25 +26,37 @@ export const useMainCategory = (hotelName) => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
+    let isMounted = true; // Prevent state updates if component unmounted
 
-    const unsubscribe = categoryService.subscribeToCategories(
-      (categoriesArray) => {
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
+
+      unsubscribe = categoryService.subscribeToCategories((categoriesArray) => {
+        if (!isMounted) return; // Component unmounted during callback
         setCategories(categoriesArray);
         setLoading(false);
         setError(null);
-      }
-    );
+      });
+    };
+
+    setupSubscription();
 
     return () => {
-      unsubscribe();
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
-  }, [hotelName]);
+  }, [hotelName, categoryService]); // Added categoryService to dependencies
 
-  const filteredCategories = categories.filter((category) =>
-    category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Memoize filtered categories to prevent recalculation
+  const filteredCategories = useMemo(() => {
+    return categories.filter((category) =>
+      category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
 
   const addCategory = useCallback(
     async (categoryName) => {
@@ -56,13 +72,12 @@ export const useMainCategory = (hotelName) => {
         return true;
       } catch (error) {
         console.error("Error adding category:", error);
-        toast.error(
-          error.message || "Error adding category. Please try again.",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
-        setError(error);
+        const errorMessage =
+          error.message || "Error adding category. Please try again.";
+        toast.error(errorMessage, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -85,13 +100,12 @@ export const useMainCategory = (hotelName) => {
         return true;
       } catch (error) {
         console.error("Error updating category:", error);
-        toast.error(
-          error.message || "Error updating category. Please try again.",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
-        setError(error);
+        const errorMessage =
+          error.message || "Error updating category. Please try again.";
+        toast.error(errorMessage, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -122,13 +136,12 @@ export const useMainCategory = (hotelName) => {
         return true;
       } catch (error) {
         console.error("Error deleting category:", error);
-        toast.error(
-          error.message || "Error deleting category. Please try again.",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
-        setError(error);
+        const errorMessage =
+          error.message || "Error deleting category. Please try again.";
+        toast.error(errorMessage, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -139,11 +152,12 @@ export const useMainCategory = (hotelName) => {
 
   const prepareForEdit = useCallback(async (category) => {
     try {
-      // no additional preparation needed, just return category
+      // No additional preparation needed, just return category
       return category;
     } catch (error) {
       console.error("Error preparing category for edit:", error);
-      setError(error);
+      const errorMessage = error.message || "Error preparing category for edit";
+      setError(errorMessage);
       return null;
     }
   }, []);
@@ -168,13 +182,110 @@ export const useMainCategory = (hotelName) => {
     // Firestore subscription handles auto refresh
   }, []);
 
+  // Memoize utility functions to prevent recreation
+  const utilityFunctions = useMemo(
+    () => ({
+      checkDuplicateCategory: (name, excludeId = null) =>
+        categories.some(
+          (category) =>
+            category.categoryName?.toLowerCase() === name.toLowerCase() &&
+            category.categoryId !== excludeId
+        ),
+
+      getCategoryById: (categoryId) =>
+        categories.find((category) => category.categoryId === categoryId),
+
+      getCategoriesByName: (searchName) =>
+        categories.filter((category) =>
+          category.categoryName
+            ?.toLowerCase()
+            .includes(searchName.toLowerCase())
+        ),
+
+      validateCategoryName: (name) => {
+        if (!name || !name.trim()) {
+          return { valid: false, message: "Category name is required" };
+        }
+        if (name.trim().length < 2) {
+          return {
+            valid: false,
+            message: "Category name must be at least 2 characters",
+          };
+        }
+        if (name.trim().length > 50) {
+          return {
+            valid: false,
+            message: "Category name must be less than 50 characters",
+          };
+        }
+        return { valid: true };
+      },
+
+      sortCategories: (sortBy = "name", order = "asc") => {
+        const sorted = [...categories].sort((a, b) => {
+          let comparison = 0;
+          switch (sortBy) {
+            case "name":
+              comparison = a.categoryName?.localeCompare(b.categoryName) || 0;
+              break;
+            case "created":
+              comparison = new Date(a.createdAt) - new Date(b.createdAt);
+              break;
+            default:
+              comparison = 0;
+          }
+          return order === "desc" ? -comparison : comparison;
+        });
+        return sorted;
+      },
+
+      clearAllFilters: () => {
+        setSearchTerm("");
+      },
+    }),
+    [categories]
+  );
+
+  // Memoize computed values to prevent recalculation
+  const computedValues = useMemo(
+    () => ({
+      categoryCount: categories.length,
+      filteredCount: filteredCategories.length,
+      hasCategories: categories.length > 0,
+      hasSearchResults: filteredCategories.length > 0,
+      isEmpty: categories.length === 0,
+      hasFilters: searchTerm.length > 0,
+    }),
+    [categories.length, filteredCategories.length, searchTerm.length]
+  );
+
+  // Memoize error handling functions
+  const errorHandlers = useMemo(
+    () => ({
+      clearError: () => setError(null),
+
+      handleError: (error, defaultMessage = "An error occurred") => {
+        const errorMessage = error.message || defaultMessage;
+        setError(errorMessage);
+        console.error(errorMessage, error);
+        return errorMessage;
+      },
+    }),
+    []
+  );
+
   return {
+    // Data
     categories,
     filteredCategories,
     searchTerm,
+
+    // State
     loading,
     submitting,
     error,
+
+    // CRUD Actions
     addCategory,
     updateCategory,
     deleteCategory,
@@ -182,9 +293,19 @@ export const useMainCategory = (hotelName) => {
     handleFormSubmit,
     handleSearchChange,
     refreshCategories,
-    categoryCount: categories.length,
-    filteredCount: filteredCategories.length,
-    hasCategories: categories.length > 0,
-    hasSearchResults: filteredCategories.length > 0,
+
+    // Utility functions (memoized)
+    ...utilityFunctions,
+
+    // Computed values (memoized)
+    ...computedValues,
+
+    // Error handlers (memoized)
+    ...errorHandlers,
+
+    // Setters for advanced usage
+    setSearchTerm,
+    setCategories,
+    setError,
   };
 };

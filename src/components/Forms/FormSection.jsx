@@ -1,4 +1,5 @@
 // src/components/form/FormSection.jsx
+
 import React, { memo } from "react";
 import * as Icons from "lucide-react";
 import TextInputField from "./TextInputField";
@@ -6,6 +7,8 @@ import SelectField from "./SelectField";
 import TextareaField from "./TextareaField";
 import CheckboxField from "./CheckboxField";
 import NumberField from "./NumberField";
+import PasswordInputField from "./PasswordInputField";
+import DateField from "./DateField";
 
 const componentMap = {
   text: TextInputField,
@@ -16,6 +19,8 @@ const componentMap = {
   textarea: TextareaField,
   checkbox: CheckboxField,
   number: NumberField,
+  password: PasswordInputField,
+  date: DateField,
 };
 
 export default memo(function FormSection({
@@ -60,12 +65,12 @@ export default memo(function FormSection({
         <span className="text-gray-400">{isExpanded ? "–" : "+"}</span>
       </button>
 
-      {isExpanded && (
+      {isExpanded && Array.isArray(fields) && (
         <div className="p-6 space-y-6 bg-white">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {fields.map((field) => {
-              const name = field.name;
-              const Component = componentMap[field.type];
+              const { name, type } = field;
+              const Component = componentMap[type];
               const refProp = name === fields[0].name ? firstFieldRef : null;
               return (
                 <Component
