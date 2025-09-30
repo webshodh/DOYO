@@ -26,10 +26,6 @@ import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 
-// Lazy load heavy components
-const MenuFormModal = React.lazy(() =>
-  import("../../components/FormModals/MenuFormModal")
-);
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 // Main AddMenu component
@@ -257,21 +253,6 @@ const ViewMenu = memo(({ onlyView = false }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Menu Form Modal */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <MenuFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          categories={categories}
-          mainCategories={mainCategories}
-          editMode={!!editingMenuId}
-          initialData={editingMenu}
-          hotelName={hotelName}
-          submitting={submitting}
-        />
-      </Suspense>
-
       <div>
         {/* Header */}
         {!onlyView && (

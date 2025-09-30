@@ -1,6 +1,11 @@
-// Updated AuthContext with Enhanced Admin System - context/AuthContext.js
-
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { auth, db } from "../services/firebase/firebaseConfig";
 import {
   createUserWithEmailAndPassword,
@@ -28,8 +33,7 @@ const SUPER_ADMIN_EMAILS = [
   "superadmin1@example.com",
   "superadmin2@example.com",
   "admin@company.com",
-  "webshodhteam@gmail.com", // Your existing super admin email
-  // Add more super admin emails as needed
+  "webshodhteam@gmail.com",
 ];
 
 export const AuthProvider = ({ children }) => {
@@ -38,8 +42,244 @@ export const AuthProvider = ({ children }) => {
   const [userHotels, setUserHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [adminData, setAdminData] = useState(null); // Enhanced admin data
+  const [adminData, setAdminData] = useState(null);
 
+  // Ref to prevent multiple simultaneous refreshes
+  const isRefreshing = useRef(false);
+
+  // Helper function to get all hotels (for super admin)
+  const getAllHotels = useCallback(async () => {
+    try {
+      const hotelsSnapshot = await getDocs(collection(db, "hotels"));
+      return hotelsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        hotelId: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+      return [];
+    }
+  }, []);
+
+  // Helper function to get hotels by IDs
+  const getHotelsByIds = useCallback(async (hotelIds) => {
+    try {
+      const hotels = [];
+      for (const hotelId of hotelIds) {
+        const hotelDoc = await getDoc(doc(db, "hotels", hotelId));
+        if (hotelDoc.exists()) {
+          hotels.push({
+            id: hotelDoc.id,
+            hotelId: hotelDoc.id,
+            ...hotelDoc.data(),
+          });
+        }
+      }
+      return hotels;
+    } catch (error) {
+      console.error("Error fetching hotels by IDs:", error);
+      return [];
+    }
+  }, []);
+
+  // Helper function to get single hotel by ID
+  const getHotelById = useCallback(async (hotelId) => {
+    try {
+      const hotelDoc = await getDoc(doc(db, "hotels", hotelId));
+      if (hotelDoc.exists()) {
+        return {
+          id: hotelDoc.id,
+          hotelId: hotelDoc.id,
+          ...hotelDoc.data(),
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching hotel by ID:", error);
+      return null;
+    }
+  }, []);
+
+  // Get hotel info for enhanced admin system
+  const getHotelInfo = useCallback(async (hotelId) => {
+    try {
+      const hotelDoc = await getDoc(doc(db, "hotels", hotelId));
+      if (!hotelDoc.exists()) {
+        return null;
+      }
+      const hotelData = hotelDoc.data();
+      return {
+        hotelId,
+        businessName: hotelData.businessName || hotelData.name,
+        status: hotelData.status || (hotelData.active ? "active" : "inactive"),
+        businessType: hotelData.businessType,
+        city: hotelData.city,
+        state: hotelData.state,
+      };
+    } catch (error) {
+      console.error("Error getting hotel info:", error);
+      return null;
+    }
+  }, []);
+
+  // Get admin by Firebase UID (enhanced system)
+  const getAdminByFirebaseUid = useCallback(
+    async (firebaseUid) => {
+      try {
+        const q = query(
+          collection(db, "admins"),
+          where("firebaseUid", "==", firebaseUid)
+        );
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          return null;
+        }
+        const adminDoc = snapshot.docs[0];
+        const adminData = adminDoc.data();
+
+        // Get hotel info if linked
+        if (adminData.linkedHotelId) {
+          const hotelInfo = await getHotelInfo(adminData.linkedHotelId);
+          adminData.hotelInfo = hotelInfo;
+        }
+
+        return {
+          ...adminData,
+          adminId: adminDoc.id,
+        };
+      } catch (error) {
+        console.error("Error getting admin by Firebase UID:", error);
+        return null;
+      }
+    },
+    [getHotelInfo]
+  );
+
+  // Get admin by email
+  const getAdminByEmail = useCallback(
+    async (email) => {
+      try {
+        const q = query(collection(db, "admins"), where("email", "==", email));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          return null;
+        }
+        const adminDoc = snapshot.docs[0];
+        const adminData = adminDoc.data();
+
+        // Get hotel info if linked
+        if (adminData.linkedHotelId) {
+          const hotelInfo = await getHotelInfo(adminData.linkedHotelId);
+          adminData.hotelInfo = hotelInfo;
+        }
+
+        return {
+          ...adminData,
+          adminId: adminDoc.id,
+        };
+      } catch (error) {
+        console.error("Error getting admin by email:", error);
+        return null;
+      }
+    },
+    [getHotelInfo]
+  );
+
+  // Ensure super admin record exists in enhanced system
+  const ensureSuperAdminRecord = useCallback(
+    async (user) => {
+      try {
+        let adminInfo = await getAdminByEmail(user.email);
+
+        if (!adminInfo) {
+          console.log("Creating super admin record in enhanced system");
+
+          const superAdminData = {
+            fullName: user.displayName || "Super Admin",
+            email: user.email,
+            firebaseUid: user.uid,
+            role: "super_admin",
+            status: "active",
+            permissions: {
+              canManageMenu: true,
+              canManageOrders: true,
+              canManageCaptains: true,
+              canViewReports: true,
+              canManageCategories: true,
+              canManageStaff: true,
+              canAccessSettings: true,
+              canManageInventory: true,
+            },
+            createdAt: serverTimestamp(),
+            isActive: true,
+          };
+
+          const adminRef = await addDoc(
+            collection(db, "admins"),
+            superAdminData
+          );
+          await updateDoc(adminRef, { adminId: adminRef.id });
+
+          adminInfo = await getAdminByFirebaseUid(user.uid);
+        }
+
+        return adminInfo;
+      } catch (error) {
+        console.error("Error ensuring super admin record:", error);
+        return null;
+      }
+    },
+    [getAdminByEmail, getAdminByFirebaseUid]
+  );
+
+  // Migrate old admin to enhanced system
+  const migrateOldAdminToEnhanced = useCallback(
+    async (user, oldAdminData) => {
+      try {
+        console.log("Migrating old admin to enhanced system:", oldAdminData);
+
+        const enhancedAdminData = {
+          fullName: oldAdminData.name || user.displayName || "Admin User",
+          email: user.email,
+          phone: oldAdminData.phone || null,
+          firebaseUid: user.uid,
+          role: "admin",
+          status: oldAdminData.active ? "active" : "inactive",
+          linkedHotelId: oldAdminData.assignedHotels?.[0] || null,
+          permissions: {
+            canManageMenu: true,
+            canManageOrders: true,
+            canManageCaptains: true,
+            canViewReports: true,
+            canManageCategories: true,
+            canManageStaff: false,
+            canAccessSettings: false,
+            canManageInventory: false,
+          },
+          createdAt: oldAdminData.createdAt || serverTimestamp(),
+          isActive: oldAdminData.active || true,
+          migratedFrom: "oldAdminSystem",
+          migratedAt: serverTimestamp(),
+        };
+
+        const adminRef = await addDoc(
+          collection(db, "admins"),
+          enhancedAdminData
+        );
+        await updateDoc(adminRef, { adminId: adminRef.id });
+
+        console.log("Migration completed for admin:", adminRef.id);
+        return await getAdminByFirebaseUid(user.uid);
+      } catch (error) {
+        console.error("Error migrating old admin:", error);
+        return null;
+      }
+    },
+    [getAdminByFirebaseUid]
+  );
+
+  // Main auth state change effect
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
@@ -60,8 +300,6 @@ export const AuthProvider = ({ children }) => {
             console.log("User is super admin via email list");
             role = "superadmin";
             hotels = await getAllHotels();
-
-            // Create/update super admin record in enhanced admin system
             adminInfo = await ensureSuperAdminRecord(user);
           } else {
             // Check enhanced admin system first
@@ -71,14 +309,12 @@ export const AuthProvider = ({ children }) => {
               if (adminInfo) {
                 console.log("User found in enhanced admin system:", adminInfo);
 
-                // Map enhanced admin roles to existing role system
                 if (adminInfo.role === "super_admin") {
                   role = "superadmin";
                   hotels = await getAllHotels();
                 } else {
                   role = "admin";
 
-                  // Get hotels for this admin
                   if (adminInfo.linkedHotelId) {
                     const hotel = await getHotelById(adminInfo.linkedHotelId);
                     if (hotel) {
@@ -98,12 +334,10 @@ export const AuthProvider = ({ children }) => {
                   role = "admin";
                   hotels = oldAdminData.assignedHotels || [];
 
-                  // If assignedHotels contains IDs, fetch hotel details
                   if (hotels.length > 0 && typeof hotels[0] === "string") {
                     hotels = await getHotelsByIds(hotels);
                   }
 
-                  // Auto-migrate to enhanced system on login
                   adminInfo = await migrateOldAdminToEnhanced(
                     user,
                     oldAdminData
@@ -117,7 +351,6 @@ export const AuthProvider = ({ children }) => {
                     const captainData = captainDoc.data();
                     role = "captain";
 
-                    // For captains, get the hotel they're assigned to
                     if (captainData.hotelId) {
                       const hotel = await getHotelById(captainData.hotelId);
                       if (hotel) {
@@ -125,12 +358,10 @@ export const AuthProvider = ({ children }) => {
                       }
                     }
                   }
-                  // If neither admin nor captain, keep as "user" with no hotels
                 }
               }
             } catch (error) {
               console.error("Error checking enhanced admin system:", error);
-              // Continue with old system check
             }
           }
 
@@ -152,7 +383,6 @@ export const AuthProvider = ({ children }) => {
           setAdminData(null);
         }
       } else {
-        // User is signed out
         console.log("No authenticated user");
         setCurrentUser(null);
         setUserRole(null);
@@ -163,248 +393,26 @@ export const AuthProvider = ({ children }) => {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  // Get admin by Firebase UID (enhanced system)
-  const getAdminByFirebaseUid = async (firebaseUid) => {
-    try {
-      const q = query(
-        collection(db, "admins"),
-        where("firebaseUid", "==", firebaseUid)
-      );
-
-      const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        return null;
-      }
-
-      const adminDoc = snapshot.docs[0];
-      const adminData = adminDoc.data();
-
-      // Get hotel info if linked
-      if (adminData.linkedHotelId) {
-        const hotelInfo = await getHotelInfo(adminData.linkedHotelId);
-        adminData.hotelInfo = hotelInfo;
-      }
-
-      return {
-        ...adminData,
-        adminId: adminDoc.id,
-      };
-    } catch (error) {
-      console.error("Error getting admin by Firebase UID:", error);
-      return null;
-    }
-  };
-
-  // Get hotel info for enhanced admin system
-  const getHotelInfo = async (hotelId) => {
-    try {
-      const hotelDoc = await getDoc(doc(db, "hotels", hotelId));
-
-      if (!hotelDoc.exists()) {
-        return null;
-      }
-
-      const hotelData = hotelDoc.data();
-      return {
-        hotelId,
-        businessName: hotelData.businessName || hotelData.name,
-        status: hotelData.status || (hotelData.active ? "active" : "inactive"),
-        businessType: hotelData.businessType,
-        city: hotelData.city,
-        state: hotelData.state,
-      };
-    } catch (error) {
-      console.error("Error getting hotel info:", error);
-      return null;
-    }
-  };
-
-  // Ensure super admin record exists in enhanced system
-  const ensureSuperAdminRecord = async (user) => {
-    try {
-      let adminInfo = await getAdminByEmail(user.email);
-
-      if (!adminInfo) {
-        console.log("Creating super admin record in enhanced system");
-
-        // Create super admin record
-        const superAdminData = {
-          fullName: user.displayName || "Super Admin",
-          email: user.email,
-          firebaseUid: user.uid,
-          role: "super_admin",
-          status: "active",
-          permissions: {
-            canManageMenu: true,
-            canManageOrders: true,
-            canManageCaptains: true,
-            canViewReports: true,
-            canManageCategories: true,
-            canManageStaff: true,
-            canAccessSettings: true,
-            canManageInventory: true,
-          },
-          createdAt: serverTimestamp(),
-          isActive: true,
-        };
-
-        const adminRef = await addDoc(collection(db, "admins"), superAdminData);
-        await updateDoc(adminRef, { adminId: adminRef.id });
-
-        adminInfo = await getAdminByFirebaseUid(user.uid);
-      }
-
-      return adminInfo;
-    } catch (error) {
-      console.error("Error ensuring super admin record:", error);
-      return null;
-    }
-  };
-
-  // Get admin by email
-  const getAdminByEmail = async (email) => {
-    try {
-      const q = query(collection(db, "admins"), where("email", "==", email));
-
-      const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        return null;
-      }
-
-      const adminDoc = snapshot.docs[0];
-      const adminData = adminDoc.data();
-
-      // Get hotel info if linked
-      if (adminData.linkedHotelId) {
-        const hotelInfo = await getHotelInfo(adminData.linkedHotelId);
-        adminData.hotelInfo = hotelInfo;
-      }
-
-      return {
-        ...adminData,
-        adminId: adminDoc.id,
-      };
-    } catch (error) {
-      console.error("Error getting admin by email:", error);
-      return null;
-    }
-  };
-
-  // Migrate old admin to enhanced system
-  const migrateOldAdminToEnhanced = async (user, oldAdminData) => {
-    try {
-      console.log("Migrating old admin to enhanced system:", oldAdminData);
-
-      const enhancedAdminData = {
-        fullName: oldAdminData.name || user.displayName || "Admin User",
-        email: user.email,
-        phone: oldAdminData.phone || null,
-        firebaseUid: user.uid,
-        role: "admin",
-        status: oldAdminData.active ? "active" : "inactive",
-        linkedHotelId: oldAdminData.assignedHotels?.[0] || null, // Take first hotel
-        permissions: {
-          canManageMenu: true,
-          canManageOrders: true,
-          canManageCaptains: true,
-          canViewReports: true,
-          canManageCategories: true,
-          canManageStaff: false,
-          canAccessSettings: false,
-          canManageInventory: false,
-        },
-        createdAt: oldAdminData.createdAt || serverTimestamp(),
-        isActive: oldAdminData.active || true,
-        // Migration metadata
-        migratedFrom: "oldAdminSystem",
-        migratedAt: serverTimestamp(),
-      };
-
-      const adminRef = await addDoc(
-        collection(db, "admins"),
-        enhancedAdminData
-      );
-      await updateDoc(adminRef, { adminId: adminRef.id });
-
-      console.log("Migration completed for admin:", adminRef.id);
-      return await getAdminByFirebaseUid(user.uid);
-    } catch (error) {
-      console.error("Error migrating old admin:", error);
-      return null;
-    }
-  };
-
-  // Helper function to get all hotels (for super admin)
-  const getAllHotels = async () => {
-    try {
-      const hotelsSnapshot = await getDocs(collection(db, "hotels"));
-      return hotelsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        hotelId: doc.id, // Add hotelId for consistency
-        ...doc.data(),
-      }));
-    } catch (error) {
-      console.error("Error fetching hotels:", error);
-      return [];
-    }
-  };
-
-  // Helper function to get hotels by IDs
-  const getHotelsByIds = async (hotelIds) => {
-    try {
-      const hotels = [];
-      for (const hotelId of hotelIds) {
-        const hotelDoc = await getDoc(doc(db, "hotels", hotelId));
-        if (hotelDoc.exists()) {
-          hotels.push({
-            id: hotelDoc.id,
-            hotelId: hotelDoc.id,
-            ...hotelDoc.data(),
-          });
-        }
-      }
-      return hotels;
-    } catch (error) {
-      console.error("Error fetching hotels by IDs:", error);
-      return [];
-    }
-  };
-
-  // Helper function to get single hotel by ID
-  const getHotelById = async (hotelId) => {
-    try {
-      const hotelDoc = await getDoc(doc(db, "hotels", hotelId));
-      if (hotelDoc.exists()) {
-        return {
-          id: hotelDoc.id,
-          hotelId: hotelDoc.id,
-          ...hotelDoc.data(),
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("Error fetching hotel by ID:", error);
-      return null;
-    }
-  };
+  }, [
+    getAllHotels,
+    getHotelById,
+    getHotelsByIds,
+    getAdminByFirebaseUid,
+    ensureSuperAdminRecord,
+    migrateOldAdminToEnhanced,
+  ]);
 
   const login = async (email, password) => {
     try {
       setLoading(true);
       setAuthError(null);
 
-      // Enhanced login with improved error handling
       const result = await signInWithEmailAndPassword(auth, email, password);
       console.log("Login successful for:", email);
       return result;
     } catch (error) {
       console.error("Login error:", error);
 
-      // Enhanced error messages
       let errorMessage = "Login failed. Please try again.";
 
       if (error.code === "auth/user-not-found") {
@@ -441,47 +449,57 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Enhanced role checking functions
-  const isSuperAdmin = () => {
+  const isSuperAdmin = useCallback(() => {
     return userRole === "superadmin" || adminData?.role === "super_admin";
-  };
+  }, [userRole, adminData]);
 
-  const isAdmin = () => {
+  const isAdmin = useCallback(() => {
     return (
       userRole === "admin" ||
       userRole === "superadmin" ||
       adminData?.role === "admin" ||
       adminData?.role === "super_admin"
     );
-  };
+  }, [userRole, adminData]);
 
-  const isCaptain = () => userRole === "captain";
-  const isAuthenticated = () => !!currentUser;
+  const isCaptain = useCallback(() => userRole === "captain", [userRole]);
 
-  const canAccessHotel = (hotelId) => {
-    if (isSuperAdmin()) return true;
+  const isAuthenticated = useCallback(() => !!currentUser, [currentUser]);
 
-    if (userRole === "admin" || userRole === "captain") {
-      return userHotels.some(
-        (hotel) =>
-          hotel.id === hotelId || hotel.hotelId === hotelId || hotel === hotelId
-      );
-    }
+  const canAccessHotel = useCallback(
+    (hotelId) => {
+      if (userRole === "superadmin" || adminData?.role === "super_admin")
+        return true;
 
-    // Check enhanced admin system
-    if (adminData?.linkedHotelId === hotelId) return true;
+      if (userRole === "admin" || userRole === "captain") {
+        return userHotels.some(
+          (hotel) =>
+            hotel.id === hotelId ||
+            hotel.hotelId === hotelId ||
+            hotel === hotelId
+        );
+      }
 
-    return false;
-  };
+      if (adminData?.linkedHotelId === hotelId) return true;
 
-  // Check if user has specific permission (enhanced admin system)
-  const hasPermission = (permission) => {
-    if (isSuperAdmin()) return true;
-    if (!adminData?.permissions) return false;
-    return adminData.permissions[permission] || false;
-  };
+      return false;
+    },
+    [userRole, adminData, userHotels]
+  );
+
+  // Check if user has specific permission
+  const hasPermission = useCallback(
+    (permission) => {
+      if (userRole === "superadmin" || adminData?.role === "super_admin")
+        return true;
+      if (!adminData?.permissions) return false;
+      return adminData.permissions[permission] || false;
+    },
+    [userRole, adminData]
+  );
 
   // Enhanced hotel creation using new admin system
-  const createHotelWithAdmin = async (hotelData, adminData) => {
+  const createHotelWithAdmin = async (hotelData, adminDataInput) => {
     if (!isSuperAdmin()) {
       throw new Error("Only super admins can create hotels and admins");
     }
@@ -489,11 +507,10 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("Creating hotel with admin via enhanced system...");
 
-      // 1. Create the hotel in Firestore with enhanced structure
       const hotelRef = await addDoc(collection(db, "hotels"), {
         businessName: hotelData.businessName || hotelData.name,
         hotelName: hotelData.hotelName || hotelData.name,
-        name: hotelData.name, // Keep for backward compatibility
+        name: hotelData.name,
         address: hotelData.address,
         phone: hotelData.phone,
         email: hotelData.email,
@@ -503,7 +520,7 @@ export const AuthProvider = ({ children }) => {
         createdAt: serverTimestamp(),
         createdBy: currentUser.uid,
         isActive: true,
-        active: true, // Keep for backward compatibility
+        active: true,
         status: "active",
         metrics: {
           totalAdmins: 0,
@@ -515,18 +532,16 @@ export const AuthProvider = ({ children }) => {
       const hotelId = hotelRef.id;
       await updateDoc(hotelRef, { hotelId });
 
-      // 2. Create admin with Firebase Auth (enhanced system)
       const adminUserCredential = await createUserWithEmailAndPassword(
         auth,
-        adminData.email,
-        adminData.password
+        adminDataInput.email,
+        adminDataInput.password
       );
 
-      // 3. Store admin details in enhanced admin system
       const enhancedAdminData = {
-        fullName: adminData.fullName || adminData.name,
-        email: adminData.email,
-        phone: adminData.phone,
+        fullName: adminDataInput.fullName || adminDataInput.name,
+        email: adminDataInput.email,
+        phone: adminDataInput.phone,
         firebaseUid: adminUserCredential.user.uid,
         role: "admin",
         status: "active",
@@ -553,11 +568,10 @@ export const AuthProvider = ({ children }) => {
       );
       await updateDoc(newAdminRef, { adminId: newAdminRef.id });
 
-      // 4. Also create in old system for backward compatibility
       await setDoc(doc(db, "admins", adminUserCredential.user.uid), {
-        name: adminData.name,
-        email: adminData.email,
-        phone: adminData.phone,
+        name: adminDataInput.name,
+        email: adminDataInput.email,
+        phone: adminDataInput.phone,
         role: "admin",
         assignedHotels: [hotelRef.id],
         createdAt: serverTimestamp(),
@@ -567,15 +581,18 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Hotel and admin created successfully");
 
-      // Refresh user hotels if current user is super admin
-      await refreshUserHotels();
+      // Manually refresh hotels without using refreshUserHotels
+      if (isSuperAdmin()) {
+        const updatedHotels = await getAllHotels();
+        setUserHotels(updatedHotels);
+      }
 
       return {
         hotel: { id: hotelId, hotelId, ...hotelData },
         admin: {
           id: adminUserCredential.user.uid,
           adminId: newAdminRef.id,
-          ...adminData,
+          ...adminDataInput,
         },
       };
     } catch (error) {
@@ -584,14 +601,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Function to assign hotel to admin (enhanced system)
+  // Function to assign hotel to admin
   const assignHotelToAdmin = async (adminId, hotelId) => {
     if (!isSuperAdmin()) {
       throw new Error("Only super admins can assign hotels to admins");
     }
 
     try {
-      // Update in enhanced admin system
       const enhancedAdminQuery = query(
         collection(db, "admins"),
         where("firebaseUid", "==", adminId)
@@ -608,7 +624,6 @@ export const AuthProvider = ({ children }) => {
         });
       }
 
-      // Update in old system for backward compatibility
       const adminRef = doc(db, "admins", adminId);
       const adminDoc = await getDoc(adminRef);
 
@@ -632,23 +647,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Function to refresh user hotels
-  const refreshUserHotels = async () => {
-    if (!currentUser) return;
+  // Fixed refresh function with guard against multiple calls
+  const refreshUserHotels = useCallback(async () => {
+    if (!currentUser || isRefreshing.current) {
+      console.log("Skipping refresh - already in progress or no user");
+      return userHotels;
+    }
+
+    isRefreshing.current = true;
 
     try {
       let hotels = [];
 
-      if (isSuperAdmin()) {
+      if (userRole === "superadmin" || adminData?.role === "super_admin") {
         hotels = await getAllHotels();
       } else if (adminData?.linkedHotelId) {
-        // Enhanced admin system - get linked hotel
         const hotel = await getHotelById(adminData.linkedHotelId);
         if (hotel) {
           hotels = [hotel];
         }
       } else if (userRole === "admin") {
-        // Old admin system fallback
         const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
         if (adminDoc.exists()) {
           const oldAdminData = adminDoc.data();
@@ -674,22 +692,29 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error refreshing user hotels:", error);
       return [];
+    } finally {
+      isRefreshing.current = false;
     }
-  };
+  }, [
+    currentUser,
+    userRole,
+    adminData,
+    getAllHotels,
+    getHotelById,
+    getHotelsByIds,
+  ]); // userHotels removed to prevent infinite loops
 
   // Get redirect path based on user role and hotel assignment
-  const getRedirectPath = () => {
-    if (isSuperAdmin()) {
+  const getRedirectPath = useCallback(() => {
+    if (userRole === "superadmin" || adminData?.role === "super_admin") {
       return "/super-admin/dashboard";
     } else if (adminData?.linkedHotelId && adminData.hotelInfo) {
-      // Redirect to hotel-specific admin dashboard
       const hotelSlug =
         adminData.hotelInfo.businessName
           ?.toLowerCase()
           .replace(/[^a-zA-Z0-9]/g, "_") || adminData.linkedHotelId;
       return `/${hotelSlug}/admin/dashboard`;
     } else if (userHotels.length > 0) {
-      // Fallback to first hotel
       const hotelSlug = (
         userHotels[0].businessName ||
         userHotels[0].name ||
@@ -701,10 +726,9 @@ export const AuthProvider = ({ children }) => {
     } else {
       return "/admin/dashboard";
     }
-  };
+  }, [userRole, adminData, userHotels]);
 
   const value = {
-    // Original properties
     currentUser,
     userRole,
     userHotels,
@@ -720,18 +744,12 @@ export const AuthProvider = ({ children }) => {
     createHotelWithAdmin,
     assignHotelToAdmin,
     refreshUserHotels,
-
-    // Enhanced properties for new admin system
     adminData,
     hasPermission,
     getRedirectPath,
-
-    // User info shortcuts
     linkedHotelId: adminData?.linkedHotelId,
     hotelInfo: adminData?.hotelInfo,
     permissions: adminData?.permissions || {},
-
-    // Role shortcuts for enhanced system
     isEnhancedAdmin: !!adminData,
     userPermissions: adminData?.permissions || {},
   };

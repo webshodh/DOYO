@@ -16,10 +16,6 @@ import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import useColumns from "../../Constants/Columns";
 
-// Lazy load heavy components
-const CaptainFormModal = React.lazy(() =>
-  import("../../components/FormModals/CaptainFormModal")
-);
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
 // Main ViewCaptain component
@@ -165,21 +161,6 @@ const ViewCaptain = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Captain Form Modal */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <CaptainFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          editCaptain={editingCaptain}
-          existingCaptains={captains}
-          title={
-            editingCaptain ? t("titles.editCaptain") : t("titles.addCaptain")
-          }
-          submitting={submitting}
-        />
-      </Suspense>
-
       <div>
         {/* Header */}
         <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
