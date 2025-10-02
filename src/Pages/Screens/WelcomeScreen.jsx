@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ChefHat, Sparkles, ArrowRight, Star } from "lucide-react";
-import { colors } from "../../theme/theme";
+
 
 const WelcomeScreen = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -14,7 +14,7 @@ const WelcomeScreen = () => {
     <div
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        background: `linear-gradient(135deg, ${colors.Orange}ee, #ff6b35, #f7931e)`,
+        background: `linear-gradient(135deg, ee, #ff6b35, #f7931e)`,
       }}
     >
       {/* Animated background elements */}

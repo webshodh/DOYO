@@ -1,8 +1,9 @@
+
+// useOffers.js (OPTIMIZED)
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { offerServices } from "../services/api/offersService";
 
 export const useOffers = (hotelName) => {
-  // State management
   const [offers, setOffers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -11,7 +12,6 @@ export const useOffers = (hotelName) => {
   const [sortOrder, setSortOrder] = useState("default");
   const [filterType, setFilterType] = useState("all");
 
-  // Subscribe to offers data
   useEffect(() => {
     if (!hotelName) {
       setOffers([]);
@@ -19,56 +19,57 @@ export const useOffers = (hotelName) => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
+    let isMounted = true; // Prevent state updates if component unmounted
 
-    const unsubscribe = offerServices.subscribeToOffers(
-      hotelName,
-      (data) => {
-        setOffers(data);
-        setLoading(false);
-        setError(null);
-      },
-      (error) => {
-        console.error("Error fetching offers:", error);
-        setError(error);
-        setLoading(false);
-      }
-    );
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
 
-    // Handle potential connection errors
-    // const errorTimeout = setTimeout(() => {
-    //   if (loading) {
-    //     setError(new Error("Taking longer than expected to load offers"));
-    //     setLoading(false);
-    //   }
-    // }, 50000);
-
-    // Cleanup subscription on component unmount or hotelName change
-    return () => {
-      unsubscribe();
-      // clearTimeout(errorTimeout);
+      unsubscribe = offerServices.subscribeToOffers(
+        hotelName,
+        (data) => {
+          if (!isMounted) return; // Component unmounted during callback
+          setOffers(data);
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          if (!isMounted) return; // Component unmounted during error
+          console.error("Error fetching offers:", err);
+          const errorMessage = err.message || "Error fetching offers";
+          setError(errorMessage);
+          setLoading(false);
+        }
+      );
     };
-  }, [hotelName]);
 
-  // Memoized filtered offers with advanced filtering and sorting
+    setupSubscription();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
+    };
+  }, [hotelName]); // Only re-subscribe if hotelName changes
+
+  // Memoize filtered offers with optimized date calculations
   const filteredOffers = useMemo(() => {
     let filtered = offerServices.filterOffers(offers, searchTerm);
 
-    // Apply type filter
     if (filterType !== "all") {
+      const now = new Date();
+      const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
       filtered = filtered.filter((offer) => {
         switch (filterType) {
           case "active":
             return offer.isActive;
           case "expired":
-            const now = new Date();
             return offer.validUntil && new Date(offer.validUntil) < now;
           case "expiring":
-            const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
             return (
               offer.validUntil &&
-              new Date(offer.validUntil) > new Date() &&
+              new Date(offer.validUntil) > now &&
               new Date(offer.validUntil) <= weekFromNow
             );
           default:
@@ -77,18 +78,16 @@ export const useOffers = (hotelName) => {
       });
     }
 
-    // Apply sorting
     return offerServices.sortOffers(filtered, sortOrder);
   }, [offers, searchTerm, filterType, sortOrder]);
 
-  // Add new offer
+  // Optimize addOffer with stable dependencies
   const addOffer = useCallback(
     async (offerData) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
       try {
-        setError(null);
         const success = await offerServices.addOffer(
           hotelName,
           offerData,
@@ -97,23 +96,22 @@ export const useOffers = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in addOffer:", error);
-        setError(error);
+        const errorMessage = error.message || "Error adding offer";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, offers, submitting]
+    [hotelName, submitting] // Removed offers to prevent unnecessary re-renders
   );
 
-  // Update existing offer
   const updateOffer = useCallback(
     async (offerId, offerData) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
       try {
-        setError(null);
         const success = await offerServices.updateOffer(
           hotelName,
           offerId,
@@ -123,28 +121,28 @@ export const useOffers = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in updateOffer:", error);
-        setError(error);
+        const errorMessage = error.message || "Error updating offer";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, offers, submitting]
+    [hotelName, submitting] // Removed offers to prevent unnecessary re-renders
   );
 
-  // Delete offer
   const deleteOffer = useCallback(
     async (offer) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
       try {
-        setError(null);
         const success = await offerServices.deleteOffer(hotelName, offer);
         return success;
       } catch (error) {
         console.error("Error in deleteOffer:", error);
-        setError(error);
+        const errorMessage = error.message || "Error deleting offer";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -153,19 +151,18 @@ export const useOffers = (hotelName) => {
     [hotelName, submitting]
   );
 
-  // Toggle offer status (active/inactive)
   const toggleOfferStatus = useCallback(
     async (offer) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
       try {
-        setError(null);
         const success = await offerServices.toggleOfferStatus(hotelName, offer);
         return success;
       } catch (error) {
         console.error("Error in toggleOfferStatus:", error);
-        setError(error);
+        const errorMessage = error.message || "Error toggling offer status";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -174,14 +171,13 @@ export const useOffers = (hotelName) => {
     [hotelName, submitting]
   );
 
-  // Bulk operations for offers
-  const bulkUpdateOffers = useCallback(
-    async (offerIds, updateData) => {
+  // Memoize additional utility functions to prevent recreation
+  const utilityFunctions = useMemo(() => ({
+    bulkUpdateOffers: async (offerIds, updateData) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
       try {
-        setError(null);
         const success = await offerServices.bulkUpdateOffers(
           hotelName,
           offerIds,
@@ -190,249 +186,163 @@ export const useOffers = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in bulkUpdateOffers:", error);
-        setError(error);
+        const errorMessage = error.message || "Error bulk updating offers";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
-  );
 
-  // Duplicate an existing offer
-  const duplicateOffer = useCallback(
-    async (offer) => {
+    duplicateOffer: async (offer) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
       try {
-        setError(null);
         const success = await offerServices.duplicateOffer(hotelName, offer);
         return success;
       } catch (error) {
         console.error("Error in duplicateOffer:", error);
-        setError(error);
+        const errorMessage = error.message || "Error duplicating offer";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
-  );
 
-  // Prepare offer for editing
-  const prepareForEdit = useCallback(
-    async (offer) => {
+    prepareForEdit: async (offer) => {
       try {
-        const offerToEdit = await offerServices.prepareForEdit(
-          hotelName,
-          offer
-        );
-        return offerToEdit;
+        return await offerServices.prepareForEdit(hotelName, offer);
       } catch (error) {
         console.error("Error in prepareForEdit:", error);
-        setError(error);
+        const errorMessage = error.message || "Error preparing offer for edit";
+        setError(errorMessage);
         return null;
       }
     },
-    [hotelName]
-  );
 
-  // Handle form submission (both add and edit)
-  const handleFormSubmit = useCallback(
-    async (offerData, offerId = null) => {
+    getOfferStats: async () => {
+      try {
+        return await offerServices.getOfferStats(hotelName);
+      } catch (error) {
+        console.error("Error getting offer stats:", error);
+        const errorMessage = error.message || "Error getting offer stats";
+        setError(errorMessage);
+        return null;
+      }
+    },
+
+    // Validation utilities
+    checkDuplicateOffer: (name, excludeId = null) =>
+      offers.some(
+        (offer) =>
+          offer.offerName?.toLowerCase() === name.toLowerCase() &&
+          offer.id !== excludeId
+      ),
+
+    validateOfferDates: (startDate, endDate) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const now = new Date();
+
+      if (start >= end) {
+        return { valid: false, message: "Start date must be before end date" };
+      }
+      if (end <= now) {
+        return { valid: false, message: "End date must be in the future" };
+      }
+      return { valid: true };
+    },
+
+    getActiveOffers: () => offers.filter(offer => offer.isActive),
+    getExpiredOffers: () => offers.filter(offer => 
+      offer.validUntil && new Date(offer.validUntil) < new Date()
+    ),
+    getExpiringOffers: () => {
+      const now = new Date();
+      const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      return offers.filter(offer =>
+        offer.validUntil &&
+        new Date(offer.validUntil) > now &&
+        new Date(offer.validUntil) <= weekFromNow
+      );
+    },
+  }), [hotelName, offers, submitting]);
+
+  // Form and filter handlers
+  const handlers = useMemo(() => ({
+    handleFormSubmit: async (offerData, offerId = null) => {
       if (offerId) {
-        // Edit mode
         return await updateOffer(offerId, offerData);
       } else {
-        // Add mode
         return await addOffer(offerData);
       }
     },
-    [addOffer, updateOffer]
-  );
 
-  // Handle search change
-  const handleSearchChange = useCallback((term) => {
-    setSearchTerm(term);
-  }, []);
+    handleSearchChange: (term) => setSearchTerm(term),
+    handleSortChange: (order) => setSortOrder(order),
+    handleFilterChange: (type) => setFilterType(type),
 
-  // Handle sort change
-  const handleSortChange = useCallback((order) => {
-    setSortOrder(order);
-  }, []);
-
-  // Handle filter type change
-  const handleFilterChange = useCallback((type) => {
-    setFilterType(type);
-  }, []);
-
-  // Clear all filters
-  const clearAllFilters = useCallback(() => {
-    setSearchTerm("");
-    setFilterType("all");
-    setSortOrder("default");
-  }, []);
-
-  // Refresh offers data
-  const refreshOffers = useCallback(() => {
-    setError(null);
-    // The real-time subscription will automatically refresh the data
-    // This function exists for UI consistency
-  }, []);
-
-  // Get offer statistics with memoization
-  const getOfferStats = useCallback(async () => {
-    try {
-      return await offerServices.getOfferStats(hotelName);
-    } catch (error) {
-      console.error("Error getting offer stats:", error);
-      setError(error);
-      return null;
-    }
-  }, [hotelName]);
-
-  // Validation utilities
-  const checkDuplicateOffer = useCallback(
-    (offerName, excludeId = null) => {
-      return offers.some(
-        (offer) =>
-          offer.offerName?.toLowerCase() === offerName.toLowerCase() &&
-          offer.offerId !== excludeId
-      );
+    clearAllFilters: () => {
+      setSearchTerm("");
+      setSortOrder("default");
+      setFilterType("all");
     },
-    [offers]
-  );
 
-  const checkDuplicateOfferCode = useCallback(
-    (offerCode, excludeId = null) => {
-      return offers.some(
-        (offer) =>
-          offer.offerCode?.toUpperCase() === offerCode.toUpperCase() &&
-          offer.offerId !== excludeId
-      );
+    refreshOffers: () => {
+      setError(null);
+      // Real-time subscription auto refreshes data
     },
-    [offers]
-  );
+  }), [addOffer, updateOffer]);
 
-  const validateOfferDates = useCallback((startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const now = new Date();
-
-    return {
-      isValid: start < end && end > now,
-      errors: {
-        startAfterEnd: start >= end,
-        endInPast: end <= now,
-      },
-    };
-  }, []);
-
-  // Filter utilities with memoization
-  const getActiveOffers = useCallback(() => {
-    return offers.filter((offer) => offer.isActive);
-  }, [offers]);
-
-  const getExpiredOffers = useCallback(() => {
-    const now = new Date();
-    return offers.filter((offer) => {
-      if (!offer.validUntil) return false;
-      return new Date(offer.validUntil) < now;
-    });
-  }, [offers]);
-
-  const getExpiringSoonOffers = useCallback(() => {
-    const now = new Date();
-    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return offers.filter((offer) => {
-      if (!offer.validUntil) return false;
-      const expiry = new Date(offer.validUntil);
-      return expiry > now && expiry <= weekFromNow;
-    });
-  }, [offers]);
-
-  const getOffersByType = useCallback(
-    (type) => {
-      return offers.filter((offer) => offer.offerType === type);
-    },
-    [offers]
-  );
-
-  const getOffersByDiscount = useCallback(
-    (minDiscount = 0, maxDiscount = 100) => {
-      return offers.filter((offer) => {
-        const discount = offer.discountPercentage || 0;
-        return discount >= minDiscount && discount <= maxDiscount;
-      });
-    },
-    [offers]
-  );
-
-  // Memoized computed values for better performance
+  // Memoize computed values to prevent recalculation
   const computedValues = useMemo(() => {
-    const now = new Date();
+    const activeOffers = offers.filter(offer => offer.isActive);
+    const expiredOffers = offers.filter(offer => 
+      offer.validUntil && new Date(offer.validUntil) < new Date()
+    );
+
     return {
       offerCount: offers.length,
       filteredCount: filteredOffers.length,
       hasOffers: offers.length > 0,
       hasSearchResults: filteredOffers.length > 0,
-      activeOfferCount: offers.filter((offer) => offer.isActive).length,
-      inactiveOfferCount: offers.filter((offer) => !offer.isActive).length,
-      expiredOfferCount: offers.filter((offer) => {
-        if (!offer.validUntil) return false;
-        return new Date(offer.validUntil) < now;
-      }).length,
-      expiringSoonCount: offers.filter((offer) => {
-        if (!offer.validUntil) return false;
-        const expiry = new Date(offer.validUntil);
-        const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        return expiry > now && expiry <= weekFromNow;
-      }).length,
+      activeOfferCount: activeOffers.length,
+      expiredOfferCount: expiredOffers.length,
+      hasFiltersApplied: searchTerm || sortOrder !== "default" || filterType !== "all",
     };
-  }, [offers, filteredOffers]);
+  }, [offers.length, filteredOffers.length, offers, searchTerm, sortOrder, filterType]);
 
   return {
-    // State
+    // Data
     offers,
     filteredOffers,
     searchTerm,
     sortOrder,
     filterType,
+
+    // State
     loading,
     submitting,
     error,
 
-    // Actions
+    // CRUD Actions
     addOffer,
     updateOffer,
     deleteOffer,
     toggleOfferStatus,
-    bulkUpdateOffers,
-    duplicateOffer,
-    prepareForEdit,
-    handleFormSubmit,
-    handleSearchChange,
-    handleSortChange,
-    handleFilterChange,
-    clearAllFilters,
-    refreshOffers,
 
-    // Utilities
-    getOfferStats,
-    checkDuplicateOffer,
-    checkDuplicateOfferCode,
-    validateOfferDates,
-    getActiveOffers,
-    getExpiredOffers,
-    getExpiringSoonOffers,
-    getOffersByType,
-    getOffersByDiscount,
+    // Utility functions (memoized)
+    ...utilityFunctions,
 
-    // Computed values (using memoized values)
+    // Handlers (memoized)
+    ...handlers,
+
+    // Computed values (memoized)
     ...computedValues,
 
-    // Direct setters (if needed for specific cases)
+    // Setters for advanced usage
     setSearchTerm,
     setSortOrder,
     setFilterType,

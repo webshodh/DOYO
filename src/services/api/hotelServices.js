@@ -1,429 +1,782 @@
-import { db } from "../firebase/firebaseConfig";
-import { v4 as uuidv4 } from "uuid";
-import { set, ref, get } from "firebase/database";
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  getDoc,
+  query,
+  where,
+  orderBy,
+  Timestamp,
+  writeBatch,
+} from "firebase/firestore";
 import { toast } from "react-toastify";
-import { validateHotelForm } from "../../validation/hotelValidation";
 
-// Hotel Services - Updated to support single admin per hotel with multiple hotel assignments
+const firestore = getFirestore();
+
 export const hotelServices = {
-  // Search for admin by email
-  searchAdminByEmail: async (email) => {
-    try {
-      const adminsRef = ref(db, "admins");
-      const snapshot = await get(adminsRef);
+  // Subscribe to all hotels with enhanced data
+  subscribeToHotels: (callback) => {
+    const hotelsRef = collection(firestore, "hotels");
+    const q = query(hotelsRef, orderBy("createdAt", "desc"));
 
-      if (snapshot.exists()) {
-        const allAdmins = snapshot.val();
-        for (const [adminId, adminData] of Object.entries(allAdmins)) {
-          if (adminData.email === email) {
-            // Get hotel names from admin's hotels object
-            const hotelNames = adminData.hotels
-              ? Object.keys(adminData.hotels)
-              : [];
+    const unsubscribe = onSnapshot(
+      q,
+      async (querySnapshot) => {
+        const hotelsArray = [];
 
-            return {
-              exists: true,
-              adminId: adminId,
-              adminData: {
-                name: adminData.name,
-                contact: adminData.contact,
-                email: adminData.email,
-                role: adminData.role || "admin",
-                hotels: hotelNames,
-              },
-            };
-          }
+        for (let i = 0; i < querySnapshot.docs.length; i++) {
+          const docSnap = querySnapshot.docs[i];
+          const hotelData = docSnap.data();
+
+          // Get additional metrics for each hotel
+          const metrics = await hotelServices.getHotelMetrics(docSnap.id);
+
+          hotelsArray.push({
+            ...hotelData,
+            srNo: i + 1,
+            hotelId: docSnap.id,
+            metrics,
+          });
         }
+
+        callback(hotelsArray);
+      },
+      (error) => {
+        console.error("Error fetching hotels:", error);
+        toast.error("Error loading hotels", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        callback([]);
+      }
+    );
+    return unsubscribe;
+  },
+
+  // Get hotel metrics (admins count, subscription info, etc.)
+  getHotelMetrics: async (hotelId) => {
+    try {
+      const metrics = {
+        totalAdmins: 0,
+        totalCategories: 0,
+        totalMenuItems: 0,
+        totalCaptains: 0,
+        subscription: null,
+        lastActivity: null,
+      };
+
+      // Get admin count
+      const adminMetaRef = doc(firestore, "hotels", hotelId, "admins", "_meta");
+      const adminMetaDoc = await getDoc(adminMetaRef);
+      if (adminMetaDoc.exists()) {
+        metrics.totalAdmins = adminMetaDoc.data().totalAdmins || 0;
       }
 
-      return { exists: false, adminId: null, adminData: null };
+      // Get category count
+      const categoryMetaRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "categories",
+        "_meta"
+      );
+      const categoryMetaDoc = await getDoc(categoryMetaRef);
+      if (categoryMetaDoc.exists()) {
+        metrics.totalCategories = categoryMetaDoc.data().totalCategories || 0;
+      }
+
+      // Get menu items count
+      const menuMetaRef = doc(firestore, "hotels", hotelId, "menu", "_meta");
+      const menuMetaDoc = await getDoc(menuMetaRef);
+      if (menuMetaDoc.exists()) {
+        metrics.totalMenuItems = menuMetaDoc.data().totalMenuItems || 0;
+      }
+
+      // Get captains count
+      const captainMetaRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "captains",
+        "_meta"
+      );
+      const captainMetaDoc = await getDoc(captainMetaRef);
+      if (captainMetaDoc.exists()) {
+        metrics.totalCaptains = captainMetaDoc.data().totalCaptains || 0;
+      }
+
+      // Get current subscription
+      const subscriptionRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "subscription",
+        "current"
+      );
+      const subscriptionDoc = await getDoc(subscriptionRef);
+      if (subscriptionDoc.exists()) {
+        metrics.subscription = subscriptionDoc.data();
+      }
+
+      return metrics;
     } catch (error) {
-      console.error("Error searching admin:", error);
-      throw new Error("Failed to search admin");
+      console.error("Error getting hotel metrics:", error);
+      return {
+        totalAdmins: 0,
+        totalCategories: 0,
+        totalMenuItems: 0,
+        totalCaptains: 0,
+        subscription: null,
+        lastActivity: null,
+      };
     }
   },
 
-  // Check if hotel exists
-  checkHotelExists: async (hotelName) => {
+  // Add hotel with enhanced validation and setup
+  addHotel: async (hotelData, existingHotels = []) => {
     try {
-      const hotelRef = ref(db, `/hotels/${hotelName}`);
-      const snapshot = await get(hotelRef);
-      return snapshot.exists();
+      // Enhanced duplicate checking
+      const duplicateCheck = hotelServices.checkDuplicateHotel(
+        hotelData,
+        existingHotels
+      );
+      if (duplicateCheck.isDuplicate) {
+        toast.error(duplicateCheck.message, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return false;
+      }
+
+      // Generate hotelId from business name
+      const hotelId = hotelServices.generateHotelId(hotelData.businessName);
+
+      // Prepare comprehensive hotel data
+      const data = {
+        ...hotelData,
+        hotelId,
+        // Standardize naming
+        hotelName: hotelData.businessName,
+        businessName: hotelData.businessName,
+        // Status handling
+        status: hotelData.isActive === "active" ? "active" : "inactive",
+        isActive: hotelData.isActive || "active",
+        // Timestamps
+        createdAt: Timestamp.fromDate(new Date()),
+        updatedAt: Timestamp.fromDate(new Date()),
+        // Additional metadata
+        setupCompleted: false,
+        onboardingStep: 1,
+        // Financial data
+        totalRevenue: 0,
+        monthlyRevenue: 0,
+        totalOrders: 0,
+        // Contact normalization
+        primaryContact: hotelServices.normalizePhoneNumber(
+          hotelData.primaryContact
+        ),
+        alternateContact: hotelServices.normalizePhoneNumber(
+          hotelData.alternateContact
+        ),
+      };
+
+      const batch = writeBatch(firestore);
+
+      // Create hotel document
+      const hotelRef = doc(firestore, "hotels", hotelId);
+      batch.set(hotelRef, data);
+
+      // Initialize hotel collections with enhanced structure
+      await hotelServices.initializeHotelCollections(batch, hotelId, data);
+
+      // Commit all changes
+      await batch.commit();
+
+      toast.success("Hotel created successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return { success: true, hotelId };
     } catch (error) {
-      console.error("Error checking hotel existence:", error);
+      console.error("Error adding hotel:", error);
+      toast.error("Error creating hotel. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Enhanced duplicate checking
+  checkDuplicateHotel: (hotelData, existingHotels) => {
+    // Check business name
+    const duplicateByName = existingHotels.find(
+      (h) =>
+        h.businessName?.toLowerCase().trim() ===
+        hotelData.businessName?.toLowerCase().trim()
+    );
+    if (duplicateByName) {
+      return { isDuplicate: true, message: "Business name already exists" };
+    }
+
+    // Check email
+    if (hotelData.businessEmail) {
+      const duplicateByEmail = existingHotels.find(
+        (h) =>
+          h.businessEmail?.toLowerCase().trim() ===
+          hotelData.businessEmail?.toLowerCase().trim()
+      );
+      if (duplicateByEmail) {
+        return { isDuplicate: true, message: "Business email already exists" };
+      }
+    }
+
+    // Check primary contact
+    if (hotelData.primaryContact) {
+      const normalizedPhone = hotelServices.normalizePhoneNumber(
+        hotelData.primaryContact
+      );
+      const duplicateByPhone = existingHotels.find(
+        (h) =>
+          hotelServices.normalizePhoneNumber(h.primaryContact) ===
+          normalizedPhone
+      );
+      if (duplicateByPhone) {
+        return {
+          isDuplicate: true,
+          message: "Primary contact number already exists",
+        };
+      }
+    }
+
+    return { isDuplicate: false };
+  },
+
+  // Generate hotel ID
+  generateHotelId: (businessName) => {
+    return businessName
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9\s]/g, "") // Remove special characters except spaces
+      .replace(/\s+/g, "_") // Replace spaces with underscores
+      .substring(0, 50); // Limit length
+  },
+
+  // Normalize phone numbers for comparison
+  normalizePhoneNumber: (phone) => {
+    if (!phone) return "";
+    return phone.replace(/\D/g, ""); // Remove all non-digits
+  },
+
+  // Enhanced hotel collections initialization
+  initializeHotelCollections: async (batch, hotelId, hotelData) => {
+    try {
+      const timestamp = Timestamp.fromDate(new Date());
+
+      // Initialize admins collection with enhanced metadata
+      const adminMetaRef = doc(firestore, "hotels", hotelId, "admins", "_meta");
+      batch.set(adminMetaRef, {
+        createdAt: timestamp,
+        totalAdmins: 0,
+        maxAdmins: 1, // Default for free plan
+        lastUpdated: timestamp,
+        hotelId,
+      });
+
+      // Initialize categories collection
+      const categoryMetaRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "categories",
+        "_meta"
+      );
+      batch.set(categoryMetaRef, {
+        createdAt: timestamp,
+        totalCategories: 0,
+        maxCategories: 5, // Default for free plan
+        lastUpdated: timestamp,
+        hotelId,
+      });
+
+      // Initialize menu collection
+      const menuMetaRef = doc(firestore, "hotels", hotelId, "menu", "_meta");
+      batch.set(menuMetaRef, {
+        createdAt: timestamp,
+        totalMenuItems: 0,
+        maxMenuItems: 50, // Default for free plan
+        lastUpdated: timestamp,
+        hotelId,
+      });
+
+      // Initialize orders collection
+      const ordersMetaRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "orders",
+        "_meta"
+      );
+      batch.set(ordersMetaRef, {
+        createdAt: timestamp,
+        totalOrders: 0,
+        todayOrders: 0,
+        monthlyOrders: 0,
+        totalRevenue: 0,
+        lastUpdated: timestamp,
+        hotelId,
+      });
+
+      // Initialize captains collection
+      const captainsMetaRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "captains",
+        "_meta"
+      );
+      batch.set(captainsMetaRef, {
+        createdAt: timestamp,
+        totalCaptains: 0,
+        maxCaptains: 2, // Default for free plan
+        lastUpdated: timestamp,
+        hotelId,
+      });
+
+      // Initialize subscription with free plan
+      const subscriptionRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "subscription",
+        "current"
+      );
+      batch.set(subscriptionRef, {
+        planId: "free",
+        planName: "Free Plan",
+        price: 0,
+        duration: 0, // Unlimited for free
+        status: "active",
+        features: {
+          isCustomerOrderEnable: true,
+          isCaptainDashboard: false,
+          isKitchenDashboard: false,
+          isAnalyticsDashboard: false,
+          isInventoryManagement: false,
+          isTableManagement: false,
+          isStaffManagement: false,
+          maxAdmins: 1,
+          maxCategories: 5,
+          maxMenuItems: 50,
+          maxCaptains: 2,
+          maxTables: 10,
+          maxStorage: 500, // MB
+        },
+        assignedAt: timestamp,
+        assignedBy: "system",
+        hotelId,
+      });
+
+      // Initialize settings collection
+      const settingsRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "settings",
+        "general"
+      );
+      batch.set(settingsRef, {
+        currency: "INR",
+        timezone: "Asia/Kolkata",
+        language: "en",
+        dateFormat: "DD/MM/YYYY",
+        timeFormat: "12h",
+        taxRate: 0,
+        serviceCharge: 0,
+        notifications: {
+          emailNotifications: true,
+          smsNotifications: false,
+          pushNotifications: true,
+        },
+        orderSettings: {
+          autoAcceptOrders: false,
+          orderPreparationTime: 30, // minutes
+          minimumOrderAmount: 0,
+        },
+        createdAt: timestamp,
+        hotelId,
+      });
+
+      console.log("Hotel collections initialized successfully for:", hotelId);
+    } catch (error) {
+      console.error("Error initializing hotel collections:", error);
+      throw error;
+    }
+  },
+
+  // Update hotel with validation
+  updateHotel: async (hotelId, hotelData, existingHotels = []) => {
+    try {
+      // Check for duplicates excluding current hotel
+      const otherHotels = existingHotels.filter((h) => h.hotelId !== hotelId);
+      const duplicateCheck = hotelServices.checkDuplicateHotel(
+        hotelData,
+        otherHotels
+      );
+      if (duplicateCheck.isDuplicate) {
+        toast.error(duplicateCheck.message, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return false;
+      }
+
+      const data = {
+        ...hotelData,
+        // Maintain consistency
+        hotelName: hotelData.businessName || hotelData.hotelName,
+        businessName: hotelData.businessName || hotelData.hotelName,
+        status: hotelData.isActive === "active" ? "active" : "inactive",
+        // Normalize contact numbers
+        primaryContact: hotelServices.normalizePhoneNumber(
+          hotelData.primaryContact
+        ),
+        alternateContact: hotelServices.normalizePhoneNumber(
+          hotelData.alternateContact
+        ),
+        updatedAt: Timestamp.fromDate(new Date()),
+      };
+
+      await updateDoc(doc(firestore, "hotels", hotelId), data);
+
+      toast.success("Hotel updated successfully!", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return true;
+    } catch (error) {
+      console.error("Error updating hotel:", error);
+      toast.error("Error updating hotel. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
       return false;
     }
   },
 
-  // Create new admin account
-  createAdminAccount: async (adminData) => {
+  // Enhanced delete with safety checks
+  deleteHotel: async (hotel) => {
     try {
-      const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        adminData.email,
-        adminData.password
-      );
-      return userCredential.user.uid;
-    } catch (error) {
-      console.error("Error creating admin account:", error);
+      const hotelId = hotel.hotelId;
 
-      // Handle specific Firebase auth errors
-      let errorMessage = "Failed to create admin account";
-      if (error.code === "auth/email-already-in-use") {
-        errorMessage = "Email is already registered";
-      } else if (error.code === "auth/weak-password") {
-        errorMessage = "Password is too weak";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email format";
-      }
+      // Safety check - prevent deletion if hotel has data
+      const metrics = await hotelServices.getHotelMetrics(hotelId);
+      if (
+        metrics.totalAdmins > 0 ||
+        metrics.totalMenuItems > 0 ||
+        metrics.totalOrders > 0
+      ) {
+        const confirmMessage = `⚠️ WARNING: This hotel has:
+• ${metrics.totalAdmins} admin(s)
+• ${metrics.totalMenuItems} menu item(s)
+• Active subscription: ${metrics.subscription?.planName || "Free"}
 
-      throw new Error(errorMessage);
-    }
-  },
+Deleting will permanently remove ALL data including orders, categories, and admin accounts.
 
-  // Save admin data to database
-  saveAdminData: async (adminId, adminData) => {
-    try {
-      const newAdminData = {
-        name: adminData.name,
-        email: adminData.email,
-        contact: adminData.contact,
-        role: adminData.role || "admin",
-        createdAt: new Date().toISOString(),
-        hotels: {},
-      };
+Type "DELETE" to confirm:`;
 
-      await set(ref(db, `admins/${adminId}`), newAdminData);
-      return true;
-    } catch (error) {
-      console.error("Error saving admin data:", error);
-      throw new Error("Failed to save admin data");
-    }
-  },
-
-  // Update admin's hotel list
-  updateAdminHotelList: async (adminId, hotelName, hotelUuid) => {
-    try {
-      await set(ref(db, `admins/${adminId}/hotels/${hotelName}`), {
-        hotelName,
-        hotelUuid,
-        assignedAt: new Date().toISOString(),
-      });
-      return true;
-    } catch (error) {
-      console.error("Error updating admin hotel list:", error);
-      throw new Error("Failed to update admin hotel list");
-    }
-  },
-
-  // Save hotel data to database
-  saveHotelData: async (hotelName, hotelData) => {
-    try {
-      console.log(`Saving to /hotels/${hotelName}/info:`, hotelData); // Debug log
-
-      await set(ref(db, `/hotels/${hotelName}/info`), hotelData);
-
-      console.log("Hotel data saved successfully"); // Debug log
-
-      return true;
-    } catch (error) {
-      console.error("Error saving hotel data:", error);
-      console.error("Data that failed to save:", hotelData); // Debug log
-      throw new Error("Failed to save hotel data");
-    }
-  },
-
-  // Create hotel with admin (existing or new)
-  createHotelWithAdmin: async (hotelName, admin, completeFormData = {}) => {
-    try {
-      // Validate basic requirements
-      if (!hotelName.trim()) {
-        return { success: false, message: "Hotel name is required" };
-      }
-
-      if (!admin.email.trim() || !admin.name.trim() || !admin.contact.trim()) {
-        return { success: false, message: "All admin fields are required" };
-      }
-
-      // Check if hotel already exists
-      const hotelExists = await hotelServices.checkHotelExists(hotelName);
-      if (hotelExists) {
-        return {
-          success: false,
-          message: "Hotel with this name already exists",
-        };
-      }
-
-      const hotelUuid = uuidv4();
-      let adminId;
-      let isNewAdmin = false;
-
-      if (admin.isExisting) {
-        // Use existing admin
-        adminId = admin.existingAdminId;
-      } else {
-        // Create new admin account
-        if (!admin.password.trim()) {
-          return {
-            success: false,
-            message: "Password is required for new admin",
-          };
-        }
-
-        try {
-          adminId = await hotelServices.createAdminAccount(admin);
-          await hotelServices.saveAdminData(adminId, admin);
-          isNewAdmin = true;
-        } catch (error) {
-          return { success: false, message: error.message };
+        const userInput = prompt(confirmMessage);
+        if (userInput !== "DELETE") {
+          toast.info("Hotel deletion cancelled", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          return false;
         }
       }
 
-      // Update admin's hotel list
-      await hotelServices.updateAdminHotelList(adminId, hotelName, hotelUuid);
+      const batch = writeBatch(firestore);
 
-      // THIS IS THE FIX - Create COMPLETE hotel data object with ALL form fields
-      const completeHotelData = {
-        // System fields
-        uuid: hotelUuid,
-        hotelName,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        status: "active",
+      // Delete hotel document
+      const hotelRef = doc(firestore, "hotels", hotelId);
+      batch.delete(hotelRef);
 
-        // Admin information
-        admin: {
-          adminId,
-          name: admin.name,
-          email: admin.email,
-          contact: admin.contact,
-          role: admin.role || "admin",
-          assignedAt: new Date().toISOString(),
-        },
+      // Note: Firestore will automatically delete subcollections in production
+      // For development, you might want to manually clean up subcollections
 
-        // === ALL FORM DATA FROM hotelFormConfig ===
+      await batch.commit();
 
-        // Basic Information Section
-        businessName: completeFormData.businessName || hotelName,
-        businessType: completeFormData.businessType || "",
-        primaryContact: completeFormData.primaryContact || "",
-        alternateContact: completeFormData.alternateContact || "",
-
-        // Location Information Section
-        address: completeFormData.address || "",
-        area: completeFormData.area || "",
-        landmark: completeFormData.landmark || "",
-        city: completeFormData.city || "",
-        district: completeFormData.district || "",
-        state: completeFormData.state || "",
-        pincode: completeFormData.pincode || "",
-
-        // Business Details Section
-        businessEmail: completeFormData.businessEmail || "",
-        website: completeFormData.website || "",
-
-        // Social Media & Marketing Section
-        instagramHandle: completeFormData.instagramHandle || "",
-        facebookPage: completeFormData.facebookPage || "",
-        googleMapsLink: completeFormData.googleMapsLink || "",
-        zomatoLink: completeFormData.zomatoLink || "",
-        swiggyLink: completeFormData.swiggyLink || "",
-
-        // Add any additional metadata
-        formVersion: "1.0",
-        source: "admin_panel",
-      };
-
-      console.log("Saving complete hotel data:", completeHotelData); // Debug log
-
-      // Save complete hotel data to /hotels/{hotelName}/info
-      await hotelServices.saveHotelData(hotelName, completeHotelData);
-
-      const message = isNewAdmin
-        ? `Hotel "${hotelName}" created with new admin "${admin.name}"`
-        : `Hotel "${hotelName}" assigned to existing admin "${admin.name}"`;
-
-      toast.success(message, {
+      toast.success("Hotel deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
       });
-
-      return {
-        success: true,
-        hotelId: hotelUuid,
-        adminId: adminId,
-        message: message,
-        isNewAdmin: isNewAdmin,
-        hotelData: completeHotelData,
-      };
+      return true;
     } catch (error) {
-      console.error("Error creating hotel with admin:", error);
-      const errorMessage = error.message || "Failed to create hotel with admin";
-
-      toast.error(`Error: ${errorMessage}`, {
+      console.error("Error deleting hotel:", error);
+      toast.error("Error deleting hotel. Please try again.", {
         position: toast.POSITION.TOP_RIGHT,
       });
-
-      return {
-        success: false,
-        message: errorMessage,
-      };
+      return false;
     }
   },
 
-  // Get admin details with associated hotels
-  getAdminWithHotels: async (adminId) => {
-    try {
-      const adminRef = ref(db, `admins/${adminId}`);
-      const snapshot = await get(adminRef);
+  // Enhanced filtering with multiple criteria
+  filterHotels: (hotels, searchTerm, filters = {}) => {
+    let filteredHotels = [...hotels];
 
-      if (snapshot.exists()) {
-        const adminData = snapshot.val();
-        const hotels = adminData.hotels ? Object.values(adminData.hotels) : [];
-
-        return {
-          admin: {
-            id: adminId,
-            name: adminData.name,
-            email: adminData.email,
-            contact: adminData.contact,
-            role: adminData.role || "admin",
-            createdAt: adminData.createdAt,
-          },
-          hotels: hotels,
-        };
-      } else {
-        throw new Error("Admin not found");
-      }
-    } catch (error) {
-      console.error("Error getting admin with hotels:", error);
-      throw new Error("Failed to get admin details");
-    }
-  },
-
-  // Get all hotels for a specific admin by email
-  getHotelsByAdmin: async (adminEmail) => {
-    try {
-      const adminData = await hotelServices.searchAdminByEmail(adminEmail);
-
-      if (adminData.exists) {
-        const adminDetails = await hotelServices.getAdminWithHotels(
-          adminData.adminId
+    // Text search
+    if (searchTerm && searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filteredHotels = filteredHotels.filter((hotel) => {
+        return (
+          hotel.businessName?.toLowerCase().includes(term) ||
+          hotel.hotelName?.toLowerCase().includes(term) ||
+          hotel.businessType?.toLowerCase().includes(term) ||
+          hotel.area?.toLowerCase().includes(term) ||
+          hotel.city?.toLowerCase().includes(term) ||
+          hotel.state?.toLowerCase().includes(term) ||
+          hotel.address?.toLowerCase().includes(term) ||
+          hotel.businessEmail?.toLowerCase().includes(term) ||
+          hotel.primaryContact?.includes(term) ||
+          hotel.ownerName?.toLowerCase().includes(term)
         );
-        return adminDetails.hotels;
-      } else {
-        return [];
+      });
+    }
+
+    // Status filter
+    if (filters.status && filters.status !== "all") {
+      filteredHotels = filteredHotels.filter((hotel) => {
+        const status = hotel.status || hotel.isActive || "active";
+        if (filters.status === "active") {
+          return status === "active" || status === "Active";
+        } else if (filters.status === "inactive") {
+          return (
+            status === "inactive" ||
+            status === "in_active" ||
+            status === "Inactive"
+          );
+        }
+        return true;
+      });
+    }
+
+    // Business type filter
+    if (filters.businessType && filters.businessType !== "all") {
+      filteredHotels = filteredHotels.filter(
+        (hotel) => hotel.businessType === filters.businessType
+      );
+    }
+
+    // Location filters
+    if (filters.city && filters.city !== "all") {
+      filteredHotels = filteredHotels.filter(
+        (hotel) => hotel.city?.toLowerCase() === filters.city.toLowerCase()
+      );
+    }
+
+    if (filters.state && filters.state !== "all") {
+      filteredHotels = filteredHotels.filter(
+        (hotel) => hotel.state?.toLowerCase() === filters.state.toLowerCase()
+      );
+    }
+
+    // Subscription plan filter
+    if (filters.subscriptionPlan && filters.subscriptionPlan !== "all") {
+      filteredHotels = filteredHotels.filter(
+        (hotel) =>
+          hotel.metrics?.subscription?.planName?.toLowerCase() ===
+          filters.subscriptionPlan.toLowerCase()
+      );
+    }
+
+    // Add serial numbers
+    return filteredHotels.map((hotel, index) => ({
+      ...hotel,
+      srNo: index + 1,
+    }));
+  },
+
+  // Get unique filter options from hotels
+  getFilterOptions: (hotels) => {
+    const options = {
+      businessTypes: [],
+      cities: [],
+      states: [],
+      subscriptionPlans: [],
+    };
+
+    const businessTypesSet = new Set();
+    const citiesSet = new Set();
+    const statesSet = new Set();
+    const plansSet = new Set();
+
+    hotels.forEach((hotel) => {
+      if (hotel.businessType) businessTypesSet.add(hotel.businessType);
+      if (hotel.city) citiesSet.add(hotel.city);
+      if (hotel.state) statesSet.add(hotel.state);
+      if (hotel.metrics?.subscription?.planName) {
+        plansSet.add(hotel.metrics.subscription.planName);
       }
+    });
+
+    options.businessTypes = Array.from(businessTypesSet).sort();
+    options.cities = Array.from(citiesSet).sort();
+    options.states = Array.from(statesSet).sort();
+    options.subscriptionPlans = Array.from(plansSet).sort();
+
+    return options;
+  },
+
+  // Prepare hotel for editing
+  prepareForEdit: async (hotel) => {
+    try {
+      return {
+        ...hotel,
+        // Convert status back to isActive for form compatibility
+        isActive: hotel.status === "active" ? "active" : "in_active",
+      };
     } catch (error) {
-      console.error("Error getting hotels by admin:", error);
-      throw new Error("Failed to get hotels for admin");
+      console.error("Error preparing hotel for edit:", error);
+      toast.error("Error loading hotel data for editing.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return null;
     }
   },
 
-  // Assign existing hotel to existing admin
-  assignHotelToAdmin: async (hotelName, adminId) => {
+  // Get hotel by ID with full details
+  getHotelById: async (hotelId) => {
     try {
-      // Get hotel data
-      const hotelRef = ref(db, `/hotels/${hotelName}/info`);
-      const hotelSnapshot = await get(hotelRef);
+      const hotelRef = doc(firestore, "hotels", hotelId);
+      const hotelSnapshot = await getDoc(hotelRef);
 
-      if (!hotelSnapshot.exists()) {
-        return { success: false, message: "Hotel not found" };
+      if (hotelSnapshot.exists()) {
+        const hotelData = hotelSnapshot.data();
+        const metrics = await hotelServices.getHotelMetrics(hotelId);
+
+        return {
+          ...hotelData,
+          hotelId: hotelSnapshot.id,
+          metrics,
+        };
       }
+      return null;
+    } catch (error) {
+      console.error("Error getting hotel by ID:", error);
+      return null;
+    }
+  },
 
-      const hotelData = hotelSnapshot.val();
+  // Bulk operations
+  bulkUpdateHotels: async (hotelIds, updateData) => {
+    try {
+      const batch = writeBatch(firestore);
 
-      // Get admin data
-      const adminRef = ref(db, `admins/${adminId}`);
-      const adminSnapshot = await get(adminRef);
-
-      if (!adminSnapshot.exists()) {
-        return { success: false, message: "Admin not found" };
-      }
-
-      const adminData = adminSnapshot.val();
-
-      // Update hotel's admin
-      await set(ref(db, `/hotels/${hotelName}/info/admin`), {
-        adminId,
-        name: adminData.name,
-        email: adminData.email,
-        contact: adminData.contact,
-        role: adminData.role || "admin",
-        assignedAt: new Date().toISOString(),
+      hotelIds.forEach((hotelId) => {
+        const hotelRef = doc(firestore, "hotels", hotelId);
+        batch.update(hotelRef, {
+          ...updateData,
+          updatedAt: Timestamp.fromDate(new Date()),
+        });
       });
 
-      // Update admin's hotel list
-      await hotelServices.updateAdminHotelList(
-        adminId,
-        hotelName,
-        hotelData.uuid
-      );
+      await batch.commit();
 
-      return {
-        success: true,
-        message: `Hotel "${hotelName}" successfully assigned to admin "${adminData.name}"`,
-      };
+      toast.success(`${hotelIds.length} hotels updated successfully!`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return true;
     } catch (error) {
-      console.error("Error assigning hotel to admin:", error);
-      return {
-        success: false,
-        message: error.message || "Failed to assign hotel to admin",
-      };
+      console.error("Error bulk updating hotels:", error);
+      toast.error("Error updating hotels. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
     }
   },
 
-  // Remove admin from hotel
-  removeAdminFromHotel: async (hotelName, adminId) => {
+  // Export hotels data
+  exportHotelsData: (hotels, format = "csv") => {
     try {
-      // Remove hotel from admin's hotel list
-      await set(ref(db, `admins/${adminId}/hotels/${hotelName}`), null);
+      const exportData = hotels.map((hotel) => ({
+        "Hotel ID": hotel.hotelId,
+        "Business Name": hotel.businessName,
+        "Business Type": hotel.businessType,
+        "Owner Name": hotel.ownerName,
+        Email: hotel.businessEmail,
+        Phone: hotel.primaryContact,
+        City: hotel.city,
+        State: hotel.state,
+        Status: hotel.status,
+        "Created Date":
+          hotel.createdAt?.toDate?.()?.toLocaleDateString() || "N/A",
+        "Total Admins": hotel.metrics?.totalAdmins || 0,
+        "Total Menu Items": hotel.metrics?.totalMenuItems || 0,
+        "Subscription Plan": hotel.metrics?.subscription?.planName || "Free",
+      }));
 
-      // Remove admin from hotel (set to null or remove admin field)
-      await set(ref(db, `/hotels/${hotelName}/info/admin`), null);
-
-      return {
-        success: true,
-        message: "Admin successfully removed from hotel",
-      };
+      // For now, return the data - you can implement actual file download
+      return exportData;
     } catch (error) {
-      console.error("Error removing admin from hotel:", error);
-      return {
-        success: false,
-        message: error.message || "Failed to remove admin from hotel",
-      };
-    }
-  },
-
-  // Get all hotels (for validation or display)
-  getAllHotels: async () => {
-    try {
-      const hotelsRef = ref(db, "hotels");
-      const snapshot = await get(hotelsRef);
-
-      if (snapshot.exists()) {
-        return Object.keys(snapshot.val());
-      }
+      console.error("Error exporting hotels data:", error);
+      toast.error("Error exporting data.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
       return [];
-    } catch (error) {
-      console.error("Error fetching hotels:", error);
-      throw new Error("Failed to fetch hotels");
     }
   },
 
-  // Legacy function - kept for backward compatibility but simplified
-  createHotelWithAdmins: async (hotelName, admins) => {
-    // For backward compatibility, take the first admin
-    if (admins && admins.length > 0) {
-      return await hotelServices.createHotelWithAdmin(hotelName, admins[0]);
-    } else {
-      return { success: false, message: "At least one admin is required" };
-    }
-  },
+  // Hotel analytics
+  getHotelAnalytics: (hotels) => {
+    const analytics = {
+      total: hotels.length,
+      active: 0,
+      inactive: 0,
+      byBusinessType: {},
+      byCity: {},
+      byState: {},
+      bySubscriptionPlan: {},
+      revenueStats: {
+        totalRevenue: 0,
+        averageRevenue: 0,
+        topPerformers: [],
+      },
+    };
 
-  // Legacy function - kept for backward compatibility
-  checkExistingAdmin: async (email) => {
-    return await hotelServices.searchAdminByEmail(email);
+    hotels.forEach((hotel) => {
+      // Status counts
+      const status = hotel.status || hotel.isActive || "active";
+      if (status === "active" || status === "Active") {
+        analytics.active++;
+      } else {
+        analytics.inactive++;
+      }
+
+      // Business type distribution
+      if (hotel.businessType) {
+        analytics.byBusinessType[hotel.businessType] =
+          (analytics.byBusinessType[hotel.businessType] || 0) + 1;
+      }
+
+      // Location distribution
+      if (hotel.city) {
+        analytics.byCity[hotel.city] = (analytics.byCity[hotel.city] || 0) + 1;
+      }
+      if (hotel.state) {
+        analytics.byState[hotel.state] =
+          (analytics.byState[hotel.state] || 0) + 1;
+      }
+
+      // Subscription plan distribution
+      const planName = hotel.metrics?.subscription?.planName || "Free";
+      analytics.bySubscriptionPlan[planName] =
+        (analytics.bySubscriptionPlan[planName] || 0) + 1;
+
+      // Revenue stats
+      const revenue = hotel.totalRevenue || hotel.monthlyRevenue || 0;
+      analytics.revenueStats.totalRevenue += revenue;
+    });
+
+    analytics.revenueStats.averageRevenue =
+      analytics.total > 0
+        ? analytics.revenueStats.totalRevenue / analytics.total
+        : 0;
+
+    return analytics;
   },
 };

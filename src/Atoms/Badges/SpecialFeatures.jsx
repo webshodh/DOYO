@@ -54,7 +54,7 @@ const SpecialFeatures = memo(({ item, maxFeatures = 1 }) => {
           className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${feature.color} animate-fadeIn`}
         >
           {feature.icon}
-          <span className="hidden sm:inline">{feature.text}</span>
+          <span className=" sm:inline">{feature.text}</span>
         </span>
       ))}
     </div>

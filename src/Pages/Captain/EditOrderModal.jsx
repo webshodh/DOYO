@@ -1,5 +1,5 @@
-const { default: LoadingSpinner } = require("atoms/LoadingSpinner");
-const {
+import { default as LoadingSpinner } from "atoms/LoadingSpinner";
+import {
   X,
   Package,
   Minus,
@@ -7,13 +7,12 @@ const {
   Search,
   AlertCircle,
   Save,
-  ChevronLeft,
   ShoppingCart,
-} = require("lucide-react");
-const { useState, useMemo, useCallback } = require("react");
-const { toast } = require("react-toastify");
+} from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
+import { toast } from "react-toastify";
 
-// Edit Order Modal Component
+// EditOrderModal component
 const EditOrderModal = ({
   order,
   onClose,
@@ -58,48 +57,56 @@ const EditOrderModal = ({
     }));
   }, []);
 
-  // Add new item
+  // Add new item (fixed to functional setState for closure safety)
   const addNewItem = useCallback(
     (menuItem) => {
-      const existingItemIndex = editedOrder.items.findIndex(
-        (item) => item.id === menuItem.id
-      );
-
-      if (existingItemIndex !== -1) {
-        updateItemQuantity(
-          menuItem.id,
-          editedOrder.items[existingItemIndex].quantity + 1
+      setEditedOrder((prev) => {
+        const existingItemIndex = prev.items.findIndex(
+          (item) => item.id === menuItem.id
         );
-      } else {
-        const newItem = {
-          id: menuItem.id,
-          menuName: menuItem.menuName,
-          menuCategory: menuItem.menuCategory || "",
-          mainCategory: menuItem.mainCategory || "",
-          categoryType: menuItem.categoryType || "",
-          originalPrice: parseFloat(menuItem.menuPrice || 0),
-          finalPrice: parseFloat(
-            menuItem.finalPrice || menuItem.menuPrice || 0
-          ),
-          quantity: 1,
-          itemTotal: parseFloat(menuItem.finalPrice || menuItem.menuPrice || 0),
-          isVeg:
-            menuItem.categoryType === "Veg" || menuItem.categoryType === "veg",
-          availability: menuItem.availability || "Available",
-        };
 
-        setEditedOrder((prev) => ({
-          ...prev,
-          items: [...prev.items, newItem],
-        }));
-      }
+        if (existingItemIndex !== -1) {
+          // Increase quantity of existing item
+          const updatedItems = [...prev.items];
+          const existing = updatedItems[existingItemIndex];
+          const newQuantity = existing.quantity + 1;
+          updatedItems[existingItemIndex] = {
+            ...existing,
+            quantity: newQuantity,
+            itemTotal:
+              (existing.finalPrice || existing.originalPrice) * newQuantity,
+          };
+          return { ...prev, items: updatedItems };
+        } else {
+          // Add new item with quantity 1
+          const newItem = {
+            id: menuItem.id,
+            menuName: menuItem.menuName,
+            menuCategory: menuItem.menuCategory || "",
+            mainCategory: menuItem.mainCategory || "",
+            categoryType: menuItem.categoryType || "",
+            originalPrice: parseFloat(menuItem.menuPrice || 0),
+            finalPrice: parseFloat(
+              menuItem.finalPrice || menuItem.menuPrice || 0
+            ),
+            quantity: 1,
+            itemTotal: parseFloat(
+              menuItem.finalPrice || menuItem.menuPrice || 0
+            ),
+            isVeg:
+              menuItem.categoryType === "Veg" ||
+              menuItem.categoryType === "veg",
+            availability: menuItem.availability || "Available",
+          };
+          return { ...prev, items: [...prev.items, newItem] };
+        }
+      });
       setSearchTerm("");
-      // Switch to current items tab on mobile after adding
       if (window.innerWidth < 768) {
         setActiveTab("current");
       }
     },
-    [editedOrder.items, updateItemQuantity]
+    [setEditedOrder, setSearchTerm, setActiveTab]
   );
 
   // Calculate totals
@@ -114,11 +121,10 @@ const EditOrderModal = ({
       (sum, item) => sum + (item.quantity || 0),
       0
     );
-
     return { subtotal, tax, total, totalItems };
   }, [editedOrder.items]);
 
-  // Save changes
+  // Save handler
   const handleSave = async () => {
     setIsLoading(true);
     try {
@@ -141,7 +147,6 @@ const EditOrderModal = ({
           lastUpdated: new Date().toISOString(),
         },
       };
-
       await onSave(updatedOrder);
       onClose();
     } catch (error) {
@@ -329,9 +334,8 @@ const EditOrderModal = ({
           </div>
         </div>
 
-        {/* Footer - Sticky on mobile */}
+        {/* Footer */}
         <div className="sticky bottom-0 p-2 flex justify-center sm:p-6 border-t border-gray-200 bg-white">
-          {/* Action Buttons */}
           <div className="flex flex-row gap-3">
             <button
               onClick={onClose}

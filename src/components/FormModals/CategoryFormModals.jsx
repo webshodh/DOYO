@@ -6,19 +6,7 @@ import React, {
   memo,
   useRef,
 } from "react";
-import {
-  Edit3,
-  Plus,
-  Check,
-  X,
-  AlertTriangle,
-  Info,
-  Loader,
-  Save,
-  Tag,
-  Calendar,
-  Hash,
-} from "lucide-react";
+import { Edit3, Plus, Check, X, AlertTriangle, Loader } from "lucide-react";
 import Modal from "../Modal";
 import { validateCategoryName } from "../../validation/categoryValidation";
 
@@ -104,101 +92,6 @@ const ValidationInput = memo(
 
 ValidationInput.displayName = "ValidationInput";
 
-// Character counter component
-const CharacterCounter = memo(({ current, max }) => {
-  const percentage = (current / max) * 100;
-  const isWarning = percentage > 70;
-  const isDanger = percentage > 90;
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-200 rounded-full h-1">
-        <div
-          className={`h-1 rounded-full transition-all duration-300 ${
-            isDanger
-              ? "bg-red-500"
-              : isWarning
-              ? "bg-yellow-500"
-              : "bg-blue-500"
-          }`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
-        />
-      </div>
-      <span
-        className={`text-xs font-mono ${
-          isDanger
-            ? "text-red-600"
-            : isWarning
-            ? "text-yellow-600"
-            : "text-gray-500"
-        }`}
-      >
-        {current}/{max}
-      </span>
-    </div>
-  );
-});
-
-CharacterCounter.displayName = "CharacterCounter";
-
-// Category info display for edit mode
-const CategoryInfo = memo(({ category }) => {
-  if (!category) return null;
-
-  return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-      <div className="flex items-start gap-3">
-        <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-        <div className="flex-1 space-y-3">
-          <h4 className="text-sm font-semibold text-blue-900">
-            Category Information
-          </h4>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            {category.categoryId && (
-              <div className="flex items-center justify-between p-2 bg-white rounded border">
-                <div className="flex items-center gap-2">
-                  <Hash className="w-3 h-3 text-blue-500" />
-                  <span className="text-gray-600">ID:</span>
-                </div>
-                <span className="font-mono text-gray-800">
-                  {category.categoryId}
-                </span>
-              </div>
-            )}
-
-            {category.createdAt && (
-              <div className="flex items-center justify-between p-2 bg-white rounded border">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3 h-3 text-blue-500" />
-                  <span className="text-gray-600">Created:</span>
-                </div>
-                <span className="font-mono text-gray-800">
-                  {new Date(category.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            )}
-
-            {category.itemCount !== undefined && (
-              <div className="flex items-center justify-between p-2 bg-white rounded border">
-                <div className="flex items-center gap-2">
-                  <Tag className="w-3 h-3 text-blue-500" />
-                  <span className="text-gray-600">Items:</span>
-                </div>
-                <span className="font-mono text-gray-800">
-                  {category.itemCount}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-CategoryInfo.displayName = "CategoryInfo";
-
 // Action buttons component
 const ActionButtons = memo(
   ({
@@ -209,7 +102,7 @@ const ActionButtons = memo(
     submitText,
     cancelText = "Cancel",
   }) => (
-    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+    <div className="flex flex-row sm:flex-row gap-3 pt-4">
       <button
         type="submit"
         disabled={!canSubmit}
@@ -222,7 +115,7 @@ const ActionButtons = memo(
             ? isEditMode
               ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl focus:ring-blue-500"
               : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl focus:ring-green-500"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-sm"
+            : "bg-orange-500 text-white cursor-not-allowed shadow-sm"
         }
       `}
       >
@@ -238,9 +131,7 @@ const ActionButtons = memo(
             ) : (
               <Plus className="w-4 h-4" />
             )}
-            <span>
-              {submitText || (isEditMode ? "Update Category" : "Add Category")}
-            </span>
+            <span>{submitText || (isEditMode ? "Update" : "Add")}</span>
           </>
         )}
       </button>
@@ -431,23 +322,6 @@ const CategoryFormModal = memo(
       onClose();
     }, [isSubmitting, onClose]);
 
-    // Prevent closing if there are unsaved changes
-    const handleBackdropClick = useCallback(
-      (e) => {
-        if (isDirty && !isSubmitting) {
-          const shouldClose = window.confirm(
-            "You have unsaved changes. Are you sure you want to close?"
-          );
-          if (!shouldClose) {
-            e.stopPropagation();
-            return;
-          }
-        }
-        handleClose();
-      },
-      [isDirty, isSubmitting, handleClose]
-    );
-
     if (!show) return null;
 
     return (
@@ -465,7 +339,7 @@ const CategoryFormModal = memo(
           {...rest}
         >
           {/* Header */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <div
               className={`p-3 rounded-xl ${
                 isEditMode ? "bg-blue-100" : "bg-green-100"
@@ -487,7 +361,7 @@ const CategoryFormModal = memo(
                   : "Enter details for the new category"}
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* Form Fields */}
           <div className="space-y-4">
@@ -508,12 +382,6 @@ const CategoryFormModal = memo(
                 autoFocus
               />
             </FormField>
-
-            {/* Character Counter */}
-            {/* <CharacterCounter current={categoryName.length} max={maxLength} /> */}
-
-            {/* Category Info (Edit Mode) */}
-            {isEditMode && <CategoryInfo category={editCategory} />}
           </div>
 
           {/* Action Buttons */}

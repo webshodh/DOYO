@@ -1,21 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
+// useCategoryManager.js (OPTIMIZED)
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
 import { createCategoryService } from "../services/api/mainCategoryService";
 
-export const useCategoryManager = (hotelName) => {
-  // State management
+export const useMainCategory = (hotelName) => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const auth = getAuth();
-  const adminId = auth.currentUser?.uid;
-  const categoryService = createCategoryService(hotelName);
+  // Memoize auth and service instances to prevent recreation
+  const auth = useMemo(() => getAuth(), []);
+  const adminId = useMemo(() => auth.currentUser?.uid, [auth.currentUser?.uid]);
+  const categoryService = useMemo(
+    () => createCategoryService(hotelName),
+    [hotelName]
+  );
 
-  // Subscribe to categories
   useEffect(() => {
     if (!hotelName) {
       setCategories([]);
@@ -23,45 +26,45 @@ export const useCategoryManager = (hotelName) => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
+    let isMounted = true; // Prevent state updates if component unmounted
 
-    const unsubscribe = categoryService.subscribeToCategories(
-      (categoriesArray) => {
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
+
+      unsubscribe = categoryService.subscribeToCategories((categoriesArray) => {
+        if (!isMounted) return; // Component unmounted during callback
         setCategories(categoriesArray);
         setLoading(false);
         setError(null);
-      }
-    );
-
-    // Handle potential connection errors
-    // const errorTimeout = setTimeout(() => {
-    //   if (loading) {
-    //     setError(new Error("Taking longer than expected to load categories"));
-    //     setLoading(false);
-    //   }
-    // }, 50000);
-
-    // Cleanup subscription on component unmount or hotelName change
-    return () => {
-      unsubscribe();
-      // clearTimeout(errorTimeout);
+      });
     };
-  }, [hotelName]);
 
-  // Filter categories based on search term
-  const filteredCategories = categories.filter((category) =>
-    category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    setupSubscription();
 
-  // Add category
+    return () => {
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [hotelName, categoryService]); // Added categoryService to dependencies
+
+  // Memoize filtered categories to prevent recalculation
+  const filteredCategories = useMemo(() => {
+    return categories.filter((category) =>
+      category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
+
   const addCategory = useCallback(
     async (categoryName) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
+
       try {
-        setError(null);
         await categoryService.addCategory(categoryName, adminId);
         toast.success("Category Added Successfully!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -74,7 +77,7 @@ export const useCategoryManager = (hotelName) => {
         toast.error(errorMessage, {
           position: toast.POSITION.TOP_RIGHT,
         });
-        setError(error);
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -83,14 +86,13 @@ export const useCategoryManager = (hotelName) => {
     [adminId, categoryService, submitting]
   );
 
-  // Update category
   const updateCategory = useCallback(
     async (categoryId, categoryName) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
+
       try {
-        setError(null);
         await categoryService.updateCategory(categoryId, categoryName, adminId);
         toast.success("Category Updated Successfully!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -103,7 +105,7 @@ export const useCategoryManager = (hotelName) => {
         toast.error(errorMessage, {
           position: toast.POSITION.TOP_RIGHT,
         });
-        setError(error);
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -112,24 +114,23 @@ export const useCategoryManager = (hotelName) => {
     [adminId, categoryService, submitting]
   );
 
-  // Delete category
   const deleteCategory = useCallback(
     async (category) => {
       if (submitting) return false;
-
       setSubmitting(true);
-      try {
-        setError(null);
-        const confirmed = window.confirm(
-          `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`
-        );
-        if (!confirmed) {
-          setSubmitting(false);
-          return false;
-        }
+      setError(null);
 
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`
+      );
+      if (!confirmed) {
+        setSubmitting(false);
+        return false;
+      }
+
+      try {
         await categoryService.deleteCategory(category.categoryId, adminId);
-        toast.error("Category Deleted Successfully!", {
+        toast.success("Category Deleted Successfully!", {
           position: toast.POSITION.TOP_RIGHT,
         });
         return true;
@@ -140,7 +141,7 @@ export const useCategoryManager = (hotelName) => {
         toast.error(errorMessage, {
           position: toast.POSITION.TOP_RIGHT,
         });
-        setError(error);
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -149,127 +150,142 @@ export const useCategoryManager = (hotelName) => {
     [adminId, categoryService, submitting]
   );
 
-  // Prepare category for editing
   const prepareForEdit = useCallback(async (category) => {
     try {
-      return category; // Return the category for editing
+      // No additional preparation needed, just return category
+      return category;
     } catch (error) {
       console.error("Error preparing category for edit:", error);
-      setError(error);
+      const errorMessage = error.message || "Error preparing category for edit";
+      setError(errorMessage);
       return null;
     }
   }, []);
 
-  // Handle form submission (both add and edit)
   const handleFormSubmit = useCallback(
     async (categoryName, categoryId = null) => {
       if (categoryId) {
-        // Edit mode
         return await updateCategory(categoryId, categoryName);
       } else {
-        // Add mode
         return await addCategory(categoryName);
       }
     },
     [addCategory, updateCategory]
   );
 
-  // Handle search change
   const handleSearchChange = useCallback((term) => {
     setSearchTerm(term);
   }, []);
 
-  // Refresh categories data
   const refreshCategories = useCallback(() => {
     setError(null);
-    // The real-time subscription will automatically refresh the data
-    // This function exists for UI consistency
+    // Firestore subscription handles auto refresh
   }, []);
 
-  // Get category statistics
-  const getCategoryStats = useCallback(async () => {
-    try {
-      const stats = await categoryService.getCategoryStats();
-      return stats;
-    } catch (error) {
-      console.error("Error getting category stats:", error);
-      setError(error);
-      return null;
-    }
-  }, [categoryService]);
+  // Memoize utility functions to prevent recreation
+  const utilityFunctions = useMemo(
+    () => ({
+      checkDuplicateCategory: (name, excludeId = null) =>
+        categories.some(
+          (category) =>
+            category.categoryName?.toLowerCase() === name.toLowerCase() &&
+            category.categoryId !== excludeId
+        ),
 
-  // Check if category name already exists
-  const checkDuplicateCategory = useCallback(
-    (categoryName, excludeId = null) => {
-      return categories.some(
-        (category) =>
-          category.categoryName?.toLowerCase() === categoryName.toLowerCase() &&
-          category.categoryId !== excludeId
-      );
-    },
+      getCategoryById: (categoryId) =>
+        categories.find((category) => category.categoryId === categoryId),
+
+      getCategoriesByName: (searchName) =>
+        categories.filter((category) =>
+          category.categoryName
+            ?.toLowerCase()
+            .includes(searchName.toLowerCase())
+        ),
+
+      validateCategoryName: (name) => {
+        if (!name || !name.trim()) {
+          return { valid: false, message: "Category name is required" };
+        }
+        if (name.trim().length < 2) {
+          return {
+            valid: false,
+            message: "Category name must be at least 2 characters",
+          };
+        }
+        if (name.trim().length > 50) {
+          return {
+            valid: false,
+            message: "Category name must be less than 50 characters",
+          };
+        }
+        return { valid: true };
+      },
+
+      sortCategories: (sortBy = "name", order = "asc") => {
+        const sorted = [...categories].sort((a, b) => {
+          let comparison = 0;
+          switch (sortBy) {
+            case "name":
+              comparison = a.categoryName?.localeCompare(b.categoryName) || 0;
+              break;
+            case "created":
+              comparison = new Date(a.createdAt) - new Date(b.createdAt);
+              break;
+            default:
+              comparison = 0;
+          }
+          return order === "desc" ? -comparison : comparison;
+        });
+        return sorted;
+      },
+
+      clearAllFilters: () => {
+        setSearchTerm("");
+      },
+    }),
     [categories]
   );
 
-  // Get categories with item counts
-  const getCategoriesWithItemCounts = useCallback(async () => {
-    try {
-      return await categoryService.getCategoriesWithItemCounts();
-    } catch (error) {
-      console.error("Error getting categories with item counts:", error);
-      setError(error);
-      return [];
-    }
-  }, [categoryService]);
+  // Memoize computed values to prevent recalculation
+  const computedValues = useMemo(
+    () => ({
+      categoryCount: categories.length,
+      filteredCount: filteredCategories.length,
+      hasCategories: categories.length > 0,
+      hasSearchResults: filteredCategories.length > 0,
+      isEmpty: categories.length === 0,
+      hasFilters: searchTerm.length > 0,
+    }),
+    [categories.length, filteredCategories.length, searchTerm.length]
+  );
 
-  // Toggle category status (if supported)
-  const toggleCategoryStatus = useCallback(
-    async (categoryId, currentStatus) => {
-      if (submitting) return false;
+  // Memoize error handling functions
+  const errorHandlers = useMemo(
+    () => ({
+      clearError: () => setError(null),
 
-      setSubmitting(true);
-      try {
-        setError(null);
-        const newStatus = currentStatus === "active" ? "inactive" : "active";
-        await categoryService.updateCategoryStatus(
-          categoryId,
-          newStatus,
-          adminId
-        );
-        toast.success(
-          `Category ${
-            newStatus === "active" ? "activated" : "deactivated"
-          } successfully!`,
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
-        return true;
-      } catch (error) {
-        console.error("Error toggling category status:", error);
-        const errorMessage =
-          error.message || "Error updating category status. Please try again.";
-        toast.error(errorMessage, {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        setError(error);
-        return false;
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [adminId, categoryService, submitting]
+      handleError: (error, defaultMessage = "An error occurred") => {
+        const errorMessage = error.message || defaultMessage;
+        setError(errorMessage);
+        console.error(errorMessage, error);
+        return errorMessage;
+      },
+    }),
+    []
   );
 
   return {
-    // State
+    // Data
     categories,
     filteredCategories,
     searchTerm,
+
+    // State
     loading,
     submitting,
     error,
 
-    // Actions
+    // CRUD Actions
     addCategory,
     updateCategory,
     deleteCategory,
@@ -277,24 +293,17 @@ export const useCategoryManager = (hotelName) => {
     handleFormSubmit,
     handleSearchChange,
     refreshCategories,
-    toggleCategoryStatus,
 
-    // Utilities
-    getCategoryStats,
-    checkDuplicateCategory,
-    getCategoriesWithItemCounts,
+    // Utility functions (memoized)
+    ...utilityFunctions,
 
-    // Computed values
-    categoryCount: categories.length,
-    filteredCount: filteredCategories.length,
-    hasCategories: categories.length > 0,
-    hasSearchResults: filteredCategories.length > 0,
-    activeCategories: categories.filter((cat) => cat.status === "active")
-      .length,
-    inactiveCategories: categories.filter((cat) => cat.status === "inactive")
-      .length,
+    // Computed values (memoized)
+    ...computedValues,
 
-    // Direct setters (if needed for specific cases)
+    // Error handlers (memoized)
+    ...errorHandlers,
+
+    // Setters for advanced usage
     setSearchTerm,
     setCategories,
     setError,

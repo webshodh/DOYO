@@ -1,9 +1,10 @@
+// AddCategory.js (CORRECTED VERSION)
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Tags } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
-import { ViewCategoryColumns } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 import { useCategory } from "../../hooks/useCategory";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
@@ -12,6 +13,9 @@ import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "context/ThemeContext";
+
 // Lazy load heavy components
 const CategoryFormModal = React.lazy(() =>
   import("../../components/FormModals/CategoryFormModals")
@@ -21,6 +25,9 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 // Main AddCategory component
 const AddCategory = memo(() => {
   const { hotelName } = useParams();
+  const { ViewCategoryColumns } = useColumns();
+  const { t } = useTranslation();
+  const { currentTheme, isDark } = useTheme();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -38,7 +45,7 @@ const AddCategory = memo(() => {
     handleSearchChange,
     deleteCategory,
     prepareForEdit,
-    refreshCategories,
+    refreshCategories, // NOW PROPERLY AVAILABLE
     categoryCount,
     hasCategories,
     hasSearchResults,
@@ -51,7 +58,9 @@ const AddCategory = memo(() => {
       active: categories.filter((cat) => cat.status === "active").length,
       withItems: categories.filter((cat) => cat.itemCount > 0).length,
       recent: categories.filter((cat) => {
-        const createdDate = new Date(cat.createdAt);
+        const createdDate = new Date(
+          cat.createdAt?.toDate ? cat.createdAt.toDate() : cat.createdAt
+        );
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return createdDate > weekAgo;
       }).length,
@@ -120,8 +129,19 @@ const AddCategory = memo(() => {
     handleSearchChange("");
   }, [handleSearchChange]);
 
+  // FIXED refresh handler
   const handleRefresh = useCallback(() => {
-    refreshCategories();
+    try {
+      if (typeof refreshCategories === "function") {
+        refreshCategories();
+      } else {
+        console.warn("Refresh function not available");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error refreshing categories:", error);
+      window.location.reload();
+    }
   }, [refreshCategories]);
 
   // Error state
@@ -130,14 +150,14 @@ const AddCategory = memo(() => {
       <ErrorMessage
         error={error}
         onRetry={handleRefresh}
-        title="Error Loading Categories"
+        title={t("categories.errorLoading")}
       />
     );
   }
 
   // Loading state
   if (loading && !categories.length) {
-    return <LoadingSpinner size="lg" text="Loading categories..." />;
+    return <LoadingSpinner size="lg" text={t("categories.loading")} />;
   }
 
   return (
@@ -149,35 +169,45 @@ const AddCategory = memo(() => {
           onClose={handleModalClose}
           onSubmit={handleModalSubmit}
           editCategory={editingCategory}
-          title={editingCategory ? "Edit Category" : "Add Category"}
+          title={
+            editingCategory
+              ? t("categories.editTitle")
+              : t("categories.addTitle")
+          }
           submitting={submitting}
         />
       </Suspense>
 
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
-            pageTitle="Add Category"
+            pageTitle={t("categories.pageTitle")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description="Manage your menu categories"
+            description={t("categories.pageDescription")}
           />
 
           <PrimaryButton
             onAdd={handleAddClick}
-            btnText="Add Category"
+            btnText={t("categories.addButton")}
             loading={loading}
           />
         </div>
 
         {/* Stats Cards */}
         {hasCategories && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Tags}
-              title="Total Categories"
+              title={t("categories.total")}
               value={stats.total}
               color="blue"
+            />
+            <StatCard
+              icon={Tags}
+              title={t("categories.active")}
+              value={stats.active}
+              color="green"
             />
           </div>
         )}
@@ -187,11 +217,11 @@ const AddCategory = memo(() => {
           <SearchWithResults
             searchTerm={searchTerm}
             onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search categories by name..."
+            placeholder={t("categories.searchPlaceholder")}
             totalCount={categoryCount}
             filteredCount={filteredCategories.length}
             onClearSearch={handleClearSearch}
-            totalLabel="total categories"
+            totalLabel={t("categories.totalLabel")}
           />
         )}
 
@@ -207,7 +237,7 @@ const AddCategory = memo(() => {
                     onEdit={handleEditClick}
                     onDelete={handleDeleteClick}
                     loading={submitting}
-                    emptyMessage="No categories match your search criteria"
+                    emptyMessage={t("categories.noSearchResults")}
                     showPagination={true}
                     initialRowsPerPage={10}
                     sortable={true}
@@ -216,7 +246,7 @@ const AddCategory = memo(() => {
                 </Suspense>
               ) : (
                 <NoSearchResults
-                  btnText="Add Category"
+                  btnText={t("categories.addButton")}
                   searchTerm={searchTerm}
                   onClearSearch={handleClearSearch}
                   onAddNew={handleAddClick}
@@ -226,9 +256,9 @@ const AddCategory = memo(() => {
           ) : (
             <EmptyState
               icon={Tags}
-              title="No Categories Yet"
-              description="Create your first category to start organizing your menu items. Categories help customers navigate your menu easily."
-              actionLabel="Add Your First Category"
+              title={t("categories.emptyTitle")}
+              description={t("categories.emptyDescription")}
+              actionLabel={t("categories.emptyAction")}
               onAction={handleAddClick}
               loading={submitting}
             />

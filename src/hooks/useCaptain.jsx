@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+// useCaptain.js - FIXED VERSION
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { captainServices } from "../services/api/captainServices";
 
 export const useCaptain = (hotelName) => {
-  // State management
   const [captains, setCaptains] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -14,45 +14,65 @@ export const useCaptain = (hotelName) => {
     if (!hotelName) {
       setCaptains([]);
       setLoading(false);
+      setError("Hotel name is required");
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    let unsubscribe;
+    let mounted = true;
 
-    const unsubscribe = captainServices.subscribeToCaptains(
-      hotelName,
-      (data) => {
-        setCaptains(data);
-        setLoading(false);
-        setError(null);
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        unsubscribe = captainServices.subscribeToCaptains(hotelName, (data) => {
+          if (mounted) {
+            setCaptains(data);
+            setLoading(false);
+            setError(null);
+          }
+        });
+      } catch (err) {
+        console.error("Error setting up subscription:", err);
+        if (mounted) {
+          setError("Failed to load captains");
+          setLoading(false);
+        }
       }
-    );
+    };
 
-    // Handle potential connection errors
-    // const errorTimeout = setTimeout(() => {
-    //   if (loading) {
-    //     setError(new Error("Taking longer than expected to load captains"));
-    //     setLoading(false);
-    //   }
-    // }, 50000);
+    setupSubscription();
 
-    // Cleanup subscription on component unmount or hotelName change
     return () => {
-      unsubscribe();
-      // clearTimeout(errorTimeout);
+      mounted = false;
+      if (unsubscribe) {
+        try {
+          unsubscribe();
+        } catch (err) {
+          console.error("Error unsubscribing:", err);
+        }
+      }
     };
   }, [hotelName]);
 
-  // Filter captains based on search term
-  const filteredCaptains = captainServices.filterCaptains(captains, searchTerm);
+  // Memoize filtered captains
+  const filteredCaptains = useMemo(() => {
+    if (!Array.isArray(captains)) return [];
+    return captainServices.filterCaptains(captains, searchTerm);
+  }, [captains, searchTerm]);
 
-  // Add new captain
+  // Add captain
   const addCaptain = useCallback(
     async (captainData) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
 
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.addCaptain(
           hotelName,
@@ -62,7 +82,8 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in addCaptain:", error);
-        setError(error);
+        const errorMessage = error.message || "Failed to add captain";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -71,12 +92,22 @@ export const useCaptain = (hotelName) => {
     [hotelName, captains, submitting]
   );
 
-  // Update existing captain
+  // Update captain
   const updateCaptain = useCallback(
     async (captainId, captainData) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
+      if (!captainId) {
+        setError("Captain ID is required");
+        return false;
+      }
 
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.updateCaptain(
           hotelName,
@@ -87,7 +118,8 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in updateCaptain:", error);
-        setError(error);
+        const errorMessage = error.message || "Failed to update captain";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -99,15 +131,26 @@ export const useCaptain = (hotelName) => {
   // Delete captain
   const deleteCaptain = useCallback(
     async (captain) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
+      if (!captain || !captain.captainId) {
+        setError("Invalid captain data");
+        return false;
+      }
 
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.deleteCaptain(hotelName, captain);
         return success;
       } catch (error) {
         console.error("Error in deleteCaptain:", error);
-        setError(error);
+        const errorMessage = error.message || "Failed to delete captain";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -119,9 +162,19 @@ export const useCaptain = (hotelName) => {
   // Toggle captain status
   const toggleCaptainStatus = useCallback(
     async (captainId, currentStatus) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
+      if (!captainId) {
+        setError("Captain ID is required");
+        return false;
+      }
 
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.toggleCaptainStatus(
           hotelName,
@@ -131,7 +184,8 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in toggleCaptainStatus:", error);
-        setError(error);
+        const errorMessage = error.message || "Failed to update captain status";
+        setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
@@ -143,6 +197,11 @@ export const useCaptain = (hotelName) => {
   // Prepare captain for editing
   const prepareForEdit = useCallback(
     async (captain) => {
+      if (!captain) {
+        setError("Captain data is required");
+        return null;
+      }
+
       try {
         const captainToEdit = await captainServices.prepareForEdit(
           hotelName,
@@ -151,22 +210,27 @@ export const useCaptain = (hotelName) => {
         return captainToEdit;
       } catch (error) {
         console.error("Error in prepareForEdit:", error);
-        setError(error);
+        const errorMessage =
+          error.message || "Failed to prepare captain for editing";
+        setError(errorMessage);
         return null;
       }
     },
     [hotelName]
   );
 
-  // Handle form submission (both add and edit)
+  // Handle form submit (add or update)
   const handleFormSubmit = useCallback(
     async (captainData, captainId = null) => {
-      if (captainId) {
-        // Edit mode
-        return await updateCaptain(captainId, captainData);
-      } else {
-        // Add mode
-        return await addCaptain(captainData);
+      try {
+        if (captainId) {
+          return await updateCaptain(captainId, captainData);
+        } else {
+          return await addCaptain(captainData);
+        }
+      } catch (error) {
+        console.error("Error in handleFormSubmit:", error);
+        return false;
       }
     },
     [addCaptain, updateCaptain]
@@ -174,78 +238,100 @@ export const useCaptain = (hotelName) => {
 
   // Handle search change
   const handleSearchChange = useCallback((term) => {
-    setSearchTerm(term);
+    setSearchTerm(term || "");
   }, []);
 
-  // Refresh captains data
+  // Refresh captains
   const refreshCaptains = useCallback(() => {
     setError(null);
-    // The real-time subscription will automatically refresh the data
-    // This function exists for UI consistency
+    // Real-time subscription auto-refreshes data
   }, []);
 
-  // Get captain statistics
+  // Get captain stats
   const getCaptainStats = useCallback(async () => {
     try {
-      return await captainServices.getCaptainStats(hotelName);
+      const stats = await captainServices.getCaptainStats(hotelName);
+      return stats;
     } catch (error) {
       console.error("Error getting captain stats:", error);
-      setError(error);
-      return null;
+      const errorMessage = error.message || "Failed to get captain stats";
+      setError(errorMessage);
+      return {
+        totalCaptains: 0,
+        activeCaptains: 0,
+        inactiveCaptains: 0,
+        recentCaptains: 0,
+      };
     }
   }, [hotelName]);
 
-  // Check if captain email already exists
-  const checkDuplicateEmail = useCallback(
-    (email, excludeId = null) => {
-      return captains.some(
-        (captain) =>
-          captain.email?.toLowerCase() === email.toLowerCase() &&
-          captain.captainId !== excludeId
-      );
-    },
+  // Memoize duplicate check functions
+  const duplicateChecks = useMemo(
+    () => ({
+      checkDuplicateEmail: (email, excludeId = null) => {
+        if (!email || !Array.isArray(captains)) return false;
+        return captains.some(
+          (captain) =>
+            captain.email?.toLowerCase() === email.toLowerCase() &&
+            captain.captainId !== excludeId
+        );
+      },
+
+      checkDuplicateMobile: (mobileNo, excludeId = null) => {
+        if (!mobileNo || !Array.isArray(captains)) return false;
+        return captains.some(
+          (captain) =>
+            captain.mobileNo === mobileNo && captain.captainId !== excludeId
+        );
+      },
+
+      checkDuplicateAdhar: (adharNo, excludeId = null) => {
+        if (!adharNo || !Array.isArray(captains)) return false;
+        return captains.some(
+          (captain) =>
+            captain.adharNo === adharNo && captain.captainId !== excludeId
+        );
+      },
+
+      checkDuplicatePan: (panNo, excludeId = null) => {
+        if (!panNo || !Array.isArray(captains)) return false;
+        return captains.some(
+          (captain) =>
+            captain.panNo?.toUpperCase() === panNo.toUpperCase() &&
+            captain.captainId !== excludeId
+        );
+      },
+    }),
     [captains]
   );
 
-  // Check if captain mobile already exists
-  const checkDuplicateMobile = useCallback(
-    (mobileNo, excludeId = null) => {
-      return captains.some(
-        (captain) =>
-          captain.mobileNo === mobileNo && captain.captainId !== excludeId
-      );
-    },
-    [captains]
-  );
+  // Memoize computed values
+  const computedValues = useMemo(() => {
+    const safeList = Array.isArray(captains) ? captains : [];
+    const safeFiltered = Array.isArray(filteredCaptains)
+      ? filteredCaptains
+      : [];
 
-  // Check if captain Aadhar already exists
-  const checkDuplicateAdhar = useCallback(
-    (adharNo, excludeId = null) => {
-      return captains.some(
-        (captain) =>
-          captain.adharNo === adharNo && captain.captainId !== excludeId
-      );
-    },
-    [captains]
-  );
+    const activeCaptains = safeList.filter((c) => c.status === "active");
+    const inactiveCaptains = safeList.filter((c) => c.status === "inactive");
 
-  // Check if captain PAN already exists
-  const checkDuplicatePan = useCallback(
-    (panNo, excludeId = null) => {
-      return captains.some(
-        (captain) =>
-          captain.panNo?.toUpperCase() === panNo.toUpperCase() &&
-          captain.captainId !== excludeId
-      );
-    },
-    [captains]
-  );
+    return {
+      captainCount: safeList.length,
+      filteredCount: safeFiltered.length,
+      hasCaptains: safeList.length > 0,
+      hasSearchResults: safeFiltered.length > 0,
+      activeCaptains: activeCaptains.length,
+      inactiveCaptains: inactiveCaptains.length,
+    };
+  }, [captains, filteredCaptains]);
 
   return {
-    // State
+    // Data
     captains,
     filteredCaptains,
     searchTerm,
+
+    // State
     loading,
     submitting,
     error,
@@ -259,23 +345,15 @@ export const useCaptain = (hotelName) => {
     handleFormSubmit,
     handleSearchChange,
     refreshCaptains,
-
-    // Utilities
     getCaptainStats,
-    checkDuplicateEmail,
-    checkDuplicateMobile,
-    checkDuplicateAdhar,
-    checkDuplicatePan,
 
-    // Computed values
-    captainCount: captains.length,
-    filteredCount: filteredCaptains.length,
-    hasCaptains: captains.length > 0,
-    hasSearchResults: filteredCaptains.length > 0,
-    activeCaptains: captains.filter((c) => c.status === "active").length,
-    inactiveCaptains: captains.filter((c) => c.status === "inactive").length,
+    // Duplicate checks (memoized)
+    ...duplicateChecks,
 
-    // Direct setters (if needed for specific cases)
+    // Computed values (memoized)
+    ...computedValues,
+
+    // Setters for advanced usage
     setSearchTerm,
     setCaptains,
     setError,

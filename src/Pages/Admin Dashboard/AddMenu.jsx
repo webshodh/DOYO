@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -12,7 +12,7 @@ import {
   DollarSign,
   Eye,
 } from "lucide-react";
-import { ViewMenuColumns } from "Constants/Columns";
+import useColumns from "Constants/Columns";
 import CategoryTabs from "molecules/CategoryTab";
 import { useMenu } from "../../hooks/useMenu";
 import PageTitle from "../../atoms/PageTitle";
@@ -23,31 +23,27 @@ import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useTranslation } from "react-i18next";
+import MenuFormModal from "../../components/FormModals/MenuFormModal";
 
-// Lazy load heavy components
-const MenuFormModal = React.lazy(() =>
-  import("../../components/FormModals/MenuFormModal")
-);
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
-// Main AddMenu component
-const AddMenu = memo(({ onlyView = false }) => {
-  const navigate = useNavigate();
+const AddMenu = memo(() => {
   const { hotelName } = useParams();
+  const { t } = useTranslation();
+  const { ViewMenuColumns } = useColumns();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
-  const [editingMenuId, setEditingMenuId] = useState(null);
 
-  // Use custom hook for menu management
+  // Custom hook
   const {
     categories,
     mainCategories,
     filteredAndSortedMenus,
     menuCountsByCategory,
     searchTerm,
-    activeCategory,
     loading,
     submitting,
     error,
@@ -62,352 +58,307 @@ const AddMenu = memo(({ onlyView = false }) => {
     hasSearchResults,
   } = useMenu(hotelName);
 
-  // Memoized calculations for menu statistics
+  // Create category lookup map for resolving IDs to names
+  const categoryMap = useMemo(() => {
+    const map = {};
+    categories.forEach((category) => {
+      // Handle both possible structures
+      const categoryName = category.categoryName || category.name;
+      const categoryId = category.id;
+
+      if (categoryId && categoryName) {
+        map[categoryId] = categoryName;
+      }
+      // Also map name to name (in case some items use names directly)
+      if (categoryName) {
+        map[categoryName] = categoryName;
+      }
+    });
+    return map;
+  }, [categories]);
+
+  // Create main category lookup map
+  const mainCategoryMap = useMemo(() => {
+    const map = {};
+    mainCategories.forEach((mainCategory) => {
+      const mainCategoryName =
+        mainCategory.mainCategoryName || mainCategory.name;
+      const mainCategoryId = mainCategory.id;
+
+      if (mainCategoryId && mainCategoryName) {
+        map[mainCategoryId] = mainCategoryName;
+      }
+      if (mainCategoryName) {
+        map[mainCategoryName] = mainCategoryName;
+      }
+    });
+    return map;
+  }, [mainCategories]);
+
+  // Enhanced menus with resolved category names
+  const enhancedMenus = useMemo(() => {
+    return filteredAndSortedMenus.map((menu) => {
+      const resolvedCategoryName =
+        categoryMap[menu.menuCategory] || menu.menuCategory || "Other";
+      const resolvedMainCategoryName =
+        mainCategoryMap[menu.mainCategory] || menu.mainCategory || "";
+
+      return {
+        ...menu,
+        menuCategoryName: resolvedCategoryName,
+        mainCategoryName: resolvedMainCategoryName,
+        // Override for display purposes
+        menuCategory: resolvedCategoryName,
+        mainCategory: resolvedMainCategoryName,
+      };
+    });
+  }, [filteredAndSortedMenus, categoryMap, mainCategoryMap]);
+
+  // Stats - Use enhanced menus
   const stats = useMemo(
     () => ({
       total: menuCount,
-      available: filteredAndSortedMenus.filter(
+      available: enhancedMenus.filter(
         (menu) => menu.availability === "Available"
       ).length,
-      discounted: filteredAndSortedMenus.filter((menu) => menu.discount > 0)
-        .length,
-      categories: new Set(
-        filteredAndSortedMenus.map((menu) => menu.menuCategory)
-      ).size,
+      discounted: enhancedMenus.filter((menu) => menu.discount > 0).length,
+      categories: new Set(enhancedMenus.map((menu) => menu.menuCategoryName))
+        .size,
     }),
-    [filteredAndSortedMenus, menuCount]
+    [enhancedMenus, menuCount]
   );
 
-  // Prepare data for the table with memoization
-  const tableData = useMemo(() => {
-    return filteredAndSortedMenus.map((item, index) => ({
-      "Sr.No": index + 1,
-      Img: item.imageUrl || item.file,
-      "Menu Category": item.menuCategory || "Other",
-      "Menu Name": item.menuName,
-      Price: item.menuPrice,
-      Discount: item.discount || "-",
-      "Final Price": item.finalPrice,
-      Availability: item.availability,
-      // Ensure we include the ID fields that the handlers will look for
-      uuid: item.uuid,
-      id: item.id,
-      _id: item._id,
-    }));
-  }, [filteredAndSortedMenus]);
+  // Table data - Use enhanced menus with resolved category names
+  const tableData = useMemo(
+    () =>
+      enhancedMenus.map((item, index) => ({
+        "Sr.No": index + 1,
+        Img: item.imageUrl || item.file,
+        "Menu Category": item.menuCategoryName || item.menuCategory || "Other",
+        "Menu Name": item.menuName,
+        Price: item.menuPrice,
+        Discount: item.discount || "-",
+        "Final Price": item.finalPrice,
+        Availability: item.availability,
+        uuid: item.uuid,
+        id: item.id,
+        _id: item._id,
+      })),
+    [enhancedMenus]
+  );
 
-  // Event handlers
-  const handleAddClick = useCallback(() => {
+  // Transform categories for CategoryTabs with counts
+  const transformedCategories = useMemo(() => {
+    return categories.map((cat) => {
+      const categoryName = cat.categoryName || cat.name;
+      const categoryId = cat.id;
+      // Get count from menuCountsByCategory using either ID or name
+      const count =
+        menuCountsByCategory[categoryId] ||
+        menuCountsByCategory[categoryName] ||
+        0;
+
+      return {
+        ...cat,
+        name: categoryName,
+        count: count,
+      };
+    });
+  }, [categories, menuCountsByCategory]);
+
+  // Handlers
+  const openAddModal = useCallback(() => {
     setEditingMenu(null);
-    setEditingMenuId(null);
     setShowModal(true);
   }, []);
 
-  const handleEditClick = useCallback(
+  const openEditModal = useCallback(
     (rowData) => {
-      console.log("=== EDIT DEBUG ===");
-      console.log("Received rowData:", rowData);
-
-      // Extract the menu ID from the row data
       const menuId = rowData.uuid || rowData.id || rowData._id;
-      console.log("Extracted menuId:", menuId);
-
-      if (!menuId) {
-        console.error("No valid ID found in row data:", rowData);
-        alert("Error: Menu ID not found. Please refresh and try again.");
+      const selectedMenu = enhancedMenus.find((menu) =>
+        [menu.uuid, menu.id, menu._id].includes(menuId)
+      );
+      if (!selectedMenu) {
+        alert("Menu not found. Please refresh and try again.");
         return;
       }
-
-      // Find the original menu data from filteredAndSortedMenus
-      const selectedMenu = filteredAndSortedMenus.find((menu) => {
-        const matches =
-          menu.uuid === menuId ||
-          menu.id === menuId ||
-          menu._id === menuId ||
-          String(menu.uuid) === String(menuId) ||
-          String(menu.id) === String(menuId) ||
-          String(menu._id) === String(menuId);
-        return matches;
-      });
-
-      if (selectedMenu) {
-        console.log("Found original menu data:", selectedMenu);
-        setEditingMenu(selectedMenu);
-        setEditingMenuId(menuId);
-        setShowModal(true);
-      } else {
-        console.error("Original menu not found for ID:", menuId);
-        console.error("Available menus:", filteredAndSortedMenus);
-        alert("Menu not found. Please refresh the page and try again.");
-      }
+      setEditingMenu(selectedMenu);
+      setShowModal(true);
     },
-    [filteredAndSortedMenus]
+    [enhancedMenus]
   );
 
-  const handleDeleteClick = useCallback(
+  const handleDelete = useCallback(
     async (rowData) => {
-      console.log("=== DELETE DEBUG ===");
-      console.log("Received rowData for deletion:", rowData);
-
-      // Extract the menu ID from the row data
       const menuId = rowData.uuid || rowData.id || rowData._id;
-      console.log("Extracted menuId for deletion:", menuId);
-
-      if (!menuId) {
-        console.error("No valid ID found in row data:", rowData);
-        alert("Error: Menu ID not found. Please refresh and try again.");
-        return;
-      }
-
-      // Get the menu name for confirmation
-      const menuName =
-        rowData["Menu Name"] || rowData.menuName || "this menu item";
-
-      // Add confirmation dialog
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${menuName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${rowData["Menu Name"]}"?`
       );
-
       if (confirmed) {
-        try {
-          console.log("Calling deleteMenu with ID:", menuId);
-          const success = await deleteMenu(menuId);
-          console.log("Delete operation result:", success);
-
-          if (!success) {
-            console.error("Failed to delete menu - deleteMenu returned false");
-            alert("Failed to delete menu. Please try again.");
-          }
-        } catch (error) {
-          console.error("Error deleting menu:", error);
-          alert("An error occurred while deleting the menu. Please try again.");
-        }
+        const success = await deleteMenu(menuId);
+        if (!success) alert("Failed to delete menu. Please try again.");
       }
     },
     [deleteMenu]
   );
 
-  const handleModalClose = useCallback(() => {
-    setShowModal(false);
+  const closeModal = useCallback(() => {
     setEditingMenu(null);
-    setEditingMenuId(null);
+    setShowModal(false);
   }, []);
 
   const handleModalSubmit = useCallback(
-    async (formData) => {
-      console.log("=== FORM SUBMIT DEBUG ===");
-      console.log("Form submitted with data:", formData);
-      console.log("Edit mode:", !!editingMenuId, "Menu ID:", editingMenuId);
-
-      try {
-        let success = false;
-
-        if (editingMenuId) {
-          console.log("Updating menu with ID:", editingMenuId);
-          success = await updateMenu(formData, editingMenuId);
-          console.log("Update result:", success);
-        } else {
-          console.log("Adding new menu");
-          success = await addMenu(formData);
-          console.log("Add result:", success);
-        }
-
-        if (success) {
-          handleModalClose(); // Close modal on success
-        }
-
-        return success;
-      } catch (error) {
-        console.error("Error in form submission:", error);
-        alert("An error occurred while saving the menu. Please try again.");
-        return false;
+    async (data) => {
+      if (editingMenu) {
+        return await updateMenu(data, editingMenu.uuid || editingMenu.id);
       }
+      return await addMenu(data);
     },
-    [addMenu, updateMenu, editingMenuId, handleModalClose]
+    [addMenu, updateMenu, editingMenu]
   );
 
-  const handleClearSearch = useCallback(() => {
-    handleSearchChange("");
-  }, [handleSearchChange]);
+  const clearSearch = useCallback(
+    () => handleSearchChange(""),
+    [handleSearchChange]
+  );
 
-  const handleRefresh = useCallback(() => {
-    refreshMenus();
-  }, [refreshMenus]);
+  const refresh = useCallback(() => refreshMenus(), [refreshMenus]);
 
-  // Error state
+  // Render error or loading
   if (error) {
     return (
       <ErrorMessage
         error={error}
-        onRetry={handleRefresh}
-        title="Error Loading Menu Items"
+        onRetry={refresh}
+        title={t("menu.errorLoading")}
       />
     );
   }
-
-  // Loading state
-  if (loading && !filteredAndSortedMenus.length) {
-    return <LoadingSpinner size="lg" text="Loading menu items..." />;
+  if (loading && !enhancedMenus.length) {
+    return <LoadingSpinner size="lg" text={t("menu.loading")} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Menu Form Modal */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <MenuFormModal
-          show={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          categories={categories}
-          mainCategories={mainCategories}
-          editMode={!!editingMenuId}
-          initialData={editingMenu}
-          hotelName={hotelName}
-          submitting={submitting}
+      {/* Header & Stats */}
+      <div className="flex flex-row lg:flex-row lg:items-center justify-between mb-4 gap-4">
+        <PageTitle
+          pageTitle={t("menu.managePageTitle")}
+          className="text-2xl font-bold"
+          description={t("menu.manageDescription")}
         />
-      </Suspense>
-
-      <div>
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
-          <PageTitle
-            pageTitle={onlyView ? "View Menu" : "Menu Management"}
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description={
-              onlyView
-                ? "Browse menu items"
-                : "Manage your menu items and categories"
-            }
+        <PrimaryButton
+          onAdd={openAddModal}
+          btnText={t("menu.addButton")}
+          loading={submitting}
+        />
+      </div>
+      {hasMenus && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            icon={ChefHat}
+            title={t("menu.totalItems")}
+            value={stats.total}
+            color="blue"
           />
-
-          {!onlyView && (
-            <PrimaryButton
-              onAdd={handleAddClick}
-              btnText="Add Menu Item"
-              loading={loading}
-            />
-          )}
+          <StatCard
+            icon={TrendingUp}
+            title={t("menu.totalAvailable")}
+            value={stats.available}
+            color="green"
+          />
+          <StatCard
+            icon={DollarSign}
+            title={t("menu.withDiscount")}
+            value={stats.discounted}
+            color="orange"
+          />
+          <StatCard
+            icon={Grid}
+            title={t("menu.totalCategories")}
+            value={stats.categories}
+            color="purple"
+          />
         </div>
+      )}
 
-        {/* Stats Cards */}
-        {hasMenus && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={ChefHat}
-              title="Total Items"
-              value={stats.total}
-              color="blue"
-            />
-            <StatCard
-              icon={TrendingUp}
-              title="Available"
-              value={stats.available}
-              color="green"
-            />
-            <StatCard
-              icon={DollarSign}
-              title="With Discount"
-              value={stats.discounted}
-              color="orange"
-            />
-            <StatCard
-              icon={Grid}
-              title="Categories"
-              value={stats.categories}
-              color="purple"
-            />
-          </div>
-        )}
-
-        {/* Search and Filters */}
-        {hasMenus && (
+      {/* Search & Filters */}
+      {hasMenus && (
+        <>
           <SearchWithResults
             searchTerm={searchTerm}
             onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search menu items by name, category, or price..."
+            placeholder={t("menu.searchPlaceholder")}
             totalCount={menuCount}
-            filteredCount={filteredAndSortedMenus.length}
-            onClearSearch={handleClearSearch}
-            totalLabel="total menu items"
+            filteredCount={enhancedMenus.length}
+            onClearSearch={clearSearch}
+            totalLabel={t("menu.totalLabel")}
+          />
+          <div className="bg-white rounded-lg shadow mb-6 p-4 overflow-x-auto">
+            <CategoryTabs
+              categories={transformedCategories}
+              menuCountsByCategory={menuCountsByCategory}
+              handleCategoryFilter={handleCategoryFilter}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Table or Empty State */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+        {hasMenus ? (
+          hasSearchResults ? (
+            <Suspense
+              fallback={<LoadingSpinner text={t("menu.loadingTable")} />}
+            >
+              <DynamicTable
+                columns={ViewMenuColumns}
+                data={tableData}
+                onEdit={openEditModal}
+                onDelete={handleDelete}
+                loading={submitting}
+                showPagination
+                initialRowsPerPage={10}
+                sortable
+                className="border-0"
+              />
+            </Suspense>
+          ) : (
+            <NoSearchResults
+              btnText={t("menu.addButton")}
+              searchTerm={searchTerm}
+              onClearSearch={clearSearch}
+              onAddNew={openAddModal}
+            />
+          )
+        ) : (
+          <EmptyState
+            icon={ChefHat}
+            title={t("menu.noItems")}
+            description={t("menu.noItemsDescription")}
+            actionLabel={t("menu.emptyAction")}
+            onAction={openAddModal}
+            loading={submitting}
           />
         )}
-
-        {/* Categories Section */}
-        {hasMenus && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-4">
-            <div className="overflow-x-auto no-scrollbar">
-              <div className="flex flex-nowrap space-x-2">
-                <CategoryTabs
-                  categories={categories}
-                  menuCountsByCategory={menuCountsByCategory}
-                  handleCategoryFilter={handleCategoryFilter}
-                  activeCategory={activeCategory}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {hasMenus ? (
-            <>
-              {hasSearchResults ? (
-                <Suspense
-                  fallback={<LoadingSpinner text="Loading menu table..." />}
-                >
-                  <DynamicTable
-                    columns={ViewMenuColumns}
-                    data={tableData}
-                    onEdit={!onlyView ? handleEditClick : undefined}
-                    onDelete={!onlyView ? handleDeleteClick : undefined}
-                    loading={submitting}
-                    emptyMessage="No menu items match your search criteria"
-                    showPagination={true}
-                    initialRowsPerPage={10}
-                    sortable={true}
-                    className="border-0"
-                  />
-                </Suspense>
-              ) : (
-                <NoSearchResults
-                  btnText="Add Menu Item"
-                  searchTerm={searchTerm}
-                  onClearSearch={handleClearSearch}
-                  onAddNew={!onlyView ? handleAddClick : undefined}
-                />
-              )}
-            </>
-          ) : (
-            <EmptyState
-              icon={onlyView ? Eye : ChefHat}
-              title={onlyView ? "No Menu Items to View" : "No Menu Items Yet"}
-              description={
-                onlyView
-                  ? "There are no menu items available to display. Check back later or contact the restaurant."
-                  : "Create your first menu item to start building your restaurant's offerings. Add delicious dishes and beverages for your customers."
-              }
-              actionLabel={onlyView ? undefined : "Add Your First Menu Item"}
-              onAction={!onlyView ? handleAddClick : undefined}
-              loading={submitting}
-            />
-          )}
-        </div>
       </div>
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      {/* Modal */}
+      {showModal && (
+        <MenuFormModal
+          show={showModal}
+          onClose={closeModal}
+          onSubmit={handleModalSubmit}
+          categories={categories}
+          mainCategories={mainCategories}
+          editMode={Boolean(editingMenu)}
+          initialData={editingMenu}
+          hotelName={hotelName}
+        />
+      )}
+
+      {/* Toasts */}
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
 });

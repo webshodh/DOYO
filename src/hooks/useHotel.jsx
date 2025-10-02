@@ -1,316 +1,518 @@
-import { useState, useCallback } from "react";
+// useHotel.js (OPTIMIZED)
+
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { hotelServices } from "../services/api/hotelServices";
-import { toast } from "react-toastify";
-import {
-  validateEmail,
-  validateContact,
-  validatePassword,
-} from "../validation/hotelValidation";
-import { hotelFormConfig } from "Constants/ConfigForms/addHotelFormConfig";
 
-const useHotel = () => {
-  // Get default form data from config
-  const getDefaultFormData = () => {
-    const defaultData = {};
-    hotelFormConfig.sections.forEach((section) => {
-      section.fields.forEach((field) => {
-        defaultData[field.name] = field.defaultValue || "";
-      });
-    });
-    return defaultData;
-  };
-
-  // Form data state
-  const [formData, setFormData] = useState(getDefaultFormData());
-
-  // Admin state
-  const [admin, setAdmin] = useState({
-    name: "",
-    email: "",
-    password: "",
-    contact: "",
-    role: "admin",
-    isExisting: false,
-    existingAdminId: "",
-    existingHotels: [],
-    searched: false,
+export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
+  const [hotels, setHotels] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    status: "all",
+    businessType: "all",
+    city: "all",
+    state: "all",
+    subscriptionPlan: "all",
   });
-
-  // Loading states
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedHotels, setSelectedHotels] = useState([]);
 
-  // Update admin field
-  const updateAdmin = useCallback((field, value) => {
-    setAdmin((prev) => ({
-      ...prev,
-      [field]: value,
-      // Reset search status when email changes
-      ...(field === "email" && {
-        isExisting: false,
-        existingAdminId: "",
-        existingHotels: [],
-        searched: false,
-        name: "",
-        contact: "",
-        password: "",
-      }),
-    }));
-  }, []);
+  // Subscribe to hotels with real-time updates
+  useEffect(() => {
+    let unsubscribe;
 
-  // Search for existing admin
-  const searchAdmin = useCallback(async () => {
-    if (!admin.email.trim() || !validateEmail(admin.email)) {
-      toast.error("Please enter a valid email address", {
-        position: toast.POSITION.TOP_RIGHT,
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
+
+      unsubscribe = hotelServices.subscribeToHotels((data) => {
+        setHotels(data);
+        setLoading(false);
       });
-      return;
-    }
+    };
 
-    try {
-      setSearching(true);
-      const result = await hotelServices.searchAdminByEmail(admin.email);
+    setupSubscription();
 
-      if (result.exists) {
-        setAdmin((prev) => ({
-          ...prev,
-          isExisting: true,
-          existingAdminId: result.adminId,
-          name: result.adminData.name,
-          contact: result.adminData.contact,
-          existingHotels: result.adminData.hotels || [],
-          searched: true,
-        }));
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array to prevent re-subscriptions
 
-        toast.success(`Found existing admin: ${result.adminData.name}`, {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+  // Filter options derived from hotels data (memoized)
+  const filterOptions = useMemo(() => {
+    return hotelServices.getFilterOptions(hotels);
+  }, [hotels]);
+
+  // Filtered hotels based on search and filters (memoized)
+  const filteredHotels = useMemo(() => {
+    return hotelServices.filterHotels(hotels, searchTerm, filters);
+  }, [hotels, searchTerm, filters]);
+
+  // Hotel analytics (memoized)
+  const analytics = useMemo(() => {
+    return hotelServices.getHotelAnalytics(hotels);
+  }, [hotels]);
+
+  // Enhanced stats (memoized and optimized)
+  const hotelStats = useMemo(() => {
+    const stats = {
+      total: hotels.length,
+      active: 0,
+      inactive: 0,
+      revenue: 0,
+      businessTypes: 0,
+      avgAdminsPerHotel: 0,
+      avgMenuItemsPerHotel: 0,
+      subscriptionBreakdown: {},
+    };
+
+    if (hotels.length === 0) return stats;
+
+    let totalAdmins = 0;
+    let totalMenuItems = 0;
+    const subscriptionCounts = {};
+    const businessTypeSet = new Set();
+
+    hotels.forEach((hotel) => {
+      // Status counts
+      const status = hotel.status || hotel.isActive || "active";
+      if (status === "active" || status === "Active") {
+        stats.active++;
       } else {
-        setAdmin((prev) => ({
-          ...prev,
-          isExisting: false,
-          existingAdminId: "",
-          name: "",
-          contact: "",
-          password: "",
-          existingHotels: [],
-          searched: true,
-        }));
-
-        toast.info(
-          "Admin not found. Please fill in details to create new admin.",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+        stats.inactive++;
       }
-    } catch (error) {
-      console.error("Error searching admin:", error);
-      toast.error("Error searching for admin. Please try again.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      setAdmin((prev) => ({
-        ...prev,
-        searched: false,
-      }));
-    } finally {
-      setSearching(false);
-    }
-  }, [admin.email]);
 
-  // Create new admin (optional - can be triggered by button click)
-  const createNewAdmin = useCallback(() => {
-    if (!admin.searched || admin.isExisting) return;
+      // Revenue calculation
+      stats.revenue += hotel.totalRevenue || hotel.monthlyRevenue || 0;
 
-    toast.info("Please fill in all required details to create the new admin.", {
-      position: toast.POSITION.TOP_RIGHT,
+      // Business types tracking
+      if (hotel.businessType) {
+        businessTypeSet.add(hotel.businessType);
+      }
+
+      // Metrics aggregation
+      if (hotel.metrics) {
+        totalAdmins += hotel.metrics.totalAdmins || 0;
+        totalMenuItems += hotel.metrics.totalMenuItems || 0;
+
+        const planName = hotel.metrics.subscription?.planName || "Free";
+        subscriptionCounts[planName] = (subscriptionCounts[planName] || 0) + 1;
+      }
     });
-  }, [admin.searched, admin.isExisting]);
 
-  // Get admin validation status
-  const getAdminValidationStatus = useCallback(() => {
-    // Must have searched for admin first
-    if (
-      !admin.searched ||
-      !admin.email?.trim() ||
-      !validateEmail(admin.email)
-    ) {
-      return false;
-    }
+    stats.avgAdminsPerHotel =
+      stats.total > 0 ? Math.round((totalAdmins / stats.total) * 10) / 10 : 0;
+    stats.avgMenuItemsPerHotel =
+      stats.total > 0
+        ? Math.round((totalMenuItems / stats.total) * 10) / 10
+        : 0;
+    stats.businessTypes = businessTypeSet.size;
+    stats.subscriptionBreakdown = subscriptionCounts;
 
-    // Basic required fields
-    if (!admin.name?.trim() || !admin.contact?.trim()) {
-      return false;
-    }
+    return stats;
+  }, [hotels]);
 
-    // Contact validation
-    if (!validateContact(admin.contact)) {
-      return false;
-    }
+  // Add hotel (optimized dependencies)
+  const addHotel = useCallback(
+    async (hotelData) => {
+      if (submitting) return { success: false, error: "Already processing" };
+      setSubmitting(true);
+      setError(null);
 
-    // For new admins, password is required
-    if (
-      !admin.isExisting &&
-      (!admin.password?.trim() || !validatePassword(admin.password))
-    ) {
-      return false;
-    }
-
-    return true;
-  }, [admin]);
-
-  // Submit hotel with admin - Updated to accept hotelData parameter
-  const submitHotelWithAdmin = useCallback(
-    async (hotelData = null) => {
       try {
-        setSubmitting(true);
-
-        // Use provided hotelData or fallback to formData.businessName
-        const dataToUse = hotelData || formData;
-        const hotelName = dataToUse.hotelName || dataToUse.businessName;
-
-        // Validate hotel name
-        if (!hotelName?.trim()) {
-          toast.error("Business name is required", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          return { success: false };
+        const result = await hotelServices.addHotel(hotelData, hotels);
+        if (result.success && onHotelAdded) {
+          onHotelAdded({ ...hotelData, hotelId: result.hotelId });
         }
-
-        // Check if hotel already exists
-        const hotelExists = await hotelServices.checkHotelExists(hotelName);
-        if (hotelExists) {
-          toast.error("Business with this name already exists", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          return { success: false };
-        }
-
-        // Validate admin details
-        if (!admin.searched) {
-          toast.error("Please search for admin by email first", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          return { success: false };
-        }
-
-        if (!getAdminValidationStatus()) {
-          toast.error("Please fill in all required admin details", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          return { success: false };
-        }
-
-        // Create the hotel with complete data
-        const result = await hotelServices.createHotelWithAdmin(
-          hotelName,
-          admin,
-          dataToUse
-        );
-
-        if (result.success) {
-          if (admin.isExisting) {
-            toast.success(
-              `Restaurant "${hotelName}" created and assigned to existing admin "${admin.name}"`,
-              {
-                position: toast.POSITION.TOP_RIGHT,
-              }
-            );
-          } else {
-            toast.success(
-              `Restaurant "${hotelName}" created with new admin "${admin.name}"`,
-              {
-                position: toast.POSITION.TOP_RIGHT,
-              }
-            );
-          }
-          resetForm();
-        } else {
-          toast.error(result.message || "Failed to create restaurant", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-        }
-
         return result;
-      } catch (error) {
-        console.error("Error submitting hotel:", error);
-        toast.error("Unexpected error occurred", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return { success: false, error: error.message };
+      } catch (err) {
+        const errorMsg = err.message || "Error adding hotel";
+        setError(errorMsg);
+        console.error("Error in addHotel:", err);
+        return { success: false, error: errorMsg };
       } finally {
         setSubmitting(false);
       }
     },
-    [formData, admin, getAdminValidationStatus]
+    [submitting, onHotelAdded] // Removed hotels to prevent unnecessary re-renders
   );
 
-  // Reset form to initial state
-  const resetForm = useCallback(() => {
-    setFormData(getDefaultFormData());
-    setAdmin({
-      name: "",
-      email: "",
-      password: "",
-      contact: "",
-      role: "admin",
-      isExisting: false,
-      existingAdminId: "",
-      existingHotels: [],
-      searched: false,
+  // Update hotel (optimized dependencies)
+  const updateHotel = useCallback(
+    async (hotelData, hotelId) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        const success = await hotelServices.updateHotel(
+          hotelId,
+          hotelData,
+          hotels
+        );
+        return success;
+      } catch (err) {
+        const errorMessage = err.message || "Error updating hotel";
+        setError(errorMessage);
+        console.error("Error in updateHotel:", err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [submitting] // Removed hotels to prevent unnecessary re-renders
+  );
+
+  // Delete hotel
+  const deleteHotel = useCallback(
+    async (hotel) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        const success = await hotelServices.deleteHotel(hotel);
+        return success;
+      } catch (err) {
+        const errorMessage = err.message || "Error deleting hotel";
+        setError(errorMessage);
+        console.error("Error in deleteHotel:", err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [submitting]
+  );
+
+  // Bulk operations
+  const bulkUpdateHotels = useCallback(
+    async (hotelIds, updateData) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        const success = await hotelServices.bulkUpdateHotels(
+          hotelIds,
+          updateData
+        );
+        return success;
+      } catch (err) {
+        const errorMessage = err.message || "Error bulk updating hotels";
+        setError(errorMessage);
+        console.error("Error in bulkUpdateHotels:", err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [submitting]
+  );
+
+  // Prepare for edit
+  const prepareForEdit = useCallback(async (hotel) => {
+    try {
+      return await hotelServices.prepareForEdit(hotel);
+    } catch (err) {
+      const errorMessage = err.message || "Error preparing hotel for edit";
+      setError(errorMessage);
+      console.error("Error in prepareForEdit:", err);
+      return null;
+    }
+  }, []);
+
+  // Form submission handler
+  const handleFormSubmit = useCallback(
+    async (hotelData, hotelId = null) => {
+      if (hotelId) {
+        return await updateHotel(hotelData, hotelId);
+      } else {
+        const result = await addHotel(hotelData);
+        return result.success;
+      }
+    },
+    [addHotel, updateHotel]
+  );
+
+  // Search handling
+  const handleSearchChange = useCallback((term) => {
+    setSearchTerm(term);
+  }, []);
+
+  // Filter handling
+  const handleFilterChange = useCallback((filterKey, value) => {
+    setFilters((prev) => ({ ...prev, [filterKey]: value }));
+  }, []);
+
+  // Clear all filters
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm("");
+    setFilters({
+      status: "all",
+      businessType: "all",
+      city: "all",
+      state: "all",
+      subscriptionPlan: "all",
     });
   }, []);
 
-  // Get form validation status
-  const getFormValidationStatus = useCallback(() => {
-    // Get all required fields from config
-    const requiredFields = [];
-    hotelFormConfig.sections.forEach((section) => {
-      section.fields.forEach((field) => {
-        if (field.required) {
-          requiredFields.push(field.name);
+  // Export data (memoized)
+  const exportHotels = useMemo(() => {
+    return (format = "csv") => {
+      return hotelServices.exportHotelsData(filteredHotels, format);
+    };
+  }, [filteredHotels]);
+
+  // Get hotel by ID with full details
+  const getHotelById = useCallback(async (hotelId) => {
+    try {
+      return await hotelServices.getHotelById(hotelId);
+    } catch (err) {
+      const errorMessage = err.message || "Error fetching hotel details";
+      setError(errorMessage);
+      console.error("Error in getHotelById:", err);
+      return null;
+    }
+  }, []);
+
+  // Error clearing
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  // Selection handling for bulk operations (memoized)
+  const selectionHandlers = useMemo(
+    () => ({
+      handleHotelSelection: (hotelId, isSelected) => {
+        setSelectedHotels((prev) => {
+          if (isSelected) {
+            return [...prev, hotelId];
+          } else {
+            return prev.filter((id) => id !== hotelId);
+          }
+        });
+      },
+
+      handleSelectAllHotels: (isSelected) => {
+        if (isSelected) {
+          setSelectedHotels(filteredHotels.map((hotel) => hotel.hotelId));
+        } else {
+          setSelectedHotels([]);
         }
-      });
-    });
+      },
 
-    // Check if all required fields have values
-    const hotelValid = requiredFields.every((fieldName) =>
-      formData[fieldName]?.toString().trim()
-    );
+      clearSelection: () => {
+        setSelectedHotels([]);
+      },
+    }),
+    [filteredHotels]
+  );
 
-    const adminValid = getAdminValidationStatus();
+  // Memoize computed values to prevent recalculation
+  const computedValues = useMemo(() => {
+    const hasFiltersApplied =
+      searchTerm || Object.values(filters).some((f) => f !== "all");
 
     return {
-      hotelValid,
-      adminValid,
-      isFormValid: hotelValid && adminValid,
+      hotelCount: hotels.length,
+      filteredCount: filteredHotels.length,
+      selectedCount: selectedHotels.length,
+      hasHotels: hotels.length > 0,
+      hasSearchResults: filteredHotels.length > 0,
+      hasFiltersApplied,
     };
-  }, [formData, getAdminValidationStatus]);
+  }, [
+    hotels.length,
+    filteredHotels.length,
+    selectedHotels.length,
+    searchTerm,
+    filters,
+  ]);
 
   return {
+    // Data
+    hotels,
+    filteredHotels,
+    searchTerm,
+    filters,
+    filterOptions,
+    analytics,
+
     // State
-    formData,
-    admin,
     loading,
     submitting,
-    searching,
+    error,
+
+    // Enhanced Stats
+    hotelStats,
 
     // Actions
-    setFormData,
-    updateAdmin,
-    searchAdmin,
-    createNewAdmin,
-    submitHotelWithAdmin,
-    resetForm,
+    addHotel,
+    updateHotel,
+    deleteHotel,
+    bulkUpdateHotels,
+    prepareForEdit,
+    handleFormSubmit,
+    handleSearchChange,
+    handleFilterChange,
+    clearAllFilters,
+    exportHotels,
+    getHotelById,
+    clearError,
 
-    // Validation functions
-    getAdminValidationStatus,
-    getFormValidationStatus,
+    // Selection (memoized)
+    selectedHotels,
+    ...selectionHandlers,
 
-    // Utilities
-    adminExists: admin.isExisting,
+    // Computed values (memoized)
+    ...computedValues,
+
+    // Setters for advanced usage
+    setSearchTerm,
+    setFilters,
+    setHotels,
+    setError,
+    setSelectedHotels,
   };
 };
 
-export default useHotel;
+// Hook for getting hotels list (lightweight version without metrics) - OPTIMIZED
+export const useHotelsList = () => {
+  const [hotels, setHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let unsubscribe;
+    let isMounted = true; // Prevent state updates if component unmounted
+
+    const setupSubscription = () => {
+      setLoading(true);
+      setError(null);
+
+      // Use a simpler subscription without metrics for better performance
+      unsubscribe = hotelServices.subscribeToHotels((data) => {
+        if (!isMounted) return; // Component unmounted during callback
+
+        // Map to simpler format
+        const simpleHotels = data.map((hotel) => ({
+          hotelId: hotel.hotelId,
+          businessName: hotel.businessName,
+          hotelName: hotel.hotelName,
+          status: hotel.status,
+          city: hotel.city,
+          state: hotel.state,
+          businessType: hotel.businessType,
+        }));
+        setHotels(simpleHotels);
+        setLoading(false);
+      });
+    };
+
+    setupSubscription();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []); // Empty dependency array prevents re-subscriptions
+
+  const activeHotels = useMemo(() => {
+    return hotels.filter(
+      (hotel) => hotel.status === "active" || hotel.status === "Active"
+    );
+  }, [hotels]);
+
+  // Memoize computed values
+  const computedValues = useMemo(
+    () => ({
+      hotelCount: hotels.length,
+      activeCount: activeHotels.length,
+    }),
+    [hotels.length, activeHotels.length]
+  );
+
+  return {
+    hotels,
+    activeHotels,
+    loading,
+    error,
+    ...computedValues,
+  };
+};
+
+// Hook for single hotel details - OPTIMIZED
+export const useHotelDetails = (hotelId) => {
+  const [hotel, setHotel] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!hotelId) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true; // Prevent state updates if component unmounted
+
+    const fetchHotel = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const hotelData = await hotelServices.getHotelById(hotelId);
+        if (isMounted) {
+          setHotel(hotelData);
+        }
+      } catch (err) {
+        if (isMounted) {
+          const errorMessage = err.message || "Error fetching hotel details";
+          setError(errorMessage);
+          console.error("Error fetching hotel details:", err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchHotel();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hotelId]); // Only re-fetch if hotelId changes
+
+  const refreshHotel = useCallback(async () => {
+    if (!hotelId) return;
+
+    try {
+      const hotelData = await hotelServices.getHotelById(hotelId);
+      setHotel(hotelData);
+    } catch (err) {
+      const errorMessage = err.message || "Error refreshing hotel details";
+      setError(errorMessage);
+      console.error("Error refreshing hotel details:", err);
+    }
+  }, [hotelId]);
+
+  // Memoize computed values
+  const computedValues = useMemo(
+    () => ({
+      isActive: hotel?.status === "active",
+      hasSubscription: Boolean(hotel?.metrics?.subscription),
+    }),
+    [hotel?.status, hotel?.metrics?.subscription]
+  );
+
+  return {
+    hotel,
+    loading,
+    error,
+    refreshHotel,
+    ...computedValues,
+  };
+};

@@ -24,13 +24,13 @@ import {
 
 // Services and utilities
 import { captainServices } from "../../services/api/captainServices";
-import { useOrderData } from "../../hooks/useOrder";
+import { useOrder, useOrderData } from "../../hooks/useOrder";
 import { toast } from "react-toastify";
 
 // Components
 import StatCard from "../../components/Cards/StatCard";
 import { DynamicTable } from "../../components";
-import { ORDER_STATUSES, orderColumns } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 
 // UI Components
 import PageTitle from "../../atoms/PageTitle";
@@ -49,6 +49,7 @@ const OrderDetailsModal = React.lazy(() => import("./OrderDetailsModal"));
 
 const CaptainDashboard = memo(() => {
   const navigate = useNavigate();
+  const { ORDER_STATUSES, orderColumns } = useColumns();
 
   // Captain state
   const [captain, setCaptain] = useState(null);
@@ -113,7 +114,7 @@ const CaptainDashboard = memo(() => {
     // Options for UI
     statusOptions,
     timePeriodOptions,
-  } = useOrderData(captain?.hotelName, {
+  } = useOrder(captain?.hotelName, {
     defaultTimePeriod: "daily", // Show today's orders by default
     defaultStatusFilter: "all",
     includeMenuData: true, // Include menu data for analytics
@@ -374,8 +375,6 @@ const CaptainDashboard = memo(() => {
             }}
             options={timePeriodOptions}
           />
-
-         
         </div>
 
         {/* Enhanced Order Statistics Cards - Updated for Simplified Status System */}

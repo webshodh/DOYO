@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ref, push, set, get } from "firebase/database";
-import { db } from "../../services/firebase/firebaseConfig";
+import { rtdb } from "../../services/firebase/firebaseConfig";
 import { toast } from "react-toastify";
 import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
 import CheckoutHeader from "atoms/Headers/CheckoutHeader";
@@ -33,7 +33,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   const getNextOrderNumber = useCallback(async () => {
     setIsLoading(true);
     try {
-      const ordersRef = ref(db, `/hotels/${hotelName}/orders`);
+      const ordersRef = ref(rtdb, `/hotels/${hotelName}/orders`);
       const snapshot = await get(ordersRef);
 
       if (snapshot.exists()) {
@@ -287,13 +287,13 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
       };
 
       // Add order to Firebase
-      const ordersRef = ref(db, `/hotels/${hotelName}/orders`);
+      const ordersRef = ref(rtdb, `/hotels/${hotelName}/orders`);
       const newOrderRef = push(ordersRef);
       await set(newOrderRef, orderData);
 
       // Also store the order ID in the order data for easier reference
       await set(
-        ref(db, `/hotels/${hotelName}/orders/${newOrderRef.key}/firebaseId`),
+        ref(rtdb, `/hotels/${hotelName}/orders/${newOrderRef.key}/firebaseId`),
         newOrderRef.key
       );
 

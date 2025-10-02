@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { onValue, ref } from "firebase/database";
+import { getFirestore, collection, onSnapshot } from "firebase/firestore";
 import {
   Calendar,
   CheckCircle,
@@ -13,8 +13,8 @@ import {
 
 // Services and utilities
 import { captainServices } from "../../services/api/captainServices";
-import { useOrderData } from "../../hooks/useOrder";
-import { db } from "../../services/firebase/firebaseConfig";
+import { useOrder } from "../../hooks/useOrder";
+import { app } from "../../services/firebase/firebaseConfig";
 
 // Components
 import LoadingSpinner from "../../atoms/LoadingSpinner";
@@ -35,11 +35,13 @@ import PrintBill from "./PrintBill";
 import { ORDER_STATUSES } from "../../Constants/Columns";
 import TimePeriodSelector from "atoms/TimePeriodSelector";
 
+const firestore = getFirestore(app);
+
 const MyOrdersPage = () => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
 
-  // Captain state
+  // Captain & menu state
   const [captain, setCaptain] = useState(null);
   const [availableMenuItems, setAvailableMenuItems] = useState([]);
   const [error, setError] = useState("");
@@ -96,7 +98,7 @@ const MyOrdersPage = () => {
     // Options for UI
     statusOptions,
     timePeriodOptions,
-  } = useOrderData(hotelName || captain?.hotelName, {
+  } = useOrder(hotelName || captain?.hotelName, {
     defaultTimePeriod: "total",
     defaultStatusFilter: "all",
     includeMenuData: false,
@@ -104,27 +106,26 @@ const MyOrdersPage = () => {
     sortOrder: "desc",
   });
 
-  // Restaurant information for the bill - Get from captain data or use defaults
+  // Restaurant info for bill printing
   const restaurantInfo = useMemo(
     () => ({
       name: captain?.hotelName || hotelName || "Restaurant Name",
       address: captain?.address || "Restaurant Address, City, State - 123456",
       phone: captain?.phone || "+91 12345 67890",
       gst: captain?.gstNumber || "12ABCDE3456F1Z5",
-      taxRate: 0.18, // 18% GST
+      taxRate: 0.18,
       footer: "Thank you for dining with us!",
     }),
     [captain, hotelName]
   );
 
-  // Handle print bill
+  // Print bill handler
   const handlePrintBill = useCallback((order) => {
-    console.log("Printing bill for order:", order); // Debug log
     setSelectedOrderForBill(order);
     setShowPrintBill(true);
   }, []);
 
-  // Load captain data on mount
+  // Load captain data
   useEffect(() => {
     const loadCaptainData = async () => {
       try {
@@ -139,40 +140,35 @@ const MyOrdersPage = () => {
         setError("Error loading captain information");
       }
     };
-
     loadCaptainData();
   }, [navigate]);
 
-  // Load menu items for editing orders
+  // Load menu items from Firestore
   useEffect(() => {
     const targetHotelName = hotelName || captain?.hotelName;
     if (!targetHotelName) return;
 
-    const menuRef = ref(db, `/hotels/${targetHotelName}/menu`);
-    const unsubscribe = onValue(
-      menuRef,
+    const menusRef = collection(firestore, `hotels/${targetHotelName}/menu`);
+    const unsubscribe = onSnapshot(
+      menusRef,
       (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const menuArray = Object.entries(data).map(([key, value]) => ({
-            id: key,
-            menuId: key,
-            ...value,
-          }));
-          setAvailableMenuItems(menuArray);
-        } else {
-          setAvailableMenuItems([]);
-        }
+        const menusData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          menuId: doc.id,
+          ...doc.data(),
+        }));
+        setAvailableMenuItems(menusData);
       },
       (error) => {
         console.error("Error loading menu items:", error);
+        setAvailableMenuItems([]);
       }
     );
 
     return () => unsubscribe();
   }, [captain, hotelName]);
 
-  // Enhanced order statistics with corrected mapping for simplified status system
+  // Enhanced order statistics
   const displayStats = useMemo(() => {
     const stats = {
       total: orderStats.total || 0,
@@ -189,7 +185,7 @@ const MyOrdersPage = () => {
     return stats;
   }, [orderStats]);
 
-  // Event handlers
+  // Navigation handlers
   const handleGoBack = useCallback(() => {
     navigate("/captain/dashboard");
   }, [navigate]);
@@ -205,11 +201,10 @@ const MyOrdersPage = () => {
     }
   }, [refreshOrders]);
 
-  // Fixed status update handler to handle rejection reason
+  // Update order status and refresh orders afterwards
   const handleUpdateStatus = useCallback(
     async (orderId, newStatus, rejectionReason = null) => {
       setUpdatingOrderId(orderId);
-
       try {
         const updateData = {
           updatedBy: "captain",
@@ -226,10 +221,9 @@ const MyOrdersPage = () => {
         const result = await updateOrderStatus(orderId, newStatus, updateData);
 
         if (!result.success) {
-          console.error("Failed to update order status:", result.error);
           throw new Error(result.error || "Failed to update status");
         }
-
+        await refreshOrders();
         return result;
       } catch (error) {
         console.error("Error updating order status:", error);
@@ -238,9 +232,10 @@ const MyOrdersPage = () => {
         setUpdatingOrderId(null);
       }
     },
-    [updateOrderStatus, captain?.name]
+    [updateOrderStatus, refreshOrders, captain?.name]
   );
 
+  // Edit order modal handlers
   const handleEditOrder = useCallback((order) => {
     setEditingOrder(order);
   }, []);
@@ -256,24 +251,24 @@ const MyOrdersPage = () => {
             lastModifiedAt: new Date().toISOString(),
           },
         });
-
         if (result.success) {
           setEditingOrder(null);
-        } else {
-          throw new Error(result.error || "Failed to update order");
-        }
+          await refreshOrders();
+        } else throw new Error(result.error || "Failed to update order");
       } catch (error) {
         console.error("Error saving order:", error);
         throw error;
       }
     },
-    [updateOrder, captain?.name]
+    [updateOrder, refreshOrders, captain?.name]
   );
 
+  // View order modal handler
   const handleViewOrder = useCallback((order) => {
     setViewingOrder(order);
   }, []);
 
+  // Delete order handler
   const handleDeleteOrder = useCallback(
     async (orderId) => {
       const order = orders.find((o) => o.id === orderId);
@@ -281,9 +276,7 @@ const MyOrdersPage = () => {
         ? `Are you sure you want to cancel order #${order.orderNumber} from ${order.displayTable}?`
         : "Are you sure you want to cancel this order?";
 
-      if (!window.confirm(confirmMessage)) {
-        return;
-      }
+      if (!window.confirm(confirmMessage)) return;
 
       const result = await deleteOrder(orderId);
 
@@ -296,27 +289,22 @@ const MyOrdersPage = () => {
     [deleteOrder, orders]
   );
 
+  // Search and filter input handlers
   const handleSearchInputChange = useCallback(
-    (e) => {
-      const value = e.target.value;
-      handleSearchChange(value);
-    },
+    (e) => handleSearchChange(e.target.value),
     [handleSearchChange]
   );
 
   const handleStatusInputChange = useCallback(
-    (e) => {
-      const value = e.target.value;
-      handleStatusFilterChange(value);
-    },
+    (e) => handleStatusFilterChange(e.target.value),
     [handleStatusFilterChange]
   );
 
-  // Computed values for loading and error states
+  // Computed flags for loading and errors
   const showLoadingSpinner = isLoading && !captain;
   const showError = (error || isError) && !orders.length;
 
-  // Loading state
+  // Render loading state
   if (showLoadingSpinner) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -325,7 +313,7 @@ const MyOrdersPage = () => {
     );
   }
 
-  // Error state
+  // Render error state
   if (showError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -341,7 +329,7 @@ const MyOrdersPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
-        {/* Header with Connection Status */}
+        {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <div className="flex items-center gap-4">
             <PageTitle
@@ -351,7 +339,6 @@ const MyOrdersPage = () => {
             />
           </div>
 
-          {/* Last Updated Info */}
           {lastUpdated && (
             <div className="text-sm text-gray-500">
               Last updated: {new Date(lastUpdated).toLocaleTimeString()}
@@ -359,7 +346,7 @@ const MyOrdersPage = () => {
           )}
         </div>
 
-        {/* Time Period Navigation */}
+        {/* Time Period Selector */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-2">
           <TimePeriodSelector
             selectedTimePeriod={selectedTimePeriod}
@@ -367,16 +354,13 @@ const MyOrdersPage = () => {
             selectedDate={selectedDate}
             onDateChange={handleDateChange}
             variant="default"
-            showDatePicker={true}
+            showDatePicker
             className="mb-2"
-            disableFutureDates={true}
-            datePickerProps={{
-              placeholder: "Select a date to view orders",
-            }}
+            disableFutureDates
+            datePickerProps={{ placeholder: "Select a date to view orders" }}
             options={timePeriodOptions}
           />
 
-          {/* Period Summary */}
           <div className="text-sm text-gray-600 mt-2">
             {periodDisplayText} • {displayStats.total} orders
             {displayStats.totalRevenue > 0 && (
@@ -388,49 +372,42 @@ const MyOrdersPage = () => {
           </div>
         </div>
 
-        {/* Enhanced Order Statistics Cards */}
+        {/* Statistics Cards */}
         {hasOrders && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={Package}
-                title="Total Orders"
-                value={displayStats.total}
-                color="blue"
-                subtitle={`${displayStats.activeOrders} active`}
-              />
-            </div>
-
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={Clock}
-                title="Received"
-                value={displayStats.received}
-                color="yellow"
-                subtitle="Being processed"
-                alert={displayStats.received > 5}
-              />
-            </div>
-
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={CheckCircle}
-                title="Completed"
-                value={displayStats.completed}
-                color="green"
-                subtitle={`${displayStats.completionRate}% completion rate`}
-              />
-            </div>
-
-            <div className="transform hover:scale-105 transition-all duration-300">
-              <StatCard
-                icon={AlertCircle}
-                title="Rejected"
-                value={displayStats.rejected}
-                color="red"
-                subtitle="Cancelled orders"
-              />
-            </div>
+            <StatCard
+              icon={Package}
+              title="Total Orders"
+              value={displayStats.total}
+              color="blue"
+              subtitle={`${displayStats.activeOrders} active`}
+              className="transform hover:scale-105 transition-all duration-300"
+            />
+            <StatCard
+              icon={Clock}
+              title="Received"
+              value={displayStats.received}
+              color="yellow"
+              subtitle="Being processed"
+              alert={displayStats.received > 5}
+              className="transform hover:scale-105 transition-all duration-300"
+            />
+            <StatCard
+              icon={CheckCircle}
+              title="Completed"
+              value={displayStats.completed}
+              color="green"
+              subtitle={`${displayStats.completionRate}% completion rate`}
+              className="transform hover:scale-105 transition-all duration-300"
+            />
+            <StatCard
+              icon={AlertCircle}
+              title="Rejected"
+              value={displayStats.rejected}
+              color="red"
+              subtitle="Cancelled orders"
+              className="transform hover:scale-105 transition-all duration-300"
+            />
           </div>
         )}
 
@@ -444,7 +421,7 @@ const MyOrdersPage = () => {
             filteredCount={filteredOrders.length}
             onClearSearch={clearFilters}
             totalLabel="orders"
-            showStatusFilter={true}
+            showStatusFilter
             statusFilter={statusFilter}
             onStatusChange={handleStatusInputChange}
             statusOptions={statusOptions}
@@ -456,26 +433,23 @@ const MyOrdersPage = () => {
 
         {/* Orders Grid */}
         {hasFilteredOrders ? (
-          <>
-            {/* Orders Summary */}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredOrders.map((order) => (
-                <OrderCard
-                  key={order.id}
-                  order={order}
-                  onEdit={handleEditOrder}
-                  onView={handleViewOrder}
-                  onUpdateStatus={handleUpdateStatus}
-                  onDelete={handleDeleteOrder}
-                  onPrintBill={handlePrintBill}
-                  isUpdating={updatingOrderId === order.id}
-                  showConnectionStatus={!isConnected}
-                  captainMode={true}
-                />
-              ))}
-            </div>
-          </>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {filteredOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                onEdit={handleEditOrder}
+                onView={handleViewOrder}
+                onUpdateStatus={handleUpdateStatus}
+                onDelete={handleDeleteOrder}
+                onPrintBill={handlePrintBill}
+                isUpdating={updatingOrderId === order.id}
+                showConnectionStatus={!isConnected}
+                captainMode
+                disableActions={submitting || updatingOrderId !== null}
+              />
+            ))}
+          </div>
         ) : hasOrders ? (
           <NoSearchResults
             searchTerm={searchTerm}
@@ -543,7 +517,7 @@ const MyOrdersPage = () => {
           onClose={() => setViewingOrder(null)}
           onStatusUpdate={handleUpdateStatus}
           isSubmitting={submitting}
-          showDetailedInfo={true}
+          showDetailedInfo
         />
       )}
 

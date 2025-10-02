@@ -1,7 +1,7 @@
 import { Navbar } from "components";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { colors } from "theme/theme";
+// import { colors } from "theme/theme";
 
 
 const ThankYouPage = () => {
@@ -31,7 +31,7 @@ const ThankYouPage = () => {
     <>
       <Navbar title={`${hotelName}`}/>
    
-    <div className="min-h-screen flex items-center justify-center py-10" style={{background:colors.LightGrey}}>
+    <div className="min-h-screen flex items-center justify-center py-10" style={{background:"grey"}}>
       <div className="bg-white shadow-xl rounded-lg p-8 w-full max-w-lg text-center">
         <i
           className="bi bi-check-circle-fill text-orange-500 text-6xl"

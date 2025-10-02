@@ -8,7 +8,7 @@ const HotelSplashScreen = () => {
   const navigate = useNavigate();
   const { availableHotels, loading, selectHotel } = useHotelSelection();
   const [selectedHotelId, setSelectedHotelId] = useState("");
-
+console.log("availableHotels", availableHotels)
   useEffect(() => {
     let timer;
 
@@ -137,7 +137,7 @@ const HotelSplashScreen = () => {
                       </div>
 
                       <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                        {hotel.name}
+                        {hotel.hotelName}
                       </h3>
 
                       <p className="text-sm text-gray-500 mb-4">

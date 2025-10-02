@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+// hooks/useCategory.js (CORRECTED VERSION)
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { categoryServices } from "../services/api/categoryService";
 
 export const useCategory = (hotelName) => {
-  // State management
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Subscribe to categories data
+  // Subscribe to categories using the service
   useEffect(() => {
     if (!hotelName) {
       setCategories([]);
@@ -17,77 +18,114 @@ export const useCategory = (hotelName) => {
     }
 
     setLoading(true);
+    setError(null);
+
     const unsubscribe = categoryServices.subscribeToCategories(
       hotelName,
-      (data) => {
-        setCategories(data);
+      (categoriesData) => {
+        setCategories(categoriesData || []);
         setLoading(false);
       }
     );
 
-    // Cleanup subscription on component unmount or hotelName change
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe && typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
   }, [hotelName]);
 
-  // Filter categories based on search term
-  const filteredCategories = categoryServices.filterCategories(
-    categories,
-    searchTerm
-  );
+  // Memoized filtered categories using service
+  const filteredCategories = useMemo(() => {
+    return categoryServices.filterCategories(categories, searchTerm);
+  }, [categories, searchTerm]);
 
-  // Add new category
+  // Add category using service
   const addCategory = useCallback(
     async (categoryName) => {
       if (submitting) return false;
-
       setSubmitting(true);
+      setError(null);
+
       try {
-        const success = await categoryServices.addCategory(
+        const result = await categoryServices.addCategory(
           hotelName,
           categoryName,
           categories
         );
-        return success;
+        return result;
+      } catch (err) {
+        console.error("Error adding category:", err);
+        setError(err.message || "Error adding category");
+        return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, categories, submitting]
+    [hotelName, submitting, categories]
   );
 
-  // Update existing category
+  // Update category using service
   const updateCategory = useCallback(
     async (categoryName, categoryId) => {
       if (submitting) return false;
+      if (!categoryId) {
+        console.error("Category ID is required for update");
+        setError("Category ID is required for update");
+        return false;
+      }
 
       setSubmitting(true);
+      setError(null);
+
       try {
-        const success = await categoryServices.updateCategory(
+        console.log("Hook - Updating category:", {
+          categoryName,
+          categoryId,
+          hotelName,
+        });
+        const result = await categoryServices.updateCategory(
           hotelName,
           categoryId,
           categoryName,
           categories
         );
-        return success;
+        return result;
+      } catch (err) {
+        console.error("Error updating category:", err);
+        setError(err.message || "Error updating category");
+        return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, categories, submitting]
+    [hotelName, submitting, categories]
   );
 
-  // Delete category
+  // Delete category using service
   const deleteCategory = useCallback(
     async (category) => {
       if (submitting) return false;
+      if (!category) {
+        console.error("Category object is required for delete");
+        setError("Category information is missing");
+        return false;
+      }
 
       setSubmitting(true);
+      setError(null);
+
       try {
-        const success = await categoryServices.deleteCategory(
+        console.log("Hook - Deleting category:", category);
+        const result = await categoryServices.deleteCategory(
           hotelName,
           category
         );
-        return success;
+        return result;
+      } catch (err) {
+        console.error("Error deleting category:", err);
+        setError(err.message || "Error deleting category");
+        return false;
       } finally {
         setSubmitting(false);
       }
@@ -95,26 +133,29 @@ export const useCategory = (hotelName) => {
     [hotelName, submitting]
   );
 
-  // Prepare category for editing
+  // Prepare category for editing using service
   const prepareForEdit = useCallback(
     async (category) => {
-      const categoryToEdit = await categoryServices.prepareForEdit(
-        hotelName,
-        category
-      );
-      return categoryToEdit;
+      try {
+        console.log("Hook - Preparing for edit:", category);
+        return await categoryServices.prepareForEdit(hotelName, category);
+      } catch (err) {
+        console.error("Error preparing category for edit:", err);
+        setError(err.message || "Error preparing category for editing");
+        return null;
+      }
     },
     [hotelName]
   );
 
-  // Handle form submission (both add and edit)
+  // Handle form submission (add or update)
   const handleFormSubmit = useCallback(
     async (categoryName, categoryId = null) => {
+      console.log("Hook - Form submit:", { categoryName, categoryId });
+
       if (categoryId) {
-        // Edit mode
         return await updateCategory(categoryName, categoryId);
       } else {
-        // Add mode
         return await addCategory(categoryName);
       }
     },
@@ -123,33 +164,76 @@ export const useCategory = (hotelName) => {
 
   // Handle search change
   const handleSearchChange = useCallback((term) => {
-    setSearchTerm(term);
+    setSearchTerm(term || "");
   }, []);
 
-  // Get category statistics
-  const getCategoryStats = useCallback(async () => {
-    return await categoryServices.getCategoryStats(hotelName);
+  // Refresh categories function - FIXED
+  const refreshCategories = useCallback(async () => {
+    if (!hotelName) return [];
+
+    try {
+      setLoading(true);
+      setError(null);
+      const categoriesData = await categoryServices.getCategories(hotelName);
+      setCategories(categoriesData || []);
+      return categoriesData;
+    } catch (err) {
+      console.error("Error refreshing categories:", err);
+      setError(err.message || "Error refreshing categories");
+      return [];
+    } finally {
+      setLoading(false);
+    }
   }, [hotelName]);
 
-  // Check if category name already exists
-  const checkDuplicateCategory = useCallback(
-    (categoryName, excludeId = null) => {
+  // Get category stats using service
+  const getCategoryStats = useCallback(async () => {
+    try {
+      return await categoryServices.getCategoryStats(hotelName);
+    } catch (err) {
+      console.error("Error getting category stats:", err);
+      return null;
+    }
+  }, [hotelName]);
+
+  // Check duplicate category
+  const checkDuplicateCategory = useMemo(() => {
+    return (name, excludeId = null) => {
+      if (!name || !categories) return false;
       return categories.some(
-        (category) =>
-          category.categoryName.toLowerCase() === categoryName.toLowerCase() &&
-          category.categoryId !== excludeId
+        (c) =>
+          (c?.categoryName || "").toLowerCase() === name.toLowerCase() &&
+          (c.categoryId || c.id) !== excludeId
       );
-    },
-    [categories]
+    };
+  }, [categories]);
+
+  // Clear all filters
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm("");
+  }, []);
+
+  // Memoized computed values - FIXED
+  const computedValues = useMemo(
+    () => ({
+      categoryCount: categories?.length || 0,
+      filteredCount: filteredCategories?.length || 0,
+      hasCategories: (categories?.length || 0) > 0,
+      hasSearchResults: (filteredCategories?.length || 0) > 0,
+    }),
+    [categories, filteredCategories]
   );
 
   return {
-    // State
-    categories,
-    filteredCategories,
+    // Data
+    categories: categories || [],
+    filteredCategories: filteredCategories || [],
     searchTerm,
+
+    // State
     loading,
     submitting,
+    error,
 
     // Actions
     addCategory,
@@ -158,19 +242,22 @@ export const useCategory = (hotelName) => {
     prepareForEdit,
     handleFormSubmit,
     handleSearchChange,
+    refreshCategories, // NOW PROPERLY INCLUDED
 
-    // Utilities
+    // Utility functions
     getCategoryStats,
     checkDuplicateCategory,
+    clearAllFilters,
 
-    // Computed values
-    categoryCount: categories.length,
-    filteredCount: filteredCategories.length,
-    hasCategories: categories.length > 0,
-    hasSearchResults: filteredCategories.length > 0,
+    // Computed values - PROPERLY SPREAD
+    categoryCount: computedValues.categoryCount,
+    filteredCount: computedValues.filteredCount,
+    hasCategories: computedValues.hasCategories,
+    hasSearchResults: computedValues.hasSearchResults,
 
-    // Direct setters (if needed for specific cases)
+    // Setters (if needed for direct manipulation)
     setSearchTerm,
     setCategories,
+    setError,
   };
 };

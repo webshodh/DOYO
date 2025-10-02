@@ -1,123 +1,42 @@
-import { db, storage, auth } from "../firebase/firebaseConfig";
-import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+import {
+  getFirestore,
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  Timestamp,
+} from "firebase/firestore";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import {
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import {
-  createUserWithEmailAndPassword,
-  updatePassword,
-  deleteUser,
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
-import { getAuth } from "firebase/auth";
+import { uid } from "uid";
 import { toast } from "react-toastify";
+import { storage } from "../firebase/firebaseConfig";
 import {
   validateCaptainForm,
   sanitizeCaptainData,
 } from "../../validation/captainValidation";
 
+const firestore = getFirestore();
+const auth = getAuth();
+
 export const captainServices = {
-  // Get current admin ID
-  getCurrentAdminId: () => {
-    const auth = getAuth();
-    return auth.currentUser?.uid;
-  },
+  // Get current logged-in user ID (admin or captain)
+  getCurrentAdminId: () => auth.currentUser?.uid,
 
-  // Check if admin has permission for the hotel
-  checkAdminPermission: async (hotelName) => {
-    try {
-      const adminId = captainServices.getCurrentAdminId();
-      if (!adminId) {
-        throw new Error("Admin not authenticated");
-      }
-
-      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
-          (snapshot) => snapshot.val()
-        ),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
-          snapshot.val()
-        ),
-      ]);
-
-      return adminHotelUuid === generalHotelUuid;
-    } catch (error) {
-      console.error("Error checking permission:", error);
-      return false;
-    }
-  },
-
-  // Upload captain photo
-  uploadCaptainPhoto: async (hotelName, captainId, photoFile) => {
-    try {
-      const photoRef = storageRef(
-        storage,
-        `hotels/${hotelName}/captains/${captainId}/photo`
-      );
-      const snapshot = await uploadBytes(photoRef, photoFile);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      return downloadURL;
-    } catch (error) {
-      console.error("Error uploading photo:", error);
-      throw new Error("Failed to upload photo");
-    }
-  },
-
-  // Delete captain photo
-  deleteCaptainPhoto: async (hotelName, captainId) => {
-    try {
-      const photoRef = storageRef(
-        storage,
-        `hotels/${hotelName}/captains/${captainId}/photo`
-      );
-      await deleteObject(photoRef);
-    } catch (error) {
-      // Photo might not exist, which is fine
-      console.log("Photo deletion skipped:", error.message);
-    }
-  },
-
-  // Create Firebase Auth user for captain
-  createCaptainAuthUser: async (email, password) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      return userCredential.user;
-    } catch (error) {
-      console.error("Error creating captain auth user:", error);
-      throw error;
-    }
-  },
-
-  // Delete Firebase Auth user
-  deleteCaptainAuthUser: async (user) => {
-    try {
-      await deleteUser(user);
-    } catch (error) {
-      console.error("Error deleting captain auth user:", error);
-      throw error;
-    }
-  },
-
-  // Update captain password
-  updateCaptainPassword: async (user, newPassword) => {
-    try {
-      await updatePassword(user, newPassword);
-    } catch (error) {
-      console.error("Error updating captain password:", error);
-      throw error;
-    }
-  },
-
-  // Captain login
+  // Login captain by email/password with Firebase Auth
   captainLogin: async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -125,206 +44,189 @@ export const captainServices = {
         email,
         password
       );
-      const user = userCredential.user;
-
-      // Check if user is a captain
-      const captainData = await captainServices.getCaptainByAuthId(user.uid);
-      if (!captainData) {
-        await signOut(auth);
-        throw new Error("Invalid captain credentials");
-      }
-
-      return {
-        user,
-        captainData,
-        hotelName: captainData.hotelName,
-      };
+      return { user: userCredential.user };
     } catch (error) {
-      console.error("Error in captain login:", error);
+      console.error("Captain login failed:", error);
       throw error;
     }
   },
 
-  // Captain logout
-  captainLogout: async () => {
+  // Check if a captain is authenticated
+  isAuthenticatedCaptain: () => !!auth.currentUser,
+
+  // Get current captain info (basic)
+  getCurrentCaptain: async () => {
+    const user = auth.currentUser;
+    if (!user) return null;
+    // TODO: Extend this to fetch captain document if needed
+    return { uid: user.uid, email: user.email };
+  },
+
+  // Upload captain photo to Firebase Storage
+  uploadCaptainPhoto: async (hotelName, captainId, photoFile) => {
+    if (!photoFile || !(photoFile instanceof File)) {
+      throw new Error("Invalid photo file");
+    }
+    const photoReference = storageRef(
+      storage,
+      `hotels/${hotelName}/captains/${captainId}/photo`
+    );
+    const snapshot = await uploadBytes(photoReference, photoFile);
+    return await getDownloadURL(snapshot.ref);
+  },
+
+  // Delete captain photo from Firebase Storage
+  deleteCaptainPhoto: async (hotelName, captainId) => {
     try {
-      await signOut(auth);
+      const photoReference = storageRef(
+        storage,
+        `hotels/${hotelName}/captains/${captainId}/photo`
+      );
+      await deleteObject(photoReference);
     } catch (error) {
-      console.error("Error in captain logout:", error);
-      throw error;
+      if (error.code !== "storage/object-not-found") {
+        console.error("Error deleting photo:", error);
+      }
     }
   },
 
-  // Get captain data by Firebase Auth ID - UPDATED to search through hotels only
-  getCaptainByAuthId: async (authId) => {
-    try {
-      // Get all hotels first
-      const hotelsSnapshot = await get(ref(db, "hotels"));
-      if (!hotelsSnapshot.exists()) {
-        return null;
-      }
-
-      const hotelsData = hotelsSnapshot.val();
-
-      // Search through all hotels to find the captain
-      for (const [hotelName, hotelData] of Object.entries(hotelsData)) {
-        if (hotelData.captains) {
-          for (const [captainId, captainData] of Object.entries(
-            hotelData.captains
-          )) {
-            if (captainData.firebaseAuthId === authId) {
-              return {
-                ...captainData,
-                hotelName,
-                captainId,
-              };
-            }
-          }
-        }
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Error getting captain by auth ID:", error);
-      return null;
+  // Create Firebase Auth user for captain
+  createCaptainAuthUser: async (email, password) => {
+    const currentAdmin = auth.currentUser;
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    if (currentAdmin) {
+      await auth.updateCurrentUser(currentAdmin);
     }
+    return userCredential.user;
   },
 
-  // Subscribe to captains changes with real-time updates
+  // Placeholder for auth user deletion (requires backend/Admin SDK)
+  deleteCaptainAuthUser: async (userId) => {
+    console.log("Auth user deletion queued for:", userId);
+  },
+
+  // Subscribe to captains collection realtime updates
   subscribeToCaptains: (hotelName, callback) => {
     if (!hotelName) {
       callback([]);
       return () => {};
     }
-
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/captains/`),
-      (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const captainsArray = Object.values(data).map((captain, index) => ({
-            ...captain,
-            srNo: index + 1,
-          }));
-          callback(captainsArray);
-        } else {
-          callback([]);
-        }
+    const captainsRef = collection(firestore, `hotels/${hotelName}/captains`);
+    const unsubscribe = onSnapshot(
+      captainsRef,
+      (querySnapshot) => {
+        const captainsArray = querySnapshot.docs.map((docSnap, index) => ({
+          ...docSnap.data(),
+          srNo: index + 1,
+          captainId: docSnap.id,
+        }));
+        callback(captainsArray);
       },
       (error) => {
         console.error("Error fetching captains:", error);
-        toast.error("Error loading captains", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error("Error loading captains", { position: "top-right" });
         callback([]);
       }
     );
-
     return unsubscribe;
   },
 
-  // Add new captain with Firebase Auth - UPDATED to remove separate collection
+  // Add new captain with auth user, photo and firestore doc
   addCaptain: async (hotelName, captainData, existingCaptains = []) => {
-    let authUser = null;
+    let authUserId = null;
+    let captainId = null;
+    let photoUploaded = false;
 
     try {
-      // Validate captain data
       const validation = validateCaptainForm(captainData, existingCaptains);
       if (!validation.isValid) {
-        toast.error(validation.error, {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        const errorMessage =
+          Object.values(validation.errors).find((e) => e) ||
+          "Validation failed";
+        toast.error(errorMessage, { position: "top-right" });
         return false;
       }
 
-      // Check permissions
-      const hasPermission = await captainServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to add captains for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
-        return false;
-      }
-
-      // Create Firebase Auth user first
-      authUser = await captainServices.createCaptainAuthUser(
+      const authUser = await captainServices.createCaptainAuthUser(
         captainData.email,
         captainData.password
       );
+      authUserId = authUser.uid;
 
-      // Sanitize and prepare captain data
-      const sanitizedData = sanitizeCaptainData(captainData);
-      const captainId = uid();
+      captainId = uid();
 
       let photoUrl = null;
       if (captainData.photoFile) {
-        photoUrl = await captainServices.uploadCaptainPhoto(
-          hotelName,
-          captainId,
-          captainData.photoFile
-        );
+        try {
+          photoUrl = await captainServices.uploadCaptainPhoto(
+            hotelName,
+            captainId,
+            captainData.photoFile
+          );
+          photoUploaded = true;
+        } catch (photoError) {
+          console.error("Photo upload failed:", photoError);
+        }
       }
+
+      const sanitizedData = sanitizeCaptainData(captainData);
 
       const finalCaptainData = {
         ...sanitizedData,
-        captainId,
         photoUrl,
-        firebaseAuthId: authUser.uid,
+        firebaseAuthId: authUserId,
         status: "active",
         role: "captain",
         hotelName,
-        email: captainData.email, // Store email for login reference
-        createdAt: new Date().toISOString(),
+        email: captainData.email,
+        createdAt: Timestamp.fromDate(new Date()),
         createdBy: captainServices.getCurrentAdminId(),
       };
 
-      // Save to database under hotels only
-      await set(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
+      await setDoc(
+        doc(firestore, `hotels/${hotelName}/captains/${captainId}`),
         finalCaptainData
       );
 
-      toast.success(
-        "Captain added successfully! Login credentials have been created.",
-        {
-          position: toast.POSITION.TOP_RIGHT,
-        }
-      );
+      toast.success("Captain added successfully!", { position: "top-right" });
 
       return true;
     } catch (error) {
       console.error("Error adding captain:", error);
 
-      // Clean up Firebase Auth user if it was created but database save failed
-      if (authUser) {
+      if (photoUploaded && captainId) {
         try {
-          await captainServices.deleteCaptainAuthUser(authUser);
-        } catch (cleanupError) {
-          console.error("Error cleaning up auth user:", cleanupError);
-        }
+          await captainServices.deleteCaptainPhoto(hotelName, captainId);
+        } catch {}
+      }
+      if (authUserId) {
+        captainServices.deleteCaptainAuthUser(authUserId);
+      }
+      if (captainId) {
+        try {
+          await deleteDoc(
+            doc(firestore, `hotels/${hotelName}/captains/${captainId}`)
+          );
+        } catch {}
       }
 
-      // Handle specific Firebase Auth errors
       if (error.code === "auth/email-already-in-use") {
         toast.error("Email address is already registered", {
-          position: toast.POSITION.TOP_RIGHT,
+          position: "top-right",
         });
       } else if (error.code === "auth/weak-password") {
         toast.error("Password should be at least 6 characters", {
-          position: toast.POSITION.TOP_RIGHT,
+          position: "top-right",
         });
       } else if (error.code === "auth/invalid-email") {
-        toast.error("Invalid email address", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        toast.error("Invalid email address", { position: "top-right" });
       } else {
-        toast.error("Error adding captain. Please try again.", {
-          position: toast.POSITION.TOP_RIGHT,
+        toast.error(`Error adding captain: ${error.message}`, {
+          position: "top-right",
         });
       }
 
@@ -332,7 +234,7 @@ export const captainServices = {
     }
   },
 
-  // Update existing captain - UPDATED to remove separate collection
+  // Update captain document and optional photo
   updateCaptain: async (
     hotelName,
     captainId,
@@ -340,225 +242,160 @@ export const captainServices = {
     existingCaptains = []
   ) => {
     try {
-      // Validate captain data
       const validation = validateCaptainForm(
         captainData,
         existingCaptains,
         captainId
       );
       if (!validation.isValid) {
-        toast.error(validation.error, {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        const errorMessage =
+          Object.values(validation.errors).find((e) => e) ||
+          "Validation failed";
+        toast.error(errorMessage, { position: "top-right" });
         return false;
       }
 
-      // Check permissions
-      const hasPermission = await captainServices.checkAdminPermission(
-        hotelName
+      const captainDocRef = doc(
+        firestore,
+        `hotels/${hotelName}/captains/${captainId}`
       );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to update captains for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+      const existingCaptainDoc = await getDoc(captainDocRef);
+      if (!existingCaptainDoc.exists()) {
+        toast.error("Captain not found", { position: "top-right" });
         return false;
       }
 
-      // Get existing captain data to get Firebase Auth ID
-      const existingCaptain = await get(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`)
-      );
-
-      if (!existingCaptain.exists()) {
-        toast.error("Captain not found", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return false;
-      }
-
-      const existingData = existingCaptain.val();
-
-      // Sanitize and prepare updated data
+      const existingData = existingCaptainDoc.data();
       const sanitizedData = sanitizeCaptainData(captainData);
 
-      let photoUrl = captainData.existingPhotoUrl;
+      let photoUrl = existingData.photoUrl || null;
       if (captainData.photoFile) {
-        // Delete old photo if exists
-        await captainServices.deleteCaptainPhoto(hotelName, captainId);
-        // Upload new photo
-        photoUrl = await captainServices.uploadCaptainPhoto(
-          hotelName,
-          captainId,
-          captainData.photoFile
-        );
+        try {
+          await captainServices.deleteCaptainPhoto(hotelName, captainId);
+          photoUrl = await captainServices.uploadCaptainPhoto(
+            hotelName,
+            captainId,
+            captainData.photoFile
+          );
+        } catch {
+          toast.warning("Photo update failed, but other changes were saved", {
+            position: "top-right",
+          });
+        }
       }
 
       const updateData = {
         ...sanitizedData,
         photoUrl,
-        email: captainData.email || existingData.email, // Preserve email for login
-        updatedAt: new Date().toISOString(),
+        email: captainData.email || existingData.email,
+        updatedAt: Timestamp.fromDate(new Date()),
         updatedBy: captainServices.getCurrentAdminId(),
       };
 
-      // Update in hotels collection only
-      await update(
-        ref(db, `/hotels/${hotelName}/captains/${captainId}`),
-        updateData
-      );
+      await updateDoc(captainDocRef, updateData);
 
-      // Update password if provided
       if (captainData.password && captainData.password.trim()) {
-        try {
-          // Note: To update password, we need the user to be signed in
-          // In a production app, you might want to send a password reset email instead
-          // or implement a different flow for admin-initiated password changes
-          toast.info(
-            "Password update requires captain to be signed in. Consider sending a password reset email.",
-            {
-              position: toast.POSITION.TOP_RIGHT,
-            }
-          );
-        } catch (passwordError) {
-          console.error("Error updating password:", passwordError);
-        }
+        toast.info(
+          "Password cannot be updated here. Use password reset functionality.",
+          {
+            position: "top-right",
+            autoClose: 7000,
+          }
+        );
       }
 
-      toast.success("Captain updated successfully!", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
+      toast.success("Captain updated successfully!", { position: "top-right" });
 
       return true;
     } catch (error) {
       console.error("Error updating captain:", error);
-      toast.error("Error updating captain. Please try again.", {
-        position: toast.POSITION.TOP_RIGHT,
+      toast.error(`Error updating captain: ${error.message}`, {
+        position: "top-right",
       });
       return false;
     }
   },
 
-  // Delete captain - UPDATED to remove separate collection
+  // Delete captain doc and photo
   deleteCaptain: async (hotelName, captain) => {
     try {
-      // Check permissions
-      const hasPermission = await captainServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to delete captains for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+      if (!captain || !captain.captainId) {
+        toast.error("Invalid captain data", { position: "top-right" });
         return false;
       }
 
-      // Delete photo if exists
       if (captain.photoUrl) {
-        await captainServices.deleteCaptainPhoto(hotelName, captain.captainId);
+        try {
+          await captainServices.deleteCaptainPhoto(
+            hotelName,
+            captain.captainId
+          );
+        } catch {}
       }
 
-      // Delete from hotels collection only
-      await remove(
-        ref(db, `/hotels/${hotelName}/captains/${captain.captainId}`)
+      await deleteDoc(
+        doc(firestore, `hotels/${hotelName}/captains/${captain.captainId}`)
       );
 
-      // Note: Firebase Auth user deletion requires the user to be recently authenticated
-      // In a production app, you might want to implement a different strategy
-      // such as disabling the account instead of deleting it
       if (captain.firebaseAuthId) {
-        try {
-          // This will only work if admin has appropriate permissions
-          // You might want to handle this through Firebase Admin SDK on your backend
-          toast.info(
-            "Captain removed from hotel. Auth account may need manual cleanup.",
-            {
-              position: toast.POSITION.TOP_RIGHT,
-            }
-          );
-        } catch (authError) {
-          console.error("Error deleting auth user:", authError);
-        }
+        captainServices.deleteCaptainAuthUser(captain.firebaseAuthId);
       }
 
-      toast.success("Captain deleted successfully!", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
+      toast.success("Captain deleted successfully!", { position: "top-right" });
 
       return true;
     } catch (error) {
       console.error("Error deleting captain:", error);
-      toast.error("Error deleting captain. Please try again.", {
-        position: toast.POSITION.TOP_RIGHT,
+      toast.error(`Error deleting captain: ${error.message}`, {
+        position: "top-right",
       });
       return false;
     }
   },
 
-  // Prepare captain for editing
   prepareForEdit: async (hotelName, captain) => {
     try {
-      const hasPermission = await captainServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to edit captains for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+      if (!captain) {
+        toast.error("Invalid captain data", { position: "top-right" });
         return null;
       }
       return captain;
     } catch (error) {
       console.error("Error preparing captain for edit:", error);
       toast.error("Error preparing captain for editing", {
-        position: toast.POSITION.TOP_RIGHT,
+        position: "top-right",
       });
       return null;
     }
   },
 
-  // Filter captains based on search term
   filterCaptains: (captains, searchTerm) => {
-    if (!searchTerm.trim()) {
+    if (!searchTerm || !searchTerm.trim()) {
       return captains.map((captain, index) => ({
         ...captain,
         srNo: index + 1,
       }));
     }
-
+    const term = searchTerm.toLowerCase().trim();
     return captains
-      .filter((captain) => {
-        const term = searchTerm.toLowerCase();
-        return (
-          captain.firstName?.toLowerCase().includes(term) ||
-          captain.lastName?.toLowerCase().includes(term) ||
-          captain.email?.toLowerCase().includes(term) ||
-          captain.mobileNo?.includes(term) ||
-          captain.adharNo?.includes(term)
-        );
-      })
-      .map((captain, index) => ({
-        ...captain,
-        srNo: index + 1,
-      }));
+      .filter(
+        (c) =>
+          c.firstName?.toLowerCase().includes(term) ||
+          c.lastName?.toLowerCase().includes(term) ||
+          c.email?.toLowerCase().includes(term) ||
+          c.mobileNo?.includes(term) ||
+          c.adharNo?.includes(term) ||
+          c.panNo?.toLowerCase().includes(term)
+      )
+      .map((captain, index) => ({ ...captain, srNo: index + 1 }));
   },
 
-  // Get captain statistics
   getCaptainStats: async (hotelName) => {
     try {
-      const captainSnapshot = await get(
-        ref(db, `/hotels/${hotelName}/captains`)
+      const snapshot = await getDocs(
+        collection(firestore, `hotels/${hotelName}/captains`)
       );
-
-      if (!captainSnapshot.exists()) {
+      if (snapshot.empty) {
         return {
           totalCaptains: 0,
           activeCaptains: 0,
@@ -566,80 +403,52 @@ export const captainServices = {
           recentCaptains: 0,
         };
       }
-
-      const captains = Object.values(captainSnapshot.val());
+      const captains = snapshot.docs.map((doc) => doc.data());
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
       return {
         totalCaptains: captains.length,
         activeCaptains: captains.filter((c) => c.status === "active").length,
         inactiveCaptains: captains.filter((c) => c.status === "inactive")
           .length,
         recentCaptains: captains.filter((c) => {
-          const createdDate = new Date(c.createdAt);
+          const createdDate = c.createdAt?.toDate
+            ? c.createdAt.toDate()
+            : new Date(c.createdAt);
           return createdDate > weekAgo;
         }).length,
       };
     } catch (error) {
       console.error("Error getting captain stats:", error);
-      return null;
+      return {
+        totalCaptains: 0,
+        activeCaptains: 0,
+        inactiveCaptains: 0,
+        recentCaptains: 0,
+      };
     }
   },
 
-  // Toggle captain status - UPDATED to remove separate collection
   toggleCaptainStatus: async (hotelName, captainId, currentStatus) => {
     try {
-      const hasPermission = await captainServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error("You do not have permission to modify captain status", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-        return false;
-      }
-
       const newStatus = currentStatus === "active" ? "inactive" : "active";
-
-      // Update in hotels collection only
-      await update(ref(db, `/hotels/${hotelName}/captains/${captainId}`), {
-        status: newStatus,
-        updatedAt: new Date().toISOString(),
-        updatedBy: captainServices.getCurrentAdminId(),
-      });
-
+      await updateDoc(
+        doc(firestore, `hotels/${hotelName}/captains/${captainId}`),
+        {
+          status: newStatus,
+          updatedAt: Timestamp.fromDate(new Date()),
+          updatedBy: captainServices.getCurrentAdminId(),
+        }
+      );
       toast.success(`Captain status changed to ${newStatus}`, {
-        position: toast.POSITION.TOP_RIGHT,
+        position: "top-right",
       });
-
       return true;
     } catch (error) {
       console.error("Error toggling captain status:", error);
-      toast.error("Error updating captain status", {
-        position: toast.POSITION.TOP_RIGHT,
+      toast.error(`Error updating captain status: ${error.message}`, {
+        position: "top-right",
       });
       return false;
-    }
-  },
-
-  // Check if user is authenticated captain
-  isAuthenticatedCaptain: () => {
-    const auth = getAuth();
-    return auth.currentUser !== null;
-  },
-
-  // Get current captain data
-  getCurrentCaptain: async () => {
-    try {
-      const auth = getAuth();
-      if (!auth.currentUser) {
-        return null;
-      }
-
-      return await captainServices.getCaptainByAuthId(auth.currentUser.uid);
-    } catch (error) {
-      console.error("Error getting current captain:", error);
-      return null;
     }
   },
 };

@@ -1,147 +1,77 @@
-import React, { useState } from "react";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import HotelFormModal from "../../components/FormModals/HotelFormModal";
-import useHotel from "../../hooks/useHotel";
-import { Spinner } from "atoms";
+// src/pages/AddHotelPage.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom"; // React Router v6
+import FormContainer from "../../components/Forms/FormContainer";
+import {
+  hotelFormSections,
+  hotelFormFields,
+  hotelFormInitialValues,
+  getHotelValidationSchema,
+} from "../../Constants/ConfigForms/addHotelFormConfig";
+import { hotelServices } from "../../services/api/hotelServices"; // Your API functions
 
-function AddHotelWithAdmins() {
-  const {
-    // State
-    hotelName,
-    admin,
-    loading,
-    submitting,
-    searching,
+export default function AddHotelPage() {
+  const navigate = useNavigate();
+  const { id: hotelId } = useParams(); // e.g. path="/hotels/:id/edit"
+  const isEditMode = Boolean(hotelId);
 
-    // Actions
-    setHotelName,
-    updateAdmin,
-    searchAdmin,
-    createNewAdmin,
-    submitHotelWithAdmin,
-    resetForm,
+  const [initialValues, setInitialValues] = useState(hotelFormInitialValues);
+  const [submitting, setSubmitting] = useState(false);
 
-    // Computed values
-    getAdminValidationStatus,
-    getFormValidationStatus,
-
-    // Utilities
-    adminExists,
-  } = useHotel();
-
-  // Hotel data state (if not handled by useHotel hook)
-  const [hotelData, setHotelData] = useState({
-    category: "",
-    contact: "",
-    description: "",
-    address: "",
-    city: "",
-    district: "",
-    state: "",
-    pincode: "",
-    website: "",
-    email: "",
-
-    avgCostForTwo: "",
-    gstNumber: "",
-    fssaiNumber: "",
-  });
-
-  const handleHotelDataChange = (field, value) => {
-    setHotelData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // Contact validation helper function
-  const validateContact = (contact) => {
-    return /^\d{10}$/.test(contact);
-  };
-
-  const getHotelValidationStatus = () => {
-    return (
-      hotelData.category &&
-      hotelData.contact &&
-      validateContact(hotelData.contact) &&
-      hotelData.address &&
-      hotelData.city &&
-      hotelData.district &&
-      hotelData.state &&
-      hotelData.pincode &&
-      /^\d{6}$/.test(hotelData.pincode)
-    );
-  };
-
-  // Handler functions that match the prop names
-  const handleUpdateAdmin = (field, value) => {
-    updateAdmin(field, value);
-  };
-
-  const handleSearchAdmin = () => {
-    searchAdmin();
-  };
-
-  const handleCreateNewAdmin = () => {
-    createNewAdmin();
-  };
-
-  const handleReset = () => {
-    resetForm();
-    setHotelData({
-      category: "",
-      contact: "",
-      description: "",
-      address: "",
-      city: "",
-      district: "",
-      state: "",
-      pincode: "",
-      website: "",
-      email: "",
-      avgCostForTwo: "",
-      gstNumber: "",
-      fssaiNumber: "",
-    });
-  };
-
-  const handleSubmit = async () => {
-    const validationStatus = getFormValidationStatus();
-
-    if (!validationStatus.isFormValid) {
-      return;
+  // If editing, fetch existing hotel data
+  useEffect(() => {
+    if (isEditMode) {
+      (async () => {
+        try {
+          const data = await hotelServices.getHotelById(hotelId);
+          setInitialValues({ ...hotelFormInitialValues, ...data });
+        } catch (err) {
+          console.error("Failed to load hotel:", err);
+        }
+      })();
     }
+  }, [hotelId, isEditMode]);
 
-    await submitHotelWithAdmin(hotelData);
+  const handleSubmit = async (formData) => {
+    setSubmitting(true);
+    try {
+      if (isEditMode) {
+        await hotelServices.updateHotel(hotelId, formData);
+      } else {
+        await hotelServices.addHotel(formData);
+      }
+      navigate("/super-admin/view-hotel"); // go back to listing
+    } catch (err) {
+      console.error("Submit failed:", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (loading) {
-    <Spinner />;
-  }
+  const handleCancel = () => {
+    navigate(-1); // go back
+  };
 
   return (
-    <>
-      <HotelFormModal
-        hotelName={hotelName}
-        hotelData={hotelData}
-        admin={admin}
-        onHotelNameChange={setHotelName}
-        onHotelDataChange={handleHotelDataChange}
-        onUpdateAdmin={handleUpdateAdmin}
-        onSearchAdmin={handleSearchAdmin}
-        onCreateNewAdmin={handleCreateNewAdmin}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {isEditMode ? "Edit Hotel" : "Create New Hotel"}
+        </h1>
+      </div>
+
+      <FormContainer
+        sections={hotelFormSections}
+        fieldsConfig={hotelFormFields}
+        initialValues={initialValues}
+        validationSchema={getHotelValidationSchema()}
         onSubmit={handleSubmit}
-        onReset={handleReset}
+        onCancel={handleCancel}
+        isEditMode={isEditMode}
+        submitText={isEditMode ? "Update Hotel" : "Create Hotel"}
+        cancelText="Cancel"
         submitting={submitting}
-        searching={searching}
-        getAdminValidationStatus={getAdminValidationStatus}
-        getHotelValidationStatus={getHotelValidationStatus}
-        adminExists={adminExists}
       />
-      <ToastContainer />
-    </>
+    </div>
   );
 }
-
-export default AddHotelWithAdmins;

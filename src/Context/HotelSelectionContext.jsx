@@ -1,6 +1,7 @@
+// context/HotelSelectionContext.js
+
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { getDatabase, ref, get } from "firebase/database";
-import { getAuth } from "firebase/auth";
+import { useAuth } from "./AuthContext";
 
 const HotelSelectionContext = createContext();
 
@@ -18,79 +19,49 @@ export const HotelSelectionProvider = ({ children }) => {
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [availableHotels, setAvailableHotels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
 
-  const auth = getAuth();
+  const { userHotels, refreshUserHotels, isSuperAdmin, adminData } = useAuth();
 
-  // Fetch user's hotels
-  const fetchUserHotels = async (userId) => {
+  // Sync availableHotels from auth context
+  useEffect(() => {
+    setAvailableHotels(userHotels || []);
+    // Auto-select first if none or invalid
+    if (userHotels && userHotels.length > 0) {
+      setSelectedHotel(userHotels[0]);
+    } else {
+      setSelectedHotel(null);
+    }
+  }, [userHotels]);
+
+  // Allow manual refresh
+  const refreshHotels = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const db = getDatabase();
-      const hotelsRef = ref(db, `admins/${userId}/hotels`);
-      const snapshot = await get(hotelsRef);
-
-      if (snapshot.exists()) {
-        const hotelsData = snapshot.val();
-        const hotelsList = Object.keys(hotelsData).map((hotelKey) => ({
-          id: hotelKey,
-          name: hotelKey,
-          data: hotelsData[hotelKey],
-        }));
-        setAvailableHotels(hotelsList);
-        return hotelsList;
-      } else {
-        setAvailableHotels([]);
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching hotels:", error);
-      setAvailableHotels([]);
-      return [];
+      await refreshUserHotels();
+    } catch {
+      setError("Failed to fetch hotels");
     } finally {
       setLoading(false);
     }
   };
 
-  // Initialize user and hotels
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        const hotels = await fetchUserHotels(currentUser.uid);
+  const selectHotel = (hotel) => setSelectedHotel(hotel);
 
-        // Auto-select first hotel if available and no hotel is selected
-        if (hotels.length > 0 && !selectedHotel) {
-          setSelectedHotel(hotels[0]);
-        }
-      } else {
-        setUser(null);
-        setAvailableHotels([]);
-        setSelectedHotel(null);
-      }
-    });
-
-    return unsubscribe;
-  }, [selectedHotel]);
-
-  const selectHotel = (hotel) => {
-    setSelectedHotel(hotel);
-  };
-
-  const refreshHotels = async () => {
-    if (user) {
-      await fetchUserHotels(user.uid);
-    }
-  };
+  const canAccessHotel = (hotelId) =>
+    isSuperAdmin() ||
+    availableHotels.some((h) => h.id === hotelId || h.hotelId === hotelId);
 
   const value = {
     selectedHotel,
     availableHotels,
     loading,
-    user,
+    error,
     selectHotel,
-    fetchUserHotels,
     refreshHotels,
+    canAccessHotel,
+    hasHotels: availableHotels.length > 0,
   };
 
   return (
@@ -99,3 +70,5 @@ export const HotelSelectionProvider = ({ children }) => {
     </HotelSelectionContext.Provider>
   );
 };
+
+export default HotelSelectionContext;

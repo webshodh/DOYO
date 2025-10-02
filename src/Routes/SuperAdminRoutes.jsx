@@ -1,7 +1,7 @@
 // Routes/SuperAdminRoutes.jsx
 import Profile from "organisms/ProfileComponent";
-import { AdminList, SuperAdminDashboard } from "Pages";
-import AddHotelWithAdmins from "Pages/SuperAdminDashboard/AddHotel";
+import { AddHotel, AdminList, SuperAdminDashboard } from "Pages";
+import AddHotelWithAdmins from "Pages/SuperAdminDashboard/ViewHotel";
 import ViewHotel from "Pages/SuperAdminDashboard/HotelList";
 import ViewHotelSubscription from "Pages/SuperAdminDashboard/Subcription";
 import SuperAdminDashboardLayout from "layout/SuperAdminDashboardLayout";
@@ -37,10 +37,10 @@ const SuperAdminRoutes = () => {
         }
       />
       <Route
-        path="view-hotel"
+        path="add-hotel"
         element={
           <SuperAdminDashboardLayout>
-            <ViewHotel />
+            <AddHotel />
           </SuperAdminDashboardLayout>
         }
       />
