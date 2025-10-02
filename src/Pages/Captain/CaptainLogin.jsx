@@ -23,6 +23,7 @@ const CaptainLogin = () => {
   const navigate = useNavigate();
   const { hotelName } = useParams();
   console.log("hotelNamehotelName", hotelName);
+
   // Check if already logged in
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -39,7 +40,7 @@ const CaptainLogin = () => {
     };
 
     checkAuthStatus();
-  }, [navigate]);
+  }, [navigate, hotelName]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -92,12 +93,38 @@ const CaptainLogin = () => {
         formData.password
       );
 
-      toast.success(`Welcome back, ${loginResult.captainData.firstName}!`);
+      // Debug: Log the actual structure returned
+      console.log("Login Result Structure:", loginResult);
+
+      // Handle different possible return structures
+      let captainName = "Captain"; // Default fallback
+
+      if (loginResult) {
+        // Try different possible structures
+        if (loginResult.captainData && loginResult.captainData.firstName) {
+          captainName = loginResult.captainData.firstName;
+        } else if (loginResult.firstName) {
+          captainName = loginResult.firstName;
+        } else if (loginResult.captain && loginResult.captain.firstName) {
+          captainName = loginResult.captain.firstName;
+        } else if (loginResult.user && loginResult.user.firstName) {
+          captainName = loginResult.user.firstName;
+        } else if (loginResult.data && loginResult.data.firstName) {
+          captainName = loginResult.data.firstName;
+        }
+      }
+
+      toast.success(`Welcome back, ${captainName}!`);
 
       // Navigate to captain dashboard
       navigate(`/viewMenu/${hotelName}/captain/dashboard`);
     } catch (error) {
       console.error("Login error:", error);
+      console.error("Error details:", {
+        code: error.code,
+        message: error.message,
+        stack: error.stack,
+      });
 
       // Handle specific error cases
       if (

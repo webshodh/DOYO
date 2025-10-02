@@ -1,8 +1,14 @@
-// pages/CheckoutPage.jsx
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ref, push, set, get } from "firebase/database";
 import { rtdb } from "../../services/firebase/firebaseConfig";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { toast } from "react-toastify";
 import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
 import CheckoutHeader from "atoms/Headers/CheckoutHeader";
@@ -12,8 +18,12 @@ import OrderSummary from "components/order-dashboard/OrderSummary";
 import PlaceOrderButton from "atoms/Buttons/PlaceOrderButton";
 import OrderInfoAlert from "atoms/Messages/OrderInfoAlert";
 
+const firestore = getFirestore();
+
 const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   const [tableNumber, setTableNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerMobile, setCustomerMobile] = useState("");
   const [orderNumber, setOrderNumber] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +33,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   const { hotelName } = useParams();
   const navigate = useNavigate();
 
-  // Get next order number on component mount
   useEffect(() => {
     if (hotelName) {
       getNextOrderNumber();
@@ -35,21 +44,21 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     try {
       const ordersRef = ref(rtdb, `/hotels/${hotelName}/orders`);
       const snapshot = await get(ordersRef);
-
       if (snapshot.exists()) {
         const orders = snapshot.val();
         const orderNumbers = Object.values(orders)
           .map((order) => order.orderNumber || 0)
           .filter((num) => typeof num === "number");
-        const maxOrderNumber =
-          orderNumbers.length > 0 ? Math.max(...orderNumbers) : 0;
+        const maxOrderNumber = orderNumbers.length
+          ? Math.max(...orderNumbers)
+          : 0;
         setOrderNumber(maxOrderNumber + 1);
       } else {
         setOrderNumber(1);
       }
     } catch (error) {
       console.error("Error getting next order number:", error);
-      setOrderNumber(Math.floor(Date.now() / 1000) % 10000); // Fallback unique number
+      setOrderNumber(Math.floor(Date.now() / 1000) % 10000);
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +96,23 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     return true;
   }, [tableNumber]);
 
+  const validateCustomerInfo = useCallback(() => {
+    if (!customerName.trim()) {
+      setError("Please enter customer name");
+      return false;
+    }
+    if (!customerMobile.trim()) {
+      setError("Please enter customer mobile number");
+      return false;
+    }
+    // Basic mobile number validation (10 digits)
+    if (!/^\d{10}$/.test(customerMobile.trim())) {
+      setError("Please enter a valid 10-digit mobile number");
+      return false;
+    }
+    return true;
+  }, [customerName, customerMobile]);
+
   const generateOrderId = useCallback(() => {
     return `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }, []);
@@ -94,9 +120,8 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   const handleSubmitOrder = useCallback(async () => {
     setError("");
 
-    if (!validateTableNumber()) {
-      return;
-    }
+    if (!validateTableNumber()) return;
+    if (!validateCustomerInfo()) return;
 
     if (cartItems.length === 0) {
       setError("Cart is empty");
@@ -113,17 +138,14 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     try {
       const orderId = generateOrderId();
       const currentTime = new Date();
-      const estimatedReadyTime = new Date(currentTime.getTime() + 25 * 60000); // 25 minutes from now
+      const estimatedReadyTime = new Date(currentTime.getTime() + 25 * 60000);
 
-      // Create comprehensive order object
       const orderData = {
-        // Basic order info
-        orderNumber: orderNumber,
+        orderNumber,
         tableNumber: parseInt(tableNumber),
         status: orderStatus,
-        orderId: orderId,
+        orderId,
 
-        // Items with detailed information
         items: cartItems.map((item) => ({
           id: item.id,
           menuName: item.menuName,
@@ -151,7 +173,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           },
         })),
 
-        // Pricing breakdown
         pricing: {
           subtotal: getTotalAmount(),
           tax: getTaxAmount(),
@@ -160,7 +181,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           currency: "INR",
         },
 
-        // Order summary details
         orderDetails: {
           totalItems: getTotalItems(),
           totalQuantity: getTotalItems(),
@@ -168,7 +188,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           averageItemPrice: Math.round(getTotalAmount() / getTotalItems()),
         },
 
-        // Comprehensive timestamps
         timestamps: {
           orderPlaced: currentTime.toISOString(),
           orderPlacedLocal: currentTime.toLocaleString("en-IN", {
@@ -196,8 +215,9 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           }),
         },
 
-        // Customer and service information
         customerInfo: {
+          name: customerName.trim(),
+          mobile: customerMobile.trim(),
           tableNumber: parseInt(tableNumber),
           orderType: "dine-in",
           servingStatus: "pending",
@@ -205,7 +225,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           specialRequests: "",
         },
 
-        // Order categorization and summary
         orderSummary: {
           vegItems: cartItems.filter(
             (item) => item.categoryType === "Veg" || item.categoryType === "veg"
@@ -226,7 +245,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           spicyItems: cartItems.filter((item) => item.isSpicy).length,
         },
 
-        // Kitchen management
         kitchen: {
           status: "received",
           priority: "normal",
@@ -238,7 +256,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           readyTime: null,
         },
 
-        // Payment and billing
         billing: {
           paymentStatus: "pending",
           paymentMethod: null,
@@ -247,7 +264,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           changeAmount: 0,
         },
 
-        // Tracking and analytics
         tracking: {
           orderSource: "captain_app",
           deviceInfo: {
@@ -255,11 +271,10 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
             timestamp: Date.now(),
             platform: "web",
           },
-          captainId: null, // Add captain ID when available
+          captainId: null,
           sessionId: null,
         },
 
-        // Order lifecycle
         lifecycle: {
           created: currentTime.toISOString(),
           lastUpdated: currentTime.toISOString(),
@@ -272,7 +287,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           ],
         },
 
-        // Metadata
         metadata: {
           hotelName: hotelName,
           version: "2.0",
@@ -286,24 +300,36 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
         },
       };
 
-      // Add order to Firebase
+      // Save order to Realtime Database
       const ordersRef = ref(rtdb, `/hotels/${hotelName}/orders`);
       const newOrderRef = push(ordersRef);
       await set(newOrderRef, orderData);
 
-      // Also store the order ID in the order data for easier reference
+      // Save firebaseId inside order for reference
       await set(
         ref(rtdb, `/hotels/${hotelName}/orders/${newOrderRef.key}/firebaseId`),
         newOrderRef.key
       );
 
-      // Show success toast
+      // Save customer info to Firestore customers collection
+      const customerDocRef = doc(
+        collection(firestore, "customers"),
+        newOrderRef.key
+      );
+      await setDoc(customerDocRef, {
+        name: customerName.trim(),
+        mobile: customerMobile.trim(),
+        lastOrderDate: serverTimestamp(),
+        lastOrderAmount: getFinalTotal(),
+        orderId: newOrderRef.key,
+        hotelName,
+      });
+
       toast.success(`Order #${orderNumber} placed successfully!`);
 
-      // Call success callback with comprehensive data
       onOrderSuccess({
-        orderNumber: orderNumber,
-        orderId: orderId,
+        orderNumber,
+        orderId,
         firebaseId: newOrderRef.key,
         tableNumber: parseInt(tableNumber),
         total: getFinalTotal(),
@@ -314,7 +340,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           minute: "2-digit",
         }),
         status: orderStatus,
-        orderData: orderData,
+        orderData,
       });
     } catch (error) {
       console.error("Error placing order:", error);
@@ -327,10 +353,13 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     }
   }, [
     validateTableNumber,
+    validateCustomerInfo,
     cartItems,
     orderNumber,
     orderStatus,
     tableNumber,
+    customerName,
+    customerMobile,
     hotelName,
     generateOrderId,
     getTotalAmount,
@@ -340,7 +369,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     onOrderSuccess,
   ]);
 
-  // Show empty cart message if no items
   if (cartItems.length === 0) {
     return <EmptyCartMessage onGoBack={onGoBack} />;
   }
@@ -348,11 +376,8 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto space-y-4">
-        {/* Header with Order Number */}
-        <div>
-          <CheckoutHeader onGoBack={onGoBack} />
-          <OrderNumberDisplay orderNumber={orderNumber} isLoading={isLoading} />
-        </div>
+        <CheckoutHeader onGoBack={onGoBack} />
+        <OrderNumberDisplay orderNumber={orderNumber} isLoading={isLoading} />
 
         {/* Table Number Input */}
         <TableNumberInput
@@ -360,6 +385,35 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           onTableNumberChange={setTableNumber}
           error={error}
         />
+
+        {/* Customer Name Input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Customer Name
+          </label>
+          <input
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="Enter customer name"
+            className="w-full border border-gray-300 rounded-md p-2"
+          />
+        </div>
+
+        {/* Customer Mobile Number Input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Mobile Number
+          </label>
+          <input
+            type="tel"
+            value={customerMobile}
+            onChange={(e) => setCustomerMobile(e.target.value)}
+            placeholder="Enter 10-digit mobile number"
+            className="w-full border border-gray-300 rounded-md p-2"
+            maxLength={10}
+          />
+        </div>
 
         {/* Order Summary */}
         <OrderSummary
@@ -369,7 +423,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           taxAmount={getTaxAmount()}
           taxPercentage={18}
           finalTotal={getFinalTotal()}
-          // grandTotal={cartCalculations.grandTotal}
           isCheckout={true}
         />
 
@@ -381,7 +434,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           finalTotal={getFinalTotal()}
         />
 
-        {/* Order Information Alert */}
         <OrderInfoAlert />
       </div>
     </div>

@@ -792,6 +792,35 @@ const useColumns = () => {
       ),
     },
   ];
+  const ViewCustomerColumns = [
+    {
+      accessor: "name",
+      header: "Name",
+      size: 150,
+    },
+    {
+      accessor: "mobile",
+      header: "Mobile No",
+      size: 120,
+    },
+    // {
+    //   accessor: "lastOrderDate",
+    //   header: "Last Order Date",
+    //   size: 150,
+    //   cell: ({ getValue }) => {
+    //     const ts = getValue();
+    //     if (!ts) return "N/A";
+    //     const date = ts.toDate ? ts.toDate() : new Date(ts);
+    //     return date.toLocaleDateString("en-IN");
+    //   },
+    // },
+    {
+      accessor: "lastOrderAmount",
+      header: "Last Order Amount (₹)",
+      size: 140,
+      cell: ({ getValue }) => (getValue() ? getValue().toFixed(2) : "0.00"),
+    },
+  ];
 
   return {
     ViewCategoryColumns,
@@ -809,6 +838,7 @@ const useColumns = () => {
     ViewAdminColumns,
     ViewHotelColumns,
     ViewSubscriptionPlanColumns,
+    ViewCustomerColumns,
   };
 };
 

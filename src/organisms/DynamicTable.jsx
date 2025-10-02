@@ -28,8 +28,6 @@ import {
 } from "lucide-react";
 import usePagination from "hooks/usePagination";
 
-
-
 // Image cell component with error handling
 const ImageCell = memo(
   ({ src, alt = "Item image", className = "w-12 h-12" }) => {
@@ -360,26 +358,25 @@ const TableHeader = memo(
       className={`bg-gradient-to-r from-orange-500 to-orange-600 text-white ${className}`}
     >
       <tr>
-        {columns.map((column, index) => (
-          <th
-            key={index}
-            className={`text-left px-6 py-4 text-sm font-semibold tracking-wider ${
-              column.sortable ? "cursor-pointer hover:bg-orange-600" : ""
-            }`}
-            onClick={
-              column.sortable ? () => onSort?.(column.accessor) : undefined
-            }
-          >
-            <div className="flex items-center gap-2">
-              {column.header}
+        {/* Table header */}
+        {Array.isArray(columns) &&
+          columns.map((column, index) => (
+            <th
+              key={index}
+              className={`text-left px-6 py-4 text-sm font-semibold tracking-wider ${
+                column.sortable ? "cursor-pointer hover:bg-orange-600" : ""
+              }`}
+              onClick={
+                column.sortable ? () => onSort?.(column.accessor) : undefined
+              }
+            >
               {column.sortable && sortConfig?.field === column.accessor && (
                 <span className="text-orange-200">
-                  {sortConfig.direction === "asc" ? "↑" : "↓"}
+                  {sortConfig?.direction === "asc" ? "↑" : "↓"}
                 </span>
               )}
-            </div>
-          </th>
-        ))}
+            </th>
+          ))}
         {hasActions && (
           <th className="text-left px-6 py-4 text-sm font-semibold tracking-wider">
             Actions
@@ -548,25 +545,27 @@ const DynamicTable = memo(
                         highlightRows ? highlightRows(item) : ""
                       } ${rowClassName}`}
                     >
-                      {columns.map((column, colIndex) => (
-                        <td
-                          key={colIndex}
-                          className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                        >
-                          {column.render ? (
-                            column.render(item[column.accessor], item, index)
-                          ) : column.accessor === "image" ||
-                            column.accessor === "img" ||
-                            column.accessor === "Img" ? (
-                            <ImageCell
-                              src={item[column.accessor]}
-                              alt={`${item.name || "Item"} image`}
-                            />
-                          ) : (
-                            item[column.accessor] ?? "-"
-                          )}
-                        </td>
-                      ))}
+                      {/* Table rows */}
+                      {Array.isArray(columns) &&
+                        columns.map((column, colIndex) => (
+                          <td
+                            key={colIndex}
+                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                          >
+                            {column.render ? (
+                              column.render(item[column.accessor], item, index)
+                            ) : ["image", "img", "Img"].includes(
+                                column.accessor
+                              ) ? (
+                              <ImageCell
+                                src={item[column.accessor]}
+                                alt={`${item.name || "Item"} image`}
+                              />
+                            ) : (
+                              item[column.accessor] ?? "-"
+                            )}
+                          </td>
+                        ))}
 
                       {hasActions && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm">

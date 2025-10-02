@@ -525,7 +525,7 @@ const EnhancedAdminProfile = memo(() => {
     try {
       const user = auth.currentUser;
       if (!user) {
-        navigate("/login");
+        navigate("/admin/login");
         return;
       }
 
