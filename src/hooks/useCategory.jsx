@@ -1,15 +1,6 @@
-// hooks/useCategory.js (FIXED)
-
+// hooks/useCategory.js (CORRECTED VERSION)
 import { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  collection,
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
-import { db } from "../services/firebase/firebaseConfig";
+import { categoryServices } from "../services/api/categoryService";
 
 export const useCategory = (hotelName) => {
   const [categories, setCategories] = useState([]);
@@ -18,7 +9,7 @@ export const useCategory = (hotelName) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Subscribe to Firestore categories collection
+  // Subscribe to categories using the service
   useEffect(() => {
     if (!hotelName) {
       setCategories([]);
@@ -26,108 +17,114 @@ export const useCategory = (hotelName) => {
       return;
     }
 
-    let unsubscribe;
+    setLoading(true);
+    setError(null);
 
-    const setupSubscription = () => {
-      setLoading(true);
-      setError(null);
-
-      const colRef = collection(db, `hotels/${hotelName}/categories`);
-      unsubscribe = onSnapshot(
-        colRef,
-        (snapshot) => {
-          const categoriesData = snapshot.docs.map((d) => ({
-            id: d.id,
-            ...d.data(),
-          }));
-          setCategories(categoriesData);
-          setLoading(false);
-        },
-        (err) => {
-          console.error("Error fetching categories:", err);
-          const errorMessage = err.message || "Error fetching categories";
-          setError(errorMessage);
-          setLoading(false);
-        }
-      );
-    };
-
-    setupSubscription();
+    const unsubscribe = categoryServices.subscribeToCategories(
+      hotelName,
+      (categoriesData) => {
+        setCategories(categoriesData || []);
+        setLoading(false);
+      }
+    );
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe && typeof unsubscribe === "function") {
+        unsubscribe();
+      }
     };
   }, [hotelName]);
 
-  // Memoized filtered categories with null safety
+  // Memoized filtered categories using service
   const filteredCategories = useMemo(() => {
-    if (!categories || categories.length === 0) return [];
-
-    return categories.filter((category) => {
-      // Add null safety checks
-      const categoryName = category?.categoryName || "";
-      const searchLower = (searchTerm || "").toLowerCase();
-      return categoryName.toLowerCase().includes(searchLower);
-    });
+    return categoryServices.filterCategories(categories, searchTerm);
   }, [categories, searchTerm]);
 
-  // Add category
+  // Add category using service
   const addCategory = useCallback(
     async (categoryName) => {
       if (submitting) return false;
       setSubmitting(true);
+      setError(null);
+
       try {
-        await addDoc(collection(db, `hotels/${hotelName}/categories`), {
+        const result = await categoryServices.addCategory(
+          hotelName,
           categoryName,
-          createdAt: new Date(),
-        });
-        return true;
+          categories
+        );
+        return result;
       } catch (err) {
         console.error("Error adding category:", err);
-        const errorMessage = err.message || "Error adding category";
-        setError(errorMessage);
+        setError(err.message || "Error adding category");
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting, categories]
   );
 
-  // Update category
+  // Update category using service
   const updateCategory = useCallback(
     async (categoryName, categoryId) => {
       if (submitting) return false;
+      if (!categoryId) {
+        console.error("Category ID is required for update");
+        setError("Category ID is required for update");
+        return false;
+      }
+
       setSubmitting(true);
+      setError(null);
+
       try {
-        const docRef = doc(db, `hotels/${hotelName}/categories`, categoryId);
-        await updateDoc(docRef, { categoryName });
-        return true;
+        console.log("Hook - Updating category:", {
+          categoryName,
+          categoryId,
+          hotelName,
+        });
+        const result = await categoryServices.updateCategory(
+          hotelName,
+          categoryId,
+          categoryName,
+          categories
+        );
+        return result;
       } catch (err) {
         console.error("Error updating category:", err);
-        const errorMessage = err.message || "Error updating category";
-        setError(errorMessage);
+        setError(err.message || "Error updating category");
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting, categories]
   );
 
-  // Delete category
+  // Delete category using service
   const deleteCategory = useCallback(
-    async (categoryId) => {
+    async (category) => {
       if (submitting) return false;
+      if (!category) {
+        console.error("Category object is required for delete");
+        setError("Category information is missing");
+        return false;
+      }
+
       setSubmitting(true);
+      setError(null);
+
       try {
-        const docRef = doc(db, `hotels/${hotelName}/categories`, categoryId);
-        await deleteDoc(docRef);
-        return true;
+        console.log("Hook - Deleting category:", category);
+        const result = await categoryServices.deleteCategory(
+          hotelName,
+          category
+        );
+        return result;
       } catch (err) {
         console.error("Error deleting category:", err);
-        const errorMessage = err.message || "Error deleting category";
-        setError(errorMessage);
+        setError(err.message || "Error deleting category");
         return false;
       } finally {
         setSubmitting(false);
@@ -136,47 +133,87 @@ export const useCategory = (hotelName) => {
     [hotelName, submitting]
   );
 
-  const prepareForEdit = useCallback(async (category) => {
-    return { id: category.id, categoryName: category.categoryName || "" };
-  }, []);
+  // Prepare category for editing using service
+  const prepareForEdit = useCallback(
+    async (category) => {
+      try {
+        console.log("Hook - Preparing for edit:", category);
+        return await categoryServices.prepareForEdit(hotelName, category);
+      } catch (err) {
+        console.error("Error preparing category for edit:", err);
+        setError(err.message || "Error preparing category for editing");
+        return null;
+      }
+    },
+    [hotelName]
+  );
 
+  // Handle form submission (add or update)
   const handleFormSubmit = useCallback(
-    (categoryName, categoryId = null) =>
-      categoryId
-        ? updateCategory(categoryName, categoryId)
-        : addCategory(categoryName),
+    async (categoryName, categoryId = null) => {
+      console.log("Hook - Form submit:", { categoryName, categoryId });
+
+      if (categoryId) {
+        return await updateCategory(categoryName, categoryId);
+      } else {
+        return await addCategory(categoryName);
+      }
+    },
     [addCategory, updateCategory]
   );
 
+  // Handle search change
   const handleSearchChange = useCallback((term) => {
     setSearchTerm(term || "");
   }, []);
 
-  // Memoize duplicate check function with null safety
+  // Refresh categories function - FIXED
+  const refreshCategories = useCallback(async () => {
+    if (!hotelName) return [];
+
+    try {
+      setLoading(true);
+      setError(null);
+      const categoriesData = await categoryServices.getCategories(hotelName);
+      setCategories(categoriesData || []);
+      return categoriesData;
+    } catch (err) {
+      console.error("Error refreshing categories:", err);
+      setError(err.message || "Error refreshing categories");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [hotelName]);
+
+  // Get category stats using service
+  const getCategoryStats = useCallback(async () => {
+    try {
+      return await categoryServices.getCategoryStats(hotelName);
+    } catch (err) {
+      console.error("Error getting category stats:", err);
+      return null;
+    }
+  }, [hotelName]);
+
+  // Check duplicate category
   const checkDuplicateCategory = useMemo(() => {
     return (name, excludeId = null) => {
       if (!name || !categories) return false;
       return categories.some(
         (c) =>
           (c?.categoryName || "").toLowerCase() === name.toLowerCase() &&
-          c.id !== excludeId
+          (c.categoryId || c.id) !== excludeId
       );
     };
   }, [categories]);
 
-  // Memoize category stats with null safety
-  const getCategoryStats = useMemo(() => {
-    return () => ({
-      total: categories?.length || 0,
-      filtered: filteredCategories?.length || 0,
-    });
-  }, [categories?.length, filteredCategories?.length]);
-
+  // Clear all filters
   const clearAllFilters = useCallback(() => {
     setSearchTerm("");
   }, []);
 
-  // Memoize computed values with null safety
+  // Memoized computed values - FIXED
   const computedValues = useMemo(
     () => ({
       categoryCount: categories?.length || 0,
@@ -184,7 +221,7 @@ export const useCategory = (hotelName) => {
       hasCategories: (categories?.length || 0) > 0,
       hasSearchResults: (filteredCategories?.length || 0) > 0,
     }),
-    [categories?.length, filteredCategories?.length]
+    [categories, filteredCategories]
   );
 
   return {
@@ -205,16 +242,20 @@ export const useCategory = (hotelName) => {
     prepareForEdit,
     handleFormSubmit,
     handleSearchChange,
+    refreshCategories, // NOW PROPERLY INCLUDED
 
-    // Utility functions (memoized)
+    // Utility functions
     getCategoryStats,
     checkDuplicateCategory,
     clearAllFilters,
 
-    // Computed values (memoized)
-    ...computedValues,
+    // Computed values - PROPERLY SPREAD
+    categoryCount: computedValues.categoryCount,
+    filteredCount: computedValues.filteredCount,
+    hasCategories: computedValues.hasCategories,
+    hasSearchResults: computedValues.hasSearchResults,
 
-    // Setters
+    // Setters (if needed for direct manipulation)
     setSearchTerm,
     setCategories,
     setError,

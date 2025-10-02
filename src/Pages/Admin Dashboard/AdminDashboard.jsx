@@ -243,7 +243,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <StatCard title={t("dashboard.totalOrders")} value={displayStats.total} icon={ShoppingBag} color="blue" />
           <StatCard title={t("dashboard.completedOrders")} value={displayStats.completed} icon={CheckCircle} color="green" />
           <StatCard title={t("dashboard.rejectedOrders")} value={displayStats.rejected} icon={AlertCircle} color="red" />
@@ -251,7 +251,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Menu stats cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <StatCard title={t("dashboard.totalMenuItems")} value={menuStats.total} icon={ShoppingBag} color="purple" />
           <StatCard title={t("dashboard.availableItems")} value={menuStats.available} icon={CheckCircle} color="green" />
           <StatCard title={t("dashboard.discountedItems")} value={menuStats.discounted} icon={TrendingUp} color="orange" />

@@ -1,5 +1,6 @@
+// AddCategory.js (CORRECTED VERSION)
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Tags } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
@@ -14,6 +15,7 @@ import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
+
 // Lazy load heavy components
 const CategoryFormModal = React.lazy(() =>
   import("../../components/FormModals/CategoryFormModals")
@@ -43,7 +45,7 @@ const AddCategory = memo(() => {
     handleSearchChange,
     deleteCategory,
     prepareForEdit,
-    refreshCategories,
+    refreshCategories, // NOW PROPERLY AVAILABLE
     categoryCount,
     hasCategories,
     hasSearchResults,
@@ -56,7 +58,9 @@ const AddCategory = memo(() => {
       active: categories.filter((cat) => cat.status === "active").length,
       withItems: categories.filter((cat) => cat.itemCount > 0).length,
       recent: categories.filter((cat) => {
-        const createdDate = new Date(cat.createdAt);
+        const createdDate = new Date(
+          cat.createdAt?.toDate ? cat.createdAt.toDate() : cat.createdAt
+        );
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return createdDate > weekAgo;
       }).length,
@@ -125,8 +129,19 @@ const AddCategory = memo(() => {
     handleSearchChange("");
   }, [handleSearchChange]);
 
+  // FIXED refresh handler
   const handleRefresh = useCallback(() => {
-    refreshCategories();
+    try {
+      if (typeof refreshCategories === "function") {
+        refreshCategories();
+      } else {
+        console.warn("Refresh function not available");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error refreshing categories:", error);
+      window.location.reload();
+    }
   }, [refreshCategories]);
 
   // Error state
@@ -180,7 +195,7 @@ const AddCategory = memo(() => {
         </div>
 
         {/* Stats Cards */}
-        {/* {hasCategories && (
+        {hasCategories && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Tags}
@@ -188,8 +203,14 @@ const AddCategory = memo(() => {
               value={stats.total}
               color="blue"
             />
+            <StatCard
+              icon={Tags}
+              title={t("categories.active")}
+              value={stats.active}
+              color="green"
+            />
           </div>
-        )} */}
+        )}
 
         {/* Search and Filters */}
         {hasCategories && (

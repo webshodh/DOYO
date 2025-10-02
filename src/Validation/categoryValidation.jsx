@@ -1,3 +1,4 @@
+// validation/categoryValidation.js (UPDATED - Kept for compatibility)
 import { toast } from "react-toastify";
 
 export const validateCategoryName = (categoryName) => {
@@ -22,7 +23,6 @@ export const validateCategoryName = (categoryName) => {
     };
   }
 
-  // Check for special characters (optional - adjust based on requirements)
   const specialCharsRegex = /^[a-zA-Z0-9\s\-_&]+$/;
   if (!specialCharsRegex.test(categoryName.trim())) {
     return {
@@ -47,7 +47,7 @@ export const checkDuplicateCategory = (
   const isDuplicate = categories.some(
     (category) =>
       category.categoryName.toLowerCase() === normalizedCategoryName &&
-      category.categoryId !== excludeCategoryId
+      (category.categoryId || category.id) !== excludeCategoryId
   );
 
   return isDuplicate;
@@ -58,7 +58,6 @@ export const validateCategoryForm = (
   categories,
   excludeCategoryId = null
 ) => {
-  // Basic validation
   const basicValidation = validateCategoryName(categoryName);
   if (!basicValidation.isValid) {
     toast.error(basicValidation.error, {
@@ -67,7 +66,6 @@ export const validateCategoryForm = (
     return false;
   }
 
-  // Duplicate check
   if (checkDuplicateCategory(categories, categoryName, excludeCategoryId)) {
     toast.error("Category already exists", {
       position: toast.POSITION.TOP_RIGHT,
