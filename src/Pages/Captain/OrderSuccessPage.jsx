@@ -13,7 +13,7 @@ import {
   Timer,
   Package,
 } from "lucide-react";
-import { db } from "../../services/firebase/firebaseConfig";
+import { rtdb } from "../../services/firebase/firebaseConfig";
 import { toast } from "react-toastify";
 
 const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
@@ -69,7 +69,7 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
     if (!orderDetails?.firebaseId || !hotelName || !isTrackingActive) return;
 
     const orderRef = ref(
-      db,
+      rtdb,
       `/hotels/${hotelName}/orders/${orderDetails.firebaseId}`
     );
 

@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Info,
   Loader,
-  Save,
   Upload,
   X,
   Eye,
@@ -21,14 +20,12 @@ import {
   Mail,
   Phone,
   CreditCard,
-  MapPin,
   Calendar,
   Camera,
   Hash,
   CheckCircle,
   XCircle,
   Lock,
-  UserCheck,
 } from "lucide-react";
 import Modal from "../Modal";
 import {
@@ -91,7 +88,7 @@ const ValidationInput = memo(
           )}
           <input
             type={isPassword ? (showPassword ? "text" : "password") : type}
-            value={value}
+            value={value || ""}
             onChange={onChange}
             placeholder={placeholder}
             disabled={disabled}
@@ -130,7 +127,6 @@ const ValidationInput = memo(
           )}
         </div>
 
-        {/* Validation icon */}
         {!isPassword && (
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
             {disabled && (
@@ -171,7 +167,7 @@ const ValidationTextArea = memo(
     return (
       <div className="relative">
         <textarea
-          value={value}
+          value={value || ""}
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
@@ -193,7 +189,7 @@ const ValidationTextArea = memo(
           {...props}
         />
         <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-          {value.length}/{maxLength}
+          {(value || "").length}/{maxLength}
         </div>
       </div>
     );
@@ -208,17 +204,19 @@ const PhotoUpload = memo(
     const [preview, setPreview] = useState(currentPhoto);
     const fileInputRef = useRef(null);
 
+    useEffect(() => {
+      setPreview(currentPhoto);
+    }, [currentPhoto]);
+
     const handleFileSelect = useCallback(
       (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (file) {
-          // Create preview
           const reader = new FileReader();
           reader.onload = (e) => {
             setPreview(e.target.result);
           };
           reader.readAsDataURL(file);
-
           onPhotoChange(file);
         }
       },
@@ -287,9 +285,36 @@ const PhotoUpload = memo(
 
 PhotoUpload.displayName = "PhotoUpload";
 
-// Captain Info Display
+// Captain Info Display with safe date rendering
 const CaptainInfo = memo(({ captain }) => {
   if (!captain) return null;
+
+  // Safe date formatting for Firestore timestamps
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
+    if (typeof timestamp.toDate === "function") {
+      return timestamp.toDate().toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    }
+    if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    }
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    }
+    return "Invalid date";
+  };
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
@@ -317,7 +342,7 @@ const CaptainInfo = memo(({ captain }) => {
                 <span className="text-gray-600">Created:</span>
               </div>
               <span className="font-mono text-gray-800">
-                {new Date(captain.createdAt).toLocaleDateString()}
+                {formatDate(captain.createdAt)}
               </span>
             </div>
 
@@ -430,7 +455,6 @@ const CaptainFormModal = memo(
     modalProps = {},
     ...rest
   }) => {
-    // Form state
     const [formData, setFormData] = useState({
       firstName: "",
       lastName: "",
@@ -450,13 +474,11 @@ const CaptainFormModal = memo(
 
     const isEditMode = Boolean(editCaptain);
 
-    // Auto-generate title if not provided
     const modalTitle = useMemo(() => {
       if (title) return title;
       return isEditMode ? "Edit Captain" : "Add Captain";
     }, [title, isEditMode]);
 
-    // Reset form when modal opens/closes or captain changes
     useEffect(() => {
       if (show) {
         const initialData = editCaptain
@@ -471,7 +493,7 @@ const CaptainFormModal = memo(
               address: editCaptain.address || "",
               photoFile: null,
               existingPhotoUrl: editCaptain.photoUrl || null,
-              password: "", // Never populate password field for security
+              password: "",
             }
           : {
               firstName: "",
@@ -492,13 +514,11 @@ const CaptainFormModal = memo(
       }
     }, [show, editCaptain]);
 
-    // Handle field changes with real-time validation
     const handleFieldChange = useCallback(
       (fieldName, value) => {
         setFormData((prev) => ({ ...prev, [fieldName]: value }));
         setIsDirty(true);
 
-        // Real-time validation
         if (value !== "" || fieldName === "experience") {
           const validation = validateField(
             fieldName,
@@ -517,7 +537,6 @@ const CaptainFormModal = memo(
       [existingCaptains, editCaptain]
     );
 
-    // Check if form can be submitted
     const canSubmit = useMemo(() => {
       const requiredFields = [
         "firstName",
@@ -530,7 +549,6 @@ const CaptainFormModal = memo(
         "address",
       ];
 
-      // For new captains, password is required
       if (!isEditMode) {
         requiredFields.push("password");
       }
@@ -543,17 +561,16 @@ const CaptainFormModal = memo(
       return hasAllRequired && hasNoErrors && !isSubmitting && !submitting;
     }, [formData, errors, isSubmitting, submitting, isEditMode]);
 
-    // Handle form submission
     const handleSubmit = useCallback(
       async (e) => {
         e.preventDefault();
 
-        // Final validation
         const validation = validateCaptainForm(
           formData,
           existingCaptains,
           editCaptain?.captainId
         );
+
         if (!validation.isValid) {
           setErrors(validation.errors);
           return;
@@ -575,7 +592,6 @@ const CaptainFormModal = memo(
       [formData, existingCaptains, editCaptain, onSubmit, onClose]
     );
 
-    // Handle modal close
     const handleClose = useCallback(() => {
       if (isSubmitting) return;
 
@@ -619,7 +635,6 @@ const CaptainFormModal = memo(
           className={`p-6 space-y-6 max-h-[80vh] overflow-y-auto ${className}`}
           {...rest}
         >
-          {/* Header */}
           <div className="flex items-center gap-4">
             <div
               className={`p-3 rounded-xl ${
@@ -644,7 +659,6 @@ const CaptainFormModal = memo(
             </div>
           </div>
 
-          {/* Photo Upload */}
           <PhotoUpload
             currentPhoto={editCaptain?.photoUrl}
             onPhotoChange={(file) => handleFieldChange("photoFile", file)}
@@ -652,7 +666,6 @@ const CaptainFormModal = memo(
             disabled={isSubmitting || submitting}
           />
 
-          {/* Login Credentials Section */}
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <Lock className="w-5 h-5 text-purple-600" />
@@ -662,7 +675,6 @@ const CaptainFormModal = memo(
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Email (used as login credential) */}
               <FormField
                 label="Email Address"
                 error={errors.email}
@@ -680,7 +692,6 @@ const CaptainFormModal = memo(
                 />
               </FormField>
 
-              {/* Password */}
               <FormField
                 label="Password"
                 error={errors.password}
@@ -711,9 +722,7 @@ const CaptainFormModal = memo(
             </div>
           </div>
 
-          {/* Form Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* First Name */}
             <FormField
               label="First Name"
               error={errors.firstName}
@@ -732,7 +741,6 @@ const CaptainFormModal = memo(
               />
             </FormField>
 
-            {/* Last Name */}
             <FormField
               label="Last Name"
               error={errors.lastName}
@@ -750,7 +758,6 @@ const CaptainFormModal = memo(
               />
             </FormField>
 
-            {/* Mobile Number */}
             <FormField
               label="Mobile Number"
               error={errors.mobileNo}
@@ -769,7 +776,6 @@ const CaptainFormModal = memo(
               />
             </FormField>
 
-            {/* Aadhar Number */}
             <FormField
               label="Aadhar Number"
               error={errors.adharNo}
@@ -788,7 +794,6 @@ const CaptainFormModal = memo(
               />
             </FormField>
 
-            {/* PAN Number */}
             <FormField
               label="PAN Number"
               error={errors.panNo}
@@ -809,7 +814,6 @@ const CaptainFormModal = memo(
               />
             </FormField>
 
-            {/* Experience */}
             <FormField
               label="Experience (Years)"
               error={errors.experience}
@@ -832,7 +836,6 @@ const CaptainFormModal = memo(
             </FormField>
           </div>
 
-          {/* Address */}
           <FormField
             label="Address"
             error={errors.address}
@@ -850,10 +853,8 @@ const CaptainFormModal = memo(
             />
           </FormField>
 
-          {/* Captain Info (Edit Mode) */}
           {isEditMode && <CaptainInfo captain={editCaptain} />}
 
-          {/* Action Buttons */}
           <ActionButtons
             isEditMode={isEditMode}
             canSubmit={canSubmit}

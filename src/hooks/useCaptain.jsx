@@ -1,4 +1,4 @@
-// useCaptain.js (OPTIMIZED)
+// useCaptain.js - FIXED VERSION
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { captainServices } from "../services/api/captainServices";
 
@@ -9,43 +9,70 @@ export const useCaptain = (hotelName) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Subscribe to captains data
   useEffect(() => {
     if (!hotelName) {
       setCaptains([]);
       setLoading(false);
+      setError("Hotel name is required");
       return;
     }
 
     let unsubscribe;
+    let mounted = true;
 
     const setupSubscription = () => {
       setLoading(true);
       setError(null);
 
-      unsubscribe = captainServices.subscribeToCaptains(hotelName, (data) => {
-        setCaptains(data);
-        setLoading(false);
-        setError(null);
-      });
+      try {
+        unsubscribe = captainServices.subscribeToCaptains(hotelName, (data) => {
+          if (mounted) {
+            setCaptains(data);
+            setLoading(false);
+            setError(null);
+          }
+        });
+      } catch (err) {
+        console.error("Error setting up subscription:", err);
+        if (mounted) {
+          setError("Failed to load captains");
+          setLoading(false);
+        }
+      }
     };
 
     setupSubscription();
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      mounted = false;
+      if (unsubscribe) {
+        try {
+          unsubscribe();
+        } catch (err) {
+          console.error("Error unsubscribing:", err);
+        }
+      }
     };
-  }, [hotelName]); // Only re-subscribe if hotelName changes
+  }, [hotelName]);
 
-  // Memoize filtered captains to prevent re-computation on every render
+  // Memoize filtered captains
   const filteredCaptains = useMemo(() => {
+    if (!Array.isArray(captains)) return [];
     return captainServices.filterCaptains(captains, searchTerm);
   }, [captains, searchTerm]);
 
-  // Optimize addCaptain with stable dependencies
+  // Add captain
   const addCaptain = useCallback(
     async (captainData) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.addCaptain(
           hotelName,
@@ -55,20 +82,32 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in addCaptain:", error);
-        const errorMessage = error.message || error;
+        const errorMessage = error.message || "Failed to add captain";
         setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting] // Removed captains to prevent unnecessary re-renders
+    [hotelName, captains, submitting]
   );
 
+  // Update captain
   const updateCaptain = useCallback(
     async (captainId, captainData) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
+      if (!captainId) {
+        setError("Captain ID is required");
+        return false;
+      }
+
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.updateCaptain(
           hotelName,
@@ -79,26 +118,38 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in updateCaptain:", error);
-        const errorMessage = error.message || error;
+        const errorMessage = error.message || "Failed to update captain";
         setError(errorMessage);
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting] // Removed captains to prevent unnecessary re-renders
+    [hotelName, captains, submitting]
   );
 
+  // Delete captain
   const deleteCaptain = useCallback(
     async (captain) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
+      if (!captain || !captain.captainId) {
+        setError("Invalid captain data");
+        return false;
+      }
+
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.deleteCaptain(hotelName, captain);
         return success;
       } catch (error) {
         console.error("Error in deleteCaptain:", error);
-        const errorMessage = error.message || error;
+        const errorMessage = error.message || "Failed to delete captain";
         setError(errorMessage);
         return false;
       } finally {
@@ -108,10 +159,22 @@ export const useCaptain = (hotelName) => {
     [hotelName, submitting]
   );
 
+  // Toggle captain status
   const toggleCaptainStatus = useCallback(
     async (captainId, currentStatus) => {
-      if (submitting) return false;
+      if (submitting) {
+        console.log("Already submitting, please wait");
+        return false;
+      }
+
+      if (!captainId) {
+        setError("Captain ID is required");
+        return false;
+      }
+
       setSubmitting(true);
+      setError(null);
+
       try {
         const success = await captainServices.toggleCaptainStatus(
           hotelName,
@@ -121,7 +184,7 @@ export const useCaptain = (hotelName) => {
         return success;
       } catch (error) {
         console.error("Error in toggleCaptainStatus:", error);
-        const errorMessage = error.message || error;
+        const errorMessage = error.message || "Failed to update captain status";
         setError(errorMessage);
         return false;
       } finally {
@@ -131,8 +194,14 @@ export const useCaptain = (hotelName) => {
     [hotelName, submitting]
   );
 
+  // Prepare captain for editing
   const prepareForEdit = useCallback(
     async (captain) => {
+      if (!captain) {
+        setError("Captain data is required");
+        return null;
+      }
+
       try {
         const captainToEdit = await captainServices.prepareForEdit(
           hotelName,
@@ -141,7 +210,8 @@ export const useCaptain = (hotelName) => {
         return captainToEdit;
       } catch (error) {
         console.error("Error in prepareForEdit:", error);
-        const errorMessage = error.message || error;
+        const errorMessage =
+          error.message || "Failed to prepare captain for editing";
         setError(errorMessage);
         return null;
       }
@@ -149,83 +219,111 @@ export const useCaptain = (hotelName) => {
     [hotelName]
   );
 
+  // Handle form submit (add or update)
   const handleFormSubmit = useCallback(
     async (captainData, captainId = null) => {
-      if (captainId) {
-        return await updateCaptain(captainId, captainData);
-      } else {
-        return await addCaptain(captainData);
+      try {
+        if (captainId) {
+          return await updateCaptain(captainId, captainData);
+        } else {
+          return await addCaptain(captainData);
+        }
+      } catch (error) {
+        console.error("Error in handleFormSubmit:", error);
+        return false;
       }
     },
     [addCaptain, updateCaptain]
   );
 
+  // Handle search change
   const handleSearchChange = useCallback((term) => {
-    setSearchTerm(term);
+    setSearchTerm(term || "");
   }, []);
 
+  // Refresh captains
   const refreshCaptains = useCallback(() => {
     setError(null);
-    // Real-time subscription auto refreshes data
+    // Real-time subscription auto-refreshes data
   }, []);
 
+  // Get captain stats
   const getCaptainStats = useCallback(async () => {
     try {
-      return await captainServices.getCaptainStats(hotelName);
+      const stats = await captainServices.getCaptainStats(hotelName);
+      return stats;
     } catch (error) {
       console.error("Error getting captain stats:", error);
-      const errorMessage = error.message || error;
+      const errorMessage = error.message || "Failed to get captain stats";
       setError(errorMessage);
-      return null;
+      return {
+        totalCaptains: 0,
+        activeCaptains: 0,
+        inactiveCaptains: 0,
+        recentCaptains: 0,
+      };
     }
   }, [hotelName]);
 
-  // Memoize duplicate check functions to prevent recalculation
+  // Memoize duplicate check functions
   const duplicateChecks = useMemo(
     () => ({
-      checkDuplicateEmail: (email, excludeId = null) =>
-        captains.some(
+      checkDuplicateEmail: (email, excludeId = null) => {
+        if (!email || !Array.isArray(captains)) return false;
+        return captains.some(
           (captain) =>
             captain.email?.toLowerCase() === email.toLowerCase() &&
             captain.captainId !== excludeId
-        ),
+        );
+      },
 
-      checkDuplicateMobile: (mobileNo, excludeId = null) =>
-        captains.some(
+      checkDuplicateMobile: (mobileNo, excludeId = null) => {
+        if (!mobileNo || !Array.isArray(captains)) return false;
+        return captains.some(
           (captain) =>
             captain.mobileNo === mobileNo && captain.captainId !== excludeId
-        ),
+        );
+      },
 
-      checkDuplicateAdhar: (adharNo, excludeId = null) =>
-        captains.some(
+      checkDuplicateAdhar: (adharNo, excludeId = null) => {
+        if (!adharNo || !Array.isArray(captains)) return false;
+        return captains.some(
           (captain) =>
             captain.adharNo === adharNo && captain.captainId !== excludeId
-        ),
+        );
+      },
 
-      checkDuplicatePan: (panNo, excludeId = null) =>
-        captains.some(
+      checkDuplicatePan: (panNo, excludeId = null) => {
+        if (!panNo || !Array.isArray(captains)) return false;
+        return captains.some(
           (captain) =>
             captain.panNo?.toUpperCase() === panNo.toUpperCase() &&
             captain.captainId !== excludeId
-        ),
+        );
+      },
     }),
     [captains]
   );
 
-  // Memoize computed values to prevent recalculation on every render
+  // Memoize computed values
   const computedValues = useMemo(() => {
-    const activeCaptains = captains.filter((c) => c.status === "active");
-    const inactiveCaptains = captains.filter((c) => c.status === "inactive");
+    const safeList = Array.isArray(captains) ? captains : [];
+    const safeFiltered = Array.isArray(filteredCaptains)
+      ? filteredCaptains
+      : [];
+
+    const activeCaptains = safeList.filter((c) => c.status === "active");
+    const inactiveCaptains = safeList.filter((c) => c.status === "inactive");
 
     return {
-      captainCount: captains.length,
-      filteredCount: filteredCaptains.length,
-      hasCaptains: captains.length > 0,
-      hasSearchResults: filteredCaptains.length > 0,
+      captainCount: safeList.length,
+      filteredCount: safeFiltered.length,
+      hasCaptains: safeList.length > 0,
+      hasSearchResults: safeFiltered.length > 0,
       activeCaptains: activeCaptains.length,
       inactiveCaptains: inactiveCaptains.length,
     };
-  }, [captains.length, filteredCaptains.length, captains]);
+  }, [captains, filteredCaptains]);
 
   return {
     // Data

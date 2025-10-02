@@ -339,7 +339,7 @@ const CategoryFormModal = memo(
           {...rest}
         >
           {/* Header */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <div
               className={`p-3 rounded-xl ${
                 isEditMode ? "bg-blue-100" : "bg-green-100"
@@ -361,7 +361,7 @@ const CategoryFormModal = memo(
                   : "Enter details for the new category"}
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* Form Fields */}
           <div className="space-y-4">

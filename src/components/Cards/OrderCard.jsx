@@ -1,17 +1,16 @@
+import React, { useState } from "react";
 import LoadingSpinner from "atoms/LoadingSpinner";
 import {
   Clock,
-  DollarSign,
+  Package,
+  Trash2,
   Edit,
   Eye,
-  Package,
   Printer,
-  Trash2,
   User,
+  DollarSign,
 } from "lucide-react";
-import { useState } from "react";
 
-// Simplified Order Card Component with print bill and rejection reason
 const OrderCard = ({
   order,
   onEdit,
@@ -25,18 +24,36 @@ const OrderCard = ({
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
 
-  // Simplified status options (only 3 statuses)
   const statusOptions = [
     { value: "received", label: "Received", icon: Clock, color: "yellow" },
     { value: "completed", label: "Completed", icon: Package, color: "green" },
     { value: "rejected", label: "Rejected", icon: Trash2, color: "red" },
   ];
 
-  // Get current status config using normalizedStatus
   const statusConfig =
     statusOptions.find((s) => s.value === order.normalizedStatus) ||
     statusOptions[0];
   const StatusIcon = statusConfig.icon;
+
+  const isOrderCompleted = order.normalizedStatus === "completed";
+  const isOrderRejected = order.normalizedStatus === "rejected";
+  const canEditAndDelete = order.normalizedStatus === "received";
+  const canUpdateStatus = !isOrderCompleted && !isOrderRejected;
+
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return "N/A";
+    try {
+      return new Date(dateTime).toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Invalid Date";
+    }
+  };
 
   const handleStatusChange = async (newStatus) => {
     if (newStatus !== order.normalizedStatus && !isUpdating) {
@@ -44,7 +61,7 @@ const OrderCard = ({
         setShowRejectionModal(true);
         return;
       }
-      onUpdateStatus(order.id, newStatus);
+      await onUpdateStatus(order.id, newStatus);
     }
   };
 
@@ -53,7 +70,6 @@ const OrderCard = ({
       alert("Please provide a reason for rejection");
       return;
     }
-
     setIsSubmittingRejection(true);
     try {
       await onUpdateStatus(order.id, "rejected", rejectionReason.trim());
@@ -71,27 +87,6 @@ const OrderCard = ({
       onPrintBill(order);
     }
   };
-
-  const formatDateTime = (dateTime) => {
-    if (!dateTime) return "N/A";
-    try {
-      return new Date(dateTime).toLocaleString("en-IN", {
-        timeZone: "Asia/Kolkata",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "Invalid Date";
-    }
-  };
-
-  // Conditional rendering logic for action buttons
-  const isOrderCompleted = order.normalizedStatus === "completed";
-  const isOrderRejected = order.normalizedStatus === "rejected";
-  const canEditAndDelete = order.normalizedStatus === "received";
-  const canUpdateStatus = !isOrderCompleted && !isOrderRejected;
 
   return (
     <>
@@ -111,7 +106,7 @@ const OrderCard = ({
                 ${statusConfig.color === "yellow" ? "text-yellow-600" : ""}
                 ${statusConfig.color === "green" ? "text-green-600" : ""}
                 ${statusConfig.color === "red" ? "text-red-600" : ""}
-              `}
+                `}
               />
             </div>
             <div>
@@ -128,7 +123,6 @@ const OrderCard = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* View button - always visible */}
             <button
               onClick={() => onView(order)}
               className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
@@ -136,8 +130,6 @@ const OrderCard = ({
             >
               <Eye className="w-4 h-4" />
             </button>
-
-            {/* Print Bill button - only visible when status is "completed" */}
             {isOrderCompleted && (
               <button
                 onClick={handlePrintBill}
@@ -147,32 +139,27 @@ const OrderCard = ({
                 <Printer className="w-4 h-4" />
               </button>
             )}
-
-            {/* Edit button - only visible when status is "received" */}
             {canEditAndDelete && (
-              <button
-                onClick={() => onEdit(order)}
-                className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors"
-                title="Edit Order"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-            )}
-
-            {/* Delete button - only visible when status is "received" */}
-            {canEditAndDelete && (
-              <button
-                onClick={() => onDelete(order.id)}
-                className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                title="Cancel Order"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <>
+                <button
+                  onClick={() => onEdit(order)}
+                  className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors"
+                  title="Edit Order"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(order.id)}
+                  className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Cancel Order"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
             )}
           </div>
         </div>
 
-        {/* Rejection Reason Display */}
         {isOrderRejected && order.rejectionReason && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm font-medium text-red-800">
@@ -182,7 +169,6 @@ const OrderCard = ({
           </div>
         )}
 
-        {/* Order Details - Fixed data mapping */}
         <div className="grid grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-gray-400" />
@@ -194,7 +180,6 @@ const OrderCard = ({
               </p>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4 text-gray-400" />
             <div>
@@ -204,7 +189,6 @@ const OrderCard = ({
               </p>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-gray-400" />
             <div>
@@ -215,8 +199,6 @@ const OrderCard = ({
               </p>
             </div>
           </div>
-
-          {/* Customer Name (if available) */}
           {order.customerInfo?.customerName && (
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-gray-400" />
@@ -230,7 +212,6 @@ const OrderCard = ({
           )}
         </div>
 
-        {/* Items Preview */}
         {order.items && order.items.length > 0 && (
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-700 mb-2">Items:</p>
@@ -252,7 +233,6 @@ const OrderCard = ({
           </div>
         )}
 
-        {/* Status Update */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-700">Status:</span>
@@ -291,7 +271,6 @@ const OrderCard = ({
         </div>
       </div>
 
-      {/* Rejection Reason Modal */}
       {showRejectionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">

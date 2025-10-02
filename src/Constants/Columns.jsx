@@ -391,21 +391,8 @@ const useColumns = () => {
       width: "100px",
       cell: (row) => <StatusBadge status={row.status} />,
     },
-    {
-      header: t("tableHeaders.createdAt"),
-      accessor: "createdAt",
-      sortable: true,
-      width: "120px",
-      cell: (row) => (
-        <div className="text-sm text-gray-600">
-          {new Date(row.createdAt).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })}
-        </div>
-      ),
-    },
+    { header: t("tableHeaders.createdAt"), accessor: "createdDate" },
+
     {
       header: t("tableHeaders.actions"),
       accessor: "actions",
@@ -533,7 +520,7 @@ const useColumns = () => {
             />
           </div>
           <span className="text-xs text-gray-500 min-w-[40px]">
-            {value.toFixed(1)}%
+            {Number(value)?.toFixed(1) ?? "0.0"}%
           </span>
         </div>
       ),
@@ -590,7 +577,7 @@ const useColumns = () => {
             />
           </div>
           <span className="text-xs text-gray-500 min-w-[40px]">
-            {value.toFixed(1)}%
+            {Number(value)?.toFixed(1) ?? "0.0"}%
           </span>
         </div>
       ),
@@ -684,7 +671,10 @@ const useColumns = () => {
       accessor: "price",
       Cell: ({ value }) => (
         <span className="text-sm font-medium text-green-600">
-          ₹{parseFloat(value || 0).toFixed(2)}
+          ₹
+          {(typeof value === "number" ? value : parseFloat(value) || 0).toFixed(
+            2
+          )}
         </span>
       ),
     },

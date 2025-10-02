@@ -32,30 +32,22 @@ import Offers from "./Pages/User/Offers";
 import LoadingSpinner from "./atoms/LoadingSpinner";
 import AdminLayout from "./layout/AdminDashboardLayout";
 import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
-
 import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
-
 import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
 import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
-import AddCaptain from "Pages/Admin Dashboard/ViewCaptain";
+import AddCaptain from "Pages/Admin Dashboard/AddCaptain";
 import CaptainDashboardLayout from "layout/CaptainDashboardLayout";
 import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
 import CaptainLogin from "Pages/Captain/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
 import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
-import AddAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
-import AddSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
 import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
 import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
 import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
-import AddCaptainPage from "Pages/Admin Dashboard/AddCaptain";
-import ViewCaptain from "Pages/Admin Dashboard/ViewCaptain";
 import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
-import AddMenuPage from "Pages/Admin Dashboard/AddMenu";
-import ViewMenu from "./Pages/Admin Dashboard/AddMenu";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -329,7 +321,7 @@ function App() {
                           </AdminLayout>
                         }
                       />
-                      
+
                       <Route
                         path="add-offers"
                         element={
@@ -338,19 +330,12 @@ function App() {
                           </AdminLayout>
                         }
                       />
+
                       <Route
                         path="add-captain"
                         element={
                           <AdminLayout>
-                            <AddCaptainPage />
-                          </AdminLayout>
-                        }
-                      />
-                      <Route
-                        path="add-captain"
-                        element={
-                          <AdminLayout>
-                            <ViewCaptain />
+                            <AddCaptain />
                           </AdminLayout>
                         }
                       />
