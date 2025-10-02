@@ -67,8 +67,6 @@ import { useHotelSelection } from "../context/HotelSelectionContext";
 import LanguageSelector from "atoms/Selector/LanguageSelector";
 import useFormValidation from "../hooks/useFormValidation";
 
-
-
 // Enhanced Stats Card Component
 const StatsCard = memo(
   ({ icon: Icon, title, value, subtitle, color = "blue", trend }) => (
@@ -235,8 +233,6 @@ const PasswordStrength = memo(({ password }) => {
     </div>
   );
 });
-
-PasswordStrength.displayName = "PasswordStrength";
 
 // Enhanced Form field component
 const FormField = memo(
@@ -1179,7 +1175,7 @@ const EnhancedAdminProfile = memo(() => {
                   label="Dark Mode"
                   description="Use dark theme across the application"
                 />
-                <LanguageSelector/>
+                <LanguageSelector />
               </div>
             </div>
 
@@ -1505,9 +1501,7 @@ const EnhancedAdminProfile = memo(() => {
                       Active
                     </span>
                   </div>
-                  <p className="text-sm text-blue-700 font-mono bg-white p-2 rounded border">
-                    sk_test_4eC39HqLyjWDarjtT1zdp7dc
-                  </p>
+
                   <div className="flex gap-2 mt-3">
                     <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                       Regenerate
