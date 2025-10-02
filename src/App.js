@@ -22,11 +22,9 @@ import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "./Pages/Admin Dashboard/AddMenu";
 import {
   AddHotel,
-  AdminList,
   Home,
   NotAuthorized,
   NotFound,
-  SignupPage,
   SuperAdminDashboard,
 } from "./Pages";
 import AddOffers from "./Pages/Admin Dashboard/AddOffers";
@@ -34,10 +32,7 @@ import Offers from "./Pages/User/Offers";
 import LoadingSpinner from "./atoms/LoadingSpinner";
 import AdminLayout from "./layout/AdminDashboardLayout";
 import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
-import OptionManager from "./Pages/Admin Dashboard/AddOptions";
 import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
-import ViewHotel from "./Pages/SuperAdminDashboard/HotelList";
-import ViewSubscription from "./Pages/SuperAdminDashboard/Subcription";
 import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
 import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
@@ -47,6 +42,12 @@ import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
 import CaptainLogin from "Pages/Captain/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
 import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
+import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
+import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
+import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
+import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
+import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
+import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -219,15 +220,7 @@ function App() {
                         path="add-hotel"
                         element={
                           <SuperAdminLayout>
-                            <AddHotel />
-                          </SuperAdminLayout>
-                        }
-                      />
-                      <Route
-                        path="view-admin"
-                        element={
-                          <SuperAdminLayout>
-                            <AdminList />
+                            <AddHotelPage />
                           </SuperAdminLayout>
                         }
                       />
@@ -239,14 +232,40 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
+
                       <Route
-                        path="view-hotel-subscriptions"
+                        path="add-subscription-plan"
                         element={
                           <SuperAdminLayout>
-                            <ViewSubscription />
+                            <AddSubscriptionPlanPage />
                           </SuperAdminLayout>
                         }
                       />
+                      <Route
+                        path="view-subscription-plan"
+                        element={
+                          <SuperAdminLayout>
+                            <ViewSubscriptionPlan />
+                          </SuperAdminLayout>
+                        }
+                      />
+                      <Route
+                        path="add-admin"
+                        element={
+                          <SuperAdminLayout>
+                            <AddAdminPage />
+                          </SuperAdminLayout>
+                        }
+                      />
+                      <Route
+                        path="view-admin"
+                        element={
+                          <SuperAdminLayout>
+                            <ViewAdmin />
+                          </SuperAdminLayout>
+                        }
+                      />
+
                       <Route
                         path=""
                         element={<Navigate to="dashboard" replace />}
@@ -265,7 +284,10 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="order-dashboard" element={<OrderDashboard />} />
+                      <Route
+                        path="order-dashboard"
+                        element={<OrderDashboard />}
+                      />
                       <Route
                         path="profile"
                         element={
@@ -290,14 +312,7 @@ function App() {
                           </AdminLayout>
                         }
                       />
-                      <Route
-                        path="add-options"
-                        element={
-                          <AdminLayout>
-                            <OptionManager />
-                          </AdminLayout>
-                        }
-                      />
+
                       <Route
                         path="add-menu"
                         element={
@@ -306,6 +321,7 @@ function App() {
                           </AdminLayout>
                         }
                       />
+
                       <Route
                         path="add-offers"
                         element={
@@ -314,6 +330,7 @@ function App() {
                           </AdminLayout>
                         }
                       />
+
                       <Route
                         path="add-captain"
                         element={

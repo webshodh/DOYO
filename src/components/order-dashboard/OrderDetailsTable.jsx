@@ -56,7 +56,7 @@ const OrderRow = memo(({ order, onViewDetails, onPrintBill }) => {
             "0"
           }`}
       </td>
-      
+
       <td className="px-4 py-3 text-sm text-gray-600">
         {order.totalItems || order.items?.length || 0} items
       </td>
@@ -131,9 +131,9 @@ const OrderDetailsTable = memo(({ orders, onViewDetails, onPrintBill }) => {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div>
       {/* Header with Search and Filters */}
-      <div className="p-6 border-b border-gray-200">
+      <div>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -180,7 +180,7 @@ const OrderDetailsTable = memo(({ orders, onViewDetails, onPrintBill }) => {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Table
               </th>
-              
+
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Items
               </th>

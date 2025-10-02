@@ -15,8 +15,8 @@ export { default as NotAuthorized } from "./Screens/NotAuthorized";
 
 // Super Admin Dashboard
 export { default as SuperAdminDashboard } from "./SuperAdminDashboard/SuperAdminDashboard";
-export { default as AdminList } from "./SuperAdminDashboard/AdminList";
-export { default as AddHotel } from "./SuperAdminDashboard/AddHotel";
+
+export { default as AddHotel } from "./SuperAdminDashboard/ViewHotel";
 
 // User
 export { default as Home } from "./User/Home";

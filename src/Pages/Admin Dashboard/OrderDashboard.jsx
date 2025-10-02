@@ -15,13 +15,7 @@ import {
 } from "lucide-react";
 
 // Hooks and utilities
-import { useOrderData } from "../../hooks/useOrder"; // Updated import path
-import {
-  useCategoriesData,
-  useMainCategoriesData,
-  useMenuData,
-} from "../../data";
-import useOptionsData from "../../data/useOptionsData";
+import { useOrder } from "../../hooks/useOrder"; // Updated import path
 
 // Context
 import { useHotelSelection } from "../../context/HotelSelectionContext";
@@ -43,6 +37,9 @@ import {
   OrdersByCategoryColumn,
   OrdersByMenuColumn,
 } from "../../Constants/Columns";
+import { useMenu } from "hooks/useMenu";
+import { useCategory } from "hooks/useCategory";
+import { useMainCategory } from "hooks/useMainCategory";
 
 /**
  * Admin Dashboard Component
@@ -110,7 +107,7 @@ const OrderDashboard = () => {
     // Options for UI
     statusOptions,
     timePeriodOptions,
-  } = useOrderData(hotelName, {
+  } = useOrder(hotelName, {
     includeMenuData: true,
     defaultTimePeriod: "daily",
     defaultStatusFilter: "all",
@@ -124,26 +121,18 @@ const OrderDashboard = () => {
     totalMenus,
     loading: menuLoading,
     error: menuError,
-  } = useMenuData(hotelName);
+  } = useMenu(hotelName);
 
   const {
     categoriesData,
     totalCategories,
     loading: categoriesLoading,
     error: categoriesError,
-  } = useCategoriesData(hotelName);
-
-  const {
-    optionsData,
-    totalOptionsCount,
-    categories,
-    optionTypes,
-    error: optionsError,
-  } = useOptionsData(hotelName);
+  } = useCategory(hotelName);
 
   // Derived values
-  const optionsCategoryCount = categories?.length || 0;
-  const { totalMainCategories } = useMainCategoriesData(hotelName);
+
+  const { totalMainCategories } = useMainCategory(hotelName);
 
   // Restaurant information for the bill - Get from captain data or use defaults
   const restaurantInfo = useMemo(
@@ -231,7 +220,7 @@ const OrderDashboard = () => {
 
   // Loading state for menu management data
   const isMenuManagementLoading = menuLoading || categoriesLoading;
-  const menuManagementError = menuError || categoriesError || optionsError;
+  const menuManagementError = menuError || categoriesError;
 
   // Handle print bill
   const handlePrintBill = useCallback((order) => {
@@ -255,35 +244,21 @@ const OrderDashboard = () => {
           </div>
         </div>
 
-        {/* Enhanced Analytics Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Order Analytics
-              </h2>
-              <p className="text-gray-600">
-                Comprehensive insights and performance metrics
-              </p>
-            </div>
-          </div>
-
-          {/* Enhanced Time Period Navigation */}
-          <TimePeriodSelector
-            selectedTimePeriod={selectedTimePeriod}
-            onTimePeriodChange={handleTimePeriodChange}
-            selectedDate={selectedDate}
-            onDateChange={handleDateChange}
-            variant="default"
-            showDatePicker={true}
-            className="mb-6"
-            options={timePeriodOptions}
-            disableFutureDates={true}
-          />
-        </div>
+        {/* Enhanced Time Period Navigation */}
+        <TimePeriodSelector
+          selectedTimePeriod={selectedTimePeriod}
+          onTimePeriodChange={handleTimePeriodChange}
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+          variant="default"
+          showDatePicker={true}
+          className="mb-6"
+          options={timePeriodOptions}
+          disableFutureDates={true}
+        />
 
         {/* Enhanced Menu Management Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title="Total Orders"

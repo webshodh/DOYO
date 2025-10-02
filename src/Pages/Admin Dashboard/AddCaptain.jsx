@@ -1,18 +1,19 @@
+// AddCaptain.js (CORRECTED VERSION)
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { Users, UserCheck, UserX, Clock } from "lucide-react";
-
+import { Users } from "lucide-react";
 import PageTitle from "../../atoms/PageTitle";
-import { ViewCaptainColumns } from "../../Constants/Columns";
+import useColumns from "../../Constants/Columns";
 import { useCaptain } from "../../hooks/useCaptain";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import StatCard from "components/Cards/StatCard";
 import NoSearchResults from "molecules/NoSearchResults";
+import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useTranslation } from "react-i18next";
 
 // Lazy load heavy components
 const CaptainFormModal = React.lazy(() =>
@@ -23,6 +24,8 @@ const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 // Main AddCaptain component
 const AddCaptain = memo(() => {
   const { hotelName } = useParams();
+  const { ViewCaptainColumns } = useColumns();
+  const { t } = useTranslation();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -50,20 +53,23 @@ const AddCaptain = memo(() => {
   } = useCaptain(hotelName);
 
   // Memoized calculations
-  const stats = useMemo(() => {
-    const recentCount = captains.filter((captain) => {
-      const createdDate = new Date(captain.createdAt);
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      return createdDate > weekAgo;
-    }).length;
-
-    return {
+  const stats = useMemo(
+    () => ({
       total: captainCount,
       active: activeCaptains,
       inactive: inactiveCaptains,
-      recent: recentCount,
-    };
-  }, [captains, captainCount, activeCaptains, inactiveCaptains]);
+      recent: captains.filter((captain) => {
+        const createdDate = new Date(
+          captain.createdAt?.toDate
+            ? captain.createdAt.toDate()
+            : captain.createdAt
+        );
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return createdDate > weekAgo;
+      }).length,
+    }),
+    [captains, captainCount, activeCaptains, inactiveCaptains]
+  );
 
   // Event handlers
   const handleAddClick = useCallback(() => {
@@ -89,7 +95,10 @@ const AddCaptain = memo(() => {
   const handleDeleteClick = useCallback(
     async (captain) => {
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${captain.firstName} ${captain.lastName}"? This action cannot be undone.`
+        t("confirmations.deleteCaptain", {
+          firstName: captain.firstName,
+          lastName: captain.lastName,
+        })
       );
 
       if (confirmed) {
@@ -100,7 +109,7 @@ const AddCaptain = memo(() => {
         }
       }
     },
-    [deleteCaptain]
+    [deleteCaptain, t]
   );
 
   const handleToggleStatus = useCallback(
@@ -137,7 +146,17 @@ const AddCaptain = memo(() => {
   }, [handleSearchChange]);
 
   const handleRefresh = useCallback(() => {
-    refreshCaptains();
+    try {
+      if (typeof refreshCaptains === "function") {
+        refreshCaptains();
+      } else {
+        console.warn("Refresh function not available");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error refreshing captains:", error);
+      window.location.reload();
+    }
   }, [refreshCaptains]);
 
   // Error state
@@ -146,14 +165,14 @@ const AddCaptain = memo(() => {
       <ErrorMessage
         error={error}
         onRetry={handleRefresh}
-        title="Error Loading Captains"
+        title={t("errors.loadingCaptains")}
       />
     );
   }
 
   // Loading state
   if (loading && !captains.length) {
-    return <LoadingSpinner size="lg" text="Loading captains..." />;
+    return <LoadingSpinner size="lg" text={t("loading.captains")} />;
   }
 
   return (
@@ -166,51 +185,53 @@ const AddCaptain = memo(() => {
           onSubmit={handleModalSubmit}
           editCaptain={editingCaptain}
           existingCaptains={captains}
-          title={editingCaptain ? "Edit Captain" : "Add Captain"}
+          title={
+            editingCaptain ? t("captains.editTitle") : t("captains.addTitle")
+          }
           submitting={submitting}
         />
       </Suspense>
 
       <div>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
           <PageTitle
-            pageTitle="Captain Management"
+            pageTitle={t("pages.captainManagement")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description="Manage your restaurant captains and service staff"
+            description={t("descriptions.captainManagement")}
           />
 
           <PrimaryButton
             onAdd={handleAddClick}
-            btnText="Add Captain"
+            btnText={t("buttons.addCaptain")}
             loading={loading}
           />
         </div>
 
         {/* Stats Cards */}
         {hasCaptains && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Users}
-              title="Total Captains"
+              title={t("stats.totalCaptains")}
               value={stats.total}
               color="blue"
             />
             <StatCard
-              icon={UserCheck}
-              title="Active Captains"
+              icon={Users}
+              title={t("stats.activeCaptains")}
               value={stats.active}
               color="green"
             />
             <StatCard
-              icon={UserX}
-              title="Inactive Captains"
+              icon={Users}
+              title={t("stats.inactiveCaptains")}
               value={stats.inactive}
               color="red"
             />
             <StatCard
-              icon={Clock}
-              title="Recent (7 days)"
+              icon={Users}
+              title={t("stats.recentCaptains")}
               value={stats.recent}
               color="purple"
             />
@@ -222,11 +243,11 @@ const AddCaptain = memo(() => {
           <SearchWithResults
             searchTerm={searchTerm}
             onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search captains by name, email, mobile, or Aadhar..."
+            placeholder={t("placeholders.searchCaptains")}
             totalCount={captainCount}
             filteredCount={filteredCaptains.length}
             onClearSearch={handleClearSearch}
-            totalLabel="total captains"
+            totalLabel={t("labels.totalCaptains")}
           />
         )}
 
@@ -235,7 +256,9 @@ const AddCaptain = memo(() => {
           {hasCaptains ? (
             <>
               {hasSearchResults ? (
-                <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
+                <Suspense
+                  fallback={<LoadingSpinner text={t("loading.table")} />}
+                >
                   <DynamicTable
                     columns={ViewCaptainColumns}
                     data={filteredCaptains}
@@ -243,7 +266,7 @@ const AddCaptain = memo(() => {
                     onDelete={handleDeleteClick}
                     onToggleStatus={handleToggleStatus}
                     loading={submitting}
-                    emptyMessage="No captains match your search criteria"
+                    emptyMessage={t("messages.noSearchResults")}
                     showPagination={true}
                     initialRowsPerPage={10}
                     sortable={true}
@@ -252,7 +275,7 @@ const AddCaptain = memo(() => {
                 </Suspense>
               ) : (
                 <NoSearchResults
-                  btnText="Add Captain"
+                  btnText={t("buttons.addCaptain")}
                   searchTerm={searchTerm}
                   onClearSearch={handleClearSearch}
                   onAddNew={handleAddClick}
@@ -262,9 +285,9 @@ const AddCaptain = memo(() => {
           ) : (
             <EmptyState
               icon={Users}
-              title="No Captains Yet"
-              description="Add your first captain to start managing your service staff. Captains help coordinate between kitchen and customers for better service."
-              actionLabel="Add Your First Captain"
+              title={t("emptyStates.noCaptains.title")}
+              description={t("emptyStates.noCaptains.description")}
+              actionLabel={t("emptyStates.noCaptains.actionLabel")}
               onAction={handleAddClick}
               loading={submitting}
             />

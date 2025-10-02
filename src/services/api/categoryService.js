@@ -1,66 +1,129 @@
-import { db } from "../firebase/firebaseConfig";
-import { uid } from "uid";
-import { set, ref, onValue, remove, update, get } from "firebase/database";
+// firestoreCategoryService.js (CORRECTED VERSION)
+import {
+  getFirestore,
+  doc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-toastify";
-import {
-  validateCategoryForm,
-  sanitizeCategoryName,
-} from "../../validation/categoryValidation";
+import { uid } from "uid";
+
+const firestore = getFirestore();
 
 export const categoryServices = {
-  // Get current admin ID
   getCurrentAdminId: () => {
     const auth = getAuth();
     return auth.currentUser?.uid;
   },
 
-  // Check if admin has permission for the hotel
-  checkAdminPermission: async (hotelName) => {
-    try {
-      const adminId = categoryServices.getCurrentAdminId();
-      if (!adminId) {
-        throw new Error("Admin not authenticated");
-      }
-
-      const [adminHotelUuid, generalHotelUuid] = await Promise.all([
-        get(ref(db, `admins/${adminId}/hotels/${hotelName}/uuid`)).then(
-          (snapshot) => snapshot.val()
-        ),
-        get(ref(db, `hotels/${hotelName}/uuid`)).then((snapshot) =>
-          snapshot.val()
-        ),
-      ]);
-
-      return adminHotelUuid === generalHotelUuid;
-    } catch (error) {
-      console.error("Error checking permission:", error);
-      return false;
+  // Validate category name
+  validateCategoryName: (categoryName) => {
+    if (!categoryName || !categoryName.trim()) {
+      return { isValid: false, error: "Category name cannot be empty" };
     }
+    if (categoryName.trim().length < 2) {
+      return {
+        isValid: false,
+        error: "Category name must be at least 2 characters long",
+      };
+    }
+    if (categoryName.trim().length > 50) {
+      return {
+        isValid: false,
+        error: "Category name must be less than 50 characters",
+      };
+    }
+    const specialCharsRegex = /^[a-zA-Z0-9\s\-_&]+$/;
+    if (!specialCharsRegex.test(categoryName.trim())) {
+      return {
+        isValid: false,
+        error: "Category name contains invalid characters",
+      };
+    }
+    return { isValid: true, error: null };
   },
 
-  // Subscribe to categories changes with real-time updates
+  // Check for duplicate categories
+  checkDuplicateCategory: (
+    categories,
+    categoryName,
+    excludeCategoryId = null
+  ) => {
+    const normalizedCategoryName = categoryName.trim().toLowerCase();
+    return categories.some(
+      (category) =>
+        category.categoryName.toLowerCase() === normalizedCategoryName &&
+        (category.categoryId || category.id) !== excludeCategoryId
+    );
+  },
+
+  // Validate category form
+  validateCategoryForm: (
+    categoryName,
+    categories,
+    excludeCategoryId = null
+  ) => {
+    const basicValidation = categoryServices.validateCategoryName(categoryName);
+    if (!basicValidation.isValid) {
+      toast.error(basicValidation.error, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+
+    if (
+      categoryServices.checkDuplicateCategory(
+        categories,
+        categoryName,
+        excludeCategoryId
+      )
+    ) {
+      toast.error("Category already exists", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+
+    return true;
+  },
+
+  // Sanitize category name
+  sanitizeCategoryName: (categoryName) => {
+    return categoryName.trim().replace(/\s+/g, " ");
+  },
+
   subscribeToCategories: (hotelName, callback) => {
     if (!hotelName) {
       callback([]);
       return () => {};
     }
 
-    const unsubscribe = onValue(
-      ref(db, `/hotels/${hotelName}/categories/`),
-      (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const categoriesArray = Object.values(data).map(
-            (category, index) => ({
-              ...category,
-              srNo: index + 1,
-            })
-          );
-          callback(categoriesArray);
-        } else {
-          callback([]);
-        }
+    const categoriesRef = collection(
+      firestore,
+      `hotels/${hotelName}/categories`
+    );
+    const unsubscribe = onSnapshot(
+      categoriesRef,
+      (querySnapshot) => {
+        const categoriesArray = [];
+        querySnapshot.forEach((docSnap, index) => {
+          categoriesArray.push({
+            ...docSnap.data(),
+            srNo: index + 1,
+            categoryId: docSnap.id,
+            id: docSnap.id,
+          });
+        });
+        callback(categoriesArray);
       },
       (error) => {
         console.error("Error fetching categories:", error);
@@ -74,41 +137,26 @@ export const categoryServices = {
     return unsubscribe;
   },
 
-  // Add new category
   addCategory: async (hotelName, categoryName, existingCategories = []) => {
     try {
-      // Validate category name and check for duplicates
-      if (!validateCategoryForm(categoryName, existingCategories)) {
-        return false;
-      }
+      console.log("Adding category:", { hotelName, categoryName });
 
-      // Check permissions
-      const hasPermission = await categoryServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to add categories for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+      if (
+        !categoryServices.validateCategoryForm(categoryName, existingCategories)
+      )
         return false;
-      }
 
-      // Sanitize and prepare category data
-      const sanitizedName = sanitizeCategoryName(categoryName);
+      const sanitizedName = categoryServices.sanitizeCategoryName(categoryName);
       const categoryId = uid();
       const categoryData = {
         categoryName: sanitizedName,
-        categoryId,
-        createdAt: new Date().toISOString(),
+        createdAt: Timestamp.fromDate(new Date()),
         createdBy: categoryServices.getCurrentAdminId(),
+        status: "active",
       };
 
-      // Save to database
-      await set(
-        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
+      await setDoc(
+        doc(firestore, `hotels/${hotelName}/categories/${categoryId}`),
         categoryData
       );
 
@@ -126,7 +174,6 @@ export const categoryServices = {
     }
   },
 
-  // Update existing category
   updateCategory: async (
     hotelName,
     categoryId,
@@ -134,47 +181,51 @@ export const categoryServices = {
     existingCategories = []
   ) => {
     try {
-      // Validate category name and check for duplicates (excluding current category)
-      if (!validateCategoryForm(categoryName, existingCategories, categoryId)) {
+      console.log("Updating category:", {
+        hotelName,
+        categoryId,
+        categoryName,
+      });
+
+      if (!categoryId) {
+        console.error("Category ID is missing");
+        toast.error("Category ID is missing", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
         return false;
       }
 
-      // Check permissions
-      const hasPermission = await categoryServices.checkAdminPermission(
-        hotelName
+      if (
+        !categoryServices.validateCategoryForm(
+          categoryName,
+          existingCategories,
+          categoryId
+        )
+      )
+        return false;
+
+      const sanitizedName = categoryServices.sanitizeCategoryName(categoryName);
+      const categoryDocRef = doc(
+        firestore,
+        `hotels/${hotelName}/categories/${categoryId}`
       );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to update categories for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+
+      const categoryDoc = await getDoc(categoryDocRef);
+      if (!categoryDoc.exists()) {
+        console.error("Category document does not exist:", categoryId);
+        toast.error("Category not found", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
         return false;
       }
 
-      // Confirm update
-      const confirmUpdate = window.confirm(
-        "Are you sure you want to update this category?"
-      );
-      if (!confirmUpdate) {
-        return false;
-      }
-
-      // Sanitize and prepare updated data
-      const sanitizedName = sanitizeCategoryName(categoryName);
       const updateData = {
         categoryName: sanitizedName,
-        categoryId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Timestamp.fromDate(new Date()),
         updatedBy: categoryServices.getCurrentAdminId(),
       };
 
-      // Update in database
-      await update(
-        ref(db, `/hotels/${hotelName}/categories/${categoryId}`),
-        updateData
-      );
+      await updateDoc(categoryDocRef, updateData);
 
       toast.success("Category updated successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -190,49 +241,47 @@ export const categoryServices = {
     }
   },
 
-  // Delete category
   deleteCategory: async (hotelName, category) => {
     try {
-      // Check permissions
-      const hasPermission = await categoryServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to delete categories for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+      console.log("Deleting category:", { hotelName, category });
+
+      if (!category || (!category.categoryId && !category.id)) {
+        console.error("Category or category ID is missing");
+        toast.error("Category information is missing", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
         return false;
       }
 
-      // Confirm deletion
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete the category "${category.categoryName}"? This action cannot be undone.`
-      );
-      if (!confirmDelete) {
-        return false;
-      }
-
-      // Check if category is being used by any menus (optional check)
+      // Check if category is in use
       const isInUse = await categoryServices.checkCategoryUsage(
         hotelName,
         category.categoryName
       );
+
       if (isInUse) {
-        const forceDelete = window.confirm(
-          "This category is being used by some menu items. Deleting it may affect those items. Do you still want to continue?"
+        const confirmDelete = window.confirm(
+          "This category is being used by menu items. Deleting it may affect those items. Do you want to continue?"
         );
-        if (!forceDelete) {
-          return false;
-        }
+        if (!confirmDelete) return false;
       }
 
-      // Delete from database
-      await remove(
-        ref(db, `/hotels/${hotelName}/categories/${category.categoryId}`)
+      const docId = category.categoryId || category.id;
+      const categoryDocRef = doc(
+        firestore,
+        `hotels/${hotelName}/categories/${docId}`
       );
+
+      const categoryDoc = await getDoc(categoryDocRef);
+      if (!categoryDoc.exists()) {
+        console.error("Category document does not exist:", docId);
+        toast.error("Category not found", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        return false;
+      }
+
+      await deleteDoc(categoryDocRef);
 
       toast.success("Category deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -248,41 +297,33 @@ export const categoryServices = {
     }
   },
 
-  // Check if category is being used by menus (optional utility)
   checkCategoryUsage: async (hotelName, categoryName) => {
     try {
-      const menuSnapshot = await get(ref(db, `/hotels/${hotelName}/menu`));
-      if (menuSnapshot.exists()) {
-        const menus = Object.values(menuSnapshot.val());
-        return menus.some(
-          (menu) =>
-            menu.menuCategory === categoryName ||
-            menu.mainCategory === categoryName
-        );
-      }
-      return false;
+      const menuRef = collection(firestore, `hotels/${hotelName}/menu`);
+      const snapshot = await getDocs(
+        query(menuRef, where("menuCategory", "==", categoryName))
+      );
+      return !snapshot.empty;
     } catch (error) {
       console.error("Error checking category usage:", error);
       return false;
     }
   },
 
-  // Prepare category for editing (with permission check)
   prepareForEdit: async (hotelName, category) => {
     try {
-      const hasPermission = await categoryServices.checkAdminPermission(
-        hotelName
-      );
-      if (!hasPermission) {
-        toast.error(
-          "You do not have permission to edit categories for this hotel",
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+      console.log("Preparing category for edit:", category);
+
+      if (!category.categoryId && !category.id) {
+        console.error("Category is missing ID field");
         return null;
       }
-      return category;
+
+      return {
+        ...category,
+        categoryId: category.categoryId || category.id,
+        id: category.categoryId || category.id,
+      };
     } catch (error) {
       console.error("Error preparing category for edit:", error);
       toast.error("Error preparing category for editing", {
@@ -292,7 +333,6 @@ export const categoryServices = {
     }
   },
 
-  // Filter categories based on search term
   filterCategories: (categories, searchTerm) => {
     if (!searchTerm.trim()) {
       return categories.map((category, index) => ({
@@ -300,7 +340,6 @@ export const categoryServices = {
         srNo: index + 1,
       }));
     }
-
     return categories
       .filter((category) =>
         category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -311,28 +350,25 @@ export const categoryServices = {
       }));
   },
 
-  // Get category statistics (optional utility)
   getCategoryStats: async (hotelName) => {
     try {
-      const [categorySnapshot, menuSnapshot] = await Promise.all([
-        get(ref(db, `/hotels/${hotelName}/categories`)),
-        get(ref(db, `/hotels/${hotelName}/menu`)),
-      ]);
+      const categorySnapshot = await getDocs(
+        collection(firestore, `hotels/${hotelName}/categories`)
+      );
+      const menuSnapshot = await getDocs(
+        collection(firestore, `hotels/${hotelName}/menu`)
+      );
 
-      const totalCategories = categorySnapshot.exists()
-        ? Object.keys(categorySnapshot.val()).length
-        : 0;
+      const totalCategories = categorySnapshot.size;
+      const categoryUsage = {};
 
-      let categoryUsage = {};
-      if (menuSnapshot.exists()) {
-        const menus = Object.values(menuSnapshot.val());
-        menus.forEach((menu) => {
-          if (menu.menuCategory) {
-            categoryUsage[menu.menuCategory] =
-              (categoryUsage[menu.menuCategory] || 0) + 1;
-          }
-        });
-      }
+      menuSnapshot.forEach((docSnap) => {
+        const menu = docSnap.data();
+        if (menu.menuCategory) {
+          categoryUsage[menu.menuCategory] =
+            (categoryUsage[menu.menuCategory] || 0) + 1;
+        }
+      });
 
       return {
         totalCategories,
@@ -342,6 +378,31 @@ export const categoryServices = {
     } catch (error) {
       console.error("Error getting category stats:", error);
       return null;
+    }
+  },
+
+  getCategories: async (hotelName) => {
+    try {
+      if (!hotelName) return [];
+
+      const categoriesSnapshot = await getDocs(
+        collection(firestore, `hotels/${hotelName}/categories`)
+      );
+
+      const categories = [];
+      categoriesSnapshot.forEach((docSnap, index) => {
+        categories.push({
+          ...docSnap.data(),
+          srNo: index + 1,
+          categoryId: docSnap.id,
+          id: docSnap.id,
+        });
+      });
+
+      return categories;
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      return [];
     }
   },
 };

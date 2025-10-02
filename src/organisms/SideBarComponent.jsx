@@ -4,17 +4,18 @@ import { useHotelSelection } from "context/HotelSelectionContext";
 import { User } from "lucide-react";
 import { toast } from "react-toastify";
 import {
-  roleThemes,
+  getRoleThemes,
   iconMap,
   getRoleConfig,
   getMenuItems,
 } from "../Constants/sideBarMenuConfig";
 import SidebarHeader from "atoms/Headers/SidebarHeader";
+import { useTranslation } from "react-i18next";
 
 // Menu item component
-const MenuItem = memo(({ item, onClick, role }) => {
+const MenuItem = memo(({ item, onClick, role, t }) => {
   const IconComponent = iconMap[item.icon] || iconMap.dashboard;
-  const theme = roleThemes[role];
+  const theme = getRoleThemes(t)[role];
 
   return (
     <li>
@@ -63,8 +64,8 @@ const MenuItem = memo(({ item, onClick, role }) => {
 MenuItem.displayName = "MenuItem";
 
 // User info component
-const UserInfo = memo(({ user, role }) => {
-  const theme = roleThemes[role];
+const UserInfo = memo(({ user, role, t }) => {
+  const theme = getRoleThemes(t)[role];
 
   if (!user) return null;
 
@@ -93,12 +94,14 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
   const navigate = useNavigate();
   const { selectedHotel, user, availableHotels, selectHotel } =
     useHotelSelection();
+  const { t } = useTranslation();
 
   // Determine role and get configuration
   const role = getRoleConfig(admin, captain);
+
   const menuItems = useMemo(
-    () => getMenuItems(role, hotelName),
-    [role, hotelName]
+    () => getMenuItems(role, t, hotelName),
+    [role, hotelName, t]
   );
 
   // Event handlers
@@ -150,6 +153,7 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
                   item={item}
                   onClick={handleItemClick}
                   role={role}
+                  t={t}
                 />
               ))}
             </ul>
@@ -157,10 +161,12 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
 
           {/* Footer */}
           <div className="p-3 border-t border-gray-200 bg-gray-50/50">
-            <UserInfo user={user} role={role} />
+            <UserInfo user={user} role={role} t={t} />
             <div className="text-center">
               <p className="text-xs text-gray-400 mb-1">Version 2.1.0</p>
-              <p className="text-xs text-gray-500">Restaurant Management</p>
+              <p className="text-xs text-gray-500">
+                {t("sidebar.appName", "Restaurant Management")}
+              </p>
             </div>
           </div>
         </div>

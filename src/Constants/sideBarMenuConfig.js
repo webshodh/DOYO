@@ -16,17 +16,15 @@ import {
   ClipboardList,
   Receipt,
   MessageSquare,
-  BarChart3,
   TableProperties,
-  ShoppingCart,
   UserPlus,
 } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 // Role-based theme configurations
-export const roleThemes = {
+export const getRoleThemes = (t) => ({
   admin: {
-    title: "Admin Panel",
-    subtitle: "Hotel Management",
+    title: t("sidebar.adminPanel"),
+    subtitle: t("sidebar.adminPanelDec"),
     gradient: "from-orange-500 to-amber-500",
     bgGradient: "from-orange-50 to-amber-50",
     iconBg: "from-orange-200 to-amber-200",
@@ -35,8 +33,8 @@ export const roleThemes = {
     borderColor: "border-orange-200",
   },
   superAdmin: {
-    title: "Super Admin",
-    subtitle: "System Control",
+    title: t("sidebar.superAdminPanel"),
+    subtitle: t("sidebar.superAdminPanelDec"),
     gradient: "from-blue-600 to-indigo-600",
     bgGradient: "from-blue-50 to-indigo-50",
     iconBg: "from-blue-200 to-indigo-200",
@@ -45,8 +43,8 @@ export const roleThemes = {
     borderColor: "border-blue-200",
   },
   captain: {
-    title: "Captain Panel",
-    subtitle: "Floor Management",
+    title: t("sidebar.captainPanel"),
+    subtitle: t("sidebar.captainPanelDec"),
     gradient: "from-green-500 to-emerald-500",
     bgGradient: "from-green-50 to-emerald-50",
     iconBg: "from-green-200 to-emerald-200",
@@ -54,150 +52,165 @@ export const roleThemes = {
     textColor: "text-green-800",
     borderColor: "border-green-200",
   },
-};
+});
 
 // Admin menu items
-export const adminMenuItems = (hotelName) => [
+export const adminMenuItems = (hotelName, t) => [
   {
-    name: "Dashboard",
+    name: t("sidebar.dashboard"),
     path: `/${hotelName}/admin/dashboard`,
-    icon: "dashboard",
-    description: "Overview and analytics",
+    icon: "dashboard", // assuming icon name matches your icon set
+    description: t("sidebar.dashboardDesc"),
   },
- 
-  { // {
-  //   name: "Order Dashboard",
-  //   path: `/${hotelName}/admin/order-dashboard`,
-  //   icon: "dashboard",
-  //   description: "Overview and analytics",
-  // },
-
-    name: "Add Category",
+  {
+    name: t("sidebar.orderDashboard"),
+    path: `/${hotelName}/admin/order-dashboard`,
+    icon: "dashboard",
+    description: t("sidebar.orderDashboardDesc"),
+  },
+  {
+    name: t("sidebar.addCategory"),
     path: `/${hotelName}/admin/add-category`,
     icon: "category",
-    description: "Manage food categories",
+    description: t("sidebar.addCategoryDesc"),
   },
+  // Uncomment or remove as needed
   // {
-  //   name: "Add Options",
+  //   name: t("sidebar.addOptions"),
   //   path: `/${hotelName}/admin/add-options`,
   //   icon: "options",
-  //   description: "Menu customization options",
+  //   description: t("sidebar.addOptionsDesc"),
   // },
   {
-    name: "Add Menu",
+    name: t("sidebar.addMenu"),
     path: `/${hotelName}/admin/add-menu`,
     icon: "menu",
-    description: "Create menu items",
+    description: t("sidebar.addMenuDesc"),
   },
+
   // {
-  //   name: "Add Offers",
+  //   name: t("sidebar.addOffers"),
   //   path: `/${hotelName}/admin/add-offers`,
   //   icon: "offers",
-  //   description: "Promotional deals",
-  // },
-  // {
-  //   name: "Add Captain",
-  //   path: `/${hotelName}/admin/add-captain`,
-  //   icon: "addUser",
-  //   description: "Manage staff members",
-  // },
-  // {
-  //   name: "Kitchen",
-  //   path: `/${hotelName}/admin/kitchen`,
-  //   icon: "kitchen",
-  //   description: "Kitchen operations",
+  //   description: t("sidebar.addOffersDesc"),
   // },
   {
-    name: "Preview",
-    path: `/viewMenu/${hotelName}/home`,
-    icon: "preview",
-    description: "View customer menu",
+    name: t("sidebar.addCaptain"),
+    path: `/${hotelName}/admin/add-captain`,
+    icon: "addUser",
+    description: t("sidebar.addCaptainDesc"),
   },
   {
-    name: "Settings",
+    name: t("sidebar.kitchen"),
+    path: `/${hotelName}/admin/kitchen`,
+    icon: "kitchen",
+    description: t("sidebar.kitchenDesc"),
+  },
+  {
+    name: t("sidebar.preview"),
+    path: `/viewMenu/${hotelName}/home`,
+    icon: "preview",
+    description: t("sidebar.previewDesc"),
+  },
+  {
+    name: t("sidebar.settings"),
     path: `/${hotelName}/admin/profile`,
     icon: "settings",
-    description: "System configuration",
+    description: t("sidebar.settingsDesc"),
   },
 ];
 
 // Super Admin menu items
-export const superAdminMenuItems = [
+export const superAdminMenuItems = (t, hotelName) => [
   {
-    name: "Dashboard",
+    name: t("sidebar.dashboard"),
     path: "/super-admin/dashboard",
     icon: "dashboard",
-    description: "System overview",
+    description: t("sidebar.dashboardDesc"),
   },
   {
-    name: "Add Hotels",
+    name: t("sidebar.addHotels"),
+    path: "/super-admin/add-hotel",
+    icon: "hotels",
+    description: t("sidebar.addHotelsDesc"),
+  },
+  {
+    name: t("sidebar.addHotels"),
     path: "/super-admin/view-hotel",
     icon: "hotels",
-    description: "Manage properties",
+    description: t("sidebar.addHotelsDesc"),
   },
   {
-    name: "View Admins",
+    name: t("sidebar.addAdmin"),
+    path: "/super-admin/add-admin",
+    icon: "users",
+    description: t("sidebar.viewAdminsDesc"),
+  },
+  {
+    name: t("sidebar.addAdmin"),
     path: "/super-admin/view-admin",
     icon: "users",
-    description: "Administrator accounts",
+    description: t("sidebar.viewAdminsDesc"),
   },
   {
-    name: "Subscriptions",
-    path: "/super-admin/view-hotel-subscriptions",
+    name: t("sidebar.subscriptions"),
+    path: "/super-admin/add-subscription-plan",
     icon: "subscriptions",
-    description: "Billing and plans",
+    description: t("sidebar.subscriptionsDesc"),
+  },
+  {
+    name: t("sidebar.subscriptions"),
+    path: "/super-admin/view-subscription-plan",
+    icon: "subscriptions",
+    description: t("sidebar.subscriptionsDesc"),
   },
 ];
 
 // Captain menu items
-export const captainMenuItems = (hotelName) => [
+export const captainMenuItems = (hotelName, t) => [
   {
-    name: "Dashboard",
+    name: t("sidebar.dashboard"),
     path: `/viewMenu/${hotelName}/captain/dashboard`,
     icon: "dashboard",
-    description: "Floor overview",
+    description: t("sidebar.dashboardDesc"),
   },
   // {
-  //   name: "Tables",
+  //   name: t("sidebar.tables"),
   //   path: `/viewMenu/${hotelName}/captain/tables`,
   //   icon: "tables",
-  //   description: "Table management",
+  //   description: t("sidebar.tablesDesc"),
   // },
   {
-    name: "Add Order",
+    name: t("sidebar.addOrder"),
     path: `/viewMenu/${hotelName}/captain/home`,
     icon: "addOrder",
-    description: "Take new orders",
+    description: t("sidebar.addOrderDesc"),
   },
   {
-    name: "My Orders",
+    name: t("sidebar.myOrders"),
     path: `/viewMenu/${hotelName}/captain/my-orders`,
     icon: "orders",
-    description: "Track active orders",
+    description: t("sidebar.myOrdersDesc"),
   },
-
   // {
-  //   name: "Kitchen",
+  //   name: t("sidebar.kitchen"),
   //   path: `/viewMenu/${hotelName}/captain/kitchen`,
   //   icon: "kitchen",
-  //   description: "Kitchen communication",
+  //   description: t("sidebar.kitchenDesc"),
   // },
   // {
-  //   name: "Bills",
+  //   name: t("sidebar.bills"),
   //   path: `/viewMenu/${hotelName}/captain/bills`,
   //   icon: "bills",
-  //   description: "Payment processing",
+  //   description: t("sidebar.billsDesc"),
   // },
 ];
 
-// Centralized icon mapping with modern Lucide icons
+// Icon mapping stays the same
 export const iconMap = {
-  // Common icons
   dashboard: Home,
   settings: Settings,
   users: Users,
-
-  // Admin specific
   category: BookOpen,
   options: Star,
   menu: UtensilsCrossed,
@@ -206,12 +219,8 @@ export const iconMap = {
   kitchen: ChefHat,
   preview: Eye,
   upload: Upload,
-
-  // Super Admin specific
   hotels: Building,
   subscriptions: CreditCard,
-
-  // Captain specific
   tables: TableProperties,
   addOrder: Plus,
   orders: ClipboardList,
@@ -227,14 +236,14 @@ export const getRoleConfig = (admin = false, captain = false) => {
 };
 
 // Get menu items based on role
-export const getMenuItems = (role, hotelName = null) => {
+export const getMenuItems = (role, t, hotelName = null) => {
   switch (role) {
     case "admin":
-      return adminMenuItems(hotelName);
+      return adminMenuItems(hotelName, t);
     case "captain":
-      return captainMenuItems(hotelName);
+      return captainMenuItems(hotelName, t);
     case "superAdmin":
     default:
-      return superAdminMenuItems;
+      return superAdminMenuItems(t, hotelName);
   }
 };

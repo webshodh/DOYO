@@ -1,3 +1,4 @@
+// validation/menuValidation.js (UPDATED)
 import { toast } from "react-toastify";
 
 export const validateMenuForm = (menuData) => {
@@ -66,4 +67,69 @@ export const calculateFinalPrice = (price, discount = 0) => {
   }
 
   return numPrice;
+};
+
+export const validateMenuName = (menuName) => {
+  if (!menuName || !menuName.trim()) {
+    return {
+      isValid: false,
+      error: "Menu name cannot be empty",
+    };
+  }
+
+  if (menuName.trim().length < 2) {
+    return {
+      isValid: false,
+      error: "Menu name must be at least 2 characters long",
+    };
+  }
+
+  if (menuName.trim().length > 100) {
+    return {
+      isValid: false,
+      error: "Menu name must be less than 100 characters",
+    };
+  }
+
+  return {
+    isValid: true,
+    error: null,
+  };
+};
+
+export const validatePrice = (price) => {
+  const numPrice = parseFloat(price);
+
+  if (isNaN(numPrice) || numPrice <= 0) {
+    return {
+      isValid: false,
+      error: "Price must be a valid number greater than 0",
+    };
+  }
+
+  if (numPrice > 10000) {
+    return {
+      isValid: false,
+      error: "Price cannot exceed 10,000",
+    };
+  }
+
+  return {
+    isValid: true,
+    error: null,
+  };
+};
+
+export const sanitizeMenuData = (menuData) => {
+  return {
+    ...menuData,
+    menuName: menuData.menuName?.trim() || "",
+    menuContent: menuData.menuContent?.trim() || "",
+    ingredients: menuData.ingredients?.trim() || "",
+    menuPrice: parseFloat(menuData.menuPrice) || 0,
+    discount: parseFloat(menuData.discount) || 0,
+    menuCookingTime: parseInt(menuData.menuCookingTime) || 0,
+    servingSize: parseInt(menuData.servingSize) || 1,
+    calories: parseInt(menuData.calories) || 0,
+  };
 };

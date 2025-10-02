@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, memo } from "react";
 import TabButton from "atoms/Buttons/TabButton";
-import { Filter, X } from "lucide-react";
+import { Filter } from "lucide-react";
 
 const CategoryTabs = memo(
   ({
@@ -57,7 +57,7 @@ const CategoryTabs = memo(
       menuCountsByMainCategory,
     ]);
 
-    // Build tabs
+    // Build tabs list
     const tabs = useMemo(() => {
       const tabList = [];
       if (!hideAllTab) {
@@ -70,34 +70,34 @@ const CategoryTabs = memo(
       }
 
       mainCategories
-        .filter((item) => menuCountsByMainCategory[item.categoryName] > 0)
+        .filter((item) => menuCountsByMainCategory[item.name] > 0)
         .forEach((item) =>
           tabList.push({
-            id: item.categoryName,
-            label: item.categoryName,
-            count: menuCountsByMainCategory[item.categoryName],
+            id: item.name,
+            label: item.name,
+            count: menuCountsByMainCategory[item.name],
             type: "main",
           })
         );
 
       specialCategories
-        .filter((item) => menuCountsBySpecialCategory[item.categoryName] > 0)
+        .filter((item) => menuCountsBySpecialCategory[item.name] > 0)
         .forEach((item) =>
           tabList.push({
-            id: item.categoryName,
-            label: item.categoryName,
-            count: menuCountsBySpecialCategory[item.categoryName],
+            id: item.name,
+            label: item.name,
+            count: menuCountsBySpecialCategory[item.name],
             type: "special",
           })
         );
 
       categories
-        .filter((item) => menuCountsByCategory[item.categoryName] > 0)
+        .filter((item) => menuCountsByCategory[item.name] > 0)
         .forEach((item) =>
           tabList.push({
-            id: item.categoryName,
-            label: item.categoryName,
-            count: menuCountsByCategory[item.categoryName],
+            id: item.name,
+            label: item.name,
+            count: menuCountsByCategory[item.name],
             type: "regular",
           })
         );

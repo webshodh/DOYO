@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import useOffersData from "../../data/useOffersData";
 import CategoryTabs from "../../molecules/CategoryTab";
 import NavBar from "organisms/Navbar";
 import { Spinner } from "atoms";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useOffers } from "hooks/useOffers";
 
 const Offers = () => {
   const { hotelName } = useParams();
   const navigate = useNavigate();
   const { offersData, totalOffers, offerTypes, loading, error } =
-    useOffersData(hotelName);
+    useOffers(hotelName);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Helper function - defined early to avoid hoisting issues

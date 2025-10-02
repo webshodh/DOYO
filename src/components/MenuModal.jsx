@@ -259,7 +259,7 @@ const MenuModal = memo(
           </div>
           {/* Close Button */}
           <CloseButton onClose={handleClose} />
-          <BackToTop/>
+          <BackToTop />
           {/* Bottom Accent */}
           <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500" />
         </div>
