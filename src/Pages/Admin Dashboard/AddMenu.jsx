@@ -1,149 +1,295 @@
-// src/pages/AddMenuItemPage.jsx
-
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import FormContainer from "../../components/Forms/FormContainer";
+import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
+import { useParams } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
-  FORM_CONFIG,
-  specialCategories,
-} from "../../Constants/ConfigForms/addMenuFormConfig";
-import { menuServices } from "../../services/api/menuService";
+  Plus,
+  ChefHat,
+  LoaderCircle,
+  AlertCircle,
+  TrendingUp,
+  Grid,
+  DollarSign,
+  Eye,
+} from "lucide-react";
+import useColumns from "Constants/Columns";
+import CategoryTabs from "molecules/CategoryTab";
+import { useMenu } from "../../hooks/useMenu";
+import PageTitle from "../../atoms/PageTitle";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
+import EmptyState from "atoms/Messages/EmptyState";
+import NoSearchResults from "molecules/NoSearchResults";
+import StatCard from "components/Cards/StatCard";
+import PrimaryButton from "atoms/Buttons/PrimaryButton";
+import SearchWithResults from "molecules/SearchWithResults";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { useTranslation } from "react-i18next";
+import MenuFormModal from "../../components/FormModals/MenuFormModal";
 
-// Build default initial values from FORM_CONFIG
-const buildInitialValues = () => {
-  const values = {};
-  FORM_CONFIG.sections.forEach((section) => {
-    section.fields.forEach((field) => {
-      const name = field.name;
-      if (field.type === "checkbox") {
-        values[name] = false;
-      } else if (field.type === "multiselect") {
-        values[name] = [];
-      } else {
-        values[name] = "";
+const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+
+const AddMenu = memo(() => {
+  const { hotelName } = useParams();
+  const { t } = useTranslation();
+  const { ViewMenuColumns } = useColumns();
+
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [editingMenu, setEditingMenu] = useState(null);
+
+  // Custom hook
+  const {
+    categories,
+    mainCategories,
+    filteredAndSortedMenus,
+    menuCountsByCategory,
+    searchTerm,
+    loading,
+    submitting,
+    error,
+    addMenu,
+    updateMenu,
+    deleteMenu,
+    handleCategoryFilter,
+    handleSearchChange,
+    refreshMenus,
+    menuCount,
+    hasMenus,
+    hasSearchResults,
+  } = useMenu(hotelName);
+
+  // Stats
+  const stats = useMemo(
+    () => ({
+      total: menuCount,
+      available: filteredAndSortedMenus.filter(
+        (menu) => menu.availability === "Available"
+      ).length,
+      discounted: filteredAndSortedMenus.filter((menu) => menu.discount > 0)
+        .length,
+      categories: new Set(
+        filteredAndSortedMenus.map((menu) => menu.menuCategory)
+      ).size,
+    }),
+    [filteredAndSortedMenus, menuCount]
+  );
+
+  // Table data
+  const tableData = useMemo(
+    () =>
+      filteredAndSortedMenus.map((item, index) => ({
+        "Sr.No": index + 1,
+        Img: item.imageUrl || item.file,
+        "Menu Category": item.menuCategory || "Other",
+        "Menu Name": item.menuName,
+        Price: item.menuPrice,
+        Discount: item.discount || "-",
+        "Final Price": item.finalPrice,
+        Availability: item.availability,
+        uuid: item.uuid,
+        id: item.id,
+        _id: item._id,
+      })),
+    [filteredAndSortedMenus]
+  );
+
+  // Handlers
+  const openAddModal = useCallback(() => {
+    setEditingMenu(null);
+    setShowModal(true);
+  }, []);
+
+  const openEditModal = useCallback(
+    (rowData) => {
+      const menuId = rowData.uuid || rowData.id || rowData._id;
+      const selectedMenu = filteredAndSortedMenus.find((menu) =>
+        [menu.uuid, menu.id, menu._id].includes(menuId)
+      );
+      if (!selectedMenu) {
+        alert("Menu not found. Please refresh and try again.");
+        return;
       }
-    });
-  });
-  return values;
-};
+      setEditingMenu(selectedMenu);
+      setShowModal(true);
+    },
+    [filteredAndSortedMenus]
+  );
 
-export default function AddMenuPage() {
-  const navigate = useNavigate();
-  const { id: menuId } = useParams();
-  const isEditMode = Boolean(menuId);
-
-  const [initialValues, setInitialValues] = useState(buildInitialValues());
-  const [submitting, setSubmitting] = useState(false);
-
-  // Load existing menu item in edit mode
-  useEffect(() => {
-    if (!isEditMode) return;
-    let mounted = true;
-    setSubmitting(true);
-
-    menuServices
-      .getMenuItemById(menuId)
-      .then((data) => {
-        if (!mounted || !data) return;
-        setInitialValues((prev) => ({
-          ...prev,
-          ...data,
-          nutritionalInfo: {
-            protein: "",
-            carbs: "",
-            fat: "",
-            fiber: "",
-            ...(data.nutritionalInfo || {}),
-          },
-          allergens: Array.isArray(data.allergens) ? data.allergens : [],
-        }));
-      })
-      .catch((err) => console.error("Failed to load menu item:", err))
-      .finally(() => mounted && setSubmitting(false));
-
-    return () => {
-      mounted = false;
-    };
-  }, [isEditMode, menuId]);
-
-  const goBack = useCallback(() => navigate(-1), [navigate]);
-  const goToMenuList = useCallback(() => navigate("/menu"), [navigate]);
-
-  const handleSubmit = useCallback(
-    async (formData) => {
-      setSubmitting(true);
-
-      const submissionData = {
-        ...formData,
-        menuPrice: parseFloat(formData.menuPrice) || 0,
-        discount: parseFloat(formData.discount) || 0,
-        finalPrice:
-          parseFloat(formData.finalPrice) ||
-          parseFloat(formData.menuPrice) ||
-          0,
-        calories: parseInt(formData.calories) || 0,
-        menuCookingTime: parseInt(formData.menuCookingTime) || 0,
-        servingSize: parseInt(formData.servingSize) || 1,
-        nutritionalInfo: {
-          protein: parseFloat(formData["nutritionalInfo.protein"]) || 0,
-          carbs: parseFloat(formData["nutritionalInfo.carbs"]) || 0,
-          fat: parseFloat(formData["nutritionalInfo.fat"]) || 0,
-          fiber: parseFloat(formData["nutritionalInfo.fiber"]) || 0,
-        },
-        allergens: Array.isArray(formData.allergens) ? formData.allergens : [],
-        chefSpecial: Boolean(formData.chefSpecial),
-        isPopular: Boolean(formData.isPopular),
-        isVegan: Boolean(formData.isVegan),
-        isGlutenFree: Boolean(formData.isGlutenFree),
-        ...(isEditMode && formData.createdAt
-          ? { createdAt: formData.createdAt }
-          : {}),
-        updatedAt: new Date().toISOString(),
-      };
-
-      try {
-        if (isEditMode) {
-          await menuServices.updateMenuItem(menuId, submissionData);
-        } else {
-          await menuServices.addMenuItem(submissionData);
-        }
-        goToMenuList();
-      } catch (err) {
-        console.error("Submit failed:", err);
-      } finally {
-        setSubmitting(false);
+  const handleDelete = useCallback(
+    async (rowData) => {
+      const menuId = rowData.uuid || rowData.id || rowData._id;
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${rowData["Menu Name"]}"?`
+      );
+      if (confirmed) {
+        const success = await deleteMenu(menuId);
+        if (!success) alert("Failed to delete menu. Please try again.");
       }
     },
-    [isEditMode, menuId, goToMenuList]
+    [deleteMenu]
   );
 
-  const sections = useMemo(() => FORM_CONFIG.sections, []);
-  const fieldsConfig = useMemo(
-    () => sections.flatMap((section) => section.fields),
-    [sections]
+  const closeModal = useCallback(() => {
+    setEditingMenu(null);
+    setShowModal(false);
+  }, []);
+
+  const handleModalSubmit = useCallback(
+    async (data) => {
+      if (editingMenu) {
+        return await updateMenu(data, editingMenu.uuid || editingMenu.id);
+      }
+      return await addMenu(data);
+    },
+    [addMenu, updateMenu, editingMenu]
   );
+
+  const clearSearch = useCallback(
+    () => handleSearchChange(""),
+    [handleSearchChange]
+  );
+
+  const refresh = useCallback(() => refreshMenus(), [refreshMenus]);
+
+  // Render error or loading
+  if (error) {
+    return (
+      <ErrorMessage
+        error={error}
+        onRetry={refresh}
+        title={t("menu.errorLoading")}
+      />
+    );
+  }
+  if (loading && !filteredAndSortedMenus.length) {
+    return <LoadingSpinner size="lg" text={t("menu.loading")} />;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-8">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {isEditMode ? "Edit Menu Item" : "Add New Menu Item"}
-        </h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header & Stats */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 gap-4">
+        <PageTitle
+          pageTitle={t("menu.managePageTitle")}
+          className="text-2xl font-bold"
+          description={t("menu.manageDescription")}
+        />
+        <PrimaryButton
+          onAdd={openAddModal}
+          btnText={t("menu.addButton")}
+          loading={submitting}
+        />
+      </div>
+      {hasMenus && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            icon={ChefHat}
+            title={t("menu.totalItems")}
+            value={stats.total}
+            color="blue"
+          />
+          <StatCard
+            icon={TrendingUp}
+            title={t("menu.totalAvailable")}
+            value={stats.available}
+            color="green"
+          />
+          <StatCard
+            icon={DollarSign}
+            title={t("menu.withDiscount")}
+            value={stats.discounted}
+            color="orange"
+          />
+          <StatCard
+            icon={Grid}
+            title={t("menu.totalCategories")}
+            value={stats.categories}
+            color="purple"
+          />
+        </div>
+      )}
+
+      {/* Search & Filters */}
+      {hasMenus && (
+        <>
+          <SearchWithResults
+            searchTerm={searchTerm}
+            onSearchChange={(e) => handleSearchChange(e.target.value)}
+            placeholder={t("menu.searchPlaceholder")}
+            totalCount={menuCount}
+            filteredCount={filteredAndSortedMenus.length}
+            onClearSearch={clearSearch}
+            totalLabel={t("menu.totalLabel")}
+          />
+          <div className="bg-white rounded-lg shadow mb-6 p-4 overflow-x-auto">
+            <CategoryTabs
+              categories={categories}
+              menuCountsByCategory={menuCountsByCategory}
+              handleCategoryFilter={handleCategoryFilter}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Table or Empty State */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+        {hasMenus ? (
+          hasSearchResults ? (
+            <Suspense
+              fallback={<LoadingSpinner text={t("menu.loadingTable")} />}
+            >
+              <DynamicTable
+                columns={ViewMenuColumns}
+                data={tableData}
+                onEdit={openEditModal}
+                onDelete={handleDelete}
+                loading={submitting}
+                showPagination
+                initialRowsPerPage={10}
+                sortable
+                className="border-0"
+              />
+            </Suspense>
+          ) : (
+            <NoSearchResults
+              btnText={t("menu.addButton")}
+              searchTerm={searchTerm}
+              onClearSearch={clearSearch}
+              onAddNew={openAddModal}
+            />
+          )
+        ) : (
+          <EmptyState
+            icon={ChefHat}
+            title={t("menu.noItems")}
+            description={t("menu.noItemsDescription")}
+            actionLabel={t("menu.emptyAction")}
+            onAction={openAddModal}
+            loading={submitting}
+          />
+        )}
       </div>
 
-      <FormContainer
-        sections={sections}
-        fieldsConfig={fieldsConfig}
-        specialCategories={specialCategories}
-        initialValues={initialValues}
-        validationSchema={null /* replace with your Yup schema */}
-        onSubmit={handleSubmit}
-        onCancel={goBack}
-        isEditMode={isEditMode}
-        submitText={isEditMode ? "Update Menu Item" : "Add Menu Item"}
-        cancelText="Cancel"
-        submitting={submitting}
-      />
+      {/* Modal */}
+      {showModal && (
+        <MenuFormModal
+          show={showModal}
+          onClose={closeModal}
+          onSubmit={handleModalSubmit}
+          categories={categories}
+          mainCategories={mainCategories}
+          editMode={Boolean(editingMenu)}
+          initialData={editingMenu}
+          hotelName={hotelName}
+        />
+      )}
+
+      {/* Toasts */}
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
-}
+});
+
+AddMenu.displayName = "AddMenu";
+
+export default AddMenu;

@@ -5,7 +5,7 @@ import Profile from "organisms/ProfileComponent";
 import { AdminDashboard } from "Pages";
 import AddCategory from "Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "Pages/Admin Dashboard/AddMainCategory";
-import AddMenu from "Pages/Admin Dashboard/ViewMenu";
+import AddMenu from "Pages/Admin Dashboard/AddMenu";
 import AddOffers from "Pages/Admin Dashboard/AddOffers";
 import BulkMenuUpload from "Pages/Admin Dashboard/BulkUpload";
 import KitchenAdminPage from "Pages/Admin Dashboard/Kitchen";

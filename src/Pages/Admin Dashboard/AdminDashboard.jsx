@@ -24,7 +24,7 @@ import TimePeriodSelector from "../../atoms/TimePeriodSelector";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import ErrorState from "../../atoms/Messages/ErrorState";
 import OrderDetailsModal from "../../components/order-dashboard/OrderDetailsModal";
-import AddMenu from "./ViewMenu";
+import AddMenu from "./AddMenu";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 import { useMenu } from "hooks/useMenu";
@@ -125,14 +125,17 @@ const AdminDashboard = () => {
   }, [connectionStatus]);
 
   // Derived restaurant info once
-  const restaurantInfo = useMemo(() => ({
-    name: hotelName || "Restaurant Name",
-    address: "Restaurant address, City, State - 123456",
-    phone: "+91 12345 67890",
-    gst: "12ABCDE3456F",
-    taxRate: 0.18,
-    footer: "Thank you for dining with us!",
-  }), [hotelName]);
+  const restaurantInfo = useMemo(
+    () => ({
+      name: hotelName || "Restaurant Name",
+      address: "Restaurant address, City, State - 123456",
+      phone: "+91 12345 67890",
+      gst: "12ABCDE3456F",
+      taxRate: 0.18,
+      footer: "Thank you for dining with us!",
+    }),
+    [hotelName]
+  );
 
   // Stats memoization
   const displayStats = useMemo(() => {
@@ -160,15 +163,21 @@ const AdminDashboard = () => {
     if (!filteredMenus) return {};
 
     const total = filteredMenus.length;
-    const available = filteredMenus.filter(m => m.availability === "Available").length;
-    const discounted = filteredMenus.filter(m => m.discount && m.discount > 0).length;
-    const uniqueCategories = new Set(filteredMenus.map(m => m.menuCategory || "Other")).size;
+    const available = filteredMenus.filter(
+      (m) => m.availability === "Available"
+    ).length;
+    const discounted = filteredMenus.filter(
+      (m) => m.discount && m.discount > 0
+    ).length;
+    const uniqueCategories = new Set(
+      filteredMenus.map((m) => m.menuCategory || "Other")
+    ).size;
 
     return { total, available, discounted, uniqueCategories };
   }, [filteredMenus]);
 
   // Handlers wrapped with useCallback
-  const handleViewDetails = useCallback(order => {
+  const handleViewDetails = useCallback((order) => {
     setSelectedOrder(order);
     setShowOrderDetails(true);
   }, []);
@@ -198,30 +207,36 @@ const AdminDashboard = () => {
     }
   }, [exportOrdersCSV]);
 
-  const handleUpdateStatus = useCallback(async (orderId, newStatus) => {
-    const res = await updateOrderStatus(orderId, newStatus, {
-      updatedBy: "admin",
-      updatedAt: new Date().toISOString(),
-      kitchen: { notes: "Status updated via admin dashboard" },
-    });
+  const handleUpdateStatus = useCallback(
+    async (orderId, newStatus) => {
+      const res = await updateOrderStatus(orderId, newStatus, {
+        updatedBy: "admin",
+        updatedAt: new Date().toISOString(),
+        kitchen: { notes: "Status updated via admin dashboard" },
+      });
 
-    // Update selected order locally if matched
-    if (res.success && selectedOrder?.id === orderId) {
-      setSelectedOrder(s => ({ ...s, status: newStatus, normalizedStatus: newStatus }));
-    }
-    return res;
-  }, [updateOrderStatus, selectedOrder]);
+      // Update selected order locally if matched
+      if (res.success && selectedOrder?.id === orderId) {
+        setSelectedOrder((s) => ({
+          ...s,
+          status: newStatus,
+          normalizedStatus: newStatus,
+        }));
+      }
+      return res;
+    },
+    [updateOrderStatus, selectedOrder]
+  );
 
   return (
     <AdminDashboardLayout>
       <div className="space-y-6 sm:space-y-8">
         {/* Header and welcome */}
         <div>
-          <h1 className={`text-3xl font-bold`}>
-            {t("dashboard.title")}
-          </h1>
+          <h1 className={`text-3xl font-bold`}>{t("dashboard.title")}</h1>
           <p className="text-gray-600">
-            {t("dashboard.welcome")} {selectedHotel?.name || "-"} {t("dashboard.today")}
+            {t("dashboard.welcome")} {selectedHotel?.name || "-"}{" "}
+            {t("dashboard.today")}
           </p>
         </div>
 
@@ -244,18 +259,58 @@ const AdminDashboard = () => {
 
         {/* Stats cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <StatCard title={t("dashboard.totalOrders")} value={displayStats.total} icon={ShoppingBag} color="blue" />
-          <StatCard title={t("dashboard.completedOrders")} value={displayStats.completed} icon={CheckCircle} color="green" />
-          <StatCard title={t("dashboard.rejectedOrders")} value={displayStats.rejected} icon={AlertCircle} color="red" />
-          <StatCard title={t("dashboard.revenue")} value={`₹${displayStats.revenue || 0}`} icon={DollarSign} color="yellow" />
+          <StatCard
+            title={t("dashboard.totalOrders")}
+            value={displayStats.total}
+            icon={ShoppingBag}
+            color="blue"
+          />
+          <StatCard
+            title={t("dashboard.completedOrders")}
+            value={displayStats.completed}
+            icon={CheckCircle}
+            color="green"
+          />
+          <StatCard
+            title={t("dashboard.rejectedOrders")}
+            value={displayStats.rejected}
+            icon={AlertCircle}
+            color="red"
+          />
+          <StatCard
+            title={t("dashboard.revenue")}
+            value={`₹${displayStats.revenue || 0}`}
+            icon={DollarSign}
+            color="yellow"
+          />
         </div>
 
         {/* Menu stats cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <StatCard title={t("dashboard.totalMenuItems")} value={menuStats.total} icon={ShoppingBag} color="purple" />
-          <StatCard title={t("dashboard.availableItems")} value={menuStats.available} icon={CheckCircle} color="green" />
-          <StatCard title={t("dashboard.discountedItems")} value={menuStats.discounted} icon={TrendingUp} color="orange" />
-          <StatCard title={t("dashboard.menuCategories")} value={menuStats.uniqueCategories} icon={BarChart3} color="blue" />
+          <StatCard
+            title={t("dashboard.totalMenuItems")}
+            value={menuStats.total}
+            icon={ShoppingBag}
+            color="purple"
+          />
+          <StatCard
+            title={t("dashboard.availableItems")}
+            value={menuStats.available}
+            icon={CheckCircle}
+            color="green"
+          />
+          <StatCard
+            title={t("dashboard.discountedItems")}
+            value={menuStats.discounted}
+            icon={TrendingUp}
+            color="orange"
+          />
+          <StatCard
+            title={t("dashboard.menuCategories")}
+            value={menuStats.uniqueCategories}
+            icon={BarChart3}
+            color="blue"
+          />
         </div>
 
         {/* Error and loading handling */}

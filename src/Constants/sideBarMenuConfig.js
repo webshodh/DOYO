@@ -87,12 +87,7 @@ export const adminMenuItems = (hotelName, t) => [
     icon: "menu",
     description: t("sidebar.addMenuDesc"),
   },
-  {
-    name: t("sidebar.addMenu"),
-    path: `/${hotelName}/admin/view-menu`,
-    icon: "menu",
-    description: t("sidebar.addMenuDesc"),
-  },
+
   {
     name: t("sidebar.addOffers"),
     path: `/${hotelName}/admin/add-offers`,

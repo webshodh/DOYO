@@ -19,7 +19,7 @@ import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
 import Profile from "./organisms/ProfileComponent";
 import AddCategory from "./Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
-import AddMenu from "./Pages/Admin Dashboard/ViewMenu";
+import AddMenu from "./Pages/Admin Dashboard/AddMenu";
 import {
   AddHotel,
   Home,
@@ -55,7 +55,7 @@ import ViewCaptain from "Pages/Admin Dashboard/ViewCaptain";
 import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 import AddMenuPage from "Pages/Admin Dashboard/AddMenu";
-import ViewMenu from "./Pages/Admin Dashboard/ViewMenu";
+import ViewMenu from "./Pages/Admin Dashboard/AddMenu";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -325,18 +325,11 @@ function App() {
                         path="add-menu"
                         element={
                           <AdminLayout>
-                            <AddMenuPage />
+                            <AddMenu />
                           </AdminLayout>
                         }
                       />
-                      <Route
-                        path="view-menu"
-                        element={
-                          <AdminLayout>
-                            <ViewMenu />
-                          </AdminLayout>
-                        }
-                      />
+                      
                       <Route
                         path="add-offers"
                         element={
