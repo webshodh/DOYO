@@ -58,29 +58,83 @@ const AddMenu = memo(() => {
     hasSearchResults,
   } = useMenu(hotelName);
 
-  // Stats
+  // Create category lookup map for resolving IDs to names
+  const categoryMap = useMemo(() => {
+    const map = {};
+    categories.forEach((category) => {
+      // Handle both possible structures
+      const categoryName = category.categoryName || category.name;
+      const categoryId = category.id;
+
+      if (categoryId && categoryName) {
+        map[categoryId] = categoryName;
+      }
+      // Also map name to name (in case some items use names directly)
+      if (categoryName) {
+        map[categoryName] = categoryName;
+      }
+    });
+    return map;
+  }, [categories]);
+
+  // Create main category lookup map
+  const mainCategoryMap = useMemo(() => {
+    const map = {};
+    mainCategories.forEach((mainCategory) => {
+      const mainCategoryName =
+        mainCategory.mainCategoryName || mainCategory.name;
+      const mainCategoryId = mainCategory.id;
+
+      if (mainCategoryId && mainCategoryName) {
+        map[mainCategoryId] = mainCategoryName;
+      }
+      if (mainCategoryName) {
+        map[mainCategoryName] = mainCategoryName;
+      }
+    });
+    return map;
+  }, [mainCategories]);
+
+  // Enhanced menus with resolved category names
+  const enhancedMenus = useMemo(() => {
+    return filteredAndSortedMenus.map((menu) => {
+      const resolvedCategoryName =
+        categoryMap[menu.menuCategory] || menu.menuCategory || "Other";
+      const resolvedMainCategoryName =
+        mainCategoryMap[menu.mainCategory] || menu.mainCategory || "";
+
+      return {
+        ...menu,
+        menuCategoryName: resolvedCategoryName,
+        mainCategoryName: resolvedMainCategoryName,
+        // Override for display purposes
+        menuCategory: resolvedCategoryName,
+        mainCategory: resolvedMainCategoryName,
+      };
+    });
+  }, [filteredAndSortedMenus, categoryMap, mainCategoryMap]);
+
+  // Stats - Use enhanced menus
   const stats = useMemo(
     () => ({
       total: menuCount,
-      available: filteredAndSortedMenus.filter(
+      available: enhancedMenus.filter(
         (menu) => menu.availability === "Available"
       ).length,
-      discounted: filteredAndSortedMenus.filter((menu) => menu.discount > 0)
-        .length,
-      categories: new Set(
-        filteredAndSortedMenus.map((menu) => menu.menuCategory)
-      ).size,
+      discounted: enhancedMenus.filter((menu) => menu.discount > 0).length,
+      categories: new Set(enhancedMenus.map((menu) => menu.menuCategoryName))
+        .size,
     }),
-    [filteredAndSortedMenus, menuCount]
+    [enhancedMenus, menuCount]
   );
 
-  // Table data
+  // Table data - Use enhanced menus with resolved category names
   const tableData = useMemo(
     () =>
-      filteredAndSortedMenus.map((item, index) => ({
+      enhancedMenus.map((item, index) => ({
         "Sr.No": index + 1,
         Img: item.imageUrl || item.file,
-        "Menu Category": item.menuCategory || "Other",
+        "Menu Category": item.menuCategoryName || item.menuCategory || "Other",
         "Menu Name": item.menuName,
         Price: item.menuPrice,
         Discount: item.discount || "-",
@@ -90,8 +144,27 @@ const AddMenu = memo(() => {
         id: item.id,
         _id: item._id,
       })),
-    [filteredAndSortedMenus]
+    [enhancedMenus]
   );
+
+  // Transform categories for CategoryTabs with counts
+  const transformedCategories = useMemo(() => {
+    return categories.map((cat) => {
+      const categoryName = cat.categoryName || cat.name;
+      const categoryId = cat.id;
+      // Get count from menuCountsByCategory using either ID or name
+      const count =
+        menuCountsByCategory[categoryId] ||
+        menuCountsByCategory[categoryName] ||
+        0;
+
+      return {
+        ...cat,
+        name: categoryName,
+        count: count,
+      };
+    });
+  }, [categories, menuCountsByCategory]);
 
   // Handlers
   const openAddModal = useCallback(() => {
@@ -102,7 +175,7 @@ const AddMenu = memo(() => {
   const openEditModal = useCallback(
     (rowData) => {
       const menuId = rowData.uuid || rowData.id || rowData._id;
-      const selectedMenu = filteredAndSortedMenus.find((menu) =>
+      const selectedMenu = enhancedMenus.find((menu) =>
         [menu.uuid, menu.id, menu._id].includes(menuId)
       );
       if (!selectedMenu) {
@@ -112,7 +185,7 @@ const AddMenu = memo(() => {
       setEditingMenu(selectedMenu);
       setShowModal(true);
     },
-    [filteredAndSortedMenus]
+    [enhancedMenus]
   );
 
   const handleDelete = useCallback(
@@ -161,14 +234,14 @@ const AddMenu = memo(() => {
       />
     );
   }
-  if (loading && !filteredAndSortedMenus.length) {
+  if (loading && !enhancedMenus.length) {
     return <LoadingSpinner size="lg" text={t("menu.loading")} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header & Stats */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 gap-4">
+      <div className="flex flex-row lg:flex-row lg:items-center justify-between mb-4 gap-4">
         <PageTitle
           pageTitle={t("menu.managePageTitle")}
           className="text-2xl font-bold"
@@ -217,13 +290,13 @@ const AddMenu = memo(() => {
             onSearchChange={(e) => handleSearchChange(e.target.value)}
             placeholder={t("menu.searchPlaceholder")}
             totalCount={menuCount}
-            filteredCount={filteredAndSortedMenus.length}
+            filteredCount={enhancedMenus.length}
             onClearSearch={clearSearch}
             totalLabel={t("menu.totalLabel")}
           />
           <div className="bg-white rounded-lg shadow mb-6 p-4 overflow-x-auto">
             <CategoryTabs
-              categories={categories}
+              categories={transformedCategories}
               menuCountsByCategory={menuCountsByCategory}
               handleCategoryFilter={handleCategoryFilter}
             />

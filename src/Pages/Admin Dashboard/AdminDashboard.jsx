@@ -11,6 +11,7 @@ import {
   Loader,
   Award,
   DollarSign,
+  Calendar,
 } from "lucide-react";
 
 import { useOrder } from "../../hooks/useOrder";
@@ -31,6 +32,7 @@ import { useMenu } from "hooks/useMenu";
 import { useCategory } from "hooks/useCategory";
 import { useMainCategory } from "hooks/useMainCategory";
 import useColumns from "../../Constants/Columns";
+import { PageTitle } from "atoms";
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -90,39 +92,25 @@ const AdminDashboard = () => {
 
   // Fetch menu and categories data
   const {
-    filteredAndSorted: filteredMenus,
+    filteredAndSortedMenus, // FIXED: Changed from filteredAndSorted
     loading: menuLoading,
     error: menuError,
-    refresh: refreshMenus,
-    count: menuCount,
-    hasMenus,
-    hasFiltered: hasMenusFiltered,
+    refreshMenus, // FIXED: Changed from refresh
+    menuCount, // FIXED: Changed from count
+    hasMenus, // FIXED: This is correct
   } = useMenu(hotelName);
 
   const {
     categories,
     loading: categoriesLoading,
     error: categoriesError,
-    count: categoryCount,
+    categoryCount, // FIXED: Changed from count
   } = useCategory(hotelName);
 
-  const { total: totalMainCategories } = useMainCategory(hotelName) || {};
-
-  // Connection status indicator
-  const connectionStatusInfo = useMemo(() => {
-    switch (connectionStatus) {
-      case "connected":
-        return { color: "green", text: "Live Data", icon: CheckCircle };
-      case "connecting":
-        return { color: "yellow", text: "Connecting...", icon: Loader };
-      case "error":
-        return { color: "red", text: "Connection Error", icon: AlertCircle };
-      case "disconnected":
-        return { color: "gray", text: "Offline", icon: AlertCircle };
-      default:
-        return { color: "gray", text: "Unknown", icon: AlertCircle };
-    }
-  }, [connectionStatus]);
+  const {
+    mainCategoryCount, // FIXED: Changed from total
+    loading: mainCategoryLoading,
+  } = useMainCategory(hotelName) || {};
 
   // Derived restaurant info once
   const restaurantInfo = useMemo(
@@ -137,9 +125,19 @@ const AdminDashboard = () => {
     [hotelName]
   );
 
-  // Stats memoization
+  // Stats memoization - FIXED: Better null/undefined handling
   const displayStats = useMemo(() => {
-    if (!orderStats) return {};
+    if (!orderStats) {
+      return {
+        total: 0,
+        received: 0,
+        completed: 0,
+        rejected: 0,
+        revenue: 0,
+        activeOrders: 0,
+        completionRate: 0,
+      };
+    }
 
     const total = orderStats.total || 0;
     const received = orderStats.received || 0;
@@ -158,23 +156,30 @@ const AdminDashboard = () => {
     };
   }, [orderStats]);
 
-  // Menu statistics
+  // Menu statistics - FIXED: Using correct variable name
   const menuStats = useMemo(() => {
-    if (!filteredMenus) return {};
+    if (!filteredAndSortedMenus || filteredAndSortedMenus.length === 0) {
+      return {
+        total: 0,
+        available: 0,
+        discounted: 0,
+        uniqueCategories: 0,
+      };
+    }
 
-    const total = filteredMenus.length;
-    const available = filteredMenus.filter(
+    const total = filteredAndSortedMenus.length;
+    const available = filteredAndSortedMenus.filter(
       (m) => m.availability === "Available"
     ).length;
-    const discounted = filteredMenus.filter(
+    const discounted = filteredAndSortedMenus.filter(
       (m) => m.discount && m.discount > 0
     ).length;
     const uniqueCategories = new Set(
-      filteredMenus.map((m) => m.menuCategory || "Other")
+      filteredAndSortedMenus.map((m) => m.menuCategory || "Other")
     ).size;
 
     return { total, available, discounted, uniqueCategories };
-  }, [filteredMenus]);
+  }, [filteredAndSortedMenus]);
 
   // Handlers wrapped with useCallback
   const handleViewDetails = useCallback((order) => {
@@ -228,93 +233,71 @@ const AdminDashboard = () => {
     [updateOrderStatus, selectedOrder]
   );
 
+  // FIXED: Better loading state
+  const isLoading =
+    loading || menuLoading || categoriesLoading || mainCategoryLoading;
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6 sm:space-y-8">
-        {/* Header and welcome */}
-        <div>
-          <h1 className={`text-3xl font-bold`}>{t("dashboard.title")}</h1>
-          <p className="text-gray-600">
-            {t("dashboard.welcome")} {selectedHotel?.name || "-"}{" "}
-            {t("dashboard.today")}
-          </p>
+        {/* Header */}
+        <div className="flex flex-row items-center justify-between gap-4 mb-1">
+          <PageTitle
+            pageTitle={t("dashboard.title")}
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description={
+              t("dashboard.welcome", {
+                hotelName: selectedHotel?.name || hotelName,
+              }) +
+              " " +
+              t("dashboard.today")
+            }
+          />
+
+          {selectedTimePeriod === "daily" && (
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+              <Calendar size={16} className="text-gray-500" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => handleDateChange(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                className="bg-transparent border-none focus:outline-none text-sm"
+              />
+            </div>
+          )}
         </div>
 
-        {/* Controls */}
+        {/* Enhanced Time Period Navigation */}
         <TimePeriodSelector
-          selectedValue={selectedTimePeriod}
-          onChange={handleDateChange}
-          onPeriodChange={handleDateChange}
-          options={timePeriodOptions}
+          selectedTimePeriod={selectedTimePeriod}
+          onTimePeriodChange={handleTimePeriodChange}
           selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+          variant="default"
+          showDatePicker={true}
+          className="mb-6"
+          options={timePeriodOptions}
+          disableFutureDates={true}
         />
 
         {/* Status info */}
-        <div>
-          <span>{periodDisplayText}</span>
-          <span>{filteredOrders.length} Orders</span>
-          {displayStats.revenue && <span>₹{displayStats.revenue}</span>}
-          <span>{displayStats.completionRate}% Completion</span>
+        <div className="flex flex-wrap items-center gap-4 text-sm">
+          <span className="font-medium">{periodDisplayText}</span>
+          <span className="text-gray-600">
+            {filteredOrders?.length || 0} Orders
+          </span>
+          {displayStats.revenue > 0 && (
+            <span className="text-green-600 font-semibold">
+              ₹{displayStats.revenue.toLocaleString()}
+            </span>
+          )}
+          <span className="text-blue-600">
+            {displayStats.completionRate}% Completion
+          </span>
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <StatCard
-            title={t("dashboard.totalOrders")}
-            value={displayStats.total}
-            icon={ShoppingBag}
-            color="blue"
-          />
-          <StatCard
-            title={t("dashboard.completedOrders")}
-            value={displayStats.completed}
-            icon={CheckCircle}
-            color="green"
-          />
-          <StatCard
-            title={t("dashboard.rejectedOrders")}
-            value={displayStats.rejected}
-            icon={AlertCircle}
-            color="red"
-          />
-          <StatCard
-            title={t("dashboard.revenue")}
-            value={`₹${displayStats.revenue || 0}`}
-            icon={DollarSign}
-            color="yellow"
-          />
-        </div>
-
-        {/* Menu stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <StatCard
-            title={t("dashboard.totalMenuItems")}
-            value={menuStats.total}
-            icon={ShoppingBag}
-            color="purple"
-          />
-          <StatCard
-            title={t("dashboard.availableItems")}
-            value={menuStats.available}
-            icon={CheckCircle}
-            color="green"
-          />
-          <StatCard
-            title={t("dashboard.discountedItems")}
-            value={menuStats.discounted}
-            icon={TrendingUp}
-            color="orange"
-          />
-          <StatCard
-            title={t("dashboard.menuCategories")}
-            value={menuStats.uniqueCategories}
-            icon={BarChart3}
-            color="blue"
-          />
-        </div>
-
-        {/* Error and loading handling */}
-        {loading && <LoadingSpinner text={t("dashboard.loading")} />}
+        {/* Error handling - FIXED: Show before stats */}
         {(error || menuError || categoriesError) && (
           <ErrorState
             title={t("dashboard.errorTitle")}
@@ -323,8 +306,82 @@ const AdminDashboard = () => {
           />
         )}
 
-        {/* Orders Table */}
-        <DynamicTable columns={OrdersByCategoryColumn} data={filteredOrders} />
+        {/* Loading state - FIXED */}
+        {isLoading &&
+        !filteredOrders?.length &&
+        !filteredAndSortedMenus?.length ? (
+          <LoadingSpinner text={t("dashboard.loading")} />
+        ) : (
+          <>
+            {/* Order Stats cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <StatCard
+                title={t("dashboard.totalOrders")}
+                value={displayStats.total}
+                icon={ShoppingBag}
+                color="blue"
+              />
+              <StatCard
+                title={t("dashboard.completedOrders")}
+                value={displayStats.completed}
+                icon={CheckCircle}
+                color="green"
+              />
+              <StatCard
+                title={t("dashboard.rejectedOrders")}
+                value={displayStats.rejected}
+                icon={AlertCircle}
+                color="red"
+              />
+              <StatCard
+                title={t("dashboard.revenue")}
+                value={`₹${(displayStats.revenue || 0).toLocaleString()}`}
+                icon={DollarSign}
+                color="yellow"
+              />
+            </div>
+
+            {/* Menu stats cards - FIXED: Now using correct data */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <StatCard
+                title={t("dashboard.totalMenuItems")}
+                value={menuStats.total}
+                icon={ShoppingBag}
+                color="purple"
+              />
+              <StatCard
+                title={t("dashboard.availableItems")}
+                value={menuStats.available}
+                icon={CheckCircle}
+                color="green"
+              />
+              <StatCard
+                title={t("dashboard.discountedItems")}
+                value={menuStats.discounted}
+                icon={TrendingUp}
+                color="orange"
+              />
+              <StatCard
+                title={t("dashboard.menuCategories")}
+                value={menuStats.uniqueCategories}
+                icon={BarChart3}
+                color="blue"
+              />
+            </div>
+
+            {/* Orders Table - FIXED: Added conditional rendering */}
+            {filteredOrders && filteredOrders.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-4">
+                <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
+                <DynamicTable
+                  columns={OrdersByCategoryColumn}
+                  data={filteredOrders}
+                  onView={handleViewDetails}
+                />
+              </div>
+            )}
+          </>
+        )}
 
         {/* Modal */}
         {showOrderDetails && selectedOrder && (

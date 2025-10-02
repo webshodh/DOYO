@@ -17,6 +17,7 @@ import EmptyState from "atoms/Messages/EmptyState";
 import StatCard from "components/Cards/StatCard";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useOrder } from "hooks/useOrder";
+import TimePeriodSelector from "atoms/TimePeriodSelector";
 
 // Lazy load heavy components
 const HeaderStats = React.lazy(() => import("components/HeaderStats"));
@@ -89,6 +90,7 @@ const KitchenAdminPage = memo(() => {
     offerCount, // not used here
     // additional fields renamed:
     // use `filteredOrders.length`, `timeFilteredOrders.length` directly
+    timePeriodOptions,
   } = useOrder(hotelName);
 
   // Memoized calculations for dashboard stats
@@ -156,9 +158,17 @@ const KitchenAdminPage = memo(() => {
         {/* Time Period Navigation */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
-            <TimePeriodTabs
+            {/* Enhanced Time Period Navigation */}
+            <TimePeriodSelector
               selectedTimePeriod={selectedTimePeriod}
               onTimePeriodChange={handleTimePeriodChange}
+              selectedDate={selectedDate}
+              onDateChange={handleDateChange}
+              variant="default"
+              showDatePicker={true}
+              className="mb-6"
+              options={timePeriodOptions}
+              disableFutureDates={true}
             />
             <div className="text-sm text-gray-600 font-medium">
               {/* optional period display text */}

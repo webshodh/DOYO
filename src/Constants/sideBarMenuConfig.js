@@ -88,12 +88,12 @@ export const adminMenuItems = (hotelName, t) => [
     description: t("sidebar.addMenuDesc"),
   },
 
-  {
-    name: t("sidebar.addOffers"),
-    path: `/${hotelName}/admin/add-offers`,
-    icon: "offers",
-    description: t("sidebar.addOffersDesc"),
-  },
+  // {
+  //   name: t("sidebar.addOffers"),
+  //   path: `/${hotelName}/admin/add-offers`,
+  //   icon: "offers",
+  //   description: t("sidebar.addOffersDesc"),
+  // },
   {
     name: t("sidebar.addCaptain"),
     path: `/${hotelName}/admin/add-captain`,

@@ -7,8 +7,8 @@ import React, {
   Suspense,
 } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { db } from "../../services/firebase/firebaseConfig";
-import { onValue, ref } from "firebase/database";
+import { getFirestore, collection, onSnapshot } from "firebase/firestore";
+import { app } from "../../services/firebase/firebaseConfig";
 import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig";
 import ErrorState from "atoms/Messages/ErrorState";
 import NavBar from "organisms/Navbar";
@@ -18,10 +18,7 @@ import ResultsSummary from "components/ResultsSummary";
 import MenuCardSkeleton from "atoms/MenuCardSkeleton";
 import LoadingSpinner from "atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import { Filter } from "lucide-react";
 
-// Lazy load heavy components
-const Navbar = React.lazy(() => import("../../organisms/Navbar"));
 const FilterSortSearch = React.lazy(() =>
   import("../../organisms/FilterSortSearch")
 );
@@ -30,7 +27,8 @@ const HorizontalMenuCard = React.lazy(() =>
   import("../../components/Cards/HorizontalMenuCard")
 );
 
-// Main Home component
+const firestore = getFirestore(app);
+
 const Home = memo(() => {
   const { hotelName } = useParams();
   const location = useLocation();
@@ -48,7 +46,6 @@ const Home = memo(() => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSpecialFilters, setSelectedSpecialFilters] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
 
   // UI states
   const [viewMode, setViewMode] = useState("grid");
@@ -59,98 +56,162 @@ const Home = memo(() => {
   const [menuCountsByMainCategory, setMenuCountsByMainCategory] = useState({});
   const [specialCategoryCounts, setSpecialCategoryCounts] = useState({});
 
-  // Check if user is admin
+  // Check admin state
   useEffect(() => {
     setIsAdmin(location.pathname.includes("admin"));
   }, [location.pathname]);
 
-  // Data fetching
+  // Create category lookup maps
+  const categoryMap = useMemo(() => {
+    const map = {};
+    categories.forEach((category) => {
+      map[category.id] = category.categoryName;
+      map[category.categoryName] = category.categoryName;
+    });
+    return map;
+  }, [categories]);
+
+  const mainCategoryMap = useMemo(() => {
+    const map = {};
+    mainCategories.forEach((mainCategory) => {
+      map[mainCategory.id] = mainCategory.mainCategoryName;
+      map[mainCategory.mainCategoryName] = mainCategory.mainCategoryName;
+    });
+    return map;
+  }, [mainCategories]);
+
+  // Firestore subscriptions
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    if (!hotelName) {
+      setMenus([]);
+      setCategories([]);
+      setMainCategories([]);
+      setLoading(false);
+      return;
+    }
 
-        // Fetch menus
-        const menusPromise = new Promise((resolve) => {
-          onValue(ref(db, `/hotels/${hotelName}/menu/`), (snapshot) => {
-            const data = snapshot.val();
-            const menusData = data ? Object.values(data) : [];
-            resolve(menusData);
-          });
-        });
+    setLoading(true);
+    setError(null);
 
-        // Fetch categories
-        const categoriesPromise = new Promise((resolve) => {
-          onValue(ref(db, `/hotels/${hotelName}/categories/`), (snapshot) => {
-            const data = snapshot.val();
-            const categoriesData = data ? Object.values(data) : [];
-            resolve(categoriesData);
-          });
-        });
+    const unsubscribes = [];
 
-        // Fetch main categories
-        const mainCategoriesPromise = new Promise((resolve) => {
-          onValue(
-            ref(db, `/hotels/${hotelName}/Maincategories/`),
-            (snapshot) => {
-              const data = snapshot.val();
-              const mainCategoriesData = data ? Object.values(data) : [];
-              resolve(mainCategoriesData);
-            }
-          );
-        });
-
-        const [menusData, categoriesData, mainCategoriesData] =
-          await Promise.all([
-            menusPromise,
-            categoriesPromise,
-            mainCategoriesPromise,
-          ]);
-
-        setMenus(menusData);
+    // Categories first
+    const categoriesRef = collection(
+      firestore,
+      `hotels/${hotelName}/categories`
+    );
+    const unsubscribeCategories = onSnapshot(
+      categoriesRef,
+      (snapshot) => {
+        const categoriesData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setCategories(categoriesData);
-        setMainCategories(mainCategoriesData);
-
-        // Calculate counts
-        calculateCounts(menusData, categoriesData, mainCategoriesData);
-      } catch (err) {
-        console.error("Error fetching data:", err);
+      },
+      (err) => {
+        console.error("Error fetching categories:", err);
         setError(err);
-      } finally {
+      }
+    );
+    unsubscribes.push(unsubscribeCategories);
+
+    // Main Categories
+    const mainCategoriesRef = collection(
+      firestore,
+      `hotels/${hotelName}/Maincategories`
+    );
+    const unsubscribeMainCategories = onSnapshot(
+      mainCategoriesRef,
+      (snapshot) => {
+        const mainCategoriesData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMainCategories(mainCategoriesData);
+      },
+      (err) => {
+        console.error("Error fetching main categories:", err);
+        setError(err);
+      }
+    );
+    unsubscribes.push(unsubscribeMainCategories);
+
+    // Menus
+    const menusRef = collection(firestore, `hotels/${hotelName}/menu`);
+    const unsubscribeMenus = onSnapshot(
+      menusRef,
+      (snapshot) => {
+        const menusData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMenus(menusData);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching menus:", err);
+        setError(err);
         setLoading(false);
       }
-    };
+    );
+    unsubscribes.push(unsubscribeMenus);
 
-    if (hotelName) {
-      fetchData();
-    }
+    return () => {
+      unsubscribes.forEach((unsub) => unsub());
+    };
   }, [hotelName]);
 
-  // Calculate counts
+  // Enhanced menus with resolved category names
+  const enhancedMenus = useMemo(() => {
+    return menus.map((menu) => {
+      const resolvedCategoryName =
+        categoryMap[menu.menuCategory] || menu.menuCategory || "";
+      const resolvedMainCategoryName =
+        mainCategoryMap[menu.mainCategory] || menu.mainCategory || "";
+
+      return {
+        ...menu,
+        // Add resolved names that the card will use
+        menuCategoryName: resolvedCategoryName,
+        mainCategoryName: resolvedMainCategoryName,
+        // Keep original for filtering
+        menuCategoryId: menu.menuCategory,
+        mainCategoryId: menu.mainCategory,
+        // Override menuCategory with name for display
+        menuCategory: resolvedCategoryName,
+        mainCategory: resolvedMainCategoryName,
+      };
+    });
+  }, [menus, categoryMap, mainCategoryMap]);
+
+  // Calculate counts - FIX: Use both ID and name matching
   const calculateCounts = useCallback(
     (menusData, categoriesData, mainCategoriesData) => {
-      // Category counts
       const categoryCounts = {};
       categoriesData.forEach((category) => {
-        const count = menusData.filter(
-          (menu) => menu.menuCategory === category.categoryName
-        ).length;
+        const count = menusData.filter((menu) => {
+          return (
+            menu.menuCategory === category.categoryName ||
+            menu.menuCategory === category.id
+          );
+        }).length;
         categoryCounts[category.categoryName] = count;
       });
       setMenuCountsByCategory(categoryCounts);
 
-      // Main category counts
       const mainCategoryCounts = {};
       mainCategoriesData.forEach((mainCategory) => {
-        const count = menusData.filter(
-          (menu) => menu.mainCategory === mainCategory.mainCategoryName
-        ).length;
+        const count = menusData.filter((menu) => {
+          return (
+            menu.mainCategory === mainCategory.mainCategoryName ||
+            menu.mainCategory === mainCategory.id
+          );
+        }).length;
         mainCategoryCounts[mainCategory.mainCategoryName] = count;
       });
       setMenuCountsByMainCategory(mainCategoryCounts);
 
-      // Special category counts
       const specialCounts = {};
       specialCategories.forEach((category) => {
         const count = menusData.filter(
@@ -163,42 +224,65 @@ const Home = memo(() => {
     []
   );
 
+  useEffect(() => {
+    calculateCounts(menus, categories, mainCategories);
+  }, [menus, categories, mainCategories, calculateCounts]);
+
+  // Transform categories for CategoryTabs - ADD .name property
+  const transformedCategories = useMemo(() => {
+    return categories.map((cat) => ({
+      ...cat,
+      name: cat.categoryName, // CategoryTabs expects .name
+    }));
+  }, [categories]);
+
+  const transformedMainCategories = useMemo(() => {
+    return mainCategories.map((cat) => ({
+      ...cat,
+      name: cat.mainCategoryName, // CategoryTabs expects .name
+    }));
+  }, [mainCategories]);
+
   // Filter and sort menus
   const filteredAndSortedMenus = useMemo(() => {
-    let filtered = [...menus];
+    let filtered = [...enhancedMenus];
 
-    // Search filter
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (menu) =>
           menu.menuName?.toLowerCase().includes(search) ||
-          menu.menuDescription?.toLowerCase().includes(search)
+          menu.menuDescription?.toLowerCase().includes(search) ||
+          menu.menuCategoryName?.toLowerCase().includes(search)
       );
     }
 
-    // Category filter
     if (selectedCategory) {
-      filtered = filtered.filter(
-        (menu) => menu.menuCategory === selectedCategory
-      );
+      filtered = filtered.filter((menu) => {
+        return (
+          menu.menuCategoryName === selectedCategory ||
+          menu.menuCategoryId === selectedCategory ||
+          menu.menuCategory === selectedCategory
+        );
+      });
     }
 
-    // Main category filter
     if (selectedMainCategory) {
-      filtered = filtered.filter(
-        (menu) => menu.mainCategory === selectedMainCategory
-      );
+      filtered = filtered.filter((menu) => {
+        return (
+          menu.mainCategoryName === selectedMainCategory ||
+          menu.mainCategoryId === selectedMainCategory ||
+          menu.mainCategory === selectedMainCategory
+        );
+      });
     }
 
-    // Special filters
     if (selectedSpecialFilters.length > 0) {
       filtered = filtered.filter((menu) =>
         selectedSpecialFilters.every((filter) => menu[filter] === true)
       );
     }
 
-    // Sorting
     if (sortOrder === "lowToHigh") {
       filtered.sort(
         (a, b) =>
@@ -223,7 +307,7 @@ const Home = memo(() => {
 
     return filtered;
   }, [
-    menus,
+    enhancedMenus,
     searchTerm,
     selectedCategory,
     selectedMainCategory,
@@ -231,7 +315,6 @@ const Home = memo(() => {
     sortOrder,
   ]);
 
-  // Available special categories (only those with items)
   const availableSpecialCategories = useMemo(
     () =>
       specialCategories.filter(
@@ -240,15 +323,9 @@ const Home = memo(() => {
     [specialCategoryCounts]
   );
 
-  // Event handlers
-  const handleSearch = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
-
-  const handleSort = useCallback((order) => {
-    setSortOrder(order);
-  }, []);
-
+  // Handlers
+  const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
+  const handleSort = useCallback((order) => setSortOrder(order), []);
   const handleCategoryFilter = useCallback((category, type) => {
     if (type === "all" || category === "") {
       setSelectedCategory("");
@@ -261,7 +338,6 @@ const Home = memo(() => {
       setSelectedMainCategory("");
     }
   }, []);
-
   const handleSpecialFilterToggle = useCallback((filterName) => {
     setSelectedSpecialFilters((prev) =>
       prev.includes(filterName)
@@ -269,7 +345,6 @@ const Home = memo(() => {
         : [...prev, filterName]
     );
   }, []);
-
   const clearAllFilters = useCallback(() => {
     setSearchTerm("");
     setSelectedCategory("");
@@ -277,32 +352,20 @@ const Home = memo(() => {
     setSelectedSpecialFilters([]);
     setSortOrder("default");
   }, []);
+  const clearSearch = useCallback(() => setSearchTerm(""), []);
+  const removeSpecialFilter = useCallback(
+    (filter) =>
+      setSelectedSpecialFilters((prev) => prev.filter((f) => f !== filter)),
+    []
+  );
+  const removeCategoryFilter = useCallback(() => setSelectedCategory(""), []);
+  const removeMainCategoryFilter = useCallback(
+    () => setSelectedMainCategory(""),
+    []
+  );
+  const changeViewMode = useCallback((mode) => setViewMode(mode), []);
+  const handleRetry = useCallback(() => window.location.reload(), []);
 
-  const clearSearch = useCallback(() => {
-    setSearchTerm("");
-  }, []);
-
-  const removeSpecialFilter = useCallback((filter) => {
-    setSelectedSpecialFilters((prev) => prev.filter((f) => f !== filter));
-  }, []);
-
-  const removeCategoryFilter = useCallback(() => {
-    setSelectedCategory("");
-  }, []);
-
-  const removeMainCategoryFilter = useCallback(() => {
-    setSelectedMainCategory("");
-  }, []);
-
-  const changeViewMode = useCallback((mode) => {
-    setViewMode(mode);
-  }, []);
-
-  const handleRetry = useCallback(() => {
-    window.location.reload();
-  }, []);
-
-  // Check if any filters are active
   const hasActiveFilters = useMemo(
     () =>
       searchTerm ||
@@ -312,37 +375,31 @@ const Home = memo(() => {
     [searchTerm, selectedCategory, selectedMainCategory, selectedSpecialFilters]
   );
 
-  // Error state
   if (error) {
     return <ErrorState onRetry={handleRetry} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Navbar for non-admin users */}
       {!isAdmin && (
         <Suspense fallback={<div className="h-16 bg-white border-b" />}>
-          <div className="sticky top-0 z-50 shadow-sm">
-            <NavBar
-              title={hotelName}
-              admin={false}
-              hotelName={hotelName}
-              home
-              offers
-              socialLinks={{
-                instagram: "https://instagram.com/yourpage",
-                facebook: "https://facebook.com/yourpage",
-                google: "https://g.page/yourpage",
-              }}
-            />
-          </div>
+          <NavBar
+            title={hotelName}
+            admin={false}
+            hotelName={hotelName}
+            home
+            offers
+            socialLinks={{
+              instagram: "https://instagram.com/yourpage",
+              facebook: "https://facebook.com/yourpage",
+              google: "https://g.page/yourpage",
+            }}
+          />
         </Suspense>
       )}
 
-      {/* Sticky Filters & Tabs */}
       <div className="sticky top-12 z-40 bg-gray-50 border-b">
         <div className="container mx-auto px-3 py-3 max-w-7xl space-y-3">
-          {/* Search and Sort */}
           <Suspense
             fallback={
               <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
@@ -357,41 +414,16 @@ const Home = memo(() => {
               className="w-full"
             />
           </Suspense>
-          {/* Mobile Filter Toggle */}
-          {/* <div className="flex items-center justify-between mb-1">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-            >
-              <Filter size={16} />
-              Filters
-              {hasActiveFilters && (
-                <span className="bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                  !
-                </span>
-              )}
-            </button>
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearAllFilters}
-                className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
-              >
-                Clear All
-              </button>
-            )}
-          </div> */}
 
           <div>
-            {/* Category Tabs */}
             <Suspense
               fallback={
                 <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
               }
             >
               <CategoryTabs
-                categories={categories}
-                mainCategories={mainCategories}
+                categories={transformedCategories}
+                mainCategories={transformedMainCategories}
                 menuCountsByCategory={menuCountsByCategory}
                 menuCountsByMainCategory={menuCountsByMainCategory}
                 handleCategoryFilter={handleCategoryFilter}
@@ -400,7 +432,6 @@ const Home = memo(() => {
                 }
               />
             </Suspense>
-            {/* Special Categories Filter */}
             <SpecialCategoriesFilter
               categories={availableSpecialCategories}
               selectedFilters={selectedSpecialFilters}
@@ -411,10 +442,8 @@ const Home = memo(() => {
         </div>
       </div>
 
-      {/* Scrollable Menu Section */}
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-3 py-3 max-w-7xl">
-          {/* Results Summary */}
           <ResultsSummary
             totalResults={menus.length}
             filteredResults={filteredAndSortedMenus.length}
@@ -423,7 +452,6 @@ const Home = memo(() => {
             onViewModeChange={changeViewMode}
           />
 
-          {/* Menu Items */}
           {loading ? (
             <div
               className={`grid gap-4 ${
@@ -452,7 +480,7 @@ const Home = memo(() => {
                     <HorizontalMenuCard
                       item={item}
                       onAddToCart={(item, quantity) => {
-                        console.log("Add to cart:", item, quantity);
+                        // Your add to cart logic here
                       }}
                     />
                   </div>

@@ -175,7 +175,7 @@ const HorizontalMenuCard = memo(
                 {/* Category and Features */}
 
                 <div className="flex items-center justify-between">
-                  <SpecialFeatures item={item} maxFeatures={2} />
+                  <SpecialFeatures item={item} maxFeatures={3} />
                 </div>
               </div>
 
