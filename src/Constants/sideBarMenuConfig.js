@@ -63,6 +63,13 @@ export const adminMenuItems = (hotelName, t) => [
     description: t("sidebar.dashboardDesc"),
   },
   {
+    name: t("sidebar.dashboard"),
+    path: `/${hotelName}/admin/pos-dashboard`,
+    icon: "dashboard", // assuming icon name matches your icon set
+    description: t("sidebar.dashboardDesc"),
+  },
+  
+  {
     name: t("sidebar.orderDashboard"),
     path: `/${hotelName}/admin/order-dashboard`,
     icon: "dashboard",

@@ -46,6 +46,8 @@ import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
 import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
+import DOYOLandingPage from "Pages/LandingPage";
+import POSDashboard from "Pages/Admin Dashboard/POSDashboard";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -138,6 +140,22 @@ function App() {
         <div className="App">
           <Routes>
             {/* Public Routes */}
+            <Route
+              path="/"
+              element={
+                <PublicRoute>
+                  <DOYOLandingPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/home"
+              element={
+                <PublicRoute>
+                  <DOYOLandingPage />
+                </PublicRoute>
+              }
+            />
             <Route
               path="/viewMenu/:hotelName/home"
               element={
@@ -239,7 +257,7 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-                     
+
                       <Route
                         path="add-admin"
                         element={
@@ -267,6 +285,10 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
+                      <Route
+                        path="pos-dashboard"
+                        element={<AdminLayout><POSDashboard /></AdminLayout>}
+                      />
                       <Route
                         path="order-dashboard"
                         element={<OrderDashboard />}

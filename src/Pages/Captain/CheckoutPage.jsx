@@ -13,10 +13,12 @@ import { toast } from "react-toastify";
 import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
 import CheckoutHeader from "atoms/Headers/CheckoutHeader";
 import OrderNumberDisplay from "atoms/OrderNumberDisplay";
-import TableNumberInput from "atoms/TableNumberInput";
+import TableNumberInput from "atoms/FormInput";
 import OrderSummary from "components/order-dashboard/OrderSummary";
 import PlaceOrderButton from "atoms/Buttons/PlaceOrderButton";
 import OrderInfoAlert from "atoms/Messages/OrderInfoAlert";
+import FormSelect from "atoms/FormSelect";
+import FormInput from "atoms/FormInput";
 
 const firestore = getFirestore();
 
@@ -30,6 +32,20 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
   const [error, setError] = useState("");
   const [orderStatus, setOrderStatus] = useState("received");
 
+  // Enhanced order fields
+  const [orderType, setOrderType] = useState("dine-in");
+  const [instructions, setInstructions] = useState("");
+  const [guestCount, setGuestCount] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryPlatform, setDeliveryPlatform] = useState("");
+  const [orderPriority, setOrderPriority] = useState("normal");
+  const [paymentMethod, setPaymentMethod] = useState("pending");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [alternatePhone, setAlternatePhone] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
+  const [occasionType, setOccasionType] = useState("");
+
   const { hotelName } = useParams();
   const navigate = useNavigate();
 
@@ -38,6 +54,56 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
       getNextOrderNumber();
     }
   }, [hotelName]);
+
+  // Delivery platform options based on Indian market
+  const deliveryPlatforms = [
+    { label: "Direct Order", value: "direct" },
+    { label: "Swiggy", value: "swiggy" },
+    { label: "Zomato", value: "zomato" },
+    { label: "Uber Eats", value: "uber-eats" },
+    { label: "Dunzo", value: "dunzo" },
+    { label: "Shadowfax", value: "shadowfax" },
+    { label: "BigBasket (BB Daily)", value: "bigbasket" },
+    { label: "Amazon Food", value: "amazon-food" },
+    { label: "Foodpanda", value: "foodpanda" },
+    { label: "Magic Pin", value: "magicpin" },
+    { label: "Thrive", value: "thrive" },
+    { label: "EatSure", value: "eatsure" },
+    { label: "ONDC Network", value: "ondc" },
+    { label: "PhonePe", value: "phonepe" },
+    { label: "Paytm", value: "paytm" },
+    { label: "Other", value: "other" },
+  ];
+
+  const orderPriorityOptions = [
+    { label: "Normal", value: "normal" },
+    { label: "High Priority", value: "high" },
+    { label: "Express", value: "express" },
+    { label: "VIP Customer", value: "vip" },
+  ];
+
+  const paymentMethodOptions = [
+    { label: "Pending", value: "pending" },
+    { label: "Cash", value: "cash" },
+    { label: "Card", value: "card" },
+    { label: "UPI", value: "upi" },
+    { label: "Net Banking", value: "netbanking" },
+    { label: "Wallet", value: "wallet" },
+    { label: "Credit", value: "credit" },
+    { label: "Complimentary", value: "complimentary" },
+  ];
+
+  const occasionOptions = [
+    { label: "Regular Order", value: "" },
+    { label: "Birthday", value: "birthday" },
+    { label: "Anniversary", value: "anniversary" },
+    { label: "Corporate Event", value: "corporate" },
+    { label: "Party/Celebration", value: "party" },
+    { label: "Festival", value: "festival" },
+    { label: "Date Night", value: "date" },
+    { label: "Family Gathering", value: "family" },
+    { label: "Business Meeting", value: "business" },
+  ];
 
   const getNextOrderNumber = useCallback(async () => {
     setIsLoading(true);
@@ -68,7 +134,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     return cartItems.reduce(
       (total, item) =>
         total + (item.finalPrice || item.menuPrice) * item.quantity,
-      0,
+      0
     );
   }, [cartItems]);
 
@@ -84,44 +150,67 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     return getTotalAmount() + getTaxAmount();
   }, [getTotalAmount, getTaxAmount]);
 
-  const validateTableNumber = useCallback(() => {
-    if (!tableNumber.trim()) {
-      setError("Please enter a table number");
-      return false;
-    }
-    if (isNaN(tableNumber) || parseInt(tableNumber) <= 0) {
-      setError("Please enter a valid table number");
-      return false;
-    }
-    return true;
-  }, [tableNumber]);
+  const validateForm = useCallback(() => {
+    setError("");
 
-  const validateCustomerInfo = useCallback(() => {
+    // Basic validations
     if (!customerName.trim()) {
       setError("Please enter customer name");
       return false;
     }
+
     if (!customerMobile.trim()) {
       setError("Please enter customer mobile number");
       return false;
     }
-    // Basic mobile number validation (10 digits)
+
     if (!/^\d{10}$/.test(customerMobile.trim())) {
       setError("Please enter a valid 10-digit mobile number");
       return false;
     }
+
+    // Order type specific validations
+    if (orderType === "dine-in") {
+      if (!tableNumber.trim()) {
+        setError("Please enter a table number for dine-in orders");
+        return false;
+      }
+      if (isNaN(tableNumber) || parseInt(tableNumber) <= 0) {
+        setError("Please enter a valid table number");
+        return false;
+      }
+    }
+
+    if (orderType === "delivery") {
+      
+      if (!deliveryPlatform) {
+        setError("Please select delivery platform");
+        return false;
+      }
+    }
+
+    
+
+  
+
     return true;
-  }, [customerName, customerMobile]);
+  }, [
+    customerName,
+    customerMobile,
+    orderType,
+    tableNumber,
+    deliveryAddress,
+    deliveryPlatform,
+    customerEmail,
+    alternatePhone,
+  ]);
 
   const generateOrderId = useCallback(() => {
     return `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
   const handleSubmitOrder = useCallback(async () => {
-    setError("");
-
-    if (!validateTableNumber()) return;
-    if (!validateCustomerInfo()) return;
+    if (!validateForm()) return;
 
     if (cartItems.length === 0) {
       setError("Cart is empty");
@@ -142,7 +231,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
 
       const orderData = {
         orderNumber,
-        tableNumber: parseInt(tableNumber),
+        tableNumber: orderType === "dine-in" ? parseInt(tableNumber) : null,
         status: orderStatus,
         orderId,
 
@@ -186,6 +275,11 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           totalQuantity: getTotalItems(),
           uniqueItems: cartItems.length,
           averageItemPrice: Math.round(getTotalAmount() / getTotalItems()),
+          orderType: orderType,
+          priority: orderPriority,
+          occasionType: occasionType || null,
+          specialInstructions: instructions.trim() || null,
+          guestCount: guestCount ? parseInt(guestCount) : null,
         },
 
         timestamps: {
@@ -218,52 +312,95 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
         customerInfo: {
           name: customerName.trim(),
           mobile: customerMobile.trim(),
-          tableNumber: parseInt(tableNumber),
-          orderType: "dine-in",
+          email: customerEmail.trim() || null,
+          alternatePhone: alternatePhone.trim() || null,
+          tableNumber: orderType === "dine-in" ? parseInt(tableNumber) : null,
+          orderType: orderType,
           servingStatus: "pending",
-          guestCount: null,
-          specialRequests: "",
+          guestCount: guestCount ? parseInt(guestCount) : null,
+          specialRequests: instructions.trim() || null,
+          customerType: "walk-in", // Can be enhanced to track regular/new customers
+          loyaltyPoints: 0, // Can be integrated with loyalty system
+        },
+
+        // Enhanced delivery information
+        deliveryInfo:
+          orderType === "delivery"
+            ? {
+                address: deliveryAddress.trim(),
+                landmark: landmark.trim() || null,
+                deliveryInstructions: deliveryInstructions.trim() || null,
+                platform: deliveryPlatform,
+                platformOrderId: null, // To be filled when order comes from platform
+                deliveryFee: 0, // Can be calculated based on distance
+                estimatedDeliveryTime: new Date(
+                  currentTime.getTime() + 45 * 60000
+                ).toISOString(),
+                deliveryStatus: "pending",
+                assignedDriver: null,
+                driverPhone: null,
+                trackingId: null,
+              }
+            : null,
+
+        // Platform tracking for analytics
+        platformTracking: {
+          orderSource: deliveryPlatform || "direct",
+          platformName: deliveryPlatform
+            ? deliveryPlatforms.find((p) => p.value === deliveryPlatform)?.label
+            : "Direct Order",
+          isAggregatorOrder: deliveryPlatform && deliveryPlatform !== "direct",
+          platformCommission:
+            deliveryPlatform && deliveryPlatform !== "direct"
+              ? getTotalAmount() * 0.2
+              : 0, // Typical 20% commission
+          netRevenue:
+            deliveryPlatform && deliveryPlatform !== "direct"
+              ? getTotalAmount() * 0.8
+              : getTotalAmount(),
         },
 
         orderSummary: {
           vegItems: cartItems.filter(
-            (item) =>
-              item.categoryType === "Veg" || item.categoryType === "veg",
+            (item) => item.categoryType === "Veg" || item.categoryType === "veg"
           ).length,
           nonVegItems: cartItems.filter(
-            (item) =>
-              item.categoryType !== "Veg" && item.categoryType !== "veg",
+            (item) => item.categoryType !== "Veg" && item.categoryType !== "veg"
           ).length,
           categories: [
             ...new Set(
               cartItems.map(
-                (item) => item.menuCategory || item.mainCategory || "Other",
-              ),
+                (item) => item.menuCategory || item.mainCategory || "Other"
+              )
             ),
           ],
           specialItems: cartItems.filter(
-            (item) => item.isRecommended || item.isPopular || item.isBestseller,
+            (item) => item.isRecommended || item.isPopular || item.isBestseller
           ).length,
           spicyItems: cartItems.filter((item) => item.isSpicy).length,
         },
 
         kitchen: {
           status: "received",
-          priority: "normal",
+          priority: orderPriority,
           preparationTime: 25,
           estimatedCompletionTime: estimatedReadyTime.toISOString(),
-          specialInstructions: "",
+          specialInstructions: instructions.trim() || "",
           assignedChef: "",
           cookingStartTime: null,
           readyTime: null,
+          kitchenNotes: "",
         },
 
         billing: {
-          paymentStatus: "pending",
-          paymentMethod: null,
+          paymentStatus: paymentMethod === "pending" ? "pending" : "paid",
+          paymentMethod: paymentMethod,
           billGenerated: false,
-          paidAmount: 0,
+          paidAmount: paymentMethod !== "pending" ? getFinalTotal() : 0,
           changeAmount: 0,
+          discount: 0,
+          couponCode: null,
+          loyaltyPointsUsed: 0,
         },
 
         tracking: {
@@ -275,6 +412,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           },
           captainId: null,
           sessionId: null,
+          ipAddress: null, // Can be captured if needed
         },
 
         lifecycle: {
@@ -284,21 +422,38 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
             {
               status: "received",
               timestamp: currentTime.toISOString(),
-              note: "Order placed by captain",
+              note: `Order placed by captain - ${orderType}`,
+              updatedBy: "captain_app",
             },
           ],
         },
 
+        // Analytics and reporting data
+        analytics: {
+          orderValue: getFinalTotal(),
+          itemCount: getTotalItems(),
+          averageItemPrice: Math.round(getTotalAmount() / getTotalItems()),
+          orderChannel: deliveryPlatform || "direct",
+          customerSegment: "walk-in",
+          peakHourOrder: isBusinessHour(),
+          weekendOrder: isWeekend(),
+          festivalOrder: occasionType === "festival",
+          repeatCustomer: false, // Can be enhanced to check customer history
+        },
+
         metadata: {
           hotelName: hotelName,
-          version: "2.0",
-          source: "captain_app",
-          orderFormat: "dine_in",
+          version: "3.0",
+          source: "captain_app_enhanced",
+          orderFormat: orderType,
           systemGenerated: {
             orderNumber: true,
             timestamps: true,
             pricing: true,
+            analytics: true,
           },
+          lastModified: currentTime.toISOString(),
+          createdBy: "captain",
         },
       };
 
@@ -310,22 +465,64 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
       // Save firebaseId inside order for reference
       await set(
         ref(rtdb, `/hotels/${hotelName}/orders/${newOrderRef.key}/firebaseId`),
-        newOrderRef.key,
+        newOrderRef.key
       );
 
-      // Save customer info to Firestore customers collection
+      // Enhanced customer info save to Firestore
       const customerDocRef = doc(
         collection(firestore, "customers"),
-        newOrderRef.key,
+        newOrderRef.key
       );
       await setDoc(customerDocRef, {
         name: customerName.trim(),
         mobile: customerMobile.trim(),
+        email: customerEmail.trim() || null,
+        alternatePhone: alternatePhone.trim() || null,
         lastOrderDate: serverTimestamp(),
         lastOrderAmount: getFinalTotal(),
         orderId: newOrderRef.key,
         hotelName,
+        orderType: orderType,
+        preferredPlatform: deliveryPlatform || "direct",
+        totalOrders: 1, // Can be enhanced to increment
+        totalSpent: getFinalTotal(),
+        avgOrderValue: getFinalTotal(),
+        lastDeliveryAddress:
+          orderType === "delivery" ? deliveryAddress.trim() : null,
+        customerTags: [orderType, deliveryPlatform || "direct"].filter(Boolean),
+        createdAt: serverTimestamp(),
       });
+
+      // Store platform analytics separately for better reporting
+      if (deliveryPlatform && deliveryPlatform !== "direct") {
+        const platformAnalyticsRef = ref(
+          rtdb,
+          `/hotels/${hotelName}/platformAnalytics/${
+            currentTime.toISOString().split("T")[0]
+          }/${deliveryPlatform}`
+        );
+        const analyticsSnapshot = await get(platformAnalyticsRef);
+        const currentStats = analyticsSnapshot.exists()
+          ? analyticsSnapshot.val()
+          : {
+              orderCount: 0,
+              totalRevenue: 0,
+              totalCommission: 0,
+              netRevenue: 0,
+            };
+
+        await set(platformAnalyticsRef, {
+          orderCount: currentStats.orderCount + 1,
+          totalRevenue: currentStats.totalRevenue + getTotalAmount(),
+          totalCommission:
+            currentStats.totalCommission + getTotalAmount() * 0.2,
+          netRevenue: currentStats.netRevenue + getTotalAmount() * 0.8,
+          lastUpdated: currentTime.toISOString(),
+          platformName: deliveryPlatforms.find(
+            (p) => p.value === deliveryPlatform
+          )?.label,
+        });
+      }
 
       toast.success(`Order #${orderNumber} placed successfully!`);
 
@@ -333,7 +530,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
         orderNumber,
         orderId,
         firebaseId: newOrderRef.key,
-        tableNumber: parseInt(tableNumber),
+        tableNumber: orderType === "dine-in" ? parseInt(tableNumber) : null,
         total: getFinalTotal(),
         items: getTotalItems(),
         estimatedTime: estimatedReadyTime.toLocaleString("en-IN", {
@@ -342,26 +539,40 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           minute: "2-digit",
         }),
         status: orderStatus,
+        orderType: orderType,
+        customerName: customerName.trim(),
+        platform: deliveryPlatform || "direct",
         orderData,
       });
     } catch (error) {
       console.error("Error placing order:", error);
       setError("Failed to place order. Please try again.");
       toast.error(
-        "Failed to place order. Please check your connection and try again.",
+        "Failed to place order. Please check your connection and try again."
       );
     } finally {
       setIsSubmitting(false);
     }
   }, [
-    validateTableNumber,
-    validateCustomerInfo,
+    validateForm,
     cartItems,
     orderNumber,
     orderStatus,
     tableNumber,
     customerName,
     customerMobile,
+    customerEmail,
+    alternatePhone,
+    orderType,
+    instructions,
+    guestCount,
+    deliveryAddress,
+    deliveryPlatform,
+    orderPriority,
+    paymentMethod,
+    landmark,
+    deliveryInstructions,
+    occasionType,
     hotelName,
     generateOrderId,
     getTotalAmount,
@@ -369,7 +580,19 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     getTaxAmount,
     getFinalTotal,
     onOrderSuccess,
+    deliveryPlatforms,
   ]);
+
+  // Helper functions
+  const isBusinessHour = () => {
+    const hour = new Date().getHours();
+    return (hour >= 11 && hour <= 14) || (hour >= 19 && hour <= 22);
+  };
+
+  const isWeekend = () => {
+    const day = new Date().getDay();
+    return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+  };
 
   if (cartItems.length === 0) {
     return <EmptyCartMessage onGoBack={onGoBack} />;
@@ -381,41 +604,100 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
         <CheckoutHeader onGoBack={onGoBack} />
         <OrderNumberDisplay orderNumber={orderNumber} isLoading={isLoading} />
 
-        {/* Table Number Input */}
-        <TableNumberInput
-          tableNumber={tableNumber}
-          onTableNumberChange={setTableNumber}
-          error={error}
-        />
+        {/* Customer Information */}
+        <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+            Customer Information
+          </h3>
 
-        {/* Customer Name Input */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Customer Name
-          </label>
-          <input
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="Customer Name"
+              type="text"
+              value={customerName}
+              onChange={setCustomerName}
+              placeholder="Enter customer name"
+              required
+            />
+
+            <FormInput
+              label="Mobile Number"
+              type="tel"
+              value={customerMobile}
+              onChange={setCustomerMobile}
+              placeholder="Enter 10-digit mobile number"
+              maxLength={10}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Order Details */}
+        <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+            Order Details
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormSelect
+              label="Order Type"
+              value={orderType}
+              onChange={setOrderType}
+              options={[
+                { label: "Dine In", value: "dine-in" },
+                { label: "Take Away", value: "takeaway" },
+                { label: "Delivery", value: "delivery" },
+              ]}
+              required
+            />
+
+            <FormSelect
+              label="Order Priority"
+              value={orderPriority}
+              onChange={setOrderPriority}
+              options={orderPriorityOptions}
+            />
+
+            {orderType === "dine-in" && (
+              <>
+                <FormInput
+                  label="Table Number"
+                  type="number"
+                  value={tableNumber}
+                  onChange={setTableNumber}
+                  placeholder="Enter table number"
+                  required
+                  min={1}
+                />
+              </>
+            )}
+          </div>
+
+          <FormInput
+            label="Special Instructions"
             type="text"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            placeholder="Enter customer name"
-            className="w-full border border-gray-300 rounded-md p-2"
+            value={instructions}
+            onChange={setInstructions}
+            placeholder="Add instructions (optional)"
           />
         </div>
 
-        {/* Customer Mobile Number Input */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Mobile Number
-          </label>
-          <input
-            type="tel"
-            value={customerMobile}
-            onChange={(e) => setCustomerMobile(e.target.value)}
-            placeholder="Enter 10-digit mobile number"
-            className="w-full border border-gray-300 rounded-md p-2"
-            maxLength={10}
-          />
-        </div>
+        {/* Delivery Information - Show only when order type is delivery */}
+        {orderType === "delivery" && (
+          <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Delivery Information
+            </h3>
+
+            <FormSelect
+              label="Delivery Platform"
+              value={deliveryPlatform}
+              onChange={setDeliveryPlatform}
+              options={deliveryPlatforms}
+              required
+            />
+          </div>
+        )}
 
         {/* Order Summary */}
         <OrderSummary
@@ -426,6 +708,8 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           taxPercentage={18}
           finalTotal={getFinalTotal()}
           isCheckout={true}
+          orderType={orderType}
+          deliveryPlatform={deliveryPlatform}
         />
 
         {/* Place Order Button */}
@@ -434,7 +718,14 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
           isSubmitting={isSubmitting}
           isLoading={isLoading}
           finalTotal={getFinalTotal()}
+          orderType={orderType}
         />
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-800 font-medium">{error}</p>
+          </div>
+        )}
 
         <OrderInfoAlert />
       </div>
