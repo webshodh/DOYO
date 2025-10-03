@@ -1,9 +1,7 @@
-// Enhanced SuperAdmin Dashboard - pages/SuperAdminDashboard.jsx
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import StatCard from "components/Cards/StatCard";
-import { Spinner } from "atoms";
+import { PageTitle, Spinner } from "atoms";
 import SuperAdminDashboardLayout from "layout/SuperAdminDashboardLayout";
 import { useHotel } from "../../hooks/useHotel";
 import { useAdmin } from "../../hooks/useAdmin";
@@ -12,7 +10,6 @@ import {
   useHotelSubscriptions,
 } from "../../hooks/useSubscriptionPlan";
 import {
-  AlertTriangle,
   Building2,
   CheckCircle,
   Coffee,
@@ -27,23 +24,19 @@ import {
   Utensils,
   Wine,
   UserCheck,
-  UserX,
   Shield,
-  CreditCard,
-  Activity,
-  BarChart3,
-  PieChart,
-  Calendar,
-  Clock,
-  Target,
-  Zap,
 } from "lucide-react";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import { t } from "i18next";
+import QuickActions from "atoms/Buttons/QuickActions";
+import PerformanceInsights from "atoms/PerformanceInsights";
+import ChartCard from "components/Charts/ChartCard";
+import SuperAdminFooter from "atoms/SuperAdminFooter ";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
 
-  // Get comprehensive hotel data with metrics
+  // Hooks for data fetching
   const {
     hotels,
     analytics: hotelAnalytics,
@@ -52,10 +45,8 @@ const SuperAdminDashboard = () => {
     error: hotelsError,
   } = useHotel({ includeMetrics: true });
 
-  // Get admin management data
   const { admins, loading: adminsLoading, error: adminsError } = useAdmin({});
 
-  // Get subscription plans and hotel subscriptions
   const {
     plans: subscriptionPlans,
     loading: plansLoading,
@@ -68,7 +59,7 @@ const SuperAdminDashboard = () => {
     loading: subscriptionsLoading,
   } = useHotelSubscriptions();
 
-  // Comprehensive loading state
+  // Loading and error states
   const loading =
     hotelsLoading || adminsLoading || plansLoading || subscriptionsLoading;
   const error = hotelsError || adminsError || plansError;
@@ -103,7 +94,6 @@ const SuperAdminDashboard = () => {
       };
     }
 
-    // Business type breakdown
     const businessTypeStats = {};
     const geographicStats = {
       states: {},
@@ -118,6 +108,7 @@ const SuperAdminDashboard = () => {
     let ratingsSum = 0;
     let ratingsCount = 0;
 
+    // Process hotel data
     hotels.forEach((hotel) => {
       // Business type stats
       const businessType = hotel.businessType || "other";
@@ -138,7 +129,7 @@ const SuperAdminDashboard = () => {
           (geographicStats.districts[hotel.area] || 0) + 1;
       }
 
-      // Revenue and performance metrics
+      // Revenue and metrics
       totalRevenue += hotel.totalRevenue || hotel.monthlyRevenue || 0;
 
       if (hotel.metrics) {
@@ -156,7 +147,7 @@ const SuperAdminDashboard = () => {
 
     // Admin stats
     const activeAdmins = admins.filter(
-      (admin) => admin.status === "active",
+      (admin) => admin.status === "active"
     ).length;
 
     // Performance metrics
@@ -195,227 +186,32 @@ const SuperAdminDashboard = () => {
     };
   }, [hotels, admins, hotelStats, subscriptionPlans, subscriptionStats]);
 
-  // Enhanced Chart Component
-  const ChartCard = ({
-    title,
-    data,
-    color,
-    maxValue,
-    icon: Icon,
-    delay = 0,
-    onItemClick,
-  }) => (
-    <div
-      className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-500 animate-fade-in-up overflow-hidden`}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${color} bg-opacity-20`}>
-              <Icon className={`text-lg ${color.replace("bg-", "text-")}`} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-          </div>
-          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-            {Object.keys(data || {}).length} items
-          </span>
-        </div>
-      </div>
-
-      <div className="p-6">
-        <div className="space-y-4 max-h-80 overflow-y-auto">
-          {Object.entries(data || {})
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10)
-            .map(([name, count], index) => (
-              <div
-                key={name}
-                className="group hover:bg-gray-50 p-3 rounded-lg transition-colors duration-200 cursor-pointer"
-                onClick={() => onItemClick && onItemClick(name, count)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700 truncate max-w-[200px] group-hover:text-gray-900 transition-colors capitalize">
-                    {name.replace("_", " ")}
-                  </span>
-                  <span className="text-sm font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-full">
-                    {count}
-                  </span>
-                </div>
-                <div className="flex-1 bg-gray-200 h-3 rounded-full overflow-hidden">
-                  <div
-                    className={`${color} h-3 rounded-full transition-all duration-1000 ease-out`}
-                    style={{
-                      width: `${(count / Math.max(maxValue, 1)) * 100}%`,
-                      animationDelay: `${index * 100}ms`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-        </div>
-        {Object.keys(data || {}).length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <Icon className="mx-auto text-4xl mb-2 opacity-20" />
-            <p>No data available</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // Performance Insights Component
-  const PerformanceInsights = () => {
-    const insights = [
-      {
-        title: "Revenue Performance",
-        value: `₹${(enhancedStats.totalRevenue / 1000).toFixed(1)}K`,
-        subtitle: `₹${enhancedStats.performanceMetrics.revenuePerHotel} avg per hotel`,
-        icon: DollarSign,
-        color: "text-green-600",
-        trend: "+12.5%",
-      },
-      {
-        title: "Subscription Rate",
-        value: `${enhancedStats.performanceMetrics.subscriptionRate}%`,
-        subtitle: `${enhancedStats.activeSubscriptions} active subscriptions`,
-        icon: Target,
-        color: "text-blue-600",
-        trend: "+8.3%",
-      },
-      {
-        title: "Platform Efficiency",
-        value: `${enhancedStats.performanceMetrics.avgAdminsPerHotel}`,
-        subtitle: "avg admins per hotel",
-        icon: Zap,
-        color: "text-purple-600",
-        trend: "+5.1%",
-      },
-    ];
-
-    return (
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-2xl animate-fade-in-up">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold">Performance Insights</h3>
-          <BarChart3 className="text-2xl opacity-70" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {insights.map((insight, index) => (
-            <div
-              key={index}
-              className="text-center p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm hover:bg-opacity-20 transition-all duration-300"
-            >
-              <insight.icon className="mx-auto text-2xl mb-2" />
-              <p className="text-2xl font-bold">{insight.value}</p>
-              <p className="text-sm opacity-80">{insight.subtitle}</p>
-              <div className="flex items-center justify-center mt-2">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                <span className="text-xs">{insight.trend}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Quick Actions Component
-  const QuickActions = () => {
-    const actions = [
-      {
-        title: "Add New Hotel",
-        description: "Register a new hotel property",
-        icon: Building2,
-        color: "bg-green-500",
-        onClick: () => navigate("/super-admin/hotels"),
-      },
-      {
-        title: "Manage Admins",
-        description: "Add or manage admin users",
-        icon: Users,
-        color: "bg-blue-500",
-        onClick: () => navigate("/super-admin/admins"),
-      },
-      {
-        title: "Subscription Plans",
-        description: "Create and manage plans",
-        icon: Package,
-        color: "bg-purple-500",
-        onClick: () => navigate("/super-admin/subscriptions"),
-      },
-      {
-        title: "View Reports",
-        description: "Generate detailed analytics",
-        icon: BarChart3,
-        color: "bg-orange-500",
-        onClick: () => navigate("/super-admin/reports"),
-      },
-    ];
-
-    return (
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-          <Zap className="mr-2" />
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {actions.map((action, index) => (
-            <button
-              key={index}
-              onClick={action.onClick}
-              className="p-4 border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-lg transition-all duration-200 text-left group"
-            >
-              <div
-                className={`p-2 rounded-lg ${action.color} bg-opacity-20 mb-3 w-fit`}
-              >
-                <action.icon
-                  className={`text-lg ${action.color.replace("bg-", "text-")}`}
-                />
-              </div>
-              <h4 className="font-semibold text-gray-800 group-hover:text-gray-900">
-                {action.title}
-              </h4>
-              <p className="text-sm text-gray-600 mt-1">{action.description}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <SuperAdminDashboardLayout>
-      <div className="space-y-6 sm:space-y-8">
-        {/* Enhanced Header Section */}
-        <div className="animate-fade-in-down p-2">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="text-left">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
-                Super Admin Dashboard
-              </h1>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed max-w-3xl">
-                Comprehensive platform management with real-time insights across{" "}
-                {enhancedStats.totalHotels} hotels,
-                {enhancedStats.totalAdmins} admins, and{" "}
-                {enhancedStats.activeSubscriptions} active subscriptions.
-              </p>
-            </div>
-          </div>
+      {/* Loading State */}
+      {loading && <Spinner />}
+
+      {/* Error State */}
+      {error && (
+        <div className="py-8">
+          <ErrorMessage
+            error={error}
+            title="Dashboard Error"
+            showRetryButton={true}
+          />
         </div>
-
-        {/* Loading State */}
-        {loading && <Spinner />}
-
-        {/* Error State */}
-        {error && (
-          <div className="py-8">
-            <ErrorMessage
-              error={error}
-              title="Dashboard Error"
-              showRetryButton={true}
-            />
-          </div>
-        )}
+      )}
+      <div className="space-y-6 sm:space-y-8 p-2">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+          <PageTitle
+            pageTitle={t("dashboard.title")}
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
+          />
+          <p className="text-blue-100 text-sm sm:text-base">
+            {t("dashboard.welcome")}
+          </p>
+        </div>
 
         {/* Main Content */}
         {(!loading || enhancedStats.totalHotels > 0) && !error && (
@@ -568,9 +364,9 @@ const SuperAdminDashboard = () => {
               />
             </div>
 
-            {/* Performance Insights */}
+            {/* Performance Insights - Fixed prop passing */}
             <div className="p-2">
-              <PerformanceInsights />
+              <PerformanceInsights enhancedStats={enhancedStats} />
             </div>
 
             {/* Quick Actions */}
@@ -586,7 +382,7 @@ const SuperAdminDashboard = () => {
                 color="bg-blue-500"
                 maxValue={Math.max(
                   ...Object.values(enhancedStats.geographicStats.states),
-                  1,
+                  1
                 )}
                 icon={MapPin}
                 delay={0}
@@ -600,7 +396,7 @@ const SuperAdminDashboard = () => {
                 color="bg-green-500"
                 maxValue={Math.max(
                   ...Object.values(enhancedStats.businessTypeStats),
-                  1,
+                  1
                 )}
                 icon={Building2}
                 delay={200}
@@ -617,7 +413,7 @@ const SuperAdminDashboard = () => {
                 color="bg-purple-500"
                 maxValue={Math.max(
                   ...Object.values(enhancedStats.geographicStats.cities),
-                  1,
+                  1
                 )}
                 icon={Users}
                 delay={400}
@@ -639,9 +435,9 @@ const SuperAdminDashboard = () => {
                       const role = admin.role || "unassigned";
                       acc[role] = (acc[role] || 0) + 1;
                       return acc;
-                    }, {}),
+                    }, {})
                   ),
-                  1,
+                  1
                 )}
                 icon={Shield}
                 delay={600}
@@ -653,49 +449,25 @@ const SuperAdminDashboard = () => {
           </>
         )}
 
-        {/* Enhanced Footer Info */}
+        {/* Footer Info */}
         {!loading && !error && (
-          <div className="text-center py-6 animate-fade-in-up">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm text-gray-600 mb-4">
-              <div>
-                <span className="font-semibold text-green-600">
-                  {enhancedStats.activeHotels}
-                </span>{" "}
-                Active Hotels
-              </div>
-              <div>
-                <span className="font-semibold text-blue-600">
-                  {enhancedStats.activeAdmins}
-                </span>{" "}
-                Active Admins
-              </div>
-              <div>
-                <span className="font-semibold text-purple-600">
-                  {enhancedStats.activeSubscriptions}
-                </span>{" "}
-                Subscriptions
-              </div>
-              <div>
-                <span className="font-semibold text-orange-600">
-                  {Object.keys(enhancedStats.geographicStats.states).length}
-                </span>{" "}
-                States
-              </div>
-              <div>
-                <span className="font-semibold text-red-600">
-                  ₹{(enhancedStats.totalRevenue / 1000).toFixed(1)}K
-                </span>{" "}
-                Revenue
-              </div>
-            </div>
-            <p className="text-gray-500 text-sm">
-              Dashboard powered by Real-time Firestore Analytics • Data
-              refreshed automatically • Platform Health:{" "}
-              <span className="font-semibold text-green-600">Excellent</span> •
-              Total Properties:{" "}
-              <span className="font-semibold">{enhancedStats.totalHotels}</span>
-            </p>
-          </div>
+          <SuperAdminFooter
+            stats={{
+              activeHotels: enhancedStats.activeHotels,
+              activeAdmins: enhancedStats.activeAdmins,
+              activeSubscriptions: enhancedStats.activeSubscriptions,
+              totalStates: Object.keys(enhancedStats.geographicStats.states)
+                .length,
+              totalRevenue: enhancedStats.totalRevenue,
+              totalHotels: enhancedStats.totalHotels,
+              geographicStats: enhancedStats.geographicStats,
+            }}
+            loading={loading}
+            platformHealth="Excellent"
+            showHealthStatus={true}
+            showStats={true}
+            className="border-t border-gray-200 mt-8"
+          />
         )}
       </div>
     </SuperAdminDashboardLayout>

@@ -44,8 +44,6 @@ import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
 import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
 import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
 import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
-import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
-import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
 
@@ -237,28 +235,13 @@ function App() {
                         path="add-subscription-plan"
                         element={
                           <SuperAdminLayout>
-                            <AddSubscriptionPlanPage />
-                          </SuperAdminLayout>
-                        }
-                      />
-                      <Route
-                        path="view-subscription-plan"
-                        element={
-                          <SuperAdminLayout>
                             <ViewSubscriptionPlan />
                           </SuperAdminLayout>
                         }
                       />
+                     
                       <Route
                         path="add-admin"
-                        element={
-                          <SuperAdminLayout>
-                            <AddAdminPage />
-                          </SuperAdminLayout>
-                        }
-                      />
-                      <Route
-                        path="view-admin"
                         element={
                           <SuperAdminLayout>
                             <ViewAdmin />

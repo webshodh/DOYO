@@ -1,51 +1,174 @@
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import {
-  Plus,
   Building2,
   Activity,
-  TrendingUp,
   AlertTriangle,
-  Home,
-  Search,
+  TrendingUp,
   Users,
-  Filter,
-  Download,
   Settings,
-  MoreHorizontal,
 } from "lucide-react";
-import { ToastContainer } from "react-toastify";
 import PageTitle from "../../atoms/PageTitle";
 import useColumns from "../../Constants/Columns";
 import { useHotel } from "../../hooks/useHotel";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 import NoSearchResults from "molecules/NoSearchResults";
-import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import StatCard from "components/Cards/StatCard";
+import SearchWithResults from "molecules/SearchWithResults";
+import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
-import ErrorMessage from "atoms/Messages/ErrorMessage";
-import { useNavigate } from "react-router-dom";
 
+// Lazy load heavy components
+const AddHotelFormModal = React.lazy(() =>
+  import("../../components/FormModals/HotelFormModal")
+);
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
+// Advanced Filters Component
+const AdvancedFilters = memo(
+  ({
+    filters,
+    filterOptions,
+    onFilterChange,
+    showAdvanced,
+    onToggleAdvanced,
+  }) => (
+    <div className="flex gap-2 flex-wrap">
+      <select
+        value={filters.status}
+        onChange={(e) => onFilterChange("status", e.target.value)}
+        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+
+      <select
+        value={filters.businessType}
+        onChange={(e) => onFilterChange("businessType", e.target.value)}
+        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        <option value="all">All Types</option>
+        {filterOptions.businessTypes.map((type) => (
+          <option key={type} value={type}>
+            {type.charAt(0).toUpperCase() + type.slice(1).replace("_", " ")}
+          </option>
+        ))}
+      </select>
+
+      {showAdvanced && (
+        <>
+          <select
+            value={filters.city}
+            onChange={(e) => onFilterChange("city", e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">All Cities</option>
+            {filterOptions.cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filters.state}
+            onChange={(e) => onFilterChange("state", e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">All States</option>
+            {filterOptions.states.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filters.subscriptionPlan}
+            onChange={(e) => onFilterChange("subscriptionPlan", e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">All Plans</option>
+            {filterOptions.subscriptionPlans.map((plan) => (
+              <option key={plan} value={plan}>
+                {plan}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+
+      <button
+        onClick={onToggleAdvanced}
+        className={`px-3 py-2 border rounded-lg transition-colors text-sm ${
+          showAdvanced
+            ? "border-blue-500 bg-blue-50 text-blue-700"
+            : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+        }`}
+      >
+        {showAdvanced ? "Less" : "More"} Filters
+      </button>
+    </div>
+  )
+);
+
+// Bulk Actions Component
+const BulkActions = memo(
+  ({ selectedCount, onBulkUpdate, onClearSelection }) => {
+    if (selectedCount === 0) return null;
+
+    return (
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm text-gray-600">{selectedCount} selected</span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => onBulkUpdate("active")}
+            className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+          >
+            Activate
+          </button>
+          <button
+            onClick={() => onBulkUpdate("inactive")}
+            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors"
+          >
+            Deactivate
+          </button>
+          <button
+            onClick={onClearSelection}
+            className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
+
+// Main ViewHotel component
 const ViewHotel = memo(() => {
   const { ViewHotelColumns } = useColumns();
   const { t } = useTranslation();
   const { currentTheme } = useTheme();
   const navigate = useNavigate();
 
+  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingHotel, setEditingHotel] = useState(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
+  // Use custom hook for hotel management
   const {
     hotels,
     filteredHotels,
     searchTerm,
     filters,
     filterOptions,
-    analytics,
     loading,
     submitting,
     error,
@@ -57,7 +180,7 @@ const ViewHotel = memo(() => {
     deleteHotel,
     bulkUpdateHotels,
     prepareForEdit,
-    exportHotels,
+    refreshHotels,
     selectedHotels,
     handleHotelSelection,
     handleSelectAllHotels,
@@ -73,12 +196,24 @@ const ViewHotel = memo(() => {
       const hotelId = hotelData.businessName
         .replace(/[^a-zA-Z0-9]/g, "_")
         .toLowerCase();
-
       // Redirect to add admin route for this newly created hotel
       navigate(`/super-admin/${hotelId}/add-admin`);
     },
   });
 
+  // Memoized calculations
+  const stats = useMemo(
+    () => ({
+      total: hotelStats.total,
+      active: hotelStats.active,
+      inactive: hotelStats.inactive,
+      avgAdminsPerHotel: hotelStats.avgAdminsPerHotel,
+      businessTypes: hotelStats.businessTypes,
+    }),
+    [hotelStats]
+  );
+
+  // Event handlers
   const handleAddClick = useCallback(() => {
     setEditingHotel(null);
     setShowModal(true);
@@ -97,7 +232,7 @@ const ViewHotel = memo(() => {
         console.error("Error preparing hotel for edit:", err);
       }
     },
-    [prepareForEdit],
+    [prepareForEdit]
   );
 
   const handleDeleteClick = useCallback(
@@ -121,7 +256,7 @@ const ViewHotel = memo(() => {
         }
       }
     },
-    [deleteHotel],
+    [deleteHotel]
   );
 
   const handleBulkStatusUpdate = useCallback(
@@ -129,7 +264,7 @@ const ViewHotel = memo(() => {
       if (selectedHotels.length === 0) return;
 
       const confirmed = window.confirm(
-        `Are you sure you want to ${status} ${selectedHotels.length} selected hotel(s)?`,
+        `Are you sure you want to ${status} ${selectedHotels.length} selected hotel(s)?`
       );
 
       if (confirmed) {
@@ -144,13 +279,8 @@ const ViewHotel = memo(() => {
         }
       }
     },
-    [selectedHotels, bulkUpdateHotels, clearSelection],
+    [selectedHotels, bulkUpdateHotels, clearSelection]
   );
-
-  const handleExport = useCallback(() => {
-    const data = exportHotels("csv");
-    // Here you would typically trigger a file download
-  }, [exportHotels]);
 
   const handleModalClose = useCallback(() => {
     setShowModal(false);
@@ -168,7 +298,7 @@ const ViewHotel = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit],
+    [handleFormSubmit]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -182,133 +312,126 @@ const ViewHotel = memo(() => {
         hotel.businessName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
       navigate(`/super-admin/${hotelId}/dashboard`);
     },
-    [navigate],
+    [navigate]
   );
 
-  // Error Handling
+  const handleRefresh = useCallback(() => {
+    try {
+      if (typeof refreshHotels === "function") {
+        refreshHotels();
+      } else {
+        console.warn("Refresh function not available");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error refreshing hotels:", error);
+      window.location.reload();
+    }
+  }, [refreshHotels]);
+
+  // Table actions configuration
+  const tableActions = useMemo(
+    () => [
+      {
+        label: "Manage",
+        onClick: handleManageHotel,
+        icon: Users,
+        variant: "primary",
+      },
+      {
+        label: "Settings",
+        onClick: (hotel) => navigate(`/super-admin/${hotel.hotelId}/settings`),
+        icon: Settings,
+        variant: "secondary",
+      },
+    ],
+    [handleManageHotel, navigate]
+  );
+
+  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <ErrorMessage
-          error={error}
-          title="Error Loading Hotels"
-          onRetry={clearError}
-        />
-      </div>
+      <ErrorMessage
+        error={error}
+        onRetry={handleRefresh}
+        title={t("hotels.errorLoading")}
+      />
     );
   }
 
+  // Loading state
   if (loading && !hotels.length) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading hotels..." />
-      </div>
-    );
+    return <LoadingSpinner size="lg" text={t("hotels.loading")} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6">
-        {/* Enhanced Header */}
+      {/* Hotel Form Modal */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <AddHotelFormModal
+          show={showModal}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          editHotel={editingHotel}
+          title={editingHotel ? t("hotels.editTitle") : t("hotels.addTitle")}
+          submitting={submitting}
+        />
+      </Suspense>
 
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+      <div>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
           <PageTitle
-            pageTitle="Hotel Management"
+            pageTitle={t("hotels.pageTitle")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description="Manage all your hotels and their operations from one place"
-          />
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText="Add New Hotel"
-            loading={submitting}
-            icon={Plus}
-            className="bg-green-600 hover:bg-green-700"
+            description={t("hotels.pageDescription")}
           />
         </div>
-        {hasHotels && (
-          <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-            <span>Total: {hotelStats.total}</span>
-            <span className="text-green-600">Active: {hotelStats.active}</span>
-            <span className="text-red-600">
-              Inactive: {hotelStats.inactive}
-            </span>
-            {hasFiltersApplied && (
-              <span className="text-blue-600">
-                Showing: {filteredHotels.length}
-              </span>
-            )}
-          </div>
-        )}
 
-        <div className="flex items-center gap-3">
-          {selectedHotels.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
-                {selectedHotels.length} selected
-              </span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => handleBulkStatusUpdate("active")}
-                  className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
-                >
-                  Activate
-                </button>
-                <button
-                  onClick={() => handleBulkStatusUpdate("inactive")}
-                  className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors"
-                >
-                  Deactivate
-                </button>
-                <button
-                  onClick={clearSelection}
-                  className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Bulk Actions */}
+        <BulkActions
+          selectedCount={selectedHotels.length}
+          onBulkUpdate={handleBulkStatusUpdate}
+          onClearSelection={clearSelection}
+        />
 
-        {/* Enhanced Stats Cards */}
+        {/* Stats Cards */}
         {hasHotels && (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Building2}
-              title="Total Hotels"
-              value={hotelStats.total}
+              title={t("hotels.total")}
+              value={stats.total}
               color="blue"
+              subtitle={`${stats.businessTypes} business types`}
               loading={loading}
-              subtitle={`${hotelStats.businessTypes} business types`}
             />
             <StatCard
               icon={Activity}
-              title="Active Hotels"
-              value={hotelStats.active}
+              title={t("hotels.active")}
+              value={stats.active}
               color="green"
               subtitle={
-                hotelStats.total
-                  ? `${Math.round(
-                      (hotelStats.active / hotelStats.total) * 100,
-                    )}% active`
+                stats.total
+                  ? `${Math.round((stats.active / stats.total) * 100)}% active`
                   : ""
               }
               loading={loading}
             />
             <StatCard
               icon={AlertTriangle}
-              title="Inactive Hotels"
-              value={hotelStats.inactive}
+              title={t("hotels.inactive")}
+              value={stats.inactive}
               color="red"
-              loading={loading}
               subtitle={
-                hotelStats.inactive > 0 ? "Requires attention" : "All active"
+                stats.inactive > 0 ? "Requires attention" : "All active"
               }
+              loading={loading}
             />
             <StatCard
               icon={TrendingUp}
-              title="Avg. Admins/Hotel"
-              value={hotelStats.avgAdminsPerHotel}
+              title={t("hotels.avgAdmins")}
+              value={stats.avgAdminsPerHotel}
               color="purple"
               subtitle="Per hotel"
               loading={loading}
@@ -316,202 +439,91 @@ const ViewHotel = memo(() => {
           </div>
         )}
 
-        {/* Enhanced Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-            {/* Search */}
-            <div className="flex-1 min-w-0">
-              <div className="relative">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  placeholder="Search by business name, type, location, email, or contact..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={handleClearSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Quick Filters */}
-            <div className="flex gap-2 flex-wrap">
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-
-              <select
-                value={filters.businessType}
-                onChange={(e) =>
-                  handleFilterChange("businessType", e.target.value)
-                }
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Types</option>
-                {filterOptions.businessTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() +
-                      type.slice(1).replace("_", " ")}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className={`flex items-center gap-2 px-3 py-2 border rounded-lg transition-colors ${
-                  showAdvancedFilters
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <Filter size={16} />
-                More
-              </button>
-
-              <button
-                onClick={handleAddClick}
-                disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus size={16} />
-                Add Hotel
-              </button>
-            </div>
-          </div>
-
-          {/* Advanced Filters */}
-          {showAdvancedFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <select
-                  value={filters.city}
-                  onChange={(e) => handleFilterChange("city", e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">All Cities</option>
-                  {filterOptions.cities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={filters.state}
-                  onChange={(e) => handleFilterChange("state", e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">All States</option>
-                  {filterOptions.states.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={filters.subscriptionPlan}
-                  onChange={(e) =>
-                    handleFilterChange("subscriptionPlan", e.target.value)
+        {/* Search and Filters */}
+        {hasHotels && (
+          <>
+            <SearchWithResults
+              searchTerm={searchTerm}
+              onSearchChange={(e) => handleSearchChange(e.target.value)}
+              placeholder={t("hotels.searchPlaceholder")}
+              totalCount={hotelCount}
+              filteredCount={filteredHotels.length}
+              onClearSearch={handleClearSearch}
+              totalLabel={t("hotels.totalLabel")}
+              onAdd={handleAddClick}
+              addButtonText="Add Hotel"
+              addButtonLoading={loading}
+              customFilters={
+                <AdvancedFilters
+                  filters={filters}
+                  filterOptions={filterOptions}
+                  onFilterChange={handleFilterChange}
+                  showAdvanced={showAdvancedFilters}
+                  onToggleAdvanced={() =>
+                    setShowAdvancedFilters(!showAdvancedFilters)
                   }
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              }
+            />
+
+            {/* Filter summary */}
+            {hasFiltersApplied && (
+              <div className="mb-4 flex items-center justify-between text-sm text-gray-600">
+                <span>
+                  Showing {filteredHotels.length} of {hotels.length} hotel
+                  {hotels.length !== 1 ? "s" : ""}
+                  {searchTerm && ` for "${searchTerm}"`}
+                </span>
+                <button
+                  onClick={clearAllFilters}
+                  className="text-red-600 hover:text-red-800 underline"
                 >
-                  <option value="all">All Plans</option>
-                  {filterOptions.subscriptionPlans.map((plan) => (
-                    <option key={plan} value={plan}>
-                      {plan}
-                    </option>
-                  ))}
-                </select>
+                  Clear All Filters
+                </button>
               </div>
-            </div>
-          )}
+            )}
+          </>
+        )}
 
-          {/* Filter summary */}
-          {hasFiltersApplied && (
-            <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
-              <span>
-                Showing {filteredHotels.length} of {hotels.length} hotel
-                {hotels.length !== 1 ? "s" : ""}
-                {searchTerm && ` for "${searchTerm}"`}
-              </span>
-              <button
-                onClick={clearAllFilters}
-                className="text-red-600 hover:text-red-800 underline"
-              >
-                Clear All Filters
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Table/Search Results/Empty States */}
+        {/* Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {hasHotels ? (
-            filteredHotels.length > 0 ? (
-              <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
-                <DynamicTable
-                  columns={ViewHotelColumns}
-                  data={filteredHotels}
-                  onEdit={handleEditClick}
-                  onDelete={handleDeleteClick}
-                  loading={submitting}
-                  emptyMessage="No hotels match your current filters"
-                  showPagination={true}
-                  initialRowsPerPage={10}
-                  sortable={true}
-                  className="border-0"
-                  selectable={true}
-                  selectedItems={selectedHotels}
-                  onItemSelect={handleHotelSelection}
-                  onSelectAll={handleSelectAllHotels}
-                  actions={[
-                    {
-                      label: "Manage",
-                      onClick: handleManageHotel,
-                      icon: Users,
-                      variant: "primary",
-                    },
-                    {
-                      label: "Settings",
-                      onClick: (hotel) =>
-                        navigate(`/super-admin/${hotel.hotelId}/settings`),
-                      icon: Settings,
-                      variant: "secondary",
-                    },
-                  ]}
+            <>
+              {hasSearchResults && filteredHotels.length > 0 ? (
+                <Suspense fallback={<LoadingSpinner text="Loading table..." />}>
+                  <DynamicTable
+                    columns={ViewHotelColumns}
+                    data={filteredHotels}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteClick}
+                    loading={submitting}
+                    emptyMessage={t("hotels.noSearchResults")}
+                    showPagination={true}
+                    initialRowsPerPage={10}
+                    sortable={true}
+                    className="border-0"
+                    selectable={true}
+                    selectedItems={selectedHotels}
+                    onItemSelect={handleHotelSelection}
+                    onSelectAll={handleSelectAllHotels}
+                    actions={tableActions}
+                  />
+                </Suspense>
+              ) : (
+                <NoSearchResults
+                  btnText={t("hotels.addButton")}
+                  searchTerm={searchTerm}
+                  onClearSearch={handleClearSearch}
+                  onAddNew={handleAddClick}
                 />
-              </Suspense>
-            ) : (
-              <NoSearchResults
-                btnText="Add New Hotel"
-                searchTerm={searchTerm}
-                onClearSearch={handleClearSearch}
-                onAddNew={handleAddClick}
-              />
-            )
+              )}
+            </>
           ) : (
             <EmptyState
-              icon={Home}
-              title="No Hotels Yet"
-              description="Start by adding your first hotel to manage all your operations in one place. You can add admins, categories, menus, and more for each hotel."
-              actionLabel="Add Your First Hotel"
+              icon={Building2}
+              title={t("hotels.emptyTitle")}
+              description={t("hotels.emptyDescription")}
+              actionLabel={t("hotels.emptyAction")}
               onAction={handleAddClick}
               loading={submitting}
             />
@@ -519,6 +531,7 @@ const ViewHotel = memo(() => {
         </div>
       </div>
 
+      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={5000}

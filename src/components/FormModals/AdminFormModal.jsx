@@ -6,53 +6,174 @@ import React, {
   memo,
   useRef,
 } from "react";
-import { Edit3, Plus, Loader } from "lucide-react";
+import { Edit3, Plus, Loader, UserPlus } from "lucide-react";
 import Modal from "../Modal";
-import TemplateSelector from "../Forms/TemplateSelector";
 import { FormCancelButton, FormSubmitButton } from "../Forms/FormActions";
 // Import your reusable field components
 import TextInputField from "../Forms/TextInputField";
-import TextareaField from "../Forms/TextareaField";
-import NumberField from "../Forms/NumberField";
 import SelectField from "../Forms/SelectField";
-import CheckboxField from "../Forms/CheckboxField";
-import DateField from "../Forms/DateField";
 import PasswordInputField from "../Forms/PasswordInputField";
 
-import {
-  subscriptionFormSections,
-  subscriptionFormFields,
-  subscriptionFormInitialValues,
-  getSubscriptionValidationSchema,
-  planTemplates,
-} from "../../Constants/ConfigForms/subscriptionFormFields";
+// Admin form configuration
+const adminFormSections = [
+  {
+    title: "Personal Information",
+    description: "Basic details of the admin user",
+    fields: "personalInfo",
+  },
+  {
+    title: "Account Settings",
+    description: "Login credentials and permissions",
+    fields: "accountSettings",
+  },
+  {
+    title: "Hotel Assignment",
+    description: "Link admin to specific hotel",
+    fields: "hotelAssignment",
+  },
+];
+
+const adminFormFields = {
+  personalInfo: [
+    {
+      name: "fullName",
+      label: "Full Name",
+      type: "text",
+      placeholder: "Enter full name",
+      required: true,
+    },
+    {
+      name: "email",
+      label: "Email Address",
+      type: "email",
+      placeholder: "Enter email address",
+      required: true,
+    },
+    {
+      name: "phone",
+      label: "Phone Number",
+      type: "tel",
+      placeholder: "Enter phone number",
+      required: true,
+    },
+  ],
+  accountSettings: [
+    {
+      name: "password",
+      label: "Password",
+      type: "password",
+      placeholder: "Enter password",
+      required: true,
+    },
+    {
+      name: "role",
+      label: "Admin Role",
+      type: "select",
+      required: true,
+      options: [
+        { value: "admin", label: "Admin" },
+        { value: "manager", label: "Manager" },
+        { value: "super_admin", label: "Super Admin" },
+      ],
+      placeholder: "Select role",
+    },
+    {
+      name: "status",
+      label: "Account Status",
+      type: "select",
+      required: true,
+      options: [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+        { value: "suspended", label: "Suspended" },
+      ],
+      placeholder: "Select status",
+    },
+  ],
+  hotelAssignment: [
+    {
+      name: "linkedHotelId",
+      label: "Assign to Hotel",
+      type: "select",
+      required: false,
+      options: [], // Will be populated dynamically
+      placeholder: "Select hotel (optional)",
+    },
+  ],
+};
+
+const adminFormInitialValues = {
+  fullName: "",
+  email: "",
+  phone: "",
+  password: "",
+  role: "",
+  status: "active",
+  linkedHotelId: "",
+};
+
+const getAdminValidationSchema = () => ({
+  validate: (values) => {
+    const errors = {};
+
+    if (!values.fullName?.trim()) {
+      errors.fullName = "Full name is required";
+    }
+
+    if (!values.email?.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+      errors.email = "Invalid email address";
+    }
+
+    if (!values.phone?.trim()) {
+      errors.phone = "Phone number is required";
+    } else if (!/^[\+]?[0-9]{10,15}$/.test(values.phone)) {
+      errors.phone = "Invalid phone number";
+    }
+
+    if (!values.password?.trim()) {
+      errors.password = "Password is required";
+    } else if (values.password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+
+    if (!values.role) {
+      errors.role = "Admin role is required";
+    }
+
+    if (!values.status) {
+      errors.status = "Account status is required";
+    }
+
+    return errors;
+  },
+});
 
 // Helper function to get initial form data
-const getInitialFormData = (editData = null) => {
+const getInitialFormData = (editData = null, defaultHotelId = null) => {
   if (editData) {
     return {
-      ...subscriptionFormInitialValues,
+      ...adminFormInitialValues,
       ...editData,
     };
   }
-  return subscriptionFormInitialValues;
+  return {
+    ...adminFormInitialValues,
+    linkedHotelId: defaultHotelId || "",
+  };
 };
 
 // Field component mapping
 const fieldComponentMap = {
   text: TextInputField,
-  url: TextInputField,
   email: TextInputField,
   tel: TextInputField,
-  number: NumberField,
-  textarea: TextareaField,
-  select: SelectField,
-  checkbox: CheckboxField,
-  date: DateField,
   password: PasswordInputField,
+  select: SelectField,
 };
 
-// Enhanced Field Renderer using your reusable components
+// Enhanced Field Renderer
 const renderField = (
   field,
   value,
@@ -68,52 +189,14 @@ const renderField = (
     return null;
   }
 
-  // Special handling for number fields with price prefix
   const fieldProps = {
     ...field,
     value,
     error,
-    onChange,
+    onChange: (name, val) => onChange(field.name, val),
     disabled,
-    inputRef, // Pass the ref down
+    inputRef,
   };
-
-  // Add prefix for price field
-  if (field.name === "price") {
-    return (
-      <div key={field.name} className="mb-4">
-        <label className="block text-sm font-semibold text-gray-800 mb-2">
-          {field.label}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-            ₹
-          </span>
-          <input
-            ref={inputRef} // Use the passed ref
-            type="number"
-            name={field.name}
-            value={value || ""}
-            onChange={(e) => onChange(field.name, e.target.value)}
-            placeholder={field.placeholder}
-            min={field.min}
-            max={field.max}
-            step={field.step}
-            disabled={disabled}
-            required={field.required}
-            className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:ring-4 ${
-              error ? "border-red-400 bg-red-50" : "border-gray-200"
-            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-          />
-        </div>
-        {field.description && (
-          <p className="text-xs text-gray-500 mt-1">{field.description}</p>
-        )}
-        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
-      </div>
-    );
-  }
 
   return (
     <div key={field.name} className="mb-4">
@@ -123,20 +206,39 @@ const renderField = (
 };
 
 // Simple Form Section Component
-const SimpleFormSection = memo(
+const AdminFormSection = memo(
   ({
     section,
     formData,
     onChange,
     errors,
     disabled,
-    firstFieldRef, // Pass ref from parent
+    firstFieldRef,
+    availableHotels,
   }) => {
-    const sectionFields = subscriptionFormFields[section.fields] || [];
+    const sectionFields = adminFormFields[section.fields] || [];
+
+    // Update hotel options for hotel assignment section
+    const processedFields = useMemo(() => {
+      return sectionFields.map((field) => {
+        if (field.name === "linkedHotelId") {
+          return {
+            ...field,
+            options: [
+              { value: "", label: "No hotel assigned" },
+              ...availableHotels.map((hotel) => ({
+                value: hotel.hotelId,
+                label: hotel.businessName || hotel.hotelName,
+              })),
+            ],
+          };
+        }
+        return field;
+      });
+    }, [sectionFields, availableHotels]);
 
     return (
       <div className="mb-8">
-        {/* Section Header */}
         <div className="mb-6 pb-3 border-b border-gray-200">
           <h3 className="text-lg font-bold text-gray-900">{section.title}</h3>
           {section.description && (
@@ -144,16 +246,15 @@ const SimpleFormSection = memo(
           )}
         </div>
 
-        {/* Fields in responsive grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sectionFields.map((field, index) =>
+          {processedFields.map((field, index) =>
             renderField(
               field,
               formData[field.name],
               errors[field.name],
               onChange,
               disabled,
-              index === 0 && firstFieldRef ? firstFieldRef : null // Pass ref only to first field
+              index === 0 && firstFieldRef ? firstFieldRef : null
             )
           )}
         </div>
@@ -162,13 +263,15 @@ const SimpleFormSection = memo(
   }
 );
 
-// Main SubscriptionFormModal component
-const SubscriptionFormModal = memo(
+// Main AddAdminFormModal component
+const AddAdminFormModal = memo(
   ({
     show = false,
     onClose,
     onSubmit,
-    editPlan = null,
+    editAdmin = null,
+    availableHotels = [],
+    defaultHotelId = null,
     title,
     submitText,
     cancelText = "Cancel",
@@ -181,18 +284,15 @@ const SubscriptionFormModal = memo(
     const [errors, setErrors] = useState({});
     const [isDirty, setIsDirty] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const firstFieldRef = useRef(null); // Create ref at component level
-    const isEditMode = Boolean(editPlan);
+    const firstFieldRef = useRef(null);
+    const isEditMode = Boolean(editAdmin);
 
-    const validationSchema = useMemo(
-      () => getSubscriptionValidationSchema(),
-      []
-    );
+    const validationSchema = useMemo(() => getAdminValidationSchema(), []);
 
     // Initialize form data
     useEffect(() => {
       if (show) {
-        const initialData = getInitialFormData(editPlan);
+        const initialData = getInitialFormData(editAdmin, defaultHotelId);
         setFormData(initialData);
         setErrors({});
         setIsDirty(false);
@@ -204,12 +304,11 @@ const SubscriptionFormModal = memo(
           }
         }, 300);
       } else {
-        // Reset everything when modal closes
         setFormData({});
         setErrors({});
         setIsDirty(false);
       }
-    }, [show, editPlan]);
+    }, [show, editAdmin, defaultHotelId]);
 
     // Real-time validation
     useEffect(() => {
@@ -224,11 +323,6 @@ const SubscriptionFormModal = memo(
       setIsDirty(true);
     }, []);
 
-    const handleTemplateSelect = useCallback((template) => {
-      setFormData((prev) => ({ ...prev, ...template }));
-      setIsDirty(true);
-    }, []);
-
     const handleSubmit = useCallback(
       async (e) => {
         e.preventDefault();
@@ -237,7 +331,6 @@ const SubscriptionFormModal = memo(
         setErrors(validation);
 
         if (Object.keys(validation).length > 0) {
-          // Scroll to first error
           setTimeout(() => {
             const firstErrorElement = document.querySelector(".text-red-600");
             if (firstErrorElement) {
@@ -252,7 +345,7 @@ const SubscriptionFormModal = memo(
 
         setIsSubmitting(true);
         try {
-          const result = await onSubmit(formData, editPlan?.planId);
+          const result = await onSubmit(formData, editAdmin?.adminId);
           if (result !== false) {
             handleClose();
           }
@@ -262,13 +355,12 @@ const SubscriptionFormModal = memo(
           setIsSubmitting(false);
         }
       },
-      [formData, editPlan, onSubmit, validationSchema]
+      [formData, editAdmin, onSubmit, validationSchema]
     );
 
     const handleClose = useCallback(() => {
       if (isSubmitting) return;
 
-      // Check if user has unsaved changes
       if (isDirty) {
         const confirmed = window.confirm(
           "You have unsaved changes. Are you sure you want to close?"
@@ -282,7 +374,6 @@ const SubscriptionFormModal = memo(
       onClose();
     }, [isSubmitting, isDirty, onClose]);
 
-    // Check if form can be submitted
     const canSubmit = useMemo(() => {
       const validation = validationSchema.validate(formData);
       return (
@@ -293,117 +384,68 @@ const SubscriptionFormModal = memo(
       );
     }, [formData, isSubmitting, submitting, isDirty, validationSchema]);
 
-    // Calculate completion percentage for progress
-    const formCompletion = useMemo(() => {
-      const requiredFields = [];
-
-      subscriptionFormSections.forEach((section) => {
-        const sectionFieldsArray = subscriptionFormFields[section.fields] || [];
-        sectionFieldsArray.forEach((field) => {
-          if (field.required) {
-            requiredFields.push(field.name);
-          }
-        });
-      });
-
-      const completedFields = requiredFields.filter((fieldName) =>
-        formData[fieldName]?.toString().trim()
-      ).length;
-
-      return requiredFields.length > 0
-        ? Math.round((completedFields / requiredFields.length) * 100)
-        : 0;
-    }, [formData]);
-
     if (!show) return null;
 
     return (
       <Modal
         isOpen={show}
         onClose={handleClose}
-        title={
-          title || (isEditMode ? "Edit Subscription Plan" : "Create New Plan")
-        }
-        size="4xl"
+        title={title || (isEditMode ? "Edit Admin Details" : "Add New Admin")}
+        size="3xl"
         closeOnBackdrop={!isDirty}
         className="max-h-[90vh]"
         {...modalProps}
       >
         <div className={`${className}`} {...rest}>
-          {/* Clean Header */}
+          {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
             <div className="flex items-center gap-4">
               <div
                 className={`p-3 rounded-xl ${
-                  isEditMode ? "bg-purple-100" : "bg-green-100"
+                  isEditMode ? "bg-blue-100" : "bg-green-100"
                 }`}
               >
                 {isEditMode ? (
-                  <Edit3 className="w-6 h-6 text-purple-600" />
+                  <Edit3 className="w-6 h-6 text-blue-600" />
                 ) : (
-                  <Plus className="w-6 h-6 text-green-600" />
+                  <UserPlus className="w-6 h-6 text-green-600" />
                 )}
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  {isEditMode ? "Update Plan" : "Create New Plan"}
+                  {isEditMode ? "Update Admin" : "Add New Admin"}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {isEditMode
-                    ? "Modify the plan details below"
-                    : "Set up a new subscription plan"}
+                    ? "Modify the admin details below"
+                    : "Create a new admin account"}
                 </p>
               </div>
             </div>
-
-            {/* Price and Progress Display */}
-            <div className="flex items-center gap-6">
-              {/* Price Display */}
-              {formData.price > 0 && (
-                <div className="text-right">
-                  <div className="text-xs text-gray-500">Monthly Price</div>
-                  <div className="text-xl font-bold text-purple-600">
-                    ₹{formData.price}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
-
-          {/* Template Selector */}
-          {!isEditMode && (
-            <div className="p-4 bg-blue-50 border-b border-blue-200">
-              <TemplateSelector
-                templates={planTemplates}
-                onSelectTemplate={handleTemplateSelect}
-                disabled={isSubmitting || submitting}
-              />
-            </div>
-          )}
 
           {/* Form */}
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col max-h-[calc(90vh-220px)]"
+            className="flex flex-col max-h-[calc(90vh-200px)]"
           >
-            {/* Form Content - Scrollable */}
             <div className="flex-1 overflow-y-auto p-6">
-              {subscriptionFormSections.map((section, index) => (
-                <SimpleFormSection
+              {adminFormSections.map((section, index) => (
+                <AdminFormSection
                   key={section.title}
                   section={section}
                   formData={formData}
                   onChange={handleFieldChange}
                   errors={errors}
                   disabled={isSubmitting || submitting}
-                  firstFieldRef={index === 0 ? firstFieldRef : null} // Pass ref only to first section
+                  firstFieldRef={index === 0 ? firstFieldRef : null}
+                  availableHotels={availableHotels}
                 />
               ))}
             </div>
 
-            {/* Fixed Footer */}
+            {/* Footer */}
             <div className="flex-shrink-0 flex items-center justify-between gap-4 p-6 border-t border-gray-200 bg-gray-50">
-              {/* Error Summary */}
               <div className="flex items-center gap-2 text-sm">
                 {Object.keys(errors).length > 0 && (
                   <div className="flex items-center gap-1 text-red-600">
@@ -422,7 +464,6 @@ const SubscriptionFormModal = memo(
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3">
                 <FormCancelButton
                   onCancel={handleClose}
@@ -434,7 +475,7 @@ const SubscriptionFormModal = memo(
                   isEditMode={isEditMode}
                   isLoading={isSubmitting}
                   text={
-                    submitText || (isEditMode ? "Update Plan" : "Create Plan")
+                    submitText || (isEditMode ? "Update Admin" : "Add Admin")
                   }
                 />
               </div>
@@ -446,5 +487,5 @@ const SubscriptionFormModal = memo(
   }
 );
 
-SubscriptionFormModal.displayName = "SubscriptionFormModal";
-export default SubscriptionFormModal;
+AddAdminFormModal.displayName = "AddAdminFormModal";
+export default AddAdminFormModal;

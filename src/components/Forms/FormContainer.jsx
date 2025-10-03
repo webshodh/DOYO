@@ -1,4 +1,3 @@
-// src/components/form/FormContainer.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import FormSection from "./FormSection";
 import { FormCancelButton, FormSubmitButton } from "./FormActions";
@@ -13,6 +12,7 @@ export default function FormContainer({
   submitText,
   cancelText,
   submitting,
+  fieldsMap, // Add this prop to handle field mapping
 }) {
   const [data, setData] = useState(initialValues);
   const [errors, setErrors] = useState({});
@@ -32,7 +32,7 @@ export default function FormContainer({
         return {};
       }
     },
-    [validationSchema],
+    [validationSchema]
   );
 
   useEffect(() => {
@@ -69,19 +69,34 @@ export default function FormContainer({
 
   return (
     <form onSubmit={handleSubmitForm} className="space-y-6">
-      {sections.map((section) => (
-        <FormSection
-          key={section.title}
-          title={section.title}
-          description={section.description}
-          icon={section.icon}
-          fields={section.fields}
-          data={data}
-          errors={errors}
-          disabled={submitting}
-          onChange={handleChange}
-        />
-      ))}
+      {sections.map((section) => {
+        // Handle field mapping: convert string field keys to actual field arrays
+        let actualFields = section.fields;
+
+        // If fieldsMap is provided and section.fields is a string, map it to actual fields
+        if (fieldsMap && typeof section.fields === "string") {
+          actualFields = fieldsMap[section.fields] || [];
+        }
+
+        // If section.fields is already an array, use it directly
+        if (Array.isArray(section.fields)) {
+          actualFields = section.fields;
+        }
+
+        return (
+          <FormSection
+            key={section.title}
+            title={section.title}
+            description={section.description}
+            icon={section.icon}
+            fields={actualFields} // Pass resolved fields array
+            data={data}
+            errors={errors}
+            disabled={submitting}
+            onChange={handleChange}
+          />
+        );
+      })}
 
       <div className="sticky bottom-0 bg-white border-t-2 border-gray-100 shadow-lg p-6 flex justify-between">
         <FormCancelButton

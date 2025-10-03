@@ -9,6 +9,8 @@ import {
   getHotelValidationSchema,
 } from "../../Constants/ConfigForms/addHotelFormConfig";
 import { hotelServices } from "../../services/api/hotelServices"; // Your API functions
+import { PageTitle } from "atoms";
+import { t } from "i18next";
 
 export default function AddHotelPage() {
   const navigate = useNavigate();
@@ -54,15 +56,18 @@ export default function AddHotelPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {isEditMode ? "Edit Hotel" : "Create New Hotel"}
-        </h1>
-      </div>
+     {/* Header */}
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
+          <PageTitle
+            pageTitle={t("pages.captainManagement")}
+            className="text-2xl sm:text-3xl font-bold text-gray-900"
+            description={t("descriptions.captainManagement")}
+          />
+        </div>
 
       <FormContainer
         sections={hotelFormSections}
-        fieldsConfig={hotelFormFields}
+        fieldsMap={hotelFormFields} // Changed from fieldsConfig to fieldsMap
         initialValues={initialValues}
         validationSchema={getHotelValidationSchema()}
         onSubmit={handleSubmit}

@@ -33,8 +33,8 @@ import { useTheme } from "context/ThemeContext";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useNavigate } from "react-router-dom";
 
-const SubscriptionFormModal = React.lazy(
-  () => import("../../components/FormModals/SubscriptionPlanFormModal"),
+const SubscriptionFormModal = React.lazy(() =>
+  import("../../components/FormModals/SubscriptionPlanFormModal")
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -158,7 +158,7 @@ const ViewSubscriptionPlan = memo(() => {
         console.error("Error preparing plan for edit:", err);
       }
     },
-    [prepareForEdit],
+    [prepareForEdit]
   );
 
   const handleDeleteClick = useCallback(
@@ -166,7 +166,7 @@ const ViewSubscriptionPlan = memo(() => {
       const planName = plan.planName || "this plan";
 
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${planName}"?\n\nNote: Plans currently assigned to hotels cannot be deleted. This action cannot be undone.`,
+        `Are you sure you want to delete "${planName}"?\n\nNote: Plans currently assigned to hotels cannot be deleted. This action cannot be undone.`
       );
 
       if (confirmed) {
@@ -177,7 +177,7 @@ const ViewSubscriptionPlan = memo(() => {
         }
       }
     },
-    [deletePlan],
+    [deletePlan]
   );
 
   const handleAssignClick = useCallback((plan) => {
@@ -197,7 +197,7 @@ const ViewSubscriptionPlan = memo(() => {
         console.error("Error assigning plan:", err);
       }
     },
-    [selectedPlanForAssign, assignPlanToHotel],
+    [selectedPlanForAssign, assignPlanToHotel]
   );
 
   const handleModalClose = useCallback(() => {
@@ -216,7 +216,7 @@ const ViewSubscriptionPlan = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit],
+    [handleFormSubmit]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -304,19 +304,16 @@ const ViewSubscriptionPlan = memo(() => {
       <div className="p-6">
         {/* Header */}
 
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        {/* Enhanced Header Section */}
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
           <PageTitle
-            pageTitle="Subscription Plans"
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description="Manage subscription plans and hotel assignments"
+            pageTitle={t("dashboard.title")}
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
           />
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText="Create New Plan"
-            loading={submitting}
-            icon={Plus}
-            className="bg-purple-600 hover:bg-purple-700"
-          />
+          <p className="text-blue-100 text-sm sm:text-base">
+            {t("dashboard.welcome")}
+            {t("dashboard.today")}
+          </p>
         </div>
 
         {hasPlans && (
@@ -476,8 +473,8 @@ const ViewSubscriptionPlan = memo(() => {
                           plan.status === "active"
                             ? "bg-green-100 text-green-600"
                             : plan.status === "inactive"
-                              ? "bg-red-100 text-red-600"
-                              : "bg-yellow-100 text-yellow-600"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-yellow-100 text-yellow-600"
                         }`}
                       >
                         {plan.status}
