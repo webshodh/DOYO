@@ -64,7 +64,7 @@ const SuperAdminDashboardLayout = ({ children }) => {
           <main className="flex-1 overflow-hidden">
             <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400/50 scrollbar-track-transparent">
               <div>
-                <div className="max-w-7xl mx-auto">{children}</div>
+                <div>{children}</div>
               </div>
             </div>
           </main>

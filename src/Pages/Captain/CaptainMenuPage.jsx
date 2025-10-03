@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getFirestore, collection, onSnapshot } from "firebase/firestore";
-import { Filter } from "lucide-react";
 
 import CaptainMenuCard from "components/Cards/CaptainMenuCard";
 import CartPage from "../Captain/CartPage";
@@ -13,9 +12,9 @@ import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig
 import ErrorState from "atoms/Messages/ErrorState";
 import ConnectionStatus from "atoms/Messages/ConnectionStatus";
 import EmptyState from "atoms/Messages/EmptyState";
-import CategoryFilters from "components/Filters/CategoryFilters";
 import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
 import CartButton from "atoms/Buttons/CartButton";
+import CategoryTabs from "molecules/CategoryTab";
 
 const firestore = getFirestore(app);
 
@@ -24,6 +23,8 @@ const CaptainMenuPage = () => {
   const [menus, setMenus] = useState([]);
   const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
+  const [menuCountsByCategory, setMenuCountsByCategory] = useState({});
+  const [menuCountsByMainCategory, setMenuCountsByMainCategory] = useState({});
   const [specialCategoryCounts, setSpecialCategoryCounts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,13 +38,11 @@ const CaptainMenuPage = () => {
 
   // Filters and search states
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSpecialFilters, setSelectedSpecialFilters] = useState([]);
   const [sortOrder, setSortOrder] = useState("default");
-  const [showFilters, setShowFilters] = useState(false);
 
-  const navigate = useNavigate();
   const { hotelName } = useParams();
 
   // Online/offline status listener
@@ -59,16 +58,47 @@ const CaptainMenuPage = () => {
     };
   }, []);
 
-  // Calculate special category counts helper
-  const calculateSpecialCategoryCounts = useCallback((menusData) => {
-    const counts = {};
-    specialCategories.forEach((category) => {
-      counts[category.name] = menusData.filter(
-        (menu) => menu[category.name] === true
-      ).length;
-    });
-    setSpecialCategoryCounts(counts);
-  }, []);
+  // Calculate counts for all categories
+  const calculateCounts = useCallback(
+    (menusData, categoriesData, mainCategoriesData) => {
+      // Category counts
+      const categoryCounts = {};
+      categoriesData.forEach((category) => {
+        const count = menusData.filter((menu) => {
+          return (
+            menu.menuCategory === category.categoryName ||
+            menu.menuCategory === category.id
+          );
+        }).length;
+        categoryCounts[category.categoryName] = count;
+      });
+      setMenuCountsByCategory(categoryCounts);
+
+      // Main category counts
+      const mainCategoryCounts = {};
+      mainCategoriesData.forEach((mainCategory) => {
+        const count = menusData.filter((menu) => {
+          return (
+            menu.mainCategory === mainCategory.mainCategoryName ||
+            menu.mainCategory === mainCategory.id
+          );
+        }).length;
+        mainCategoryCounts[mainCategory.mainCategoryName] = count;
+      });
+      setMenuCountsByMainCategory(mainCategoryCounts);
+
+      // Special category counts
+      const specialCounts = {};
+      specialCategories.forEach((category) => {
+        const count = menusData.filter(
+          (menu) => menu[category.name] === true
+        ).length;
+        specialCounts[category.name] = count;
+      });
+      setSpecialCategoryCounts(specialCounts);
+    },
+    []
+  );
 
   // Firestore listeners: menus, categories, mainCategories
   useEffect(() => {
@@ -79,6 +109,7 @@ const CaptainMenuPage = () => {
 
     const unsubscribes = [];
 
+    // Menus listener
     const menusRef = collection(firestore, `hotels/${hotelName}/menu`);
     const unsubscribeMenus = onSnapshot(
       menusRef,
@@ -88,7 +119,6 @@ const CaptainMenuPage = () => {
           ...doc.data(),
         }));
         setMenus(menusData);
-        calculateSpecialCategoryCounts(menusData);
         setError("");
         setIsLoading(false);
       },
@@ -100,6 +130,7 @@ const CaptainMenuPage = () => {
     );
     unsubscribes.push(unsubscribeMenus);
 
+    // Categories listener
     const categoriesRef = collection(
       firestore,
       `hotels/${hotelName}/categories`
@@ -115,11 +146,11 @@ const CaptainMenuPage = () => {
       },
       (err) => {
         console.error("Error fetching categories:", err);
-        setError("Failed to load categories");
       }
     );
     unsubscribes.push(unsubscribeCategories);
 
+    // Main categories listener
     const mainCategoriesRef = collection(
       firestore,
       `hotels/${hotelName}/Maincategories`
@@ -135,25 +166,17 @@ const CaptainMenuPage = () => {
       },
       (err) => {
         console.error("Error fetching main categories:", err);
-        setError("Failed to load main categories");
       }
     );
     unsubscribes.push(unsubscribeMainCategories);
 
     return () => unsubscribes.forEach((unsub) => unsub());
-  }, [hotelName, retryCount, calculateSpecialCategoryCounts]);
+  }, [hotelName, retryCount]);
 
-  // Compose dynamic categories list from mainCategories and categories
-  const dynamicCategories = useMemo(() => {
-    const allCategories = new Set(["All"]);
-    mainCategories.forEach((mc) => {
-      if (mc.mainCategoryName) allCategories.add(mc.mainCategoryName);
-    });
-    categories.forEach((c) => {
-      if (c.categoryName) allCategories.add(c.categoryName);
-    });
-    return Array.from(allCategories);
-  }, [mainCategories, categories]);
+  // Calculate counts when data changes
+  useEffect(() => {
+    calculateCounts(menus, categories, mainCategories);
+  }, [menus, categories, mainCategories, calculateCounts]);
 
   // Available special categories with counts > 0
   const availableSpecialCategories = useMemo(() => {
@@ -168,32 +191,61 @@ const CaptainMenuPage = () => {
       menu.menuName?.toLowerCase().includes(search)
     );
 
+    // Apply category filter
     if (selectedCategory && selectedCategory !== "All") {
-      filtered = filtered.filter(
-        (menu) =>
+      filtered = filtered.filter((menu) => {
+        // Find the category object by name
+        const categoryObj = categories.find(
+          (cat) => cat.categoryName === selectedCategory
+        );
+        const mainCategoryObj = mainCategories.find(
+          (cat) => cat.mainCategoryName === selectedCategory
+        );
+
+        // Check if menu's category matches (by ID or name)
+        const categoryMatch =
+          menu.menuCategory === selectedCategory || // Direct name match
+          (categoryObj && menu.menuCategory === categoryObj.id) || // ID match
           (menu.menuCategory &&
-            menu.menuCategory.toLowerCase() ===
-              selectedCategory.toLowerCase()) ||
+            menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase()); // Case-insensitive name match
+
+        // Also check main category field
+        const mainCategoryMatch =
+          menu.mainCategory === selectedCategory || // Direct name match
+          (mainCategoryObj && menu.mainCategory === mainCategoryObj.id) || // ID match
           (menu.mainCategory &&
-            menu.mainCategory.toLowerCase() === selectedCategory.toLowerCase())
-      );
+            menu.mainCategory.toLowerCase() === selectedCategory.toLowerCase()); // Case-insensitive name match
+
+        return categoryMatch || mainCategoryMatch;
+      });
     }
 
+    // Apply main category filter
     if (selectedMainCategory && selectedMainCategory.trim() !== "") {
-      filtered = filtered.filter(
-        (menu) =>
-          menu.mainCategory &&
-          menu.mainCategory.toLowerCase().trim() ===
-            selectedMainCategory.toLowerCase().trim()
-      );
+      filtered = filtered.filter((menu) => {
+        // Find the main category object by name
+        const mainCategoryObj = mainCategories.find(
+          (cat) => cat.mainCategoryName === selectedMainCategory
+        );
+
+        return (
+          menu.mainCategory === selectedMainCategory || // Direct name match
+          (mainCategoryObj && menu.mainCategory === mainCategoryObj.id) || // ID match
+          (menu.mainCategory &&
+            menu.mainCategory.toLowerCase().trim() ===
+              selectedMainCategory.toLowerCase().trim()) // Case-insensitive name match
+        );
+      });
     }
 
+    // Apply special filters
     if (selectedSpecialFilters.length > 0) {
       filtered = filtered.filter((menu) =>
         selectedSpecialFilters.every((filter) => menu[filter] === true)
       );
     }
 
+    // Apply sorting
     if (sortOrder === "lowToHigh") {
       filtered.sort(
         (a, b) =>
@@ -208,6 +260,15 @@ const CaptainMenuPage = () => {
       );
     }
 
+    console.log("Filtering results:", {
+      totalMenus: menus.length,
+      selectedCategory,
+      selectedMainCategory,
+      filteredCount: filtered.length,
+      categoryObj: categories.find((c) => c.categoryName === selectedCategory),
+      sampleMenu: menus[0],
+    });
+
     return filtered;
   }, [
     menus,
@@ -216,6 +277,8 @@ const CaptainMenuPage = () => {
     selectedMainCategory,
     selectedSpecialFilters,
     sortOrder,
+    categories,
+    mainCategories,
   ]);
 
   // Cart calculations memoized (total items and amount)
@@ -271,14 +334,27 @@ const CaptainMenuPage = () => {
   // Handlers for filters and search
   const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
   const handleSort = useCallback((order) => setSortOrder(order), []);
-  const handleCategoryFilter = useCallback((category) => {
-    setSelectedCategory(category);
-    setSelectedMainCategory("");
-  }, []);
-  const handleMainCategoryFilter = useCallback((mainCategory) => {
-    setSelectedMainCategory(mainCategory);
-    setSelectedCategory("");
-  }, []);
+
+  const handleCategoryFilter = useCallback(
+    (category) => {
+      console.log("Category filter clicked:", category);
+
+      // Check if it's a main category
+      const isMainCategory = mainCategories.some(
+        (mc) => mc.mainCategoryName === category
+      );
+
+      if (isMainCategory) {
+        setSelectedMainCategory(category);
+        setSelectedCategory("");
+      } else {
+        setSelectedCategory(category);
+        setSelectedMainCategory("");
+      }
+    },
+    [mainCategories]
+  );
+
   const handleSpecialFilterToggle = useCallback((filterName) => {
     setSelectedSpecialFilters((prev) =>
       prev.includes(filterName)
@@ -286,6 +362,7 @@ const CaptainMenuPage = () => {
         : [...prev, filterName]
     );
   }, []);
+
   const clearAllFilters = useCallback(() => {
     setSelectedSpecialFilters([]);
     setSelectedCategory("All");
@@ -299,10 +376,12 @@ const CaptainMenuPage = () => {
   const handleGoBackToMenu = useCallback(() => setCurrentPage("menu"), []);
   const handleGoToCheckout = useCallback(() => setCurrentPage("checkout"), []);
   const handleGoBackToCart = useCallback(() => setCurrentPage("cart"), []);
+
   const handleOrderSuccess = useCallback((orderDetails) => {
     setOrderSuccessData(orderDetails);
     setCurrentPage("success");
   }, []);
+
   const handleGoHome = useCallback(() => {
     setCartItems([]);
     setCurrentPage("menu");
@@ -311,10 +390,26 @@ const CaptainMenuPage = () => {
 
   const handleRetry = useCallback(() => setRetryCount((prev) => prev + 1), []);
 
+  // Check if filters are active
   const hasActiveFilters =
     selectedSpecialFilters.length > 0 ||
     (selectedCategory && selectedCategory !== "All") ||
     selectedMainCategory !== "";
+
+  // Transform categories for CategoryTabs
+  const transformedCategories = useMemo(() => {
+    return categories.map((cat) => ({
+      ...cat,
+      name: cat.categoryName,
+    }));
+  }, [categories]);
+
+  const transformedMainCategories = useMemo(() => {
+    return mainCategories.map((cat) => ({
+      ...cat,
+      name: cat.mainCategoryName,
+    }));
+  }, [mainCategories]);
 
   // Render error state
   if (error && !isLoading) {
@@ -367,50 +462,25 @@ const CaptainMenuPage = () => {
           />
         </div>
 
-        {/* Mobile filter toggle */}
-        <div className="flex items-center justify-between mb-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-          >
-            <Filter size={16} />
-            Filters
-            {hasActiveFilters && (
-              <span className="bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                !
-              </span>
-            )}
-          </button>
-          {hasActiveFilters && (
-            <button
-              onClick={clearAllFilters}
-              className="md:hidden text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition-colors"
-            >
-              Clear All
-            </button>
-          )}
-        </div>
+        {/* Category tabs */}
+        <CategoryTabs
+          categories={transformedCategories}
+          mainCategories={transformedMainCategories}
+          menuCountsByCategory={menuCountsByCategory}
+          menuCountsByMainCategory={menuCountsByMainCategory}
+          handleCategoryFilter={handleCategoryFilter}
+          initialActiveTab={selectedCategory || selectedMainCategory || "All"}
+        />
 
-        {/* Filters section */}
-        <div
-          className={`${
-            showFilters ? "block" : "hidden"
-          } md:block space-y-4 animate-fadeIn`}
-        >
-          <CategoryFilters
-            categories={dynamicCategories}
-            selectedCategory={selectedCategory}
-            onCategorySelect={handleCategoryFilter}
+        {/* Special categories filter */}
+        {availableSpecialCategories.length > 0 && (
+          <SpecialCategoriesFilter
+            categories={availableSpecialCategories}
+            selectedFilters={selectedSpecialFilters}
+            counts={specialCategoryCounts}
+            onToggle={handleSpecialFilterToggle}
           />
-          {availableSpecialCategories.length > 0 && (
-            <SpecialCategoriesFilter
-              categories={availableSpecialCategories}
-              selectedFilters={selectedSpecialFilters}
-              counts={specialCategoryCounts}
-              onToggle={handleSpecialFilterToggle}
-            />
-          )}
-        </div>
+        )}
 
         {/* Menu items grid */}
         <div className="p-4">
@@ -422,7 +492,7 @@ const CaptainMenuPage = () => {
               onClearFilters={clearAllFilters}
             />
           ) : (
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
               {filteredMenuItems.map((item) => (
                 <CaptainMenuCard
                   key={item.id}
