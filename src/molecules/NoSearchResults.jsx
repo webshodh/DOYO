@@ -29,7 +29,7 @@ const NoSearchResults = memo(
         </button>
       </div>
     </EmptyState>
-  )
+  ),
 );
 
 NoSearchResults.displayName = "NoSearchResults";

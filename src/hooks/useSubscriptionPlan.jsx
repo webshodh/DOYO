@@ -1,4 +1,3 @@
-
 // useSubscription Hook - hooks/useSubscription.js (OPTIMIZED)
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -59,7 +58,7 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting, onPlanAdded] // Removed plans from dependencies as it causes unnecessary re-renders
+    [submitting, onPlanAdded], // Removed plans from dependencies as it causes unnecessary re-renders
   );
 
   const updatePlan = useCallback(
@@ -80,7 +79,7 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const deletePlan = useCallback(
@@ -101,7 +100,7 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const assignPlanToHotel = useCallback(
@@ -113,7 +112,7 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
       try {
         const success = await subscriptionServices.assignPlanToHotel(
           hotelId,
-          planId
+          planId,
         );
         return success;
       } catch (err) {
@@ -125,7 +124,7 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const prepareForEdit = useCallback(async (plan) => {
@@ -147,7 +146,7 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
         return await addPlan(planData);
       }
     },
-    [addPlan, updatePlan]
+    [addPlan, updatePlan],
   );
 
   const handleSearchChange = useCallback((term) => {
@@ -159,12 +158,15 @@ export const useSubscription = ({ onPlanAdded } = {}) => {
   }, []);
 
   // Memoize computed values to prevent recalculation
-  const computedValues = useMemo(() => ({
-    planCount: plans.length,
-    filteredCount: filteredPlans.length,
-    hasPlans: plans.length > 0,
-    hasSearchResults: filteredPlans.length > 0,
-  }), [plans.length, filteredPlans.length]);
+  const computedValues = useMemo(
+    () => ({
+      planCount: plans.length,
+      filteredCount: filteredPlans.length,
+      hasPlans: plans.length > 0,
+      hasSearchResults: filteredPlans.length > 0,
+    }),
+    [plans.length, filteredPlans.length],
+  );
 
   return {
     // Data
@@ -214,7 +216,7 @@ export const useHotelSubscriptions = () => {
         (data) => {
           setHotelSubscriptions(data);
           setLoading(false);
-        }
+        },
       );
     };
 
@@ -255,7 +257,8 @@ export const useHotelSubscriptions = () => {
 
           // Plan breakdown
           const planName = subscription.planName;
-          stats.planBreakdown[planName] = (stats.planBreakdown[planName] || 0) + 1;
+          stats.planBreakdown[planName] =
+            (stats.planBreakdown[planName] || 0) + 1;
         } else {
           stats.expiredSubscriptions++;
         }
@@ -289,12 +292,13 @@ export const useHotelSubscription = (hotelId) => {
     }
 
     const hasActiveSubscription = subscription.status === "active";
-    const isExpired = subscription.expiresAt ? 
-      new Date(
-        subscription.expiresAt.toDate
-          ? subscription.expiresAt.toDate()
-          : subscription.expiresAt
-      ) < new Date() : false;
+    const isExpired = subscription.expiresAt
+      ? new Date(
+          subscription.expiresAt.toDate
+            ? subscription.expiresAt.toDate()
+            : subscription.expiresAt,
+        ) < new Date()
+      : false;
 
     return {
       hasActiveSubscription,
@@ -323,7 +327,8 @@ export const useHotelSubscription = (hotelId) => {
         }
       } catch (err) {
         if (isMounted) {
-          const errorMessage = err.message || "Error fetching hotel subscription";
+          const errorMessage =
+            err.message || "Error fetching hotel subscription";
           setError(errorMessage);
           console.error("Error fetching hotel subscription:", err);
         }
@@ -346,7 +351,7 @@ export const useHotelSubscription = (hotelId) => {
       try {
         const success = await subscriptionServices.assignPlanToHotel(
           hotelId,
-          planId
+          planId,
         );
 
         if (success) {
@@ -364,7 +369,7 @@ export const useHotelSubscription = (hotelId) => {
         return false;
       }
     },
-    [hotelId]
+    [hotelId],
   );
 
   return {

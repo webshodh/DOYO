@@ -35,10 +35,10 @@ export const offerServices = {
       if (!adminId) throw new Error("Admin not authenticated");
 
       const adminHotelDoc = await getDoc(
-        doc(firestore, `admins/${adminId}/hotels/${hotelName}`)
+        doc(firestore, `admins/${adminId}/hotels/${hotelName}`),
       );
       const generalHotelDoc = await getDoc(
-        doc(firestore, `hotels/${hotelName}`)
+        doc(firestore, `hotels/${hotelName}`),
       );
 
       const adminHotelUuid = adminHotelDoc.exists()
@@ -85,7 +85,7 @@ export const offerServices = {
         offersArray.sort(
           (a, b) =>
             (b.createdAt?.toDate?.() || new Date()) -
-            (a.createdAt?.toDate?.() || new Date())
+            (a.createdAt?.toDate?.() || new Date()),
         );
 
         callback(offersArray);
@@ -100,7 +100,7 @@ export const offerServices = {
           });
         }
         callback([]);
-      }
+      },
     );
 
     return unsubscribe;
@@ -114,50 +114,50 @@ export const offerServices = {
     switch (sortOrder) {
       case "name_asc":
         return sortedOffers.sort((a, b) =>
-          (a.offerName || "").localeCompare(b.offerName || "")
+          (a.offerName || "").localeCompare(b.offerName || ""),
         );
       case "name_desc":
         return sortedOffers.sort((a, b) =>
-          (b.offerName || "").localeCompare(a.offerName || "")
+          (b.offerName || "").localeCompare(a.offerName || ""),
         );
       case "date_asc":
         return sortedOffers.sort(
           (a, b) =>
-            (a.createdAt?.toDate?.() || 0) - (b.createdAt?.toDate?.() || 0)
+            (a.createdAt?.toDate?.() || 0) - (b.createdAt?.toDate?.() || 0),
         );
       case "date_desc":
       case "newest":
         return sortedOffers.sort(
           (a, b) =>
-            (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0)
+            (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0),
         );
       case "expiry_asc":
         return sortedOffers.sort(
           (a, b) =>
             new Date(a.validUntil || "9999-12-31") -
-            new Date(b.validUntil || "9999-12-31")
+            new Date(b.validUntil || "9999-12-31"),
         );
       case "expiry_desc":
         return sortedOffers.sort(
           (a, b) =>
             new Date(b.validUntil || "9999-12-31") -
-            new Date(a.validUntil || "9999-12-31")
+            new Date(a.validUntil || "9999-12-31"),
         );
       case "discount_asc":
         return sortedOffers.sort(
-          (a, b) => (a.discountValue || 0) - (b.discountValue || 0)
+          (a, b) => (a.discountValue || 0) - (b.discountValue || 0),
         );
       case "discount_desc":
         return sortedOffers.sort(
-          (a, b) => (b.discountValue || 0) - (a.discountValue || 0)
+          (a, b) => (b.discountValue || 0) - (a.discountValue || 0),
         );
       case "usage_asc":
         return sortedOffers.sort(
-          (a, b) => (a.currentUsageCount || 0) - (b.currentUsageCount || 0)
+          (a, b) => (a.currentUsageCount || 0) - (b.currentUsageCount || 0),
         );
       case "usage_desc":
         return sortedOffers.sort(
-          (a, b) => (b.currentUsageCount || 0) - (a.currentUsageCount || 0)
+          (a, b) => (b.currentUsageCount || 0) - (a.currentUsageCount || 0),
         );
       case "status":
         return sortedOffers.sort((a, b) => {
@@ -169,7 +169,7 @@ export const offerServices = {
       default:
         return sortedOffers.sort(
           (a, b) =>
-            (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0)
+            (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0),
         );
     }
   },
@@ -198,7 +198,7 @@ export const offerServices = {
 
       await setDoc(
         doc(firestore, `hotels/${hotelName}/offers/${offerId}`),
-        offerRecord
+        offerRecord,
       );
 
       toast.success("Offer added successfully!", {
@@ -222,7 +222,7 @@ export const offerServices = {
       if (!hasPermission) {
         toast.error(
           "You do not have permission to update offers for this hotel",
-          { position: toast.POSITION.TOP_RIGHT }
+          { position: toast.POSITION.TOP_RIGHT },
         );
         return false;
       }
@@ -232,7 +232,7 @@ export const offerServices = {
 
       const offerDocRef = doc(
         firestore,
-        `hotels/${hotelName}/offers/${offerId}`
+        `hotels/${hotelName}/offers/${offerId}`,
       );
       const existingOfferDoc = await getDoc(offerDocRef);
       const existingOffer = existingOfferDoc.exists()
@@ -271,25 +271,25 @@ export const offerServices = {
       if (!hasPermission) {
         toast.error(
           "You do not have permission to delete offers for this hotel",
-          { position: toast.POSITION.TOP_RIGHT }
+          { position: toast.POSITION.TOP_RIGHT },
         );
         return false;
       }
 
       if (offer.currentUsageCount > 0) {
         const confirmDelete = window.confirm(
-          `This offer "${offer.offerName}" has been used ${offer.currentUsageCount} times. Are you sure you want to delete it? This action cannot be undone.`
+          `This offer "${offer.offerName}" has been used ${offer.currentUsageCount} times. Are you sure you want to delete it? This action cannot be undone.`,
         );
         if (!confirmDelete) return false;
       } else {
         const confirmDelete = window.confirm(
-          `Are you sure you want to delete the offer "${offer.offerName}"? This action cannot be undone.`
+          `Are you sure you want to delete the offer "${offer.offerName}"? This action cannot be undone.`,
         );
         if (!confirmDelete) return false;
       }
 
       await deleteDoc(
-        doc(firestore, `hotels/${hotelName}/offers/${offer.offerId}`)
+        doc(firestore, `hotels/${hotelName}/offers/${offer.offerId}`),
       );
       toast.success("Offer deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -310,7 +310,7 @@ export const offerServices = {
       if (!hasPermission) {
         toast.error(
           "You do not have permission to modify offers for this hotel",
-          { position: toast.POSITION.TOP_RIGHT }
+          { position: toast.POSITION.TOP_RIGHT },
         );
         return false;
       }
@@ -320,7 +320,7 @@ export const offerServices = {
 
       if (
         !window.confirm(
-          `Are you sure you want to ${statusText} the offer "${offer.offerName}"?`
+          `Are you sure you want to ${statusText} the offer "${offer.offerName}"?`,
         )
       )
         return false;
@@ -331,7 +331,7 @@ export const offerServices = {
           isActive: newStatus,
           updatedAt: Timestamp.fromDate(new Date()),
           updatedBy: offerServices.getCurrentAdminId(),
-        }
+        },
       );
 
       toast.success(`Offer ${statusText}d successfully!`, {
@@ -363,7 +363,7 @@ export const offerServices = {
           offer.offerName?.toLowerCase().includes(lowerTerm) ||
           offer.offerDescription?.toLowerCase().includes(lowerTerm) ||
           offer.offerType?.toLowerCase().includes(lowerTerm) ||
-          offer.offerCode?.toLowerCase().includes(lowerTerm)
+          offer.offerCode?.toLowerCase().includes(lowerTerm),
       )
       .map((offer, index) => ({
         ...offer,

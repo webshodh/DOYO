@@ -6,13 +6,13 @@ const NutritionalSection = memo(({ modalData, className = "" }) => {
   const formatNutritionalInfo = useCallback((info) => {
     if (!info || typeof info !== "object") return [];
     return Object.entries(info).filter(
-      ([key, value]) => value && key !== "calories"
+      ([key, value]) => value && key !== "calories",
     );
   }, []);
 
   const nutritionalEntries = useMemo(
     () => formatNutritionalInfo(modalData.nutritionalInfo),
-    [modalData.nutritionalInfo, formatNutritionalInfo]
+    [modalData.nutritionalInfo, formatNutritionalInfo],
   );
 
   const hasNutritionalData =
@@ -43,7 +43,6 @@ const NutritionalSection = memo(({ modalData, className = "" }) => {
             Nutritional Information
           </h2>
         </div>
-        
       </div>
 
       {/* Nutrition Cards Container */}

@@ -1,7 +1,5 @@
 import { toast } from "react-toastify";
 
-
-
 export const validateHotelForm = (hotelName, admins) => {
   const errors = [];
 
@@ -78,7 +76,6 @@ export const validateAdmin = (admin) => {
   };
 };
 
-
 // Email validation
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -93,7 +90,7 @@ export const validateContact = (contact) => {
 
 // Optional contact validation (can be empty or valid)
 export const validateContactOptional = (contact) => {
-  if (!contact || contact.trim() === '') return true;
+  if (!contact || contact.trim() === "") return true;
   return validateContact(contact);
 };
 
@@ -112,7 +109,7 @@ export const validateRequired = (value) => {
   if (Array.isArray(value)) {
     return value.length > 0;
   }
-  return value && value.toString().trim() !== '';
+  return value && value.toString().trim() !== "";
 };
 
 // Pincode validation
@@ -123,7 +120,7 @@ export const validatePincode = (pincode) => {
 
 // GST number validation
 export const validateGST = (gst) => {
-  if (!gst || gst.trim() === '') return true; // Optional field
+  if (!gst || gst.trim() === "") return true; // Optional field
   const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
   return gstRegex.test(gst.trim().toUpperCase());
 };
@@ -136,14 +133,14 @@ export const validateFSSAI = (fssai) => {
 
 // PAN number validation
 export const validatePAN = (pan) => {
-  if (!pan || pan.trim() === '') return true; // Optional field
+  if (!pan || pan.trim() === "") return true; // Optional field
   const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
   return panRegex.test(pan.trim().toUpperCase());
 };
 
 // URL validation
 export const validateURL = (url) => {
-  if (!url || url.trim() === '') return true; // Optional field
+  if (!url || url.trim() === "") return true; // Optional field
   try {
     new URL(url);
     return true;
@@ -154,7 +151,7 @@ export const validateURL = (url) => {
 
 // Instagram handle validation
 export const validateInstagram = (handle) => {
-  if (!handle || handle.trim() === '') return true; // Optional field
+  if (!handle || handle.trim() === "") return true; // Optional field
   const instagramRegex = /^@?[A-Za-z0-9._]{1,30}$/;
   return instagramRegex.test(handle.trim());
 };
@@ -193,37 +190,37 @@ export const validateField = (fieldName, value, validationType) => {
   if (!validationType) return true;
 
   switch (validationType) {
-    case 'email':
+    case "email":
       return validateEmail(value);
-    case 'contact':
+    case "contact":
       return validateContact(value);
-    case 'contactOptional':
+    case "contactOptional":
       return validateContactOptional(value);
-    case 'password':
+    case "password":
       return validatePassword(value);
-    case 'businessName':
+    case "businessName":
       return validateBusinessName(value);
-    case 'required':
+    case "required":
       return validateRequired(value);
-    case 'pincode':
+    case "pincode":
       return validatePincode(value);
-    case 'gst':
+    case "gst":
       return validateGST(value);
-    case 'fssai':
+    case "fssai":
       return validateFSSAI(value);
-    case 'pan':
+    case "pan":
       return validatePAN(value);
-    case 'url':
+    case "url":
       return validateURL(value);
-    case 'instagram':
+    case "instagram":
       return validateInstagram(value);
-    case 'year':
+    case "year":
       return validateYear(value);
-    case 'positiveNumber':
+    case "positiveNumber":
       return validatePositiveNumber(value);
-    case 'latitude':
+    case "latitude":
       return validateLatitude(value);
-    case 'longitude':
+    case "longitude":
       return validateLongitude(value);
     default:
       return true;
@@ -231,47 +228,52 @@ export const validateField = (fieldName, value, validationType) => {
 };
 
 // Get validation error message
-export const getValidationError = (fieldName, value, validationType, fieldLabel) => {
-  if (!validationType) return '';
+export const getValidationError = (
+  fieldName,
+  value,
+  validationType,
+  fieldLabel,
+) => {
+  if (!validationType) return "";
 
   const isValid = validateField(fieldName, value, validationType);
-  if (isValid) return '';
+  if (isValid) return "";
 
   switch (validationType) {
-    case 'email':
-      return 'Please enter a valid email address';
-    case 'contact':
-      return 'Please enter a valid 10-digit mobile number';
-    case 'contactOptional':
-      return 'Please enter a valid 10-digit mobile number or leave empty';
-    case 'password':
-      return 'Password must be at least 6 characters long';
-    case 'businessName':
-      return 'Business name must be between 2-100 characters';
-    case 'required':
+    case "email":
+      return "Please enter a valid email address";
+    case "contact":
+      return "Please enter a valid 10-digit mobile number";
+    case "contactOptional":
+      return "Please enter a valid 10-digit mobile number or leave empty";
+    case "password":
+      return "Password must be at least 6 characters long";
+    case "businessName":
+      return "Business name must be between 2-100 characters";
+    case "required":
       return `${fieldLabel} is required`;
-    case 'pincode':
-      return 'Please enter a valid 6-digit pincode';
-    case 'gst':
-      return 'Please enter a valid GST number (15 characters)';
-    case 'fssai':
-      return 'Please enter a valid 14-digit FSSAI number';
-    case 'pan':
-      return 'Please enter a valid PAN number (e.g., ABCDE1234F)';
-    case 'url':
-      return 'Please enter a valid URL';
-    case 'instagram':
-      return 'Please enter a valid Instagram handle';
-    case 'year':
-      return 'Please enter a valid year';
-    case 'positiveNumber':
-      return 'Please enter a positive number';
-    case 'latitude':
-      return 'Please enter a valid latitude (-90 to 90)';
-    case 'longitude':
-      return 'Please enter a valid longitude (-180 to 180)';
+    case "pincode":
+      return "Please enter a valid 6-digit pincode";
+    case "gst":
+      return "Please enter a valid GST number (15 characters)";
+    case "fssai":
+      return "Please enter a valid 14-digit FSSAI number";
+    case "pan":
+      return "Please enter a valid PAN number (e.g., ABCDE1234F)";
+    case "url":
+      return "Please enter a valid URL";
+    case "instagram":
+      return "Please enter a valid Instagram handle";
+    case "year":
+      return "Please enter a valid year";
+    case "positiveNumber":
+      return "Please enter a positive number";
+    case "latitude":
+      return "Please enter a valid latitude (-90 to 90)";
+    case "longitude":
+      return "Please enter a valid longitude (-180 to 180)";
     default:
-      return 'Invalid value';
+      return "Invalid value";
   }
 };
 
@@ -280,13 +282,18 @@ export const validateForm = (formData, formConfig) => {
   const errors = {};
   let isValid = true;
 
-  formConfig.sections.forEach(section => {
-    section.fields.forEach(field => {
+  formConfig.sections.forEach((section) => {
+    section.fields.forEach((field) => {
       const value = formData[field.name];
       const fieldIsValid = validateField(field.name, value, field.validation);
-      
+
       if (!fieldIsValid) {
-        errors[field.name] = getValidationError(field.name, value, field.validation, field.label);
+        errors[field.name] = getValidationError(
+          field.name,
+          value,
+          field.validation,
+          field.label,
+        );
         isValid = false;
       }
     });

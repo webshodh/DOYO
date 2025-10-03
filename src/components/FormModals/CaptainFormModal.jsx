@@ -52,7 +52,7 @@ const FormField = memo(
         <p className="text-xs text-gray-500">{helpText}</p>
       )}
     </div>
-  )
+  ),
 );
 
 FormField.displayName = "FormField";
@@ -104,8 +104,8 @@ const ValidationInput = memo(
                 hasError
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50"
                   : isValid
-                  ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
-                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
+                    ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
               }
               ${className}
             `}
@@ -142,7 +142,7 @@ const ValidationInput = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 ValidationInput.displayName = "ValidationInput";
@@ -181,8 +181,8 @@ const ValidationTextArea = memo(
               hasError
                 ? "border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50"
                 : isValid
-                ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
-                : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
+                  ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
+                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
             }
             ${className}
           `}
@@ -193,7 +193,7 @@ const ValidationTextArea = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ValidationTextArea.displayName = "ValidationTextArea";
@@ -220,7 +220,7 @@ const PhotoUpload = memo(
           onPhotoChange(file);
         }
       },
-      [onPhotoChange]
+      [onPhotoChange],
     );
 
     const handleRemovePhoto = useCallback(() => {
@@ -280,7 +280,7 @@ const PhotoUpload = memo(
         {error && <p className="text-xs text-red-600 text-center">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
 PhotoUpload.displayName = "PhotoUpload";
@@ -434,7 +434,7 @@ const ActionButtons = memo(
         {cancelText}
       </button>
     </div>
-  )
+  ),
 );
 
 ActionButtons.displayName = "ActionButtons";
@@ -524,7 +524,7 @@ const CaptainFormModal = memo(
             fieldName,
             value,
             existingCaptains,
-            editCaptain?.captainId
+            editCaptain?.captainId,
           );
           setErrors((prev) => ({
             ...prev,
@@ -534,7 +534,7 @@ const CaptainFormModal = memo(
           setErrors((prev) => ({ ...prev, [fieldName]: null }));
         }
       },
-      [existingCaptains, editCaptain]
+      [existingCaptains, editCaptain],
     );
 
     const canSubmit = useMemo(() => {
@@ -554,7 +554,7 @@ const CaptainFormModal = memo(
       }
 
       const hasAllRequired = requiredFields.every((field) =>
-        formData[field]?.toString().trim()
+        formData[field]?.toString().trim(),
       );
       const hasNoErrors = Object.values(errors).every((error) => !error);
 
@@ -568,7 +568,7 @@ const CaptainFormModal = memo(
         const validation = validateCaptainForm(
           formData,
           existingCaptains,
-          editCaptain?.captainId
+          editCaptain?.captainId,
         );
 
         if (!validation.isValid) {
@@ -589,7 +589,7 @@ const CaptainFormModal = memo(
           setIsSubmitting(false);
         }
       },
-      [formData, existingCaptains, editCaptain, onSubmit, onClose]
+      [formData, existingCaptains, editCaptain, onSubmit, onClose],
     );
 
     const handleClose = useCallback(() => {
@@ -597,7 +597,7 @@ const CaptainFormModal = memo(
 
       if (isDirty) {
         const shouldClose = window.confirm(
-          "You have unsaved changes. Are you sure you want to close?"
+          "You have unsaved changes. Are you sure you want to close?",
         );
         if (!shouldClose) return;
       }
@@ -866,7 +866,7 @@ const CaptainFormModal = memo(
         </form>
       </Modal>
     );
-  }
+  },
 );
 
 CaptainFormModal.displayName = "CaptainFormModal";

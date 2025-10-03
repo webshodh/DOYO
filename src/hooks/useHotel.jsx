@@ -135,7 +135,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting, onHotelAdded] // Removed hotels to prevent unnecessary re-renders
+    [submitting, onHotelAdded], // Removed hotels to prevent unnecessary re-renders
   );
 
   // Update hotel (optimized dependencies)
@@ -149,7 +149,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         const success = await hotelServices.updateHotel(
           hotelId,
           hotelData,
-          hotels
+          hotels,
         );
         return success;
       } catch (err) {
@@ -161,7 +161,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting] // Removed hotels to prevent unnecessary re-renders
+    [submitting], // Removed hotels to prevent unnecessary re-renders
   );
 
   // Delete hotel
@@ -183,7 +183,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   // Bulk operations
@@ -196,7 +196,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       try {
         const success = await hotelServices.bulkUpdateHotels(
           hotelIds,
-          updateData
+          updateData,
         );
         return success;
       } catch (err) {
@@ -208,7 +208,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   // Prepare for edit
@@ -233,7 +233,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         return result.success;
       }
     },
-    [addHotel, updateHotel]
+    [addHotel, updateHotel],
   );
 
   // Search handling
@@ -307,7 +307,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSelectedHotels([]);
       },
     }),
-    [filteredHotels]
+    [filteredHotels],
   );
 
   // Memoize computed values to prevent recalculation
@@ -421,7 +421,7 @@ export const useHotelsList = () => {
 
   const activeHotels = useMemo(() => {
     return hotels.filter(
-      (hotel) => hotel.status === "active" || hotel.status === "Active"
+      (hotel) => hotel.status === "active" || hotel.status === "Active",
     );
   }, [hotels]);
 
@@ -431,7 +431,7 @@ export const useHotelsList = () => {
       hotelCount: hotels.length,
       activeCount: activeHotels.length,
     }),
-    [hotels.length, activeHotels.length]
+    [hotels.length, activeHotels.length],
   );
 
   return {
@@ -505,7 +505,7 @@ export const useHotelDetails = (hotelId) => {
       isActive: hotel?.status === "active",
       hasSubscription: Boolean(hotel?.metrics?.subscription),
     }),
-    [hotel?.status, hotel?.metrics?.subscription]
+    [hotel?.status, hotel?.metrics?.subscription],
   );
 
   return {

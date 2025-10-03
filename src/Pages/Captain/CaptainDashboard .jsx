@@ -108,7 +108,7 @@ const CaptainDashboard = () => {
       taxRate: 0.18,
       footer: "Thank you for dining with us!",
     }),
-    [captain, hotelName]
+    [captain, hotelName],
   );
 
   // Print bill handler
@@ -154,7 +154,7 @@ const CaptainDashboard = () => {
       (error) => {
         console.error("Error loading menu items:", error);
         setAvailableMenuItems([]);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -224,7 +224,7 @@ const CaptainDashboard = () => {
         setUpdatingOrderId(null);
       }
     },
-    [updateOrderStatus, refreshOrders, captain?.name]
+    [updateOrderStatus, refreshOrders, captain?.name],
   );
 
   // Edit order modal handlers
@@ -252,7 +252,7 @@ const CaptainDashboard = () => {
         throw error;
       }
     },
-    [updateOrder, refreshOrders, captain?.name]
+    [updateOrder, refreshOrders, captain?.name],
   );
 
   // View order modal handler
@@ -278,18 +278,18 @@ const CaptainDashboard = () => {
 
       return result;
     },
-    [deleteOrder, orders]
+    [deleteOrder, orders],
   );
 
   // Search and filter input handlers
   const handleSearchInputChange = useCallback(
     (e) => handleSearchChange(e.target.value),
-    [handleSearchChange]
+    [handleSearchChange],
   );
 
   const handleStatusInputChange = useCallback(
     (e) => handleStatusFilterChange(e.target.value),
-    [handleStatusFilterChange]
+    [handleStatusFilterChange],
   );
 
   // View details handler
@@ -320,7 +320,7 @@ const CaptainDashboard = () => {
 
       return result;
     },
-    [updateOrderStatus, viewingOrder, captain?.name]
+    [updateOrderStatus, viewingOrder, captain?.name],
   );
 
   // Computed flags for loading and errors
@@ -498,7 +498,7 @@ const CaptainDashboard = () => {
             description={
               selectedTimePeriod === "daily"
                 ? `No orders found for ${new Date(
-                    selectedDate
+                    selectedDate,
                   ).toLocaleDateString()}. Try selecting a different date or time period.`
                 : "No orders have been placed yet. Orders will appear here once customers start placing them."
             }

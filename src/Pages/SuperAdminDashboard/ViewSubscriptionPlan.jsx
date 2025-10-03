@@ -33,8 +33,8 @@ import { useTheme } from "context/ThemeContext";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useNavigate } from "react-router-dom";
 
-const SubscriptionFormModal = React.lazy(() =>
-  import("../../components/FormModals/SubscriptionPlanFormModal")
+const SubscriptionFormModal = React.lazy(
+  () => import("../../components/FormModals/SubscriptionPlanFormModal"),
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -70,9 +70,7 @@ const ViewSubscriptionPlan = memo(() => {
     setSearchTerm,
     clearError,
   } = useSubscription({
-    onPlanAdded: (planData) => {
-      console.log("Plan added successfully:", planData);
-    },
+    onPlanAdded: (planData) => {},
   });
 
   // Get hotel subscriptions overview
@@ -160,7 +158,7 @@ const ViewSubscriptionPlan = memo(() => {
         console.error("Error preparing plan for edit:", err);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit],
   );
 
   const handleDeleteClick = useCallback(
@@ -168,7 +166,7 @@ const ViewSubscriptionPlan = memo(() => {
       const planName = plan.planName || "this plan";
 
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${planName}"?\n\nNote: Plans currently assigned to hotels cannot be deleted. This action cannot be undone.`
+        `Are you sure you want to delete "${planName}"?\n\nNote: Plans currently assigned to hotels cannot be deleted. This action cannot be undone.`,
       );
 
       if (confirmed) {
@@ -179,7 +177,7 @@ const ViewSubscriptionPlan = memo(() => {
         }
       }
     },
-    [deletePlan]
+    [deletePlan],
   );
 
   const handleAssignClick = useCallback((plan) => {
@@ -199,7 +197,7 @@ const ViewSubscriptionPlan = memo(() => {
         console.error("Error assigning plan:", err);
       }
     },
-    [selectedPlanForAssign, assignPlanToHotel]
+    [selectedPlanForAssign, assignPlanToHotel],
   );
 
   const handleModalClose = useCallback(() => {
@@ -218,7 +216,7 @@ const ViewSubscriptionPlan = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit]
+    [handleFormSubmit],
   );
 
   const handleClearSearch = useCallback(() => {
@@ -478,8 +476,8 @@ const ViewSubscriptionPlan = memo(() => {
                           plan.status === "active"
                             ? "bg-green-100 text-green-600"
                             : plan.status === "inactive"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-yellow-100 text-yellow-600"
+                              ? "bg-red-100 text-red-600"
+                              : "bg-yellow-100 text-yellow-600"
                         }`}
                       >
                         {plan.status}

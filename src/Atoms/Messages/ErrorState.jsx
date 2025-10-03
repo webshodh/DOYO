@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import { AlertCircle } from "lucide-react";
 import { SIZE_VARIANTS } from "Constants/Themes/sizeVariants";
 
-
 const ErrorState = memo(
   ({ size = "medium", message = "Error loading data" }) => {
     const sizeConfig = SIZE_VARIANTS[size];
@@ -33,7 +32,7 @@ const ErrorState = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ErrorState.displayName = "ErrorState";

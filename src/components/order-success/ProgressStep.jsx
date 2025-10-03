@@ -15,8 +15,8 @@ const ProgressStep = ({
           isCompleted
             ? "bg-green-500 text-white"
             : isInProgress
-            ? "bg-yellow-100 border-2 border-yellow-500 text-yellow-600"
-            : "bg-gray-200 text-gray-500"
+              ? "bg-yellow-100 border-2 border-yellow-500 text-yellow-600"
+              : "bg-gray-200 text-gray-500"
         }`}
       >
         <Icon size={16} />
@@ -42,8 +42,8 @@ const ProgressStep = ({
           isCompleted
             ? "bg-green-100 text-green-700"
             : isInProgress
-            ? "bg-yellow-100 text-yellow-700"
-            : "bg-gray-100 text-gray-500"
+              ? "bg-yellow-100 text-yellow-700"
+              : "bg-gray-100 text-gray-500"
         }`}
       >
         {isCompleted ? "Completed" : isInProgress ? "In Progress" : "Pending"}

@@ -32,14 +32,13 @@ import Offers from "./Pages/User/Offers";
 import LoadingSpinner from "./atoms/LoadingSpinner";
 import AdminLayout from "./layout/AdminDashboardLayout";
 import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
-import BulkUpload from "./Pages/Admin Dashboard/BulkUpload";
 import CaptainMenuPage from "./Pages/Captain/CaptainMenuPage";
 import CheckoutPage from "./Pages/Captain/CheckoutPage";
-import KitchenAdminPage from "./Pages/Admin Dashboard/Kitchen";
+import KitchenAdminPage from "./Pages/Admin Dashboard/KitchenDahboard";
 import AddCaptain from "Pages/Admin Dashboard/AddCaptain";
 import CaptainDashboardLayout from "layout/CaptainDashboardLayout";
 import CaptainDashboard from "Pages/Captain/CaptainDashboard ";
-import CaptainLogin from "Pages/Captain/CaptainLogin";
+import CaptainLogin from "Pages/Login/CaptainLogin";
 import MyOrdersPage from "Pages/Captain/MyOrderPage";
 import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
 import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
@@ -48,7 +47,7 @@ import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
 import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
 import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
-import CustomersPage from "Pages/Admin Dashboard/CustomersPage";
+import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -350,14 +349,7 @@ function App() {
                           </AdminLayout>
                         }
                       />
-                      <Route
-                        path="upload-data"
-                        element={
-                          <AdminLayout>
-                            <BulkUpload />
-                          </AdminLayout>
-                        }
-                      />
+
                       <Route
                         path="kitchen"
                         element={

@@ -85,7 +85,7 @@ const ImageHeader = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ImageHeader.displayName = "ImageHeader";

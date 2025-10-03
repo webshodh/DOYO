@@ -42,7 +42,7 @@ export const subscriptionServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      }
+      },
     );
     return unsubscribe;
   },
@@ -54,7 +54,7 @@ export const subscriptionServices = {
       if (
         existingPlans.some(
           (plan) =>
-            plan.planName?.toLowerCase() === planData.planName?.toLowerCase()
+            plan.planName?.toLowerCase() === planData.planName?.toLowerCase(),
         )
       ) {
         toast.error("Plan name already exists", {
@@ -192,7 +192,7 @@ export const subscriptionServices = {
           "hotels",
           hotelDoc.id,
           "subscription",
-          "current"
+          "current",
         );
         const subscriptionDoc = await getDoc(subscriptionRef);
 
@@ -207,11 +207,11 @@ export const subscriptionServices = {
       if (assignedToHotels.length > 0) {
         toast.error(
           `Cannot delete plan. It's assigned to: ${assignedToHotels.join(
-            ", "
+            ", ",
           )}`,
           {
             position: toast.POSITION.TOP_RIGHT,
-          }
+          },
         );
         return false;
       }
@@ -255,7 +255,7 @@ export const subscriptionServices = {
         "hotels",
         hotelId,
         "subscription",
-        "current"
+        "current",
       );
 
       batch.set(subscriptionRef, {
@@ -267,14 +267,14 @@ export const subscriptionServices = {
         status: "active",
         assignedAt: Timestamp.fromDate(new Date()),
         expiresAt: Timestamp.fromDate(
-          new Date(Date.now() + planData.duration * 30 * 24 * 60 * 60 * 1000)
+          new Date(Date.now() + planData.duration * 30 * 24 * 60 * 60 * 1000),
         ), // duration in months
         updatedAt: Timestamp.fromDate(new Date()),
       });
 
       // Create subscription history entry
       const historyRef = doc(
-        collection(firestore, "hotels", hotelId, "subscription", "history")
+        collection(firestore, "hotels", hotelId, "subscription", "history"),
       );
 
       batch.set(historyRef, {
@@ -310,7 +310,7 @@ export const subscriptionServices = {
         "hotels",
         hotelId,
         "subscription",
-        "current"
+        "current",
       );
       const subscriptionDoc = await getDoc(subscriptionRef);
 
@@ -339,7 +339,7 @@ export const subscriptionServices = {
           "hotels",
           hotelDoc.id,
           "subscription",
-          "current"
+          "current",
         );
 
         const subscriptionDoc = await getDoc(subscriptionRef);

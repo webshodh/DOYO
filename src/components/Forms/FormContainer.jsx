@@ -32,7 +32,7 @@ export default function FormContainer({
         return {};
       }
     },
-    [validationSchema]
+    [validationSchema],
   );
 
   useEffect(() => {

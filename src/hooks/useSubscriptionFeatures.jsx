@@ -43,9 +43,8 @@ export function useSubscriptionFeatures(hotelName) {
     async function fetchFeatures() {
       try {
         setLoading(true);
-        const subscription = await subscriptionServices.getHotelSubscription(
-          hotelName
-        );
+        const subscription =
+          await subscriptionServices.getHotelSubscription(hotelName);
         if (isMounted && subscription?.features) {
           setFeatures({
             ...features,

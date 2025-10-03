@@ -52,7 +52,7 @@ const PriorityBadge = memo(({ item }) => {
   if (!badge) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 z-20" style={{width:'112px'}}>
+    <div className="absolute bottom-0 left-0 z-20" style={{ width: "112px" }}>
       <div
         className={`bg-gradient-to-r ${badge.color} text-white px-2 py-1 rounded-half text-xs font-bold shadow-lg flex items-center gap-1 animate-fadeIn border border-white/20`}
       >
@@ -64,4 +64,4 @@ const PriorityBadge = memo(({ item }) => {
 });
 
 PriorityBadge.displayName = "PriorityBadge";
-export default PriorityBadge
+export default PriorityBadge;

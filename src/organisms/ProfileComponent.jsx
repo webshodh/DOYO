@@ -97,7 +97,7 @@ const StatsCard = memo(
         )}
       </div>
     </div>
-  )
+  ),
 );
 
 StatsCard.displayName = "StatsCard";
@@ -127,7 +127,7 @@ const ToggleSwitch = memo(
         />
       </button>
     </div>
-  )
+  ),
 );
 
 ToggleSwitch.displayName = "ToggleSwitch";
@@ -195,10 +195,10 @@ const PasswordStrength = memo(({ password }) => {
             strength >= 4
               ? "text-green-600"
               : strength >= 3
-              ? "text-blue-600"
-              : strength >= 2
-              ? "text-yellow-600"
-              : "text-red-600"
+                ? "text-blue-600"
+                : strength >= 2
+                  ? "text-yellow-600"
+                  : "text-red-600"
           }`}
         >
           {getStrengthText()}
@@ -309,7 +309,7 @@ const FormField = memo(
         {children}
       </div>
     );
-  }
+  },
 );
 
 FormField.displayName = "FormField";
@@ -517,7 +517,7 @@ const EnhancedAdminProfile = memo(() => {
       { id: "integrations", label: "Integrations", icon: Link2 },
       { id: "support", label: "Help & Support", icon: HelpCircle },
     ],
-    []
+    [],
   );
 
   // Load user profile and stats
@@ -581,7 +581,7 @@ const EnhancedAdminProfile = memo(() => {
       setProfileData((prev) => ({ ...prev, [name]: value }));
       clearError(name);
     },
-    [clearError]
+    [clearError],
   );
 
   const handlePasswordChange = useCallback(
@@ -590,7 +590,7 @@ const EnhancedAdminProfile = memo(() => {
       setPasswordData((prev) => ({ ...prev, [name]: value }));
       clearError(name);
     },
-    [clearError]
+    [clearError],
   );
 
   const handleSettingChange = useCallback((category, setting, value) => {
@@ -646,7 +646,7 @@ const EnhancedAdminProfile = memo(() => {
         setLoading(false);
       }
     },
-    [auth, profileData, settings]
+    [auth, profileData, settings],
   );
 
   const handleUpdatePassword = useCallback(
@@ -661,7 +661,7 @@ const EnhancedAdminProfile = memo(() => {
         // Reauthenticate user
         const credential = EmailAuthProvider.credential(
           user.email,
-          passwordData.currentPassword
+          passwordData.currentPassword,
         );
         await reauthenticateWithCredential(user, credential);
 
@@ -685,7 +685,7 @@ const EnhancedAdminProfile = memo(() => {
         setLoading(false);
       }
     },
-    [auth, passwordData, setError]
+    [auth, passwordData, setError],
   );
 
   const handleExportData = useCallback(() => {
@@ -792,10 +792,10 @@ const EnhancedAdminProfile = memo(() => {
                         activity.type === "booking"
                           ? "bg-green-100"
                           : activity.type === "security"
-                          ? "bg-red-100"
-                          : activity.type === "settings"
-                          ? "bg-blue-100"
-                          : "bg-purple-100"
+                            ? "bg-red-100"
+                            : activity.type === "settings"
+                              ? "bg-blue-100"
+                              : "bg-purple-100"
                       }`}
                     >
                       <Activity className="w-4 h-4" />
@@ -983,7 +983,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "security",
                       "twoFactorEnabled",
-                      !settings.security.twoFactorEnabled
+                      !settings.security.twoFactorEnabled,
                     )
                   }
                   label="Enable Two-Factor Authentication"
@@ -1015,7 +1015,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "security",
                       "loginAlerts",
-                      !settings.security.loginAlerts
+                      !settings.security.loginAlerts,
                     )
                   }
                   label="Login Alerts"
@@ -1031,7 +1031,7 @@ const EnhancedAdminProfile = memo(() => {
                       handleSettingChange(
                         "security",
                         "sessionTimeout",
-                        parseInt(e.target.value)
+                        parseInt(e.target.value),
                       )
                     }
                     placeholder="30"
@@ -1059,7 +1059,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "email",
-                      !settings.notifications.email
+                      !settings.notifications.email,
                     )
                   }
                   label="Email Notifications"
@@ -1071,7 +1071,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "marketing",
-                      !settings.notifications.marketing
+                      !settings.notifications.marketing,
                     )
                   }
                   label="Marketing Emails"
@@ -1092,7 +1092,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "push",
-                      !settings.notifications.push
+                      !settings.notifications.push,
                     )
                   }
                   label="Push Notifications"
@@ -1104,7 +1104,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "sms",
-                      !settings.notifications.sms
+                      !settings.notifications.sms,
                     )
                   }
                   label="SMS Notifications"
@@ -1169,7 +1169,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "preferences",
                       "darkMode",
-                      !settings.preferences.darkMode
+                      !settings.preferences.darkMode,
                     )
                   }
                   label="Dark Mode"
@@ -1191,7 +1191,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "preferences",
                       "soundEnabled",
-                      !settings.preferences.soundEnabled
+                      !settings.preferences.soundEnabled,
                     )
                   }
                   label="Sound Effects"
@@ -1203,7 +1203,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "preferences",
                       "autoSave",
-                      !settings.preferences.autoSave
+                      !settings.preferences.autoSave,
                     )
                   }
                   label="Auto-save"
@@ -1219,7 +1219,7 @@ const EnhancedAdminProfile = memo(() => {
                       handleSettingChange(
                         "preferences",
                         "currency",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -1251,7 +1251,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "privacy",
                       "profileVisible",
-                      !settings.privacy.profileVisible
+                      !settings.privacy.profileVisible,
                     )
                   }
                   label="Public Profile"
@@ -1263,7 +1263,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "privacy",
                       "showEmail",
-                      !settings.privacy.showEmail
+                      !settings.privacy.showEmail,
                     )
                   }
                   label="Show Email"
@@ -1275,7 +1275,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "privacy",
                       "showPhone",
-                      !settings.privacy.showPhone
+                      !settings.privacy.showPhone,
                     )
                   }
                   label="Show Phone"

@@ -135,7 +135,7 @@ const DatePicker = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 DatePicker.displayName = "DatePicker";

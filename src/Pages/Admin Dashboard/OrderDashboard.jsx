@@ -146,7 +146,7 @@ const OrderDashboard = () => {
       taxRate: 0.18, // 18% GST
       footer: "Thank you for dining with us!",
     }),
-    [hotelName]
+    [hotelName],
   );
 
   // Enhanced order statistics with corrected mapping for simplified status system
@@ -217,7 +217,7 @@ const OrderDashboard = () => {
 
       return result;
     },
-    [updateOrderStatus, selectedOrder]
+    [updateOrderStatus, selectedOrder],
   );
 
   // Loading state for menu management data
@@ -226,7 +226,6 @@ const OrderDashboard = () => {
 
   // Handle print bill
   const handlePrintBill = useCallback((order) => {
-    console.log("Printing bill for order:", order); // Debug log
     setSelectedOrderForBill(order);
     setShowPrintBill(true);
   }, []);
@@ -300,7 +299,7 @@ const OrderDashboard = () => {
               subtitle={
                 orderStats.total > 0
                   ? `${Math.round(
-                      (orderStats.rejected / orderStats.total) * 100
+                      (orderStats.rejected / orderStats.total) * 100,
                     )}% rejection rate`
                   : ""
               }
@@ -309,19 +308,19 @@ const OrderDashboard = () => {
           </div>
         </div>
         <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              title="Total Revenue"
-              value={`₹${orderStats.totalRevenue?.toLocaleString() || 0}`}
-              color="yellow"
-              icon={TrendingUp}
-              subtitle={
-                displayStats.avgOrderValue > 0
-                  ? `₹${displayStats.avgOrderValue} avg order`
-                  : ""
-              }
-              trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
-            />
-          </div>
+          <StatCard
+            title="Total Revenue"
+            value={`₹${orderStats.totalRevenue?.toLocaleString() || 0}`}
+            color="yellow"
+            icon={TrendingUp}
+            subtitle={
+              displayStats.avgOrderValue > 0
+                ? `₹${displayStats.avgOrderValue} avg order`
+                : ""
+            }
+            trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
+          />
+        </div>
 
         {/* Enhanced Recent Orders Table */}
         {hasOrders && (
@@ -392,7 +391,7 @@ const OrderDashboard = () => {
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 {selectedTimePeriod === "daily"
                   ? `No orders have been placed for ${new Date(
-                      selectedDate
+                      selectedDate,
                     ).toLocaleDateString()}. Try selecting a different date or time period.`
                   : "Your dashboard will come alive once you start receiving orders. Check your menu setup and ensure everything is configured correctly."}
               </p>

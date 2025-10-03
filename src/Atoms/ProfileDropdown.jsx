@@ -87,8 +87,8 @@ const ProfileDropdown = memo(
         </>
       )}
     </div>
-  )
+  ),
 );
 
 ProfileDropdown.displayName = "ProfileDropdown";
-export default ProfileDropdown
+export default ProfileDropdown;

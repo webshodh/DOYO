@@ -2,10 +2,14 @@
 const OrderItemsList = ({ items = [] }) => {
   const renderVegIndicator = (categoryType) => {
     const isVeg = categoryType === "Veg" || categoryType === "veg";
-    
+
     return (
-      <div className={`w-3 h-3 border-2 ${isVeg ? 'border-green-500' : 'border-red-500'} bg-white rounded-sm flex items-center justify-center`}>
-        <div className={`w-1 h-1 ${isVeg ? 'bg-green-500' : 'bg-red-500'} rounded-full`}></div>
+      <div
+        className={`w-3 h-3 border-2 ${isVeg ? "border-green-500" : "border-red-500"} bg-white rounded-sm flex items-center justify-center`}
+      >
+        <div
+          className={`w-1 h-1 ${isVeg ? "bg-green-500" : "bg-red-500"} rounded-full`}
+        ></div>
       </div>
     );
   };
@@ -19,9 +23,7 @@ const OrderItemsList = ({ items = [] }) => {
         >
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-gray-800">
-                {item.menuName}
-              </span>
+              <span className="font-medium text-gray-800">{item.menuName}</span>
               {renderVegIndicator(item.categoryType)}
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">

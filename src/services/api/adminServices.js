@@ -70,7 +70,7 @@ export const adminServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      }
+      },
     );
     return unsubscribe;
   },
@@ -99,7 +99,7 @@ export const adminServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      }
+      },
     );
     return unsubscribe;
   },
@@ -114,7 +114,7 @@ export const adminServices = {
       if (
         existingAdmins.some(
           (admin) =>
-            admin.email?.toLowerCase() === adminData.email?.toLowerCase()
+            admin.email?.toLowerCase() === adminData.email?.toLowerCase(),
         )
       ) {
         toast.error("Email already exists", {
@@ -124,14 +124,13 @@ export const adminServices = {
       }
 
       // Create Firebase Auth user first
-      console.log("Creating Firebase Auth user...");
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         adminData.email,
-        adminData.password
+        adminData.password,
       );
       createdUser = userCredential.user;
-      console.log("Firebase Auth user created:", createdUser.uid);
 
       // Update the user's display name
       await updateProfile(createdUser, {
@@ -179,7 +178,7 @@ export const adminServices = {
           "hotels",
           linkedHotelId,
           "admins",
-          adminId
+          adminId,
         );
         batch.set(hotelAdminRef, {
           adminId,
@@ -198,7 +197,7 @@ export const adminServices = {
           "hotels",
           linkedHotelId,
           "admins",
-          "_meta"
+          "_meta",
         );
         const metaDoc = await getDoc(adminMetaRef);
         const currentCount = metaDoc.exists()
@@ -211,7 +210,7 @@ export const adminServices = {
             totalAdmins: currentCount + 1,
             lastUpdated: Timestamp.fromDate(new Date()),
           },
-          { merge: true }
+          { merge: true },
         );
       }
 
@@ -230,7 +229,6 @@ export const adminServices = {
       });
 
       await batch.commit();
-      console.log("Admin data saved to Firestore successfully");
 
       // Sign out the newly created user so they don't interfere with current session
       if (auth.currentUser?.uid === createdUser.uid) {
@@ -242,7 +240,7 @@ export const adminServices = {
         {
           position: toast.POSITION.TOP_RIGHT,
           autoClose: 7000,
-        }
+        },
       );
       return true;
     } catch (error) {
@@ -251,11 +249,8 @@ export const adminServices = {
       // Clean up Firebase Auth user if Firestore operations failed
       if (createdUser) {
         try {
-          console.log("Cleaning up Firebase Auth user due to error...");
           await deleteUser(createdUser);
-        } catch (cleanupError) {
-          console.error("Error cleaning up Firebase Auth user:", cleanupError);
-        }
+        } catch (cleanupError) {}
       }
 
       // Handle specific Firebase Auth errors
@@ -313,7 +308,7 @@ export const adminServices = {
           "hotels",
           adminData.linkedHotelId,
           "admins",
-          adminId
+          adminId,
         );
         batch.update(hotelAdminRef, {
           fullName: adminData.fullName,
@@ -330,7 +325,7 @@ export const adminServices = {
         const userProfileRef = doc(
           firestore,
           "userProfiles",
-          adminDoc.data().firebaseUid
+          adminDoc.data().firebaseUid,
         );
         batch.update(userProfileRef, {
           fullName: adminData.fullName,
@@ -372,7 +367,7 @@ export const adminServices = {
           "hotels",
           admin.linkedHotelId,
           "admins",
-          admin.adminId
+          admin.adminId,
         );
         batch.delete(hotelAdminRef);
 
@@ -382,7 +377,7 @@ export const adminServices = {
           "hotels",
           admin.linkedHotelId,
           "admins",
-          "_meta"
+          "_meta",
         );
         const metaDoc = await getDoc(adminMetaRef);
         const currentCount = metaDoc.exists()
@@ -400,7 +395,7 @@ export const adminServices = {
         const userProfileRef = doc(
           firestore,
           "userProfiles",
-          admin.firebaseUid
+          admin.firebaseUid,
         );
         batch.delete(userProfileRef);
       }
@@ -409,9 +404,6 @@ export const adminServices = {
 
       // Note: Deleting Firebase Auth users requires admin privileges
       // This should be handled by a Cloud Function with admin SDK
-      console.log(
-        "Admin deleted from Firestore. Firebase Auth user deletion should be handled by Cloud Function."
-      );
 
       toast.success("Admin deleted successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -448,7 +440,7 @@ export const adminServices = {
           "hotels",
           hotelId,
           "admins",
-          adminId
+          adminId,
         );
         batch.set(hotelAdminRef, {
           adminId,
@@ -466,7 +458,7 @@ export const adminServices = {
           const userProfileRef = doc(
             firestore,
             "userProfiles",
-            adminData.firebaseUid
+            adminData.firebaseUid,
           );
           batch.update(userProfileRef, {
             linkedHotelId: hotelId,
@@ -508,7 +500,7 @@ export const adminServices = {
         "hotels",
         hotelId,
         "admins",
-        adminId
+        adminId,
       );
       batch.delete(hotelAdminRef);
 
@@ -518,7 +510,7 @@ export const adminServices = {
         const userProfileRef = doc(
           firestore,
           "userProfiles",
-          adminDoc.data().firebaseUid
+          adminDoc.data().firebaseUid,
         );
         batch.update(userProfileRef, {
           linkedHotelId: null,

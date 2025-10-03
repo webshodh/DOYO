@@ -25,7 +25,7 @@ const Offers = () => {
   const categoryCountsByType = {};
   offerTypes.forEach((type) => {
     categoryCountsByType[getOfferTypeLabel(type)] = offersData.filter(
-      (offer) => offer.offerType === type
+      (offer) => offer.offerType === type,
     ).length;
   });
 

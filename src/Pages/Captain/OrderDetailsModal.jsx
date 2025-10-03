@@ -41,7 +41,7 @@ const OrderDetailsModal = ({
         pricing.subtotal ||
         items.reduce(
           (sum, item) => sum + (item.finalPrice || 0) * (item.quantity || 0),
-          0
+          0,
         ),
       tax: pricing.tax || 0,
       total: pricing.total || 0,
@@ -54,7 +54,7 @@ const OrderDetailsModal = ({
       specialItems:
         order.orderSummary?.specialItems ||
         items.filter(
-          (item) => item.isRecommended || item.isPopular || item.isBestseller
+          (item) => item.isRecommended || item.isPopular || item.isBestseller,
         ).length,
     };
   }, [order]);
@@ -170,7 +170,7 @@ const OrderDetailsModal = ({
                       </p>
                       <p className="text-sm text-gray-900">
                         {formatDateTime(
-                          order.timestamps?.orderPlaced || order.orderTime
+                          order.timestamps?.orderPlaced || order.orderTime,
                         )}
                       </p>
                     </div>

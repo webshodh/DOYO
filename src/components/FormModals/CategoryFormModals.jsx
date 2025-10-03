@@ -29,7 +29,7 @@ const FormField = memo(
         <p className="text-xs text-gray-500">{helpText}</p>
       )}
     </div>
-  )
+  ),
 );
 
 FormField.displayName = "FormField";
@@ -69,8 +69,8 @@ const ValidationInput = memo(
             hasError
               ? "border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50"
               : isValid
-              ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
-              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
+                ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
+                : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
           }
           ${className}
         `}
@@ -87,7 +87,7 @@ const ValidationInput = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ValidationInput.displayName = "ValidationInput";
@@ -154,7 +154,7 @@ const ActionButtons = memo(
         {cancelText}
       </button>
     </div>
-  )
+  ),
 );
 
 ActionButtons.displayName = "ActionButtons";
@@ -268,7 +268,7 @@ const CategoryFormModal = memo(
           onChange(value);
         }
       },
-      [onChange]
+      [onChange],
     );
 
     // Handle form submission
@@ -303,13 +303,13 @@ const CategoryFormModal = memo(
         } catch (error) {
           console.error("Error submitting category:", error);
           setValidationError(
-            "An error occurred while saving. Please try again."
+            "An error occurred while saving. Please try again.",
           );
         } finally {
           setIsSubmitting(false);
         }
       },
-      [categoryName, editCategory, customValidation, onSubmit]
+      [categoryName, editCategory, customValidation, onSubmit],
     );
 
     // Handle modal close
@@ -396,7 +396,7 @@ const CategoryFormModal = memo(
         </form>
       </Modal>
     );
-  }
+  },
 );
 
 CategoryFormModal.displayName = "CategoryFormModal";

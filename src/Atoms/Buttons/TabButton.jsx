@@ -44,9 +44,6 @@ const TabButton = memo(
       },
     };
 
-    const theme = themes[type] || themes.regular;
-    const IconComponent = theme.icon;
-
     return (
       <button
         onClick={onClick}
@@ -73,7 +70,7 @@ const TabButton = memo(
         )}
       </button>
     );
-  }
+  },
 );
 
 TabButton.displayName = "TabButton";

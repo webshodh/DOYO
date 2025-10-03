@@ -40,7 +40,7 @@ export const useMenu = (hotelName) => {
           if (!isMounted) return;
           setMenus(menusData || []);
           setLoading(false);
-        }
+        },
       );
       unsubscribes.push(menuUnsubscribe);
 
@@ -50,14 +50,14 @@ export const useMenu = (hotelName) => {
         (categoriesData) => {
           if (!isMounted) return;
           setCategories(categoriesData || []);
-        }
+        },
       );
       unsubscribes.push(categoryUnsubscribe);
 
       // Subscribe to main categories
       const mainCategoriesRef = collection(
         firestore,
-        `hotels/${hotelName}/Maincategories`
+        `hotels/${hotelName}/Maincategories`,
       );
       const mainCategoryUnsubscribe = onSnapshot(
         mainCategoriesRef,
@@ -73,7 +73,7 @@ export const useMenu = (hotelName) => {
           if (!isMounted) return;
           console.error("Error fetching main categories:", err);
           setError(err.message || "Error fetching main categories");
-        }
+        },
       );
       unsubscribes.push(mainCategoryUnsubscribe);
     };
@@ -102,9 +102,9 @@ export const useMenu = (hotelName) => {
         menus,
         searchTerm,
         selectedCategory,
-        sortOrder
+        sortOrder,
       ),
-    [menus, searchTerm, selectedCategory, sortOrder]
+    [menus, searchTerm, selectedCategory, sortOrder],
   );
 
   // Memoize current user ID
@@ -127,7 +127,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, currentUserId]
+    [hotelName, currentUserId],
   );
 
   const updateMenu = useCallback(
@@ -139,7 +139,7 @@ export const useMenu = (hotelName) => {
           menuData,
           menuId,
           hotelName,
-          adminId
+          adminId,
         );
       } catch (err) {
         console.error("Error in updateMenu:", err);
@@ -149,7 +149,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, currentUserId]
+    [hotelName, currentUserId],
   );
 
   const deleteMenu = useCallback(
@@ -165,7 +165,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName]
+    [hotelName],
   );
 
   const toggleMenuAvailability = useCallback(
@@ -177,7 +177,7 @@ export const useMenu = (hotelName) => {
         return await menuServices.updateMenuAvailability(
           menuId,
           newAvail,
-          hotelName
+          hotelName,
         );
       } catch (err) {
         console.error("Error in toggleMenuAvailability:", err);
@@ -187,7 +187,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName]
+    [hotelName],
   );
 
   const prepareForEdit = useCallback(
@@ -200,7 +200,7 @@ export const useMenu = (hotelName) => {
         return null;
       }
     },
-    [hotelName]
+    [hotelName],
   );
 
   const handleFormSubmit = useCallback(
@@ -211,7 +211,7 @@ export const useMenu = (hotelName) => {
         return await addMenu(menuData);
       }
     },
-    [addMenu, updateMenu]
+    [addMenu, updateMenu],
   );
 
   // Filter, search, sort handlers
@@ -264,7 +264,7 @@ export const useMenu = (hotelName) => {
         return null;
       }
     },
-    [hotelName]
+    [hotelName],
   );
 
   // Utility functions
@@ -276,7 +276,7 @@ export const useMenu = (hotelName) => {
         menus.some(
           (m) =>
             m.menuName?.toLowerCase() === name.toLowerCase() &&
-            m.id !== excludeId
+            m.id !== excludeId,
         ),
 
       getMenusByCategory: (cat) => menus.filter((m) => m.menuCategory === cat),
@@ -293,14 +293,14 @@ export const useMenu = (hotelName) => {
 
       getChefSpecialMenus: () => menus.filter((m) => m.chefSpecial),
     }),
-    [hotelName, menus]
+    [hotelName, menus],
   );
 
   // Computed statistics
   const computedStats = useMemo(() => {
     const availableMenus = menus.filter((m) => m.availability === "Available");
     const unavailableMenus = menus.filter(
-      (m) => m.availability === "Unavailable"
+      (m) => m.availability === "Unavailable",
     );
     const discountedMenus = menus.filter((m) => m.discount > 0);
 

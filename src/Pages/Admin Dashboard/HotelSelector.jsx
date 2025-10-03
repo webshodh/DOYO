@@ -31,7 +31,7 @@ const HotelSelector = ({ onHotelSelect }) => {
         .replace(/[^a-z0-9]/g, "_")}/admin/dashboard`,
       {
         state: { hotelData: hotel },
-      }
+      },
     );
   };
 

@@ -21,12 +21,12 @@ import TimePeriodSelector from "atoms/TimePeriodSelector";
 
 // Lazy load heavy components
 const HeaderStats = React.lazy(() => import("components/HeaderStats"));
-const OrderFilters = React.lazy(() =>
-  import("components/order-dashboard/OrderFilters")
+const OrderFilters = React.lazy(
+  () => import("components/order-dashboard/OrderFilters"),
 );
 const OrderCard = React.lazy(() => import("components/Cards/OrderCard"));
-const OrderDetailsModal = React.lazy(() =>
-  import("components/order-dashboard/OrderDetailsModal")
+const OrderDetailsModal = React.lazy(
+  () => import("components/order-dashboard/OrderDetailsModal"),
 );
 
 // Time period tabs component
@@ -101,7 +101,7 @@ const KitchenAdminPage = memo(() => {
       completed: stats.completed,
       rejected: stats.rejected,
     }),
-    [stats, timeFilteredOrders.length]
+    [stats, timeFilteredOrders.length],
   );
 
   // Event handlers

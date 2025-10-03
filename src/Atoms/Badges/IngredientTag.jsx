@@ -130,7 +130,7 @@ const IngredientTag = memo(
           ${baseClasses} border-2 bg-white transition-colors duration-200
           ${color.bg.replace("bg-", "border-")} ${color.bg.replace(
             "bg-",
-            "text-"
+            "text-",
           )}
           ${interactive ? `hover:${color.bg} hover:text-white` : ""}
         `}
@@ -169,7 +169,7 @@ const IngredientTag = memo(
         {ingredient}
       </span>
     );
-  }
+  },
 );
 
 IngredientTag.displayName = "IngredientTag";
@@ -194,7 +194,7 @@ const EnhancedIngredientsDisplay = memo(
 
     const ingredientsList = useMemo(
       () => parseIngredients(ingredients),
-      [ingredients]
+      [ingredients],
     );
 
     if (ingredientsList.length === 0) return null;
@@ -292,7 +292,7 @@ const EnhancedIngredientsDisplay = memo(
         )}
       </section>
     );
-  }
+  },
 );
 
 EnhancedIngredientsDisplay.displayName = "EnhancedIngredientsDisplay";
@@ -349,7 +349,7 @@ const InteractiveIngredientsDisplay = memo(
         maxDisplay={8}
       />
     );
-  }
+  },
 );
 
 InteractiveIngredientsDisplay.displayName = "InteractiveIngredientsDisplay";
@@ -358,7 +358,7 @@ InteractiveIngredientsDisplay.displayName = "InteractiveIngredientsDisplay";
 const DebugIngredientsDisplay = memo(({ ingredients }) => {
   const ingredientsList = useMemo(
     () => parseIngredients(ingredients),
-    [ingredients]
+    [ingredients],
   );
 
   if (!ingredients) {

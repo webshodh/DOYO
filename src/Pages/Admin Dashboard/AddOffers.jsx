@@ -183,17 +183,11 @@ const AddOffers = memo(() => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
           <PageTitle
             pageTitle="Offers Management"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description="Manage your promotional offers"
-          />
-
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText="Add Offer"
-            loading={loading}
           />
         </div>
 
@@ -237,6 +231,9 @@ const AddOffers = memo(() => {
             filteredCount={filteredOffers.length}
             onClearSearch={handleClearSearch}
             totalLabel="total offers"
+            onAdd={handleAddClick}
+            addButtonText="Add"
+            addButtonLoading={loading}
           />
         )}
 

@@ -30,17 +30,17 @@ const HorizontalMenuCard = memo(
     // Memoized computed values
     const isAvailable = useMemo(
       () => item?.availability === "Available",
-      [item?.availability]
+      [item?.availability],
     );
 
     const truncatedName = useMemo(
       () => truncateText(item?.menuName, 20),
-      [item?.menuName]
+      [item?.menuName],
     );
 
     const truncatedCategory = useMemo(
       () => truncateText(item?.menuCategory, 12),
-      [item?.menuCategory]
+      [item?.menuCategory],
     );
 
     // Event handlers
@@ -62,7 +62,7 @@ const HorizontalMenuCard = memo(
           setIsButtonLoading(false);
         }
       },
-      [isAvailable, onCardClick]
+      [isAvailable, onCardClick],
     );
 
     const handleClose = useCallback(() => {
@@ -78,7 +78,7 @@ const HorizontalMenuCard = memo(
         }
         handleShow(item);
       },
-      [handleShow, item]
+      [handleShow, item],
     );
 
     // Validate item prop
@@ -94,7 +94,7 @@ const HorizontalMenuCard = memo(
         </div>
       );
     }
-    console.log("discount", item);
+
     return (
       <article className={`w-full ${height} ${className}`}>
         <div
@@ -225,7 +225,7 @@ const HorizontalMenuCard = memo(
         )}
       </article>
     );
-  }
+  },
 );
 
 HorizontalMenuCard.displayName = "HorizontalMenuCard";

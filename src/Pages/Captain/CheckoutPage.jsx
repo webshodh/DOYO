@@ -68,7 +68,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     return cartItems.reduce(
       (total, item) =>
         total + (item.finalPrice || item.menuPrice) * item.quantity,
-      0
+      0,
     );
   }, [cartItems]);
 
@@ -227,20 +227,22 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
 
         orderSummary: {
           vegItems: cartItems.filter(
-            (item) => item.categoryType === "Veg" || item.categoryType === "veg"
+            (item) =>
+              item.categoryType === "Veg" || item.categoryType === "veg",
           ).length,
           nonVegItems: cartItems.filter(
-            (item) => item.categoryType !== "Veg" && item.categoryType !== "veg"
+            (item) =>
+              item.categoryType !== "Veg" && item.categoryType !== "veg",
           ).length,
           categories: [
             ...new Set(
               cartItems.map(
-                (item) => item.menuCategory || item.mainCategory || "Other"
-              )
+                (item) => item.menuCategory || item.mainCategory || "Other",
+              ),
             ),
           ],
           specialItems: cartItems.filter(
-            (item) => item.isRecommended || item.isPopular || item.isBestseller
+            (item) => item.isRecommended || item.isPopular || item.isBestseller,
           ).length,
           spicyItems: cartItems.filter((item) => item.isSpicy).length,
         },
@@ -308,13 +310,13 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
       // Save firebaseId inside order for reference
       await set(
         ref(rtdb, `/hotels/${hotelName}/orders/${newOrderRef.key}/firebaseId`),
-        newOrderRef.key
+        newOrderRef.key,
       );
 
       // Save customer info to Firestore customers collection
       const customerDocRef = doc(
         collection(firestore, "customers"),
-        newOrderRef.key
+        newOrderRef.key,
       );
       await setDoc(customerDocRef, {
         name: customerName.trim(),
@@ -346,7 +348,7 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
       console.error("Error placing order:", error);
       setError("Failed to place order. Please try again.");
       toast.error(
-        "Failed to place order. Please check your connection and try again."
+        "Failed to place order. Please check your connection and try again.",
       );
     } finally {
       setIsSubmitting(false);

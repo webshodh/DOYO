@@ -48,5 +48,3 @@ input:checked.defaultCheckbox::before {
   width: 0; /* Remove scrollbar space for Chrome, Safari, and Opera */
   height: 0;
 }
-
-

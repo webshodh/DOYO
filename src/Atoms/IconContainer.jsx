@@ -37,7 +37,7 @@ const IconContainer = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 IconContainer.displayName = "IconContainer";

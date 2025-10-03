@@ -240,6 +240,21 @@ const AddMenu = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Modal */}
+      <Suspense fallback={<LoadingSpinner />}>
+        {showModal && (
+          <MenuFormModal
+            show={showModal}
+            onClose={closeModal}
+            onSubmit={handleModalSubmit}
+            categories={categories}
+            mainCategories={mainCategories}
+            editMode={Boolean(editingMenu)}
+            initialData={editingMenu}
+            hotelName={hotelName}
+          />
+        )}
+      </Suspense>
       {/* Header & Stats */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
         <PageTitle
@@ -341,22 +356,19 @@ const AddMenu = memo(() => {
         )}
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <MenuFormModal
-          show={showModal}
-          onClose={closeModal}
-          onSubmit={handleModalSubmit}
-          categories={categories}
-          mainCategories={mainCategories}
-          editMode={Boolean(editingMenu)}
-          initialData={editingMenu}
-          hotelName={hotelName}
-        />
-      )}
-
-      {/* Toasts */}
-      <ToastContainer position="top-right" autoClose={5000} />
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 });

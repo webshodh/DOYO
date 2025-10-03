@@ -106,7 +106,7 @@ const PrintBill = ({ order, restaurantInfo = {} }) => {
         <p>
           <strong>Order Date:</strong>{" "}
           {formatDateTime(
-            order.timestamps?.orderPlaced || order.orderTimestamp
+            order.timestamps?.orderPlaced || order.orderTimestamp,
           )}
         </p>
         <p>

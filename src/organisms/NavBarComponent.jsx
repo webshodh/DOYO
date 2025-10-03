@@ -65,7 +65,7 @@ function Navbar({ onMenuToggle, isSidebarOpen, admin }) {
       navigate(`/${hotel.id}/admin/dashboard`);
       toast.success(`Switched to ${hotel.name}`);
     },
-    [selectHotel, navigate]
+    [selectHotel, navigate],
   );
 
   const toggleProfile = useCallback(() => {

@@ -31,8 +31,8 @@ export function FormSubmitButton({
         disabled
           ? "bg-gray-400 cursor-not-allowed"
           : isEditMode
-          ? "bg-blue-600 hover:bg-blue-700"
-          : "bg-green-600 hover:bg-green-700"
+            ? "bg-blue-600 hover:bg-blue-700"
+            : "bg-green-600 hover:bg-green-700"
       }`}
     >
       {isLoading ? (

@@ -9,7 +9,7 @@ export const useHotelSelection = () => {
   const context = useContext(HotelSelectionContext);
   if (!context) {
     throw new Error(
-      "useHotelSelection must be used within a HotelSelectionProvider"
+      "useHotelSelection must be used within a HotelSelectionProvider",
     );
   }
   return context;

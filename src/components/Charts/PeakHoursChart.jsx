@@ -8,7 +8,7 @@ const PeakHoursChart = memo(({ orders }) => {
 
     orders.forEach((order) => {
       const orderTime = new Date(
-        order.timestamps?.orderPlaced || order.orderTime
+        order.timestamps?.orderPlaced || order.orderTime,
       );
       if (!isNaN(orderTime.getTime())) {
         hours[orderTime.getHours()]++;
@@ -58,13 +58,13 @@ const PeakHoursChart = memo(({ orders }) => {
                 data.isPeak
                   ? "bg-blue-500"
                   : data.orders > 0
-                  ? "bg-blue-200"
-                  : "bg-gray-100"
+                    ? "bg-blue-200"
+                    : "bg-gray-100"
               }`}
               style={{
                 height: `${Math.max(
                   8,
-                  (data.orders / hourlyData.peakOrders) * 60
+                  (data.orders / hourlyData.peakOrders) * 60,
                 )}px`,
               }}
             />

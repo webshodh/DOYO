@@ -121,7 +121,7 @@ const InfoItem = memo(
         <div className="flex items-center">{renderValue}</div>
       </div>
     );
-  }
+  },
 );
 
 InfoItem.displayName = "InfoItem";

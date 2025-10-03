@@ -62,7 +62,7 @@ const OrderRow = memo(({ order, onViewDetails, onPrintBill }) => {
       </td>
       <td className="px-4 py-3 text-sm font-medium text-gray-900">
         {formatCurrency(
-          order.totalAmount || order.total || order.pricing?.total || 0
+          order.totalAmount || order.total || order.pricing?.total || 0,
         )}
       </td>
       <td className="px-4 py-3">
@@ -116,7 +116,7 @@ const OrderDetailsTable = memo(({ orders, onViewDetails, onPrintBill }) => {
         .includes(searchTerm.toLowerCase()) ||
       order.customerInfo?.tableNumber?.toString().includes(searchTerm) ||
       order.items?.some((item) =>
-        item.menuName?.toLowerCase().includes(searchTerm.toLowerCase())
+        item.menuName?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
 
     const orderStatus =

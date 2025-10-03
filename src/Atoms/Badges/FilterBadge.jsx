@@ -25,7 +25,7 @@ const FilterBadge = memo(
         </button>
       </span>
     );
-  }
+  },
 );
 
 FilterBadge.displayName = "FilterBadge";

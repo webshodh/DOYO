@@ -104,8 +104,8 @@ export const FormField = ({
       (field.type === "checkbox"
         ? false
         : field.type === "multiselect"
-        ? []
-        : "");
+          ? []
+          : "");
 
   const handleChange = (newValue) => {
     if (disabled) return;
@@ -120,27 +120,12 @@ export const FormField = ({
   // Updated getFieldOptions function to properly handle dynamic options
   const getFieldOptions = () => {
     if (typeof field.options === "string") {
-      // Debug logs to help identify the issue
-      console.log(`Looking for options for field: ${field.options}`);
-      console.log(
-        "External options available:",
-        Object.keys(externalOptions || {})
-      );
-      // console.log('Dynamic OPTIONS available:', Object.keys(OPTIONS || {}));
-      // console.log('OPTIONS data:', OPTIONS);
-
       // First check external options (categories, mainCategories passed from parent)
       if (externalOptions?.[field.options]) {
         const options = externalOptions[field.options];
-        console.log(`Found in external options:`, options);
+
         return Array.isArray(options) ? options : [];
       }
-
-      // Then check dynamic options from API (simplified options)
-      // if (OPTIONS && OPTIONS[field.options]) {
-      //   console.log(`Found in dynamic OPTIONS:`, OPTIONS[field.options]);
-      //   return OPTIONS[field.options];
-      // }
 
       // Try common variations of the field name
       const variations = [
@@ -151,13 +136,6 @@ export const FormField = ({
         field.options.replace(/([A-Z])/g, "_$1").toLowerCase(), // camelCase to snake_case
         field.options.replace(/_/g, ""), // Remove underscores
       ];
-
-      // for (const variation of variations) {
-      //   if (OPTIONS && OPTIONS[variation]) {
-      //     console.log(`Found with variation '${variation}':`, OPTIONS[variation]);
-      //     return OPTIONS[variation];
-      //   }
-      // }
 
       // Fallback: return empty array if no options found
       console.warn(`No options found for field: ${field.options}`);

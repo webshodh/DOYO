@@ -30,7 +30,7 @@ const InfoCard = memo(
         <p className="text-sm">{content}</p>
       </div>
     );
-  }
+  },
 );
 
 InfoCard.displayName = "InfoCard";

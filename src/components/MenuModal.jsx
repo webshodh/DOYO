@@ -54,7 +54,7 @@ const MenuModal = memo(
           handleClose();
         }
       },
-      [handleClose]
+      [handleClose],
     );
 
     // Helper function for spice level icons
@@ -265,7 +265,7 @@ const MenuModal = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 MenuModal.displayName = "MenuModal";

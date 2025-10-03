@@ -16,8 +16,8 @@ import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 
 // Lazy load heavy components
-const CaptainFormModal = React.lazy(() =>
-  import("../../components/FormModals/CaptainFormModal")
+const CaptainFormModal = React.lazy(
+  () => import("../../components/FormModals/CaptainFormModal"),
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -62,13 +62,13 @@ const AddCaptain = memo(() => {
         const createdDate = new Date(
           captain.createdAt?.toDate
             ? captain.createdAt.toDate()
-            : captain.createdAt
+            : captain.createdAt,
         );
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return createdDate > weekAgo;
       }).length,
     }),
-    [captains, captainCount, activeCaptains, inactiveCaptains]
+    [captains, captainCount, activeCaptains, inactiveCaptains],
   );
 
   // Event handlers
@@ -89,7 +89,7 @@ const AddCaptain = memo(() => {
         console.error("Error preparing captain for edit:", error);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit],
   );
 
   const handleDeleteClick = useCallback(
@@ -98,7 +98,7 @@ const AddCaptain = memo(() => {
         t("confirmations.deleteCaptain", {
           firstName: captain.firstName,
           lastName: captain.lastName,
-        })
+        }),
       );
 
       if (confirmed) {
@@ -109,7 +109,7 @@ const AddCaptain = memo(() => {
         }
       }
     },
-    [deleteCaptain, t]
+    [deleteCaptain, t],
   );
 
   const handleToggleStatus = useCallback(
@@ -120,7 +120,7 @@ const AddCaptain = memo(() => {
         console.error("Error toggling captain status:", error);
       }
     },
-    [toggleCaptainStatus]
+    [toggleCaptainStatus],
   );
 
   const handleModalClose = useCallback(() => {
@@ -138,7 +138,7 @@ const AddCaptain = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit]
+    [handleFormSubmit],
   );
 
   const handleClearSearch = useCallback(() => {

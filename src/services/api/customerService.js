@@ -40,10 +40,9 @@ export const updateCustomerData = async (customerInfo, hotelName) => {
             (existingData.orderCount + 1),
           updatedAt: serverTimestamp(),
         },
-        { merge: true }
+        { merge: true },
       );
 
-      console.log(`Updated existing customer: ${mobile}`);
       return { isNewCustomer: false, orderCount: existingData.orderCount + 1 };
     } else {
       // New customer - create new record
@@ -65,7 +64,6 @@ export const updateCustomerData = async (customerInfo, hotelName) => {
         updatedAt: serverTimestamp(),
       });
 
-      console.log(`Created new customer: ${mobile}`);
       return { isNewCustomer: true, orderCount: 1 };
     }
   } catch (error) {

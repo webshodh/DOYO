@@ -52,7 +52,7 @@ const SpecialCategoriesFilter = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 SpecialCategoriesFilter.displayName = "SpecialCategoriesFilter";

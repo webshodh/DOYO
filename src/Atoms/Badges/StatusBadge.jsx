@@ -1,12 +1,5 @@
 import React, { memo } from "react";
-import {
-  Clock,
-  ChefHat,
-  Bell,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { Clock, ChefHat, Bell, CheckCircle, XCircle } from "lucide-react";
 
 const STATUS_CONFIG = {
   received: {

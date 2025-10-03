@@ -55,12 +55,12 @@ const CartPage = ({ cartItems = [], onUpdateCart, onGoBack, onCheckout }) => {
 
     const totalItems = cartItems.reduce(
       (total, item) => total + (item.quantity || 0),
-      0
+      0,
     );
     const subtotal = cartItems.reduce(
       (total, item) =>
         total + (item.finalPrice || item.menuPrice || 0) * (item.quantity || 0),
-      0
+      0,
     );
     const taxAmount = Math.round(subtotal * 0.18);
     const grandTotal = subtotal + taxAmount;
@@ -92,7 +92,7 @@ const CartPage = ({ cartItems = [], onUpdateCart, onGoBack, onCheckout }) => {
         });
       }
     },
-    [onUpdateCart]
+    [onUpdateCart],
   );
 
   const handleCheckout = useCallback(async () => {

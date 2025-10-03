@@ -27,7 +27,7 @@ const VerticalMenuCard = memo(
     // Memoized computed values
     const isAvailable = useMemo(
       () => item?.availability === "Available",
-      [item?.availability]
+      [item?.availability],
     );
 
     const truncatedName = useMemo(
@@ -35,7 +35,7 @@ const VerticalMenuCard = memo(
         item?.menuName?.length > 25
           ? `${item.menuName.slice(0, 25)}...`
           : item?.menuName || "Menu Item",
-      [item?.menuName]
+      [item?.menuName],
     );
 
     // Event handlers
@@ -57,7 +57,7 @@ const VerticalMenuCard = memo(
           setIsButtonLoading(false);
         }
       },
-      [isAvailable, onCardClick]
+      [isAvailable, onCardClick],
     );
 
     const handleClose = useCallback(() => {
@@ -73,7 +73,7 @@ const VerticalMenuCard = memo(
         }
         handleShow(item);
       },
-      [handleShow, item]
+      [handleShow, item],
     );
 
     // Validate item prop
@@ -208,7 +208,7 @@ const VerticalMenuCard = memo(
         )}
       </article>
     );
-  }
+  },
 );
 
 VerticalMenuCard.displayName = "VerticalMenuCard";

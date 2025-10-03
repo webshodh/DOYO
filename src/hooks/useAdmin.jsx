@@ -56,7 +56,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         const success = await adminServices.addAdmin(
           adminData,
           linkedHotelId,
-          admins
+          admins,
         );
         if (success && onAdminAdded) {
           onAdminAdded(adminData);
@@ -71,7 +71,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting, onAdminAdded, hotelId] // Removed admins to prevent unnecessary re-renders
+    [submitting, onAdminAdded, hotelId], // Removed admins to prevent unnecessary re-renders
   );
 
   const updateAdmin = useCallback(
@@ -92,7 +92,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const deleteAdmin = useCallback(
@@ -113,7 +113,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const linkAdminToHotel = useCallback(
@@ -134,7 +134,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const unlinkAdminFromHotel = useCallback(
@@ -146,7 +146,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
       try {
         const success = await adminServices.unlinkAdminFromHotel(
           adminId,
-          hotelId
+          hotelId,
         );
         return success;
       } catch (err) {
@@ -158,7 +158,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting]
+    [submitting],
   );
 
   const prepareForEdit = useCallback(async (admin) => {
@@ -180,7 +180,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
         return await addAdmin(adminData, linkedHotelId);
       }
     },
-    [addAdmin, updateAdmin, hotelId]
+    [addAdmin, updateAdmin, hotelId],
   );
 
   const handleSearchChange = useCallback((term) => {
@@ -199,7 +199,7 @@ export const useAdmin = ({ hotelId = null, onAdminAdded } = {}) => {
       hasAdmins: admins.length > 0,
       hasSearchResults: filteredAdmins.length > 0,
     }),
-    [admins.length, filteredAdmins.length]
+    [admins.length, filteredAdmins.length],
   );
 
   return {
@@ -256,7 +256,7 @@ export const useHotelsForAdmin = () => {
 
           // Only get active hotels for admin linking
           const activeHotels = data.filter(
-            (hotel) => hotel.status === "active" || hotel.isActive === "active"
+            (hotel) => hotel.status === "active" || hotel.isActive === "active",
           );
           setHotels(activeHotels);
           setLoading(false);

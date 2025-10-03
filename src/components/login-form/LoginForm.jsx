@@ -104,7 +104,7 @@ const LoginForm = memo(
         </div>
       </button>
     </form>
-  )
+  ),
 );
 
 LoginForm.displayName = "LoginForm";

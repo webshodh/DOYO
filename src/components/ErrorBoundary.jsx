@@ -1,7 +1,7 @@
 // src/components/ErrorBoundary.js
-import React, { Component } from 'react';
-import { Spinner } from 'react-bootstrap'; // Or any spinner component of your choice
-import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure bootstrap CSS is included
+import React, { Component } from "react";
+import { Spinner } from "react-bootstrap"; // Or any spinner component of your choice
+import "bootstrap/dist/css/bootstrap.min.css"; // Ensure bootstrap CSS is included
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -16,8 +16,8 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     // You can log the error to an error reporting service here
-    console.error('Error:', error);
-    console.error('Info:', info);
+    console.error("Error:", error);
+    console.error("Info:", info);
   }
 
   componentDidMount() {

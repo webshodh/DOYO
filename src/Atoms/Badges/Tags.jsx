@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Clock,
   Thermometer,
-  Coffee,
 } from "lucide-react";
 
 // Individual Tag Component
@@ -187,11 +186,6 @@ const TagsContainer = ({
   className = "",
   spacing = "gap-2",
 }) => {
-  // Helper function to get category icon
-  const getCategoryIcon = (categoryType) => {
-    return categoryType === "veg" ? "🌱" : "🍖";
-  };
-
   // Helper function to format display text
   const formatDisplayText = (key, value) => {
     const config = tagConfig[key];

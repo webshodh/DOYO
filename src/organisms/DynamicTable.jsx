@@ -81,7 +81,7 @@ const ImageCell = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 ImageCell.displayName = "ImageCell";
@@ -130,7 +130,7 @@ const ActionButton = memo(
         {children}
       </button>
     );
-  }
+  },
 );
 
 ActionButton.displayName = "ActionButton";
@@ -251,7 +251,7 @@ const ActionsCell = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 ActionsCell.displayName = "ActionsCell";
@@ -321,8 +321,8 @@ const Pagination = memo(
               page === currentPage
                 ? "bg-orange-500 text-white"
                 : page === "..."
-                ? "text-gray-400 cursor-default"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                  ? "text-gray-400 cursor-default"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
             }`}
           >
             {page}
@@ -346,7 +346,7 @@ const Pagination = memo(
         />
       </nav>
     );
-  }
+  },
 );
 
 Pagination.displayName = "Pagination";
@@ -384,7 +384,7 @@ const TableHeader = memo(
         )}
       </tr>
     </thead>
-  )
+  ),
 );
 
 TableHeader.displayName = "TableHeader";
@@ -437,7 +437,7 @@ const DynamicTable = memo(
         testId,
         ...rest
       },
-      ref
+      ref,
     ) => {
       const {
         currentPage,
@@ -464,7 +464,7 @@ const DynamicTable = memo(
           setSortConfig(newSortConfig);
           onSort(newSortConfig);
         },
-        [sortConfig, sortable, onSort]
+        [sortConfig, sortable, onSort],
       );
 
       // Check if table has actions - Updated to include onPrint
@@ -489,7 +489,7 @@ const DynamicTable = memo(
           onView,
           onPrint, // Added onPrint dependency
           customActions,
-        ]
+        ],
       );
 
       // Handle row click
@@ -499,7 +499,7 @@ const DynamicTable = memo(
             onRowClick(item);
           }
         },
-        [onRowClick]
+        [onRowClick],
       );
 
       if (loading) {
@@ -555,14 +555,14 @@ const DynamicTable = memo(
                             {column.render ? (
                               column.render(item[column.accessor], item, index)
                             ) : ["image", "img", "Img"].includes(
-                                column.accessor
+                                column.accessor,
                               ) ? (
                               <ImageCell
                                 src={item[column.accessor]}
                                 alt={`${item.name || "Item"} image`}
                               />
                             ) : (
-                              item[column.accessor] ?? "-"
+                              (item[column.accessor] ?? "-")
                             )}
                           </td>
                         ))}
@@ -647,8 +647,8 @@ const DynamicTable = memo(
           )}
         </div>
       );
-    }
-  )
+    },
+  ),
 );
 
 DynamicTable.displayName = "DynamicTable";

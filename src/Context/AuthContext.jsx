@@ -129,7 +129,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const q = query(
           collection(db, "admins"),
-          where("firebaseUid", "==", firebaseUid)
+          where("firebaseUid", "==", firebaseUid),
         );
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     },
-    [getHotelInfo]
+    [getHotelInfo],
   );
 
   // Get admin by email
@@ -183,7 +183,7 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     },
-    [getHotelInfo]
+    [getHotelInfo],
   );
 
   // Ensure super admin record exists in enhanced system
@@ -193,8 +193,6 @@ export const AuthProvider = ({ children }) => {
         let adminInfo = await getAdminByEmail(user.email);
 
         if (!adminInfo) {
-          console.log("Creating super admin record in enhanced system");
-
           const superAdminData = {
             fullName: user.displayName || "Super Admin",
             email: user.email,
@@ -217,7 +215,7 @@ export const AuthProvider = ({ children }) => {
 
           const adminRef = await addDoc(
             collection(db, "admins"),
-            superAdminData
+            superAdminData,
           );
           await updateDoc(adminRef, { adminId: adminRef.id });
 
@@ -230,15 +228,13 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     },
-    [getAdminByEmail, getAdminByFirebaseUid]
+    [getAdminByEmail, getAdminByFirebaseUid],
   );
 
   // Migrate old admin to enhanced system
   const migrateOldAdminToEnhanced = useCallback(
     async (user, oldAdminData) => {
       try {
-        console.log("Migrating old admin to enhanced system:", oldAdminData);
-
         const enhancedAdminData = {
           fullName: oldAdminData.name || user.displayName || "Admin User",
           email: user.email,
@@ -265,18 +261,17 @@ export const AuthProvider = ({ children }) => {
 
         const adminRef = await addDoc(
           collection(db, "admins"),
-          enhancedAdminData
+          enhancedAdminData,
         );
         await updateDoc(adminRef, { adminId: adminRef.id });
 
-        console.log("Migration completed for admin:", adminRef.id);
         return await getAdminByFirebaseUid(user.uid);
       } catch (error) {
         console.error("Error migrating old admin:", error);
         return null;
       }
     },
-    [getAdminByFirebaseUid]
+    [getAdminByFirebaseUid],
   );
 
   // Main auth state change effect
@@ -288,7 +283,6 @@ export const AuthProvider = ({ children }) => {
       if (user) {
         try {
           setCurrentUser(user);
-          console.log("Auth state changed - user found:", user.uid);
 
           const userEmail = user.email.toLowerCase();
           let role = "user";
@@ -297,7 +291,6 @@ export const AuthProvider = ({ children }) => {
 
           // Check if user is in super admin emails list
           if (SUPER_ADMIN_EMAILS.includes(userEmail)) {
-            console.log("User is super admin via email list");
             role = "superadmin";
             hotels = await getAllHotels();
             adminInfo = await ensureSuperAdminRecord(user);
@@ -307,8 +300,6 @@ export const AuthProvider = ({ children }) => {
               adminInfo = await getAdminByFirebaseUid(user.uid);
 
               if (adminInfo) {
-                console.log("User found in enhanced admin system:", adminInfo);
-
                 if (adminInfo.role === "super_admin") {
                   role = "superadmin";
                   hotels = await getAllHotels();
@@ -324,12 +315,11 @@ export const AuthProvider = ({ children }) => {
                 }
               } else {
                 // Fallback to old admin system
-                console.log("Checking old admin system...");
+
                 const adminDoc = await getDoc(doc(db, "admins", user.uid));
 
                 if (adminDoc.exists()) {
                   const oldAdminData = adminDoc.data();
-                  console.log("User found in old admin system:", oldAdminData);
 
                   role = "admin";
                   hotels = oldAdminData.assignedHotels || [];
@@ -340,12 +330,12 @@ export const AuthProvider = ({ children }) => {
 
                   adminInfo = await migrateOldAdminToEnhanced(
                     user,
-                    oldAdminData
+                    oldAdminData,
                   );
                 } else {
                   // Check if user is a captain
                   const captainDoc = await getDoc(
-                    doc(db, "captains", user.uid)
+                    doc(db, "captains", user.uid),
                   );
                   if (captainDoc.exists()) {
                     const captainData = captainDoc.data();
@@ -368,12 +358,6 @@ export const AuthProvider = ({ children }) => {
           setUserRole(role);
           setUserHotels(hotels);
           setAdminData(adminInfo);
-
-          console.log("User authentication complete:", {
-            role,
-            hotelsCount: hotels.length,
-            hasAdminData: !!adminInfo,
-          });
         } catch (error) {
           console.error("Error fetching user data:", error);
           setAuthError("Failed to load user data");
@@ -383,7 +367,6 @@ export const AuthProvider = ({ children }) => {
           setAdminData(null);
         }
       } else {
-        console.log("No authenticated user");
         setCurrentUser(null);
         setUserRole(null);
         setUserHotels([]);
@@ -408,7 +391,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError(null);
 
       const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful for:", email);
+
       return result;
     } catch (error) {
       console.error("Login error:", error);
@@ -440,7 +423,6 @@ export const AuthProvider = ({ children }) => {
       setUserHotels([]);
       setAdminData(null);
       setAuthError(null);
-      console.log("User logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
       setAuthError("Failed to logout");
@@ -476,7 +458,7 @@ export const AuthProvider = ({ children }) => {
           (hotel) =>
             hotel.id === hotelId ||
             hotel.hotelId === hotelId ||
-            hotel === hotelId
+            hotel === hotelId,
         );
       }
 
@@ -484,7 +466,7 @@ export const AuthProvider = ({ children }) => {
 
       return false;
     },
-    [userRole, adminData, userHotels]
+    [userRole, adminData, userHotels],
   );
 
   // Check if user has specific permission
@@ -495,7 +477,7 @@ export const AuthProvider = ({ children }) => {
       if (!adminData?.permissions) return false;
       return adminData.permissions[permission] || false;
     },
-    [userRole, adminData]
+    [userRole, adminData],
   );
 
   // Enhanced hotel creation using new admin system
@@ -505,8 +487,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      console.log("Creating hotel with admin via enhanced system...");
-
       const hotelRef = await addDoc(collection(db, "hotels"), {
         businessName: hotelData.businessName || hotelData.name,
         hotelName: hotelData.hotelName || hotelData.name,
@@ -535,7 +515,7 @@ export const AuthProvider = ({ children }) => {
       const adminUserCredential = await createUserWithEmailAndPassword(
         auth,
         adminDataInput.email,
-        adminDataInput.password
+        adminDataInput.password,
       );
 
       const enhancedAdminData = {
@@ -564,7 +544,7 @@ export const AuthProvider = ({ children }) => {
 
       const newAdminRef = await addDoc(
         collection(db, "admins"),
-        enhancedAdminData
+        enhancedAdminData,
       );
       await updateDoc(newAdminRef, { adminId: newAdminRef.id });
 
@@ -578,8 +558,6 @@ export const AuthProvider = ({ children }) => {
         createdBy: currentUser.uid,
         active: true,
       });
-
-      console.log("Hotel and admin created successfully");
 
       // Manually refresh hotels without using refreshUserHotels
       if (isSuperAdmin()) {
@@ -610,7 +588,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const enhancedAdminQuery = query(
         collection(db, "admins"),
-        where("firebaseUid", "==", adminId)
+        where("firebaseUid", "==", adminId),
       );
 
       const enhancedSnapshot = await getDocs(enhancedAdminQuery);
@@ -639,8 +617,6 @@ export const AuthProvider = ({ children }) => {
       } else {
         throw new Error("Admin not found");
       }
-
-      console.log("Hotel assigned to admin successfully");
     } catch (error) {
       console.error("Error assigning hotel to admin:", error);
       throw error;
@@ -650,7 +626,6 @@ export const AuthProvider = ({ children }) => {
   // Fixed refresh function with guard against multiple calls
   const refreshUserHotels = useCallback(async () => {
     if (!currentUser || isRefreshing.current) {
-      console.log("Skipping refresh - already in progress or no user");
       return userHotels;
     }
 
@@ -687,7 +662,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       setUserHotels(hotels);
-      console.log("User hotels refreshed:", hotels.length);
+
       return hotels;
     } catch (error) {
       console.error("Error refreshing user hotels:", error);

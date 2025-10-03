@@ -84,7 +84,7 @@ const TopMenuCards = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 TopMenuCards.displayName = "TopMenuCards";

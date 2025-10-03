@@ -60,7 +60,7 @@ const CategoryBadge = memo(
     }
 
     return null;
-  }
+  },
 );
 
 CategoryBadge.displayName = "CategoryBadge";

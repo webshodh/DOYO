@@ -22,7 +22,6 @@ const CaptainLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { hotelName } = useParams();
-  console.log("hotelNamehotelName", hotelName);
 
   // Check if already logged in
   useEffect(() => {
@@ -90,11 +89,10 @@ const CaptainLogin = () => {
     try {
       const loginResult = await captainServices.captainLogin(
         formData.email.trim(),
-        formData.password
+        formData.password,
       );
 
       // Debug: Log the actual structure returned
-      console.log("Login Result Structure:", loginResult);
 
       // Handle different possible return structures
       let captainName = "Captain"; // Default fallback

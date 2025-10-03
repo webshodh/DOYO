@@ -120,8 +120,6 @@ const MenuFormModal = ({
   };
 
   const prepareFormDataForSubmission = () => {
-    console.log("Raw form data before preparation:", formData); // Debug log
-
     // Create a comprehensive copy ensuring ALL fields are included and properly typed
     const submissionData = {
       // Basic Information
@@ -188,7 +186,7 @@ const MenuFormModal = ({
       // File and Image handling
       file: formData.file || null,
       existingImageUrl: String(
-        formData.existingImageUrl || formData.imageUrl || ""
+        formData.existingImageUrl || formData.imageUrl || "",
       ),
       imageUrl: String(formData.imageUrl || formData.existingImageUrl || ""),
 
@@ -239,7 +237,7 @@ const MenuFormModal = ({
     criticalFields.forEach((field) => {
       if (!(field in submissionData)) {
         console.error(
-          `Critical field ${field} is missing from submission data`
+          `Critical field ${field} is missing from submission data`,
         );
       }
     });
@@ -250,8 +248,6 @@ const MenuFormModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Current form data on submit:", formData); // Debug log
-
     if (!validateForm()) {
       return;
     }
@@ -260,11 +256,6 @@ const MenuFormModal = ({
 
     try {
       const submissionData = prepareFormDataForSubmission();
-      console.log("Final submission data:", submissionData);
-      console.log(
-        "Number of fields being submitted:",
-        Object.keys(submissionData).length
-      );
 
       // Ensure we're passing all the data correctly
       const success = await onSubmit(submissionData);
@@ -435,11 +426,7 @@ const MenuFormModal = ({
                       className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="w-4 h-4" />
-                      {isSubmitting
-                        ? "Saving..."
-                        : editMode
-                        ? "Update"
-                        : "Add"}
+                      {isSubmitting ? "Saving..." : editMode ? "Update" : "Add"}
                     </button>
                   </div>
                 </div>

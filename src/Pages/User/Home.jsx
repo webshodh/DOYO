@@ -19,12 +19,12 @@ import MenuCardSkeleton from "atoms/MenuCardSkeleton";
 import LoadingSpinner from "atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
 
-const FilterSortSearch = React.lazy(() =>
-  import("../../organisms/FilterSortSearch")
+const FilterSortSearch = React.lazy(
+  () => import("../../organisms/FilterSortSearch"),
 );
 const CategoryTabs = React.lazy(() => import("../../molecules/CategoryTab"));
-const HorizontalMenuCard = React.lazy(() =>
-  import("../../components/Cards/HorizontalMenuCard")
+const HorizontalMenuCard = React.lazy(
+  () => import("../../components/Cards/HorizontalMenuCard"),
 );
 
 const firestore = getFirestore(app);
@@ -98,7 +98,7 @@ const Home = memo(() => {
     // Categories first
     const categoriesRef = collection(
       firestore,
-      `hotels/${hotelName}/categories`
+      `hotels/${hotelName}/categories`,
     );
     const unsubscribeCategories = onSnapshot(
       categoriesRef,
@@ -112,14 +112,14 @@ const Home = memo(() => {
       (err) => {
         console.error("Error fetching categories:", err);
         setError(err);
-      }
+      },
     );
     unsubscribes.push(unsubscribeCategories);
 
     // Main Categories
     const mainCategoriesRef = collection(
       firestore,
-      `hotels/${hotelName}/Maincategories`
+      `hotels/${hotelName}/Maincategories`,
     );
     const unsubscribeMainCategories = onSnapshot(
       mainCategoriesRef,
@@ -133,7 +133,7 @@ const Home = memo(() => {
       (err) => {
         console.error("Error fetching main categories:", err);
         setError(err);
-      }
+      },
     );
     unsubscribes.push(unsubscribeMainCategories);
 
@@ -153,7 +153,7 @@ const Home = memo(() => {
         console.error("Error fetching menus:", err);
         setError(err);
         setLoading(false);
-      }
+      },
     );
     unsubscribes.push(unsubscribeMenus);
 
@@ -215,13 +215,13 @@ const Home = memo(() => {
       const specialCounts = {};
       specialCategories.forEach((category) => {
         const count = menusData.filter(
-          (menu) => menu[category.name] === true
+          (menu) => menu[category.name] === true,
         ).length;
         specialCounts[category.name] = count;
       });
       setSpecialCategoryCounts(specialCounts);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -253,7 +253,7 @@ const Home = memo(() => {
         (menu) =>
           menu.menuName?.toLowerCase().includes(search) ||
           menu.menuDescription?.toLowerCase().includes(search) ||
-          menu.menuCategoryName?.toLowerCase().includes(search)
+          menu.menuCategoryName?.toLowerCase().includes(search),
       );
     }
 
@@ -279,7 +279,7 @@ const Home = memo(() => {
 
     if (selectedSpecialFilters.length > 0) {
       filtered = filtered.filter((menu) =>
-        selectedSpecialFilters.every((filter) => menu[filter] === true)
+        selectedSpecialFilters.every((filter) => menu[filter] === true),
       );
     }
 
@@ -287,21 +287,21 @@ const Home = memo(() => {
       filtered.sort(
         (a, b) =>
           parseFloat(a.finalPrice || a.menuPrice || 0) -
-          parseFloat(b.finalPrice || b.menuPrice || 0)
+          parseFloat(b.finalPrice || b.menuPrice || 0),
       );
     } else if (sortOrder === "highToLow") {
       filtered.sort(
         (a, b) =>
           parseFloat(b.finalPrice || b.menuPrice || 0) -
-          parseFloat(a.finalPrice || a.menuPrice || 0)
+          parseFloat(a.finalPrice || a.menuPrice || 0),
       );
     } else if (sortOrder === "nameAsc") {
       filtered.sort((a, b) =>
-        (a.menuName || "").localeCompare(b.menuName || "")
+        (a.menuName || "").localeCompare(b.menuName || ""),
       );
     } else if (sortOrder === "nameDesc") {
       filtered.sort((a, b) =>
-        (b.menuName || "").localeCompare(a.menuName || "")
+        (b.menuName || "").localeCompare(a.menuName || ""),
       );
     }
 
@@ -318,9 +318,9 @@ const Home = memo(() => {
   const availableSpecialCategories = useMemo(
     () =>
       specialCategories.filter(
-        (category) => specialCategoryCounts[category.name] > 0
+        (category) => specialCategoryCounts[category.name] > 0,
       ),
-    [specialCategoryCounts]
+    [specialCategoryCounts],
   );
 
   // Handlers
@@ -342,7 +342,7 @@ const Home = memo(() => {
     setSelectedSpecialFilters((prev) =>
       prev.includes(filterName)
         ? prev.filter((f) => f !== filterName)
-        : [...prev, filterName]
+        : [...prev, filterName],
     );
   }, []);
   const clearAllFilters = useCallback(() => {
@@ -356,12 +356,12 @@ const Home = memo(() => {
   const removeSpecialFilter = useCallback(
     (filter) =>
       setSelectedSpecialFilters((prev) => prev.filter((f) => f !== filter)),
-    []
+    [],
   );
   const removeCategoryFilter = useCallback(() => setSelectedCategory(""), []);
   const removeMainCategoryFilter = useCallback(
     () => setSelectedMainCategory(""),
-    []
+    [],
   );
   const changeViewMode = useCallback((mode) => setViewMode(mode), []);
   const handleRetry = useCallback(() => window.location.reload(), []);
@@ -372,7 +372,12 @@ const Home = memo(() => {
       selectedCategory ||
       selectedMainCategory ||
       selectedSpecialFilters.length > 0,
-    [searchTerm, selectedCategory, selectedMainCategory, selectedSpecialFilters]
+    [
+      searchTerm,
+      selectedCategory,
+      selectedMainCategory,
+      selectedSpecialFilters,
+    ],
   );
 
   if (error) {

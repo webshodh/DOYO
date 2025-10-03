@@ -40,7 +40,7 @@ export const HotelProvider = ({ children }) => {
       if (
         !selectedHotel ||
         !userHotels.find(
-          (h) => h.id === selectedHotel.id || h.hotelId === selectedHotel.id
+          (h) => h.id === selectedHotel.id || h.hotelId === selectedHotel.id,
         )
       ) {
         setSelectedHotel(userHotels[0]);
@@ -57,7 +57,7 @@ export const HotelProvider = ({ children }) => {
       const valid =
         selectedHotel &&
         list.find(
-          (h) => h.id === selectedHotel.id || h.hotelId === selectedHotel.id
+          (h) => h.id === selectedHotel.id || h.hotelId === selectedHotel.id,
         );
       if (!valid) setSelectedHotel(list[0]);
     } else {

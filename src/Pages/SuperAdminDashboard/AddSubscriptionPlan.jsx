@@ -16,7 +16,7 @@ export default function AddSubscriptionPlanPage() {
   const isEditMode = Boolean(planId);
 
   const [initialValues, setInitialValues] = useState(
-    subscriptionFormInitialValues
+    subscriptionFormInitialValues,
   );
   const [submitting, setSubmitting] = useState(false);
 

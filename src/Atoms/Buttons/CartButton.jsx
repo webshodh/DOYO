@@ -34,7 +34,7 @@ const CartButton = memo(
         )}
       </button>
     );
-  }
+  },
 );
 
 CartButton.displayName = "CartButton";
