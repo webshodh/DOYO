@@ -135,8 +135,7 @@ const KitchenAdminPage = memo(() => {
     <div className="min-h-screen bg-gray-50">
       <div>
         {/* Header */}
-          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
-
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
           <PageTitle
             pageTitle="Kitchen Dashboard"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
@@ -217,15 +216,17 @@ const KitchenAdminPage = memo(() => {
                 <Suspense
                   fallback={<LoadingSpinner text="Loading orders..." />}
                 >
-                  {filteredOrders.map((order) => (
-                    <OrderCard
-                      key={order.id}
-                      order={order}
-                      onStatusChange={handleStatusFilterChange}
-                      onViewDetails={handleViewDetails}
-                      loading={submitting}
-                    />
-                  ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredOrders.map((order) => (
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        onStatusChange={handleStatusFilterChange}
+                        onViewDetails={handleViewDetails}
+                        loading={submitting}
+                      />
+                    ))}
+                  </div>
                 </Suspense>
                 <div className="mt-6 text-center text-sm text-gray-600">
                   Showing {filteredOrders.length} of {timeFilteredOrders.length}{" "}
