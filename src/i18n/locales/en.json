@@ -115,6 +115,8 @@
     "dashboard": "Dashboard",
     "dashboardDesc": "Overview and analytics",
     "orderDashboard": "Order Dashboard",
+    "customerDashboard": "Customer Dashboard",
+    "customerDesc": "Manage Customers",
     "addCategory": "Add Category",
     "addCategoryDesc": "Manage food categories",
     "addOptions": "Add Options",

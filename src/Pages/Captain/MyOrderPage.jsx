@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getFirestore, collection, onSnapshot } from "firebase/firestore";
-import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  LoaderCircle,
-  Package,
-  ChefHat,
-  AlertCircle,
-} from "lucide-react";
+import { Package } from "lucide-react";
 
 // Services and utilities
 import { captainServices } from "../../services/api/captainServices";
@@ -21,7 +13,6 @@ import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "../../atoms/Messages/EmptyState";
 import NoSearchResults from "../../molecules/NoSearchResults";
 import SearchWithResults from "../../molecules/SearchWithResults";
-import StatCard from "../../components/Cards/StatCard";
 import OrderCard from "../../components/Cards/OrderCard";
 import ErrorMessage from "../../atoms/Messages/ErrorMessage";
 import { PageTitle } from "../../atoms";
@@ -30,10 +21,6 @@ import { PageTitle } from "../../atoms";
 import EditOrderModal from "./EditOrderModal";
 import OrderDetailsModal from "./OrderDetailsModal";
 import PrintBill from "./PrintBill";
-
-// Constants
-import { ORDER_STATUSES } from "../../Constants/Columns";
-import TimePeriodSelector from "atoms/TimePeriodSelector";
 
 const firestore = getFirestore(app);
 
@@ -54,27 +41,20 @@ const MyOrdersPage = () => {
   const [selectedOrderForBill, setSelectedOrderForBill] = useState(null);
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
 
-  // Enhanced order data hook with comprehensive functionality
+  // Order hook with comprehensive functionality
   const {
     orders,
     filteredOrders,
-    timeFilteredOrders,
-    orderStats,
-    todayStats,
     loading,
     submitting,
     error: orderError,
-    connectionStatus,
     lastUpdated,
 
     // Filter state
     searchTerm,
     statusFilter,
-    selectedDate,
-    selectedTimePeriod,
 
     // Display helpers
-    periodDisplayText,
     hasOrders,
     hasFilteredOrders,
     isConnected,
@@ -85,8 +65,6 @@ const MyOrdersPage = () => {
     // Filter handlers
     handleSearchChange,
     handleStatusFilterChange,
-    handleDateChange,
-    handleTimePeriodChange,
     clearFilters,
 
     // Actions
@@ -97,7 +75,6 @@ const MyOrdersPage = () => {
 
     // Options for UI
     statusOptions,
-    timePeriodOptions,
   } = useOrder(hotelName || captain?.hotelName, {
     defaultTimePeriod: "total",
     defaultStatusFilter: "all",
@@ -168,23 +145,6 @@ const MyOrdersPage = () => {
     return () => unsubscribe();
   }, [captain, hotelName]);
 
-  // Enhanced order statistics
-  const displayStats = useMemo(() => {
-    const stats = {
-      total: orderStats.total || 0,
-      received: orderStats.received || 0,
-      completed: orderStats.completed || 0,
-      rejected: orderStats.rejected || 0,
-      totalRevenue: orderStats.totalRevenue || 0,
-    };
-
-    stats.activeOrders = stats.received;
-    stats.completionRate =
-      stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
-
-    return stats;
-  }, [orderStats]);
-
   // Navigation handlers
   const handleGoBack = useCallback(() => {
     navigate("/captain/dashboard");
@@ -201,7 +161,7 @@ const MyOrdersPage = () => {
     }
   }, [refreshOrders]);
 
-  // Update order status and refresh orders afterwards
+  // Update order status handler
   const handleUpdateStatus = useCallback(
     async (orderId, newStatus, rejectionReason = null) => {
       setUpdatingOrderId(orderId);
@@ -289,18 +249,43 @@ const MyOrdersPage = () => {
     [deleteOrder, orders]
   );
 
-  // Search and filter input handlers
+  // Search input handler
   const handleSearchInputChange = useCallback(
     (e) => handleSearchChange(e.target.value),
     [handleSearchChange]
   );
 
-  const handleStatusInputChange = useCallback(
-    (e) => handleStatusFilterChange(e.target.value),
-    [handleStatusFilterChange]
-  );
+  // Get status badge styles
+  const getStatusBadgeStyles = (status) => {
+    const isActive = statusFilter === status;
+    const baseStyles =
+      "px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 cursor-pointer border-2";
 
-  // Computed flags for loading and errors
+    const statusStyles = {
+      all: isActive
+        ? "bg-gray-900 text-white border-gray-900"
+        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300",
+      received: isActive
+        ? "bg-yellow-500 text-white border-yellow-500"
+        : "bg-yellow-50 text-yellow-700 border-yellow-200 hover:border-yellow-300",
+      preparing: isActive
+        ? "bg-blue-500 text-white border-blue-500"
+        : "bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-300",
+      ready: isActive
+        ? "bg-purple-500 text-white border-purple-500"
+        : "bg-purple-50 text-purple-700 border-purple-200 hover:border-purple-300",
+      completed: isActive
+        ? "bg-green-500 text-white border-green-500"
+        : "bg-green-50 text-green-700 border-green-200 hover:border-green-300",
+      rejected: isActive
+        ? "bg-red-500 text-white border-red-500"
+        : "bg-red-50 text-red-700 border-red-200 hover:border-red-300",
+    };
+
+    return `${baseStyles} ${statusStyles[status] || statusStyles.all}`;
+  };
+
+  // Computed flags
   const showLoadingSpinner = isLoading && !captain;
   const showError = (error || isError) && !orders.length;
 
@@ -330,101 +315,68 @@ const MyOrdersPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-1">
-          <div className="flex items-center gap-4">
-            <PageTitle
-              pageTitle="My Orders"
-              className="text-2xl sm:text-3xl font-bold text-gray-900"
-              description={periodDisplayText}
-            />
-          </div>
-
-          {lastUpdated && (
-            <div className="text-sm text-gray-500">
-              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
-            </div>
-          )}
-        </div>
-
-        {/* Time Period Selector */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-2">
-          <TimePeriodSelector
-            selectedTimePeriod={selectedTimePeriod}
-            onTimePeriodChange={handleTimePeriodChange}
-            selectedDate={selectedDate}
-            onDateChange={handleDateChange}
-            variant="default"
-            showDatePicker
-            className="mb-2"
-            disableFutureDates
-            datePickerProps={{ placeholder: "Select a date to view orders" }}
-            options={timePeriodOptions}
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-6">
+          <PageTitle
+            pageTitle="My Orders"
+            className="text-2xl sm:text-3xl font-bold text-white"
+            description={`${filteredOrders.length} ${
+              statusFilter === "all" ? "total" : statusFilter
+            } orders`}
           />
-
-          <div className="text-sm text-gray-600 mt-2">
-            {periodDisplayText} • {displayStats.total} orders
-            {displayStats.totalRevenue > 0 && (
-              <span>
-                {" "}
-                • ₹{displayStats.totalRevenue.toLocaleString()} revenue
-              </span>
-            )}
-          </div>
         </div>
 
-        {/* Statistics Cards */}
+        {/* Status Filter Tabs */}
         {hasOrders && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={Package}
-              title="Total Orders"
-              value={displayStats.total}
-              color="blue"
-              subtitle={`${displayStats.activeOrders} active`}
-              className="transform hover:scale-105 transition-all duration-300"
-            />
-            <StatCard
-              icon={Clock}
-              title="Received"
-              value={displayStats.received}
-              color="yellow"
-              subtitle="Being processed"
-              alert={displayStats.received > 5}
-              className="transform hover:scale-105 transition-all duration-300"
-            />
-            <StatCard
-              icon={CheckCircle}
-              title="Completed"
-              value={displayStats.completed}
-              color="green"
-              subtitle={`${displayStats.completionRate}% completion rate`}
-              className="transform hover:scale-105 transition-all duration-300"
-            />
-            <StatCard
-              icon={AlertCircle}
-              title="Rejected"
-              value={displayStats.rejected}
-              color="red"
-              subtitle="Cancelled orders"
-              className="transform hover:scale-105 transition-all duration-300"
-            />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm font-medium text-gray-700">
+                Filter by Status:
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {statusOptions.map((option) => {
+                const orderCount =
+                  option.value === "all"
+                    ? orders.length
+                    : orders.filter((o) => o.normalizedStatus === option.value)
+                        .length;
+
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => handleStatusFilterChange(option.value)}
+                    className={getStatusBadgeStyles(option.value)}
+                  >
+                    <span className="flex items-center gap-2">
+                      {option.label}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          statusFilter === option.value
+                            ? "bg-white/20"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        {orderCount}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Search and Filters */}
+        {/* Search Bar */}
         {hasOrders && (
           <SearchWithResults
             searchTerm={searchTerm}
             onSearchChange={handleSearchInputChange}
             placeholder="Search orders by number, table, customer name, or item..."
-            totalCount={timeFilteredOrders.length}
+            totalCount={orders.length}
             filteredCount={filteredOrders.length}
             onClearSearch={clearFilters}
             totalLabel="orders"
-            showStatusFilter
-            statusFilter={statusFilter}
-            onStatusChange={handleStatusInputChange}
-            statusOptions={statusOptions}
+            showStatusFilter={false}
             isRefreshing={isRefreshing}
             onRefresh={handleRefresh}
             lastUpdated={lastUpdated}
@@ -454,38 +406,28 @@ const MyOrdersPage = () => {
           <NoSearchResults
             searchTerm={searchTerm}
             onClearSearch={clearFilters}
-            message="No orders match your search criteria"
+            message={`No ${
+              statusFilter !== "all" ? statusFilter : ""
+            } orders match your search criteria`}
             suggestions={[
               "Try searching by order number, table number, or customer name",
-              "Check if the selected time period contains orders",
+              statusFilter !== "all"
+                ? "Try selecting a different status filter"
+                : null,
               "Clear filters to see all orders",
-            ]}
+            ].filter(Boolean)}
           />
         ) : (
           <EmptyState
             icon={Package}
             title="No Orders Found"
-            description={
-              selectedTimePeriod === "daily"
-                ? `No orders found for ${new Date(
-                    selectedDate
-                  ).toLocaleDateString()}. Try selecting a different date or time period.`
-                : "No orders have been placed yet. Orders will appear here once customers start placing them."
-            }
+            description="No orders have been placed yet. Orders will appear here once customers start placing them."
             actionLabel="Go to Dashboard"
             onAction={handleGoBack}
-            secondaryActionLabel={
-              selectedTimePeriod === "daily" ? "View All Orders" : undefined
-            }
-            onSecondaryAction={
-              selectedTimePeriod === "daily"
-                ? () => handleTimePeriodChange("total")
-                : undefined
-            }
           />
         )}
 
-        {/* Loading overlay for order operations */}
+        {/* Loading overlay */}
         {(submitting || updatingOrderId) && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 flex items-center gap-3 shadow-lg">

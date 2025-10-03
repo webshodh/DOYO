@@ -42,7 +42,7 @@ function Navbar({ onMenuToggle, isSidebarOpen, admin }) {
     try {
       await signOut(auth);
       toast.success("Logged out successfully");
-      navigate("/login");
+      navigate("/admin/login");
     } catch {
       toast.error("Error logging out");
     } finally {
@@ -80,10 +80,10 @@ function Navbar({ onMenuToggle, isSidebarOpen, admin }) {
 
   return (
     <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 flex items-center h-16 justify-between">
+      <div className="max-w-7xl mx-auto px-4 flex items-end h-16 justify-between">
         <MenuToggleButton onToggle={onMenuToggle} isOpen={isSidebarOpen} />
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-end gap-4">
           {admin && availableHotels.length > 1 && (
             <HotelSwitcher
               ref={hotelRef}

@@ -180,17 +180,12 @@ const AddCategory = memo(() => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
           <PageTitle
             pageTitle={t("categories.pageTitle")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description={t("categories.pageDescription")}
-          />
-
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText={t("categories.addButton")}
-            loading={loading}
           />
         </div>
 
@@ -222,6 +217,10 @@ const AddCategory = memo(() => {
             filteredCount={filteredCategories.length}
             onClearSearch={handleClearSearch}
             totalLabel={t("categories.totalLabel")}
+            onAdd={handleAddClick}
+            addButtonText="Add"
+            addButtonLoading={loading}
+            // totalLabel="categories"
           />
         )}
 

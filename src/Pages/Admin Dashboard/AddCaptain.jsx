@@ -194,23 +194,17 @@ const AddCaptain = memo(() => {
 
       <div>
         {/* Header */}
-        <div className="flex flex-row lg:flex-row lg:items-center justify-between gap-4 mb-1">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
           <PageTitle
             pageTitle={t("pages.captainManagement")}
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description={t("descriptions.captainManagement")}
           />
-
-          <PrimaryButton
-            onAdd={handleAddClick}
-            btnText={t("buttons.addCaptain")}
-            loading={loading}
-          />
         </div>
 
         {/* Stats Cards */}
         {hasCaptains && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <StatCard
               icon={Users}
               title={t("stats.totalCaptains")}
@@ -248,6 +242,9 @@ const AddCaptain = memo(() => {
             filteredCount={filteredCaptains.length}
             onClearSearch={handleClearSearch}
             totalLabel={t("labels.totalCaptains")}
+            onAdd={handleAddClick}
+            addButtonText="Add"
+            addButtonLoading={loading}
           />
         )}
 

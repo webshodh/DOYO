@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { subscriptionServices } from "./services/api/subscriptionServices";
+import { subscriptionServices } from "../services/api/subscriptionPlanServices";
 
 export function useSubscriptionFeatures(hotelName) {
   const [features, setFeatures] = useState({

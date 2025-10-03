@@ -40,6 +40,8 @@ import {
 import { useMenu } from "hooks/useMenu";
 import { useCategory } from "hooks/useCategory";
 import { useMainCategory } from "hooks/useMainCategory";
+import { PageTitle } from "atoms";
+import { t } from "i18next";
 
 /**
  * Admin Dashboard Component
@@ -232,16 +234,17 @@ const OrderDashboard = () => {
     <AdminDashboardLayout>
       <div className="space-y-6 sm:space-y-8">
         {/* Enhanced Header Section */}
-        <div>
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="text-left">
-              <div className="flex items-center gap-4 mb-3">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent">
-                  Order Dashboard
-                </h1>
-              </div>
-            </div>
-          </div>
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+          <PageTitle
+            pageTitle={t("dashboard.title")}
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
+          />
+          <p className="text-blue-100 text-sm sm:text-base">
+            {t("dashboard.welcome", {
+              hotelName: selectedHotel?.name || hotelName,
+            })}{" "}
+            {t("dashboard.today")}
+          </p>
         </div>
 
         {/* Enhanced Time Period Navigation */}
@@ -304,8 +307,8 @@ const OrderDashboard = () => {
               alert={orderStats.rejected > 5}
             />
           </div>
-
-          <div className="transform hover:scale-105 transition-all duration-300">
+        </div>
+        <div className="transform hover:scale-105 transition-all duration-300">
             <StatCard
               title="Total Revenue"
               value={`₹${orderStats.totalRevenue?.toLocaleString() || 0}`}
@@ -319,7 +322,6 @@ const OrderDashboard = () => {
               trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
             />
           </div>
-        </div>
 
         {/* Enhanced Recent Orders Table */}
         {hasOrders && (

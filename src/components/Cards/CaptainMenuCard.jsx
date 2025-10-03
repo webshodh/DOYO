@@ -103,6 +103,7 @@ const CaptainMenuCard = memo(
           {...rest}
         >
           <div
+            style={{ height: "130px" }}
             className={`bg-white rounded-lg shadow-sm hover:shadow-md p-3 transition-all duration-200 border border-gray-200 hover:border-orange-300 relative group ${
               onCardClick ? "cursor-pointer" : ""
             }`}
@@ -115,11 +116,11 @@ const CaptainMenuCard = memo(
             }
           >
             {/* First Row: Menu Name, Discount Badge, and Veg/Non-Veg Symbol */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {/* Menu Name */}
                 <h3
-                  className="text-sm font-semibold text-gray-800 truncate flex-1"
+                  className="text-sm font-semibold text-gray-800 truncate flex-1 mt-3"
                   title={item.menuName}
                 >
                   {truncatedTitle}
@@ -149,32 +150,31 @@ const CaptainMenuCard = memo(
             </div>
 
             {/* Second Row: Price and Add to Cart Button */}
-            <div className="flex items-center justify-between">
-              {/* Price Section */}
-              <PriceDisplay
-                originalPrice={item.menuPrice}
-                finalPrice={item.finalPrice}
-                discount={item.discount}
-                currency={currency}
-              />
 
-              {/* Add to Cart Controls */}
-              <div className="flex-shrink-0">
-                {quantity > 0 ? (
-                  <QuantityControls
-                    quantity={quantity}
-                    onIncrease={handleAdd}
-                    onDecrease={handleRemove}
-                    isAvailable={isAvailable}
-                  />
-                ) : (
-                  <AddToCartButton
-                    onClick={handleAdd}
-                    isAvailable={isAvailable}
-                    isLoading={isLoading}
-                  />
-                )}
-              </div>
+            {/* Price Section */}
+            <PriceDisplay
+              originalPrice={item.menuPrice}
+              finalPrice={item.finalPrice}
+              discount={item.discount}
+              currency={currency}
+            />
+
+            {/* Add to Cart Controls */}
+            <div className="flex-shrink-0 mt-1 absolute bottom-0 right-0 z-30">
+              {quantity > 0 ? (
+                <QuantityControls
+                  quantity={quantity}
+                  onIncrease={handleAdd}
+                  onDecrease={handleRemove}
+                  isAvailable={isAvailable}
+                />
+              ) : (
+                <AddToCartButton
+                  onClick={handleAdd}
+                  isAvailable={isAvailable}
+                  isLoading={isLoading}
+                />
+              )}
             </div>
 
             {/* Availability Overlay */}

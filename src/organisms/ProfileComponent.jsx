@@ -525,7 +525,7 @@ const EnhancedAdminProfile = memo(() => {
     try {
       const user = auth.currentUser;
       if (!user) {
-        navigate("/login");
+        navigate("/admin/login");
         return;
       }
 
@@ -1654,7 +1654,7 @@ const EnhancedAdminProfile = memo(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-2 py-4 sm:px-2 lg:px-4">
+      <div className=" px-2 py-4 sm:px-2 lg:px-4">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">

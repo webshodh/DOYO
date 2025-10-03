@@ -9,15 +9,14 @@ const PageTitleHeading = styled.h1`
   font-size: 24px;
   margin-bottom: 0;
   font-weight: 600;
-  color: black;
-  margin-top: 20px;
+  color: white;
 `;
 
 function PageTitle({ pageTitle, description }) {
   return (
     <PageTitleContainer>
       <PageTitleHeading>{pageTitle}</PageTitleHeading>
-      <p className="text-gray-600 mt-1">{description}</p>
+      <p className="text-white mt-1">{description}</p>
     </PageTitleContainer>
   );
 }

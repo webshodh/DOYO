@@ -48,6 +48,7 @@ import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
 import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
 import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
+import CustomersPage from "Pages/Admin Dashboard/CustomersPage";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -288,6 +289,16 @@ function App() {
                         path="order-dashboard"
                         element={<OrderDashboard />}
                       />
+
+                      <Route
+                        path="customer-dashboard"
+                        element={
+                          <AdminLayout>
+                            <CustomersPage />
+                          </AdminLayout>
+                        }
+                      />
+
                       <Route
                         path="profile"
                         element={
