@@ -4,8 +4,6 @@ export { default as HotelSelector } from "./Admin Dashboard/HotelSelector";
 
 // Login
 export { default as LoginPage } from "./Login/LoginPage";
-export { default as ResetPasswordPage } from "./Login/ResetPasswordPage";
-export { default as ForgotPasswordPage } from "./Login/ForgotPasswordPage";
 
 // Screen
 export { default as WelcomeScreen } from "./Screens/WelcomeScreen";
