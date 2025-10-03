@@ -135,7 +135,8 @@ const KitchenAdminPage = memo(() => {
     <div className="min-h-screen bg-gray-50">
       <div>
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
+          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
+
           <PageTitle
             pageTitle="Kitchen Dashboard"
             className="text-2xl sm:text-3xl font-bold text-gray-900"

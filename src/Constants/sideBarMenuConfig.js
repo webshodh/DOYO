@@ -141,7 +141,7 @@ export const superAdminMenuItems = (t, hotelName) => [
     description: t("sidebar.addHotelsDesc"),
   },
   {
-    name: t("sidebar.addHotels"),
+    name: t("sidebar.viewHotels"),
     path: "/super-admin/view-hotel",
     icon: "hotels",
     description: t("sidebar.addHotelsDesc"),
