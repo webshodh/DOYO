@@ -63,6 +63,13 @@ export const adminMenuItems = (hotelName, t) => [
     description: t("sidebar.dashboardDesc"),
   },
   {
+    name: t("sidebar.dashboard"),
+    path: `/${hotelName}/admin/pos-dashboard`,
+    icon: "dashboard", // assuming icon name matches your icon set
+    description: t("sidebar.dashboardDesc"),
+  },
+  
+  {
     name: t("sidebar.orderDashboard"),
     path: `/${hotelName}/admin/order-dashboard`,
     icon: "dashboard",
@@ -141,7 +148,7 @@ export const superAdminMenuItems = (t, hotelName) => [
     description: t("sidebar.addHotelsDesc"),
   },
   {
-    name: t("sidebar.addHotels"),
+    name: t("sidebar.viewHotels"),
     path: "/super-admin/view-hotel",
     icon: "hotels",
     description: t("sidebar.addHotelsDesc"),
@@ -152,21 +159,10 @@ export const superAdminMenuItems = (t, hotelName) => [
     icon: "users",
     description: t("sidebar.viewAdminsDesc"),
   },
-  {
-    name: t("sidebar.addAdmin"),
-    path: "/super-admin/view-admin",
-    icon: "users",
-    description: t("sidebar.viewAdminsDesc"),
-  },
+
   {
     name: t("sidebar.subscriptions"),
     path: "/super-admin/add-subscription-plan",
-    icon: "subscriptions",
-    description: t("sidebar.subscriptionsDesc"),
-  },
-  {
-    name: t("sidebar.subscriptions"),
-    path: "/super-admin/view-subscription-plan",
     icon: "subscriptions",
     description: t("sidebar.subscriptionsDesc"),
   },

@@ -6,11 +6,10 @@ import React, {
   memo,
   useRef,
 } from "react";
-import { Edit3, Plus, Loader } from "lucide-react";
+import { Edit3, Plus, Loader, Building2 } from "lucide-react";
 import Modal from "../Modal";
-import TemplateSelector from "../Forms/TemplateSelector";
 import { FormCancelButton, FormSubmitButton } from "../Forms/FormActions";
-// Import your reusable field components
+// Import your reusable field components - Make sure these paths are correct
 import TextInputField from "../Forms/TextInputField";
 import TextareaField from "../Forms/TextareaField";
 import NumberField from "../Forms/NumberField";
@@ -20,22 +19,21 @@ import DateField from "../Forms/DateField";
 import PasswordInputField from "../Forms/PasswordInputField";
 
 import {
-  subscriptionFormSections,
-  subscriptionFormFields,
-  subscriptionFormInitialValues,
-  getSubscriptionValidationSchema,
-  planTemplates,
-} from "../../Constants/ConfigForms/subscriptionFormFields";
+  hotelFormSections,
+  hotelFormFields,
+  hotelFormInitialValues,
+  getHotelValidationSchema,
+} from "../../Constants/ConfigForms/addHotelFormConfig";
 
 // Helper function to get initial form data
 const getInitialFormData = (editData = null) => {
   if (editData) {
     return {
-      ...subscriptionFormInitialValues,
+      ...hotelFormInitialValues,
       ...editData,
     };
   }
-  return subscriptionFormInitialValues;
+  return hotelFormInitialValues;
 };
 
 // Field component mapping
@@ -68,18 +66,18 @@ const renderField = (
     return null;
   }
 
-  // Special handling for number fields with price prefix
+  // Handle nested fields (like socialMedia.facebook)
   const fieldProps = {
     ...field,
-    value,
+    value: value,
     error,
-    onChange,
+    onChange: (name, val) => onChange(field.name, val), // Always use field.name for consistency
     disabled,
-    inputRef, // Pass the ref down
+    inputRef,
   };
 
-  // Add prefix for price field
-  if (field.name === "price") {
+  // Special handling for minimum order amount with currency prefix
+  if (field.name === "minimumOrderAmount") {
     return (
       <div key={field.name} className="mb-4">
         <label className="block text-sm font-semibold text-gray-800 mb-2">
@@ -91,15 +89,15 @@ const renderField = (
             ₹
           </span>
           <input
-            ref={inputRef} // Use the passed ref
+            ref={inputRef}
             type="number"
             name={field.name}
             value={value || ""}
             onChange={(e) => onChange(field.name, e.target.value)}
             placeholder={field.placeholder}
-            min={field.min}
-            max={field.max}
-            step={field.step}
+            min={field.min || 0}
+            max={field.max || 10000}
+            step={field.step || 1}
             disabled={disabled}
             required={field.required}
             className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:ring-4 ${
@@ -122,17 +120,27 @@ const renderField = (
   );
 };
 
-// Simple Form Section Component
-const SimpleFormSection = memo(
-  ({
-    section,
-    formData,
-    onChange,
-    errors,
-    disabled,
-    firstFieldRef, // Pass ref from parent
-  }) => {
-    const sectionFields = subscriptionFormFields[section.fields] || [];
+// Simple Form Section Component - MAKE SURE TO USE THIS ONE
+const HotelFormSection = memo(
+  ({ section, formData, onChange, errors, disabled, firstFieldRef }) => {
+    // Get the actual fields array from the mapping
+    const sectionFields = hotelFormFields[section.fields] || [];
+
+    // Safety check
+    if (!Array.isArray(sectionFields)) {
+      console.error(
+        `Expected array for section ${section.title}, got:`,
+        typeof sectionFields,
+        sectionFields
+      );
+      return (
+        <div className="mb-8">
+          <div className="text-red-600 p-4 border border-red-300 rounded-lg">
+            Error: Invalid field configuration for section "{section.title}"
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="mb-8">
@@ -146,29 +154,38 @@ const SimpleFormSection = memo(
 
         {/* Fields in responsive grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sectionFields.map((field, index) =>
-            renderField(
+          {sectionFields.map((field, index) => {
+            // Handle nested field values
+            let fieldValue;
+            if (field.name.includes(".")) {
+              const [parent, child] = field.name.split(".");
+              fieldValue = formData[parent]?.[child];
+            } else {
+              fieldValue = formData[field.name];
+            }
+
+            return renderField(
               field,
-              formData[field.name],
+              fieldValue,
               errors[field.name],
               onChange,
               disabled,
-              index === 0 && firstFieldRef ? firstFieldRef : null // Pass ref only to first field
-            )
-          )}
+              index === 0 && firstFieldRef ? firstFieldRef : null
+            );
+          })}
         </div>
       </div>
     );
   }
 );
 
-// Main SubscriptionFormModal component
-const SubscriptionFormModal = memo(
+// Main AddHotelFormModal component
+const AddHotelFormModal = memo(
   ({
     show = false,
     onClose,
     onSubmit,
-    editPlan = null,
+    editHotel = null,
     title,
     submitText,
     cancelText = "Cancel",
@@ -181,18 +198,15 @@ const SubscriptionFormModal = memo(
     const [errors, setErrors] = useState({});
     const [isDirty, setIsDirty] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const firstFieldRef = useRef(null); // Create ref at component level
-    const isEditMode = Boolean(editPlan);
+    const firstFieldRef = useRef(null);
+    const isEditMode = Boolean(editHotel);
 
-    const validationSchema = useMemo(
-      () => getSubscriptionValidationSchema(),
-      []
-    );
+    const validationSchema = useMemo(() => getHotelValidationSchema(), []);
 
     // Initialize form data
     useEffect(() => {
       if (show) {
-        const initialData = getInitialFormData(editPlan);
+        const initialData = getInitialFormData(editHotel);
         setFormData(initialData);
         setErrors({});
         setIsDirty(false);
@@ -209,7 +223,7 @@ const SubscriptionFormModal = memo(
         setErrors({});
         setIsDirty(false);
       }
-    }, [show, editPlan]);
+    }, [show, editHotel]);
 
     // Real-time validation
     useEffect(() => {
@@ -220,12 +234,20 @@ const SubscriptionFormModal = memo(
     }, [formData, isDirty, validationSchema]);
 
     const handleFieldChange = useCallback((fieldName, value) => {
-      setFormData((prev) => ({ ...prev, [fieldName]: value }));
-      setIsDirty(true);
-    }, []);
-
-    const handleTemplateSelect = useCallback((template) => {
-      setFormData((prev) => ({ ...prev, ...template }));
+      setFormData((prev) => {
+        // Handle nested fields
+        if (fieldName.includes(".")) {
+          const [parent, child] = fieldName.split(".");
+          return {
+            ...prev,
+            [parent]: {
+              ...prev[parent],
+              [child]: value,
+            },
+          };
+        }
+        return { ...prev, [fieldName]: value };
+      });
       setIsDirty(true);
     }, []);
 
@@ -252,7 +274,7 @@ const SubscriptionFormModal = memo(
 
         setIsSubmitting(true);
         try {
-          const result = await onSubmit(formData, editPlan?.planId);
+          const result = await onSubmit(formData, editHotel?.hotelId);
           if (result !== false) {
             handleClose();
           }
@@ -262,7 +284,7 @@ const SubscriptionFormModal = memo(
           setIsSubmitting(false);
         }
       },
-      [formData, editPlan, onSubmit, validationSchema]
+      [formData, editHotel, onSubmit, validationSchema]
     );
 
     const handleClose = useCallback(() => {
@@ -297,8 +319,8 @@ const SubscriptionFormModal = memo(
     const formCompletion = useMemo(() => {
       const requiredFields = [];
 
-      subscriptionFormSections.forEach((section) => {
-        const sectionFieldsArray = subscriptionFormFields[section.fields] || [];
+      hotelFormSections.forEach((section) => {
+        const sectionFieldsArray = hotelFormFields[section.fields] || [];
         sectionFieldsArray.forEach((field) => {
           if (field.required) {
             requiredFields.push(field.name);
@@ -306,14 +328,27 @@ const SubscriptionFormModal = memo(
         });
       });
 
-      const completedFields = requiredFields.filter((fieldName) =>
-        formData[fieldName]?.toString().trim()
-      ).length;
+      const completedFields = requiredFields.filter((fieldName) => {
+        if (fieldName.includes(".")) {
+          const [parent, child] = fieldName.split(".");
+          return formData[parent]?.[child]?.toString().trim();
+        }
+        return formData[fieldName]?.toString().trim();
+      }).length;
 
       return requiredFields.length > 0
         ? Math.round((completedFields / requiredFields.length) * 100)
         : 0;
     }, [formData]);
+
+    // Get current hotel status for display
+    const hotelStatus = formData.isActive || "active";
+    const statusColors = {
+      active: "text-green-600",
+      in_active: "text-red-600",
+      pending: "text-yellow-600",
+      suspended: "text-gray-600",
+    };
 
     if (!show) return null;
 
@@ -321,9 +356,7 @@ const SubscriptionFormModal = memo(
       <Modal
         isOpen={show}
         onClose={handleClose}
-        title={
-          title || (isEditMode ? "Edit Subscription Plan" : "Create New Plan")
-        }
+        title={title || (isEditMode ? "Edit Hotel Details" : "Add New Hotel")}
         size="4xl"
         closeOnBackdrop={!isDirty}
         className="max-h-[90vh]"
@@ -335,68 +368,78 @@ const SubscriptionFormModal = memo(
             <div className="flex items-center gap-4">
               <div
                 className={`p-3 rounded-xl ${
-                  isEditMode ? "bg-purple-100" : "bg-green-100"
+                  isEditMode ? "bg-blue-100" : "bg-green-100"
                 }`}
               >
                 {isEditMode ? (
-                  <Edit3 className="w-6 h-6 text-purple-600" />
+                  <Edit3 className="w-6 h-6 text-blue-600" />
                 ) : (
-                  <Plus className="w-6 h-6 text-green-600" />
+                  <Building2 className="w-6 h-6 text-green-600" />
                 )}
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  {isEditMode ? "Update Plan" : "Create New Plan"}
+                  {isEditMode ? "Update Hotel" : "Add New Hotel"}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {isEditMode
-                    ? "Modify the plan details below"
-                    : "Set up a new subscription plan"}
+                    ? "Modify the hotel details below"
+                    : "Set up a new hotel in your system"}
                 </p>
               </div>
             </div>
 
-            {/* Price and Progress Display */}
+            {/* Status and Progress Display */}
             <div className="flex items-center gap-6">
-              {/* Price Display */}
-              {formData.price > 0 && (
+              {/* Progress indicator for new hotels */}
+              {!isEditMode && (
                 <div className="text-right">
-                  <div className="text-xs text-gray-500">Monthly Price</div>
-                  <div className="text-xl font-bold text-purple-600">
-                    ₹{formData.price}
+                  <div className="text-xs text-gray-500 mb-1">Progress</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-green-500 transition-all duration-300"
+                        style={{ width: `${formCompletion}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-gray-600">
+                      {formCompletion}%
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Hotel Status Display */}
+              {formData.businessName && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">Hotel Status</div>
+                  <div
+                    className={`text-sm font-bold ${statusColors[hotelStatus]}`}
+                  >
+                    {hotelStatus.charAt(0).toUpperCase() +
+                      hotelStatus.slice(1).replace("_", " ")}
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Template Selector */}
-          {!isEditMode && (
-            <div className="p-4 bg-blue-50 border-b border-blue-200">
-              <TemplateSelector
-                templates={planTemplates}
-                onSelectTemplate={handleTemplateSelect}
-                disabled={isSubmitting || submitting}
-              />
-            </div>
-          )}
-
           {/* Form */}
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col max-h-[calc(90vh-220px)]"
+            className="flex flex-col max-h-[calc(90vh-200px)]"
           >
             {/* Form Content - Scrollable */}
             <div className="flex-1 overflow-y-auto p-6">
-              {subscriptionFormSections.map((section, index) => (
-                <SimpleFormSection
+              {hotelFormSections.map((section, index) => (
+                <HotelFormSection // USE HotelFormSection, NOT FormSection
                   key={section.title}
                   section={section}
                   formData={formData}
                   onChange={handleFieldChange}
                   errors={errors}
                   disabled={isSubmitting || submitting}
-                  firstFieldRef={index === 0 ? firstFieldRef : null} // Pass ref only to first section
+                  firstFieldRef={index === 0 ? firstFieldRef : null}
                 />
               ))}
             </div>
@@ -434,7 +477,7 @@ const SubscriptionFormModal = memo(
                   isEditMode={isEditMode}
                   isLoading={isSubmitting}
                   text={
-                    submitText || (isEditMode ? "Update Plan" : "Create Plan")
+                    submitText || (isEditMode ? "Update Hotel" : "Add Hotel")
                   }
                 />
               </div>
@@ -446,5 +489,5 @@ const SubscriptionFormModal = memo(
   }
 );
 
-SubscriptionFormModal.displayName = "SubscriptionFormModal";
-export default SubscriptionFormModal;
+AddHotelFormModal.displayName = "AddHotelFormModal";
+export default AddHotelFormModal;

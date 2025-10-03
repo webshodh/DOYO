@@ -21,12 +21,12 @@ import TimePeriodSelector from "atoms/TimePeriodSelector";
 
 // Lazy load heavy components
 const HeaderStats = React.lazy(() => import("components/HeaderStats"));
-const OrderFilters = React.lazy(
-  () => import("components/order-dashboard/OrderFilters"),
+const OrderFilters = React.lazy(() =>
+  import("components/order-dashboard/OrderFilters")
 );
 const OrderCard = React.lazy(() => import("components/Cards/OrderCard"));
-const OrderDetailsModal = React.lazy(
-  () => import("components/order-dashboard/OrderDetailsModal"),
+const OrderDetailsModal = React.lazy(() =>
+  import("components/order-dashboard/OrderDetailsModal")
 );
 
 // Time period tabs component
@@ -101,7 +101,7 @@ const KitchenAdminPage = memo(() => {
       completed: stats.completed,
       rejected: stats.rejected,
     }),
-    [stats, timeFilteredOrders.length],
+    [stats, timeFilteredOrders.length]
   );
 
   // Event handlers
@@ -135,24 +135,12 @@ const KitchenAdminPage = memo(() => {
     <div className="min-h-screen bg-gray-50">
       <div>
         {/* Header */}
-        <div className="flex flex-row items-center justify-between gap-4 mb-1">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
           <PageTitle
             pageTitle="Kitchen Dashboard"
             className="text-2xl sm:text-3xl font-bold text-gray-900"
             description={`Manage orders for ${hotelName}`}
           />
-          {selectedTimePeriod === "daily" && (
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
-              <Calendar size={16} className="text-gray-500" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
-                className="bg-transparent border-none focus:outline-none text-sm"
-              />
-            </div>
-          )}
         </div>
 
         {/* Time Period Navigation */}
@@ -228,15 +216,17 @@ const KitchenAdminPage = memo(() => {
                 <Suspense
                   fallback={<LoadingSpinner text="Loading orders..." />}
                 >
-                  {filteredOrders.map((order) => (
-                    <OrderCard
-                      key={order.id}
-                      order={order}
-                      onStatusChange={handleStatusFilterChange}
-                      onViewDetails={handleViewDetails}
-                      loading={submitting}
-                    />
-                  ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredOrders.map((order) => (
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        onStatusChange={handleStatusFilterChange}
+                        onViewDetails={handleViewDetails}
+                        loading={submitting}
+                      />
+                    ))}
+                  </div>
                 </Suspense>
                 <div className="mt-6 text-center text-sm text-gray-600">
                   Showing {filteredOrders.length} of {timeFilteredOrders.length}{" "}

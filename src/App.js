@@ -44,10 +44,10 @@ import OrderDashboard from "Pages/Admin Dashboard/OrderDashboard";
 import ViewHotel from "Pages/SuperAdminDashboard/ViewHotel";
 import AddHotelPage from "Pages/SuperAdminDashboard/AddHotel";
 import ViewAdmin from "Pages/SuperAdminDashboard/ViewAdmin";
-import AddAdminPage from "Pages/SuperAdminDashboard/AddAdmin";
-import AddSubscriptionPlanPage from "Pages/SuperAdminDashboard/AddSubscriptionPlan";
 import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan";
 import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
+import DOYOLandingPage from "Pages/LandingPage";
+import POSDashboard from "Pages/Admin Dashboard/POSDashboard";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -140,6 +140,22 @@ function App() {
         <div className="App">
           <Routes>
             {/* Public Routes */}
+            <Route
+              path="/"
+              element={
+                <PublicRoute>
+                  <DOYOLandingPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/home"
+              element={
+                <PublicRoute>
+                  <DOYOLandingPage />
+                </PublicRoute>
+              }
+            />
             <Route
               path="/viewMenu/:hotelName/home"
               element={
@@ -237,28 +253,13 @@ function App() {
                         path="add-subscription-plan"
                         element={
                           <SuperAdminLayout>
-                            <AddSubscriptionPlanPage />
-                          </SuperAdminLayout>
-                        }
-                      />
-                      <Route
-                        path="view-subscription-plan"
-                        element={
-                          <SuperAdminLayout>
                             <ViewSubscriptionPlan />
                           </SuperAdminLayout>
                         }
                       />
+
                       <Route
                         path="add-admin"
-                        element={
-                          <SuperAdminLayout>
-                            <AddAdminPage />
-                          </SuperAdminLayout>
-                        }
-                      />
-                      <Route
-                        path="view-admin"
                         element={
                           <SuperAdminLayout>
                             <ViewAdmin />
@@ -284,6 +285,10 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
+                      <Route
+                        path="pos-dashboard"
+                        element={<AdminLayout><POSDashboard /></AdminLayout>}
+                      />
                       <Route
                         path="order-dashboard"
                         element={<OrderDashboard />}

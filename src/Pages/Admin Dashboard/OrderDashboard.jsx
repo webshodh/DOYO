@@ -2,61 +2,58 @@ import React, { useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   BarChart3,
-  ShoppingBag,
-  Users,
+  ChefHat,
   TrendingUp,
-  Clock,
-  CheckCircle,
-  AlertCircle,
+  Smartphone,
   RefreshCw,
   Download,
-  LoaderCircle,
-  Award,
 } from "lucide-react";
 
 // Hooks and utilities
-import { useOrder } from "../../hooks/useOrder"; // Updated import path
-
-// Context
+import { useOrder } from "../../hooks/useOrder";
 import { useHotelSelection } from "../../context/HotelSelectionContext";
+import { useMenu } from "hooks/useMenu";
+import { useCategory } from "hooks/useCategory";
+import { useMainCategory } from "hooks/useMainCategory";
 
 // Layout and UI components
 import AdminDashboardLayout from "../../layout/AdminDashboardLayout";
-import StatCard from "../../components/Cards/StatCard";
-import TopMenuCards from "../../components/Cards/TopMenuCard";
-import { DynamicTable } from "../../components";
-import { OrderInsights } from "../../molecules/OrderInsights";
+import { PageTitle } from "atoms";
 import TimePeriodSelector from "../../atoms/TimePeriodSelector";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import ErrorState from "../../atoms/Messages/ErrorState";
 import OrderDetailsModal from "../../components/order-dashboard/OrderDetailsModal";
 import OrderDetailsTable from "../../components/order-dashboard/OrderDetailsTable";
 import PrintBill from "Pages/Captain/PrintBill";
-// Constants
-import {
-  OrdersByCategoryColumn,
-  OrdersByMenuColumn,
-} from "../../Constants/Columns";
-import { useMenu } from "hooks/useMenu";
-import { useCategory } from "hooks/useCategory";
-import { useMainCategory } from "hooks/useMainCategory";
-import { PageTitle } from "atoms";
-import { t } from "i18next";
+
+// Reusable Dashboard Components
+import TabNavigation from "../../components/TabNavigation";
+import OrderAnalytics from "../../components/OrderAnalytics";
+import RevenueOverview from "../../components/RevenueOverview";
+import TopMenusByOrders from "../../components/TopMenusByOrders";
+import TopOrdersByCategory from "../../components/TopOrdersByCategory";
+import TopOrdersByMenu from "../../components/TopOrdersByMenu";
+import PlatformAnalytics from "../../components/PlatformAnalytics";
+
+// Other imports
+import { useTranslation } from "react-i18next";
 
 /**
- * Admin Dashboard Component
- * Provides comprehensive analytics and management interface for hotel orders
+ * Enhanced Order Dashboard using Reusable Components
  */
 const OrderDashboard = () => {
+  const { t } = useTranslation();
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
+  const [activeTab, setActiveTab] = useState("overview");
 
-  // Modal and UI state
+  // Modal & UI state
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPrintBill, setShowPrintBill] = useState(false);
   const [selectedOrderForBill, setSelectedOrderForBill] = useState(null);
+
   // Enhanced order data hook with comprehensive analytics
   const {
     orders,
@@ -67,48 +64,46 @@ const OrderDashboard = () => {
     todayStats,
     menuAnalytics,
     categoryAnalytics,
-
-    // State management
+    platformAnalytics,
     loading,
     submitting,
     error,
     connectionStatus,
     lastUpdated,
-
-    // Filter state
     selectedDate,
     selectedTimePeriod,
+    periodDisplayText,
     searchTerm,
     statusFilter,
-
-    // Display helpers
-    periodDisplayText,
+    orderTypeFilter,
+    platformFilter,
+    priorityFilter,
     hasOrders,
     hasFilteredOrders,
     isConnected,
     isLoading,
     isError,
     errorMessage,
-
-    // Filter handlers
-    handleDateChange,
-    handleTimePeriodChange,
-    handleSearchChange,
-    handleStatusFilterChange,
-    clearFilters,
-
-    // Actions
     updateOrderStatus,
     refreshOrders,
     exportOrdersCSV,
-
-    // Helper functions
-    getOrderById,
+    handleSearchChange,
+    handleStatusFilterChange,
+    handleOrderTypeFilterChange,
+    handlePlatformFilterChange,
+    handlePriorityFilterChange,
+    handleDateChange,
+    handleTimePeriodChange,
+    clearFilters,
     getOrdersByStatus,
-
-    // Options for UI
+    getOrderById: getOrdersById,
+    getOrdersByPlatform,
+    getOrdersByType,
     statusOptions,
     timePeriodOptions,
+    orderTypeOptions,
+    platformOptions,
+    priorityOptions,
   } = useOrder(hotelName, {
     includeMenuData: true,
     defaultTimePeriod: "daily",
@@ -119,52 +114,152 @@ const OrderDashboard = () => {
 
   // Menu and category management data
   const {
-    menuData: managementMenuData,
-    totalMenus,
+    filteredAndSortedMenus,
     loading: menuLoading,
     error: menuError,
+    refreshMenus,
+    menuCount,
+    hasMenus,
   } = useMenu(hotelName);
 
   const {
-    categoriesData,
-    totalCategories,
+    categories,
     loading: categoriesLoading,
     error: categoriesError,
+    categoryCount,
   } = useCategory(hotelName);
 
-  // Derived values
+  const { mainCategoryCount, loading: mainCategoryLoading } =
+    useMainCategory(hotelName) || {};
 
-  const { totalMainCategories } = useMainCategory(hotelName);
-
-  // Restaurant information for the bill - Get from captain data or use defaults
+  // Restaurant information
   const restaurantInfo = useMemo(
     () => ({
-      name: hotelName || hotelName || "Restaurant Name",
-      address: "Restaurant Address, City, State - 123456",
+      name: hotelName || selectedHotel?.name || "Restaurant Name",
+      address: "Restaurant address, City, State - 123456",
       phone: "+91 12345 67890",
-      gst: "12ABCDE3456F1Z5",
-      taxRate: 0.18, // 18% GST
+      gst: "12ABCDE3456F",
+      taxRate: 0.18,
       footer: "Thank you for dining with us!",
     }),
-    [hotelName],
+    [hotelName, selectedHotel]
   );
 
-  // Enhanced order statistics with corrected mapping for simplified status system
+  // Enhanced Stats with all new analytics
   const displayStats = useMemo(() => {
-    const stats = {
-      total: orderStats.total || 0,
-      received: orderStats.received || 0,
-      completed: orderStats.completed || 0,
-      rejected: orderStats.rejected || 0,
-      totalRevenue: orderStats.totalRevenue || 0,
+    if (!orderStats) {
+      return {
+        total: 0,
+        received: 0,
+        completed: 0,
+        rejected: 0,
+        revenue: 0,
+        activeOrders: 0,
+        completionRate: 0,
+        avgOrderValue: 0,
+        pendingOrders: 0,
+        rejectionRate: 0,
+        directOrders: 0,
+        swiggyOrders: 0,
+        zomatoOrders: 0,
+        uberEatsOrders: 0,
+        otherPlatformOrders: 0,
+        dineInOrders: 0,
+        takeawayOrders: 0,
+        deliveryOrders: 0,
+        cashPayments: 0,
+        upiPayments: 0,
+        cardPayments: 0,
+        pendingPayments: 0,
+        highPriorityOrders: 0,
+        expressPriorityOrders: 0,
+        vipPriorityOrders: 0,
+        directRevenue: 0,
+        swiggyRevenue: 0,
+        zomatoRevenue: 0,
+        totalPlatformCommission: 0,
+        trends: {
+          totalTrend: 0,
+          revenueTrend: 0,
+          completionTrend: 0,
+        },
+      };
+    }
+
+    const total = orderStats.total || 0;
+    const received = orderStats.received || 0;
+    const completed = orderStats.completed || 0;
+    const rejected = orderStats.rejected || 0;
+    const revenue = orderStats.totalRevenue || 0;
+    const avgOrderValue = orderStats.avgOrderValue || 0;
+    const rejectionRate = total > 0 ? Math.round((rejected / total) * 100) : 0;
+
+    return {
+      total,
+      received,
+      completed,
+      rejected,
+      revenue,
+      activeOrders: received,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+      avgOrderValue,
+      pendingOrders: received,
+      rejectionRate,
+      // Enhanced platform stats
+      directOrders: orderStats.totalDirectOrders || 0,
+      swiggyOrders: orderStats.totalSwiggyOrders || 0,
+      zomatoOrders: orderStats.totalZomatoOrders || 0,
+      uberEatsOrders: orderStats.totalUberEatsOrders || 0,
+      otherPlatformOrders:
+        (orderStats.totalDunzoOrders || 0) +
+        (orderStats.totalAmazonFoodOrders || 0) +
+        (orderStats.totalOtherPlatformOrders || 0),
+      // Order type stats
+      dineInOrders: orderStats.totalDineInOrders || 0,
+      takeawayOrders: orderStats.totalTakeawayOrders || 0,
+      deliveryOrders: orderStats.totalDeliveryOrders || 0,
+      // Payment stats
+      cashPayments: orderStats.cashPayments || 0,
+      upiPayments: orderStats.upiPayments || 0,
+      cardPayments: orderStats.cardPayments || 0,
+      pendingPayments: orderStats.pendingPayments || 0,
+      // Priority stats
+      highPriorityOrders: orderStats.highPriorityOrders || 0,
+      expressPriorityOrders: orderStats.expressPriorityOrders || 0,
+      vipPriorityOrders: orderStats.vipPriorityOrders || 0,
+      // Revenue by platform
+      directRevenue: orderStats.directRevenue || 0,
+      swiggyRevenue: orderStats.swiggyRevenue || 0,
+      zomatoRevenue: orderStats.zomatoRevenue || 0,
+      totalPlatformCommission: orderStats.totalPlatformCommission || 0,
+      trends: {
+        totalTrend: Math.floor(Math.random() * 20) - 10,
+        revenueTrend: Math.floor(Math.random() * 30) - 15,
+        completionTrend: Math.floor(Math.random() * 10) - 5,
+      },
     };
-
-    stats.activeOrders = stats.received;
-    stats.completionRate =
-      stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
-
-    return stats;
   }, [orderStats]);
+
+  // Top performing data using enhanced analytics
+  const topMenusByOrders = useMemo(() => {
+    return menuAnalytics?.topMenus || [];
+  }, [menuAnalytics]);
+
+  const topOrdersByCategory = useMemo(() => {
+    return categoryAnalytics?.categoryStats?.slice(0, 10) || [];
+  }, [categoryAnalytics]);
+
+  const topOrdersByMenu = useMemo(() => {
+    return menuAnalytics?.menuStats?.slice(0, 10) || [];
+  }, [menuAnalytics]);
+
+  // Tab configuration
+  const tabs = [
+    { id: "overview", name: "Overview", icon: BarChart3 },
+    { id: "platforms", name: "Platform Analytics", icon: Smartphone },
+    { id: "recentOrders", name: "Recent Orders", icon: ChefHat },
+    { id: "performance", name: "Performance", icon: TrendingUp },
+  ];
 
   // Event handlers
   const handleViewDetails = useCallback((order) => {
@@ -173,65 +268,61 @@ const OrderDashboard = () => {
   }, []);
 
   const handleCloseDetails = useCallback(() => {
-    setShowOrderDetails(false);
     setSelectedOrder(null);
+    setShowOrderDetails(false);
   }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await refreshOrders();
-    } catch (error) {
-      console.error("Error refreshing dashboard:", error);
+      await refreshMenus();
+    } catch (e) {
+      console.error("Refresh error", e);
     } finally {
       setTimeout(() => setIsRefreshing(false), 1000);
     }
-  }, [refreshOrders]);
+  }, [refreshOrders, refreshMenus]);
 
-  const handleExportData = useCallback(() => {
+  const handleExport = useCallback(() => {
     try {
       exportOrdersCSV();
-    } catch (error) {
-      console.error("Error exporting data:", error);
+    } catch (e) {
+      console.error("Export error", e);
     }
   }, [exportOrdersCSV]);
 
-  const handleOrderStatusUpdate = useCallback(
+  const handleUpdateStatus = useCallback(
     async (orderId, newStatus) => {
-      const result = await updateOrderStatus(orderId, newStatus, {
+      const res = await updateOrderStatus(orderId, newStatus, {
         updatedBy: "admin",
         updatedAt: new Date().toISOString(),
-        kitchen: {
-          notes: `Status updated by admin from dashboard`,
-        },
+        kitchen: { notes: "Status updated via admin dashboard" },
       });
 
-      // Update selected order if it's the same one
-      if (result.success && selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({
-          ...selectedOrder,
-          normalizedStatus: newStatus,
+      if (res.success && selectedOrder?.id === orderId) {
+        setSelectedOrder((s) => ({
+          ...s,
           status: newStatus,
-        });
+          normalizedStatus: newStatus,
+        }));
       }
-
-      return result;
+      return res;
     },
-    [updateOrderStatus, selectedOrder],
+    [updateOrderStatus, selectedOrder]
   );
 
-  // Loading state for menu management data
-  const isMenuManagementLoading = menuLoading || categoriesLoading;
-  const menuManagementError = menuError || categoriesError;
-
-  // Handle print bill
   const handlePrintBill = useCallback((order) => {
     setSelectedOrderForBill(order);
     setShowPrintBill(true);
   }, []);
+
+  const isLoadingData =
+    loading || menuLoading || categoriesLoading || mainCategoryLoading;
+
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6 sm:space-y-8">
+      <div className="min-h-screen bg-gray-50">
         {/* Enhanced Header Section */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
           <PageTitle
@@ -246,191 +337,129 @@ const OrderDashboard = () => {
           </p>
         </div>
 
-        {/* Enhanced Time Period Navigation */}
-        <TimePeriodSelector
-          selectedTimePeriod={selectedTimePeriod}
-          onTimePeriodChange={handleTimePeriodChange}
-          selectedDate={selectedDate}
-          onDateChange={handleDateChange}
-          variant="default"
-          showDatePicker={true}
-          className="mb-6"
-          options={timePeriodOptions}
-          disableFutureDates={true}
-        />
-
-        {/* Enhanced Menu Management Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              title="Total Orders"
-              value={orderStats.total}
-              color="indigo"
-              icon={ShoppingBag}
-              subtitle={`${displayStats.uniqueCustomers} unique customers`}
-              trend={orderStats.total > todayStats.total ? "up" : "neutral"}
-            />
-          </div>
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              icon={CheckCircle}
-              title="Completed Orders"
-              value={displayStats.completed}
-              color="green"
-              subtitle={`${displayStats.completionRate}% completion rate`}
-            />
-          </div>
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              title="Active Orders"
-              value={displayStats.activeOrders}
-              color="orange"
-              icon={Clock}
-              subtitle="Pending + Preparing + Ready"
-              alert={displayStats.activeOrders > 10}
-            />
-          </div>
-          <div className="transform hover:scale-105 transition-all duration-300">
-            <StatCard
-              title="Rejected Orders"
-              value={orderStats.rejected}
-              color="red"
-              icon={AlertCircle}
-              subtitle={
-                orderStats.total > 0
-                  ? `${Math.round(
-                      (orderStats.rejected / orderStats.total) * 100,
-                    )}% rejection rate`
-                  : ""
-              }
-              alert={orderStats.rejected > 5}
-            />
-          </div>
-        </div>
-        <div className="transform hover:scale-105 transition-all duration-300">
-          <StatCard
-            title="Total Revenue"
-            value={`₹${orderStats.totalRevenue?.toLocaleString() || 0}`}
-            color="yellow"
-            icon={TrendingUp}
-            subtitle={
-              displayStats.avgOrderValue > 0
-                ? `₹${displayStats.avgOrderValue} avg order`
-                : ""
-            }
-            trend={displayStats.revenueGrowth > 0 ? "up" : "neutral"}
+        {/* Time Period Selector */}
+        <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
+          <TimePeriodSelector
+            selectedTimePeriod={selectedTimePeriod}
+            onTimePeriodChange={handleTimePeriodChange}
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            variant="default"
+            showDatePicker={true}
+            className="mb-0"
+            options={timePeriodOptions}
+            disableFutureDates={true}
           />
         </div>
 
-        {/* Enhanced Recent Orders Table */}
-        {hasOrders && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-gray-700" />
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Recent Orders
-                  </h2>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>
-                    Showing {timeFilteredOrders.length} of {orders.length}{" "}
-                    orders
-                  </span>
-                  {statusFilter !== "all" && (
-                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                      {statusFilter} only
-                    </span>
-                  )}
-                </div>
-              </div>
+        {/* Main Content */}
+        <div className=" py-6 sm:py-8 space-y-8">
+          {/* Tab Navigation Component */}
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={tabs}
+          />
 
-              <OrderDetailsTable
-                orders={timeFilteredOrders.slice(0, 20)} // Show recent 20 orders
-                onViewDetails={handleViewDetails}
-                onUpdateStatus={handleOrderStatusUpdate}
-                isUpdating={submitting}
-                showConnectionStatus={!isConnected}
-                onPrintBill={handlePrintBill}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Enhanced Loading States */}
-        {(loading || isMenuManagementLoading) && (
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading dashboard data..." />
-          </div>
-        )}
-
-        {/* Enhanced Error States */}
-        {(isError || menuManagementError) && (
-          <div className="py-8">
+          {/* Error handling */}
+          {(error || menuError || categoriesError) && (
             <ErrorState
-              size="md"
-              message={errorMessage || menuManagementError}
-              title="Dashboard Error"
-              showRetry={true}
-              onRetry={handleRefresh}
+              title={t("dashboard.errorTitle")}
+              message={error?.message || menuError || categoriesError}
+              retryAction={handleRefresh}
             />
-          </div>
-        )}
+          )}
 
-        {/* Enhanced Empty State */}
-        {!loading && !isError && !hasOrders && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-12">
-            <div className="text-center">
-              <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {selectedTimePeriod === "daily"
-                  ? "No Orders Today"
-                  : "No Orders Yet"}
-              </h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                {selectedTimePeriod === "daily"
-                  ? `No orders have been placed for ${new Date(
-                      selectedDate,
-                    ).toLocaleDateString()}. Try selecting a different date or time period.`
-                  : "Your dashboard will come alive once you start receiving orders. Check your menu setup and ensure everything is configured correctly."}
-              </p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleRefresh}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                >
-                  Refresh Dashboard
-                </button>
-                {selectedTimePeriod === "daily" && (
-                  <button
-                    onClick={() => handleTimePeriodChange("total")}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                  >
-                    View All Orders
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+          {/* Loading state */}
+          {isLoadingData &&
+          !filteredOrders?.length &&
+          !filteredAndSortedMenus?.length ? (
+            <LoadingSpinner text={t("dashboard.loading")} />
+          ) : (
+            <>
+              {/* Overview Tab */}
+              {activeTab === "overview" && (
+                <>
+                  <OrderAnalytics displayStats={displayStats} />
+                  <RevenueOverview displayStats={displayStats} />
+                </>
+              )}
 
-        {/* Enhanced Order Details Modal */}
+              {/* Platform Analytics Tab */}
+              {activeTab === "platforms" && (
+                <PlatformAnalytics
+                  displayStats={displayStats}
+                  platformAnalytics={platformAnalytics}
+                  orderTypeFilter={orderTypeFilter}
+                  platformFilter={platformFilter}
+                  priorityFilter={priorityFilter}
+                  onOrderTypeFilterChange={handleOrderTypeFilterChange}
+                  onPlatformFilterChange={handlePlatformFilterChange}
+                  onPriorityFilterChange={handlePriorityFilterChange}
+                />
+              )}
+
+              {/* Recent Orders Tab */}
+              {activeTab === "recentOrders" && hasOrders && (
+                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="w-6 h-6 text-indigo-600" />
+                        <h2 className="text-xl font-bold text-gray-900">
+                          Recent Orders
+                        </h2>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <span>
+                          Showing {filteredOrders.length} of {orders.length}{" "}
+                          orders
+                        </span>
+                      </div>
+                    </div>
+
+                    <OrderDetailsTable
+                      orders={filteredOrders.slice(0, 20)}
+                      onViewDetails={handleViewDetails}
+                      onUpdateStatus={handleUpdateStatus}
+                      isUpdating={submitting}
+                      showConnectionStatus={!isConnected}
+                      onPrintBill={handlePrintBill}
+                      showEnhancedColumns={true}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Performance Tab */}
+              {activeTab === "performance" && (
+                <>
+                  <TopMenusByOrders topMenusByOrders={topMenusByOrders} />
+                  <TopOrdersByCategory
+                    topOrdersByCategory={topOrdersByCategory}
+                  />
+                  <TopOrdersByMenu topOrdersByMenu={topOrdersByMenu} />
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Modals */}
         {showOrderDetails && selectedOrder && (
           <OrderDetailsModal
             order={selectedOrder}
             onClose={handleCloseDetails}
-            onUpdateStatus={handleOrderStatusUpdate}
-            orderStatuses={statusOptions}
+            onStatusUpdate={handleUpdateStatus}
             isSubmitting={submitting}
-            showDetailedInfo={true}
+            orderStatuses={statusOptions}
+            showEnhancedDetails={true}
           />
         )}
 
-        {/* Print Bill Modal */}
         {showPrintBill && selectedOrderForBill && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto shadow-2xl">
+            <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-auto shadow-2xl">
               <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
                 <h2 className="text-xl font-semibold">Print Bill</h2>
                 <button
@@ -447,16 +476,6 @@ const OrderDashboard = () => {
                 order={selectedOrderForBill}
                 restaurantInfo={restaurantInfo}
               />
-            </div>
-          </div>
-        )}
-
-        {/* Loading overlay for operations */}
-        {submitting && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 flex items-center gap-3 shadow-lg">
-              <LoadingSpinner size="sm" />
-              <span className="text-gray-700 font-medium">Processing...</span>
             </div>
           </div>
         )}
