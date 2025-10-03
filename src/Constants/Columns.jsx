@@ -673,7 +673,7 @@ const useColumns = () => {
         <span className="text-sm font-medium text-green-600">
           ₹
           {(typeof value === "number" ? value : parseFloat(value) || 0).toFixed(
-            2
+            2,
           )}
         </span>
       ),

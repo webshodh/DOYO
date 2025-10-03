@@ -15,8 +15,8 @@ import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 // Lazy load heavy components
-const CategoryFormModal = React.lazy(() =>
-  import("../../components/FormModals/CategoryFormModals")
+const CategoryFormModal = React.lazy(
+  () => import("../../components/FormModals/CategoryFormModals"),
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -61,7 +61,7 @@ const AddMainCategory = memo(() => {
         return createdDate > weekAgo;
       }).length,
     }),
-    [categories, categoryCount]
+    [categories, categoryCount],
   );
 
   // Format data for table
@@ -71,7 +71,7 @@ const AddMainCategory = memo(() => {
         srNo: index + 1,
         ...category,
       })),
-    [filteredCategories]
+    [filteredCategories],
   );
 
   // Event handlers
@@ -92,7 +92,7 @@ const AddMainCategory = memo(() => {
         console.error(t("errors.prepareCategoryEdit"), error);
       }
     },
-    [prepareForEdit, t]
+    [prepareForEdit, t],
   );
 
   const handleDeleteClick = useCallback(
@@ -100,7 +100,7 @@ const AddMainCategory = memo(() => {
       const confirmed = window.confirm(
         t("confirmations.deleteCategory", {
           categoryName: category.categoryName,
-        })
+        }),
       );
       if (confirmed) {
         try {
@@ -110,7 +110,7 @@ const AddMainCategory = memo(() => {
         }
       }
     },
-    [deleteCategory, t]
+    [deleteCategory, t],
   );
 
   const handleModalClose = useCallback(() => {
@@ -128,16 +128,16 @@ const AddMainCategory = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit, t]
+    [handleFormSubmit, t],
   );
 
   const handleClearSearch = useCallback(
     () => handleSearchChange(""),
-    [handleSearchChange]
+    [handleSearchChange],
   );
   const handleRefresh = useCallback(
     () => refreshCategories(),
-    [refreshCategories]
+    [refreshCategories],
   );
 
   if (error) {

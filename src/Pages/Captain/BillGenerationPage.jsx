@@ -36,7 +36,7 @@ const BillGenerationPage = () => {
       const activeSession = Object.values(sessions).find(
         (session) =>
           session.tableNumber === parseInt(tableNumber) &&
-          session.status === "active"
+          session.status === "active",
       );
 
       if (!activeSession) {
@@ -71,18 +71,16 @@ const BillGenerationPage = () => {
 
   const handlePrint = (billData) => {
     // Implementation for printing
-    console.log("Printing bill:", billData);
+
     window.print();
   };
 
   const handleDownload = (billData) => {
     // Implementation for downloading PDF
-    console.log("Downloading bill:", billData);
   };
 
   const handleShare = (billData) => {
     // Implementation for sharing
-    console.log("Sharing bill:", billData);
   };
 
   return (

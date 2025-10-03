@@ -97,7 +97,7 @@ const ViewHotel = memo(() => {
         console.error("Error preparing hotel for edit:", err);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit],
   );
 
   const handleDeleteClick = useCallback(
@@ -121,7 +121,7 @@ const ViewHotel = memo(() => {
         }
       }
     },
-    [deleteHotel]
+    [deleteHotel],
   );
 
   const handleBulkStatusUpdate = useCallback(
@@ -129,7 +129,7 @@ const ViewHotel = memo(() => {
       if (selectedHotels.length === 0) return;
 
       const confirmed = window.confirm(
-        `Are you sure you want to ${status} ${selectedHotels.length} selected hotel(s)?`
+        `Are you sure you want to ${status} ${selectedHotels.length} selected hotel(s)?`,
       );
 
       if (confirmed) {
@@ -144,13 +144,12 @@ const ViewHotel = memo(() => {
         }
       }
     },
-    [selectedHotels, bulkUpdateHotels, clearSelection]
+    [selectedHotels, bulkUpdateHotels, clearSelection],
   );
 
   const handleExport = useCallback(() => {
     const data = exportHotels("csv");
     // Here you would typically trigger a file download
-    console.log("Exported data:", data);
   }, [exportHotels]);
 
   const handleModalClose = useCallback(() => {
@@ -169,7 +168,7 @@ const ViewHotel = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit]
+    [handleFormSubmit],
   );
 
   const handleClearSearch = useCallback(() => {
@@ -183,7 +182,7 @@ const ViewHotel = memo(() => {
         hotel.businessName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
       navigate(`/super-admin/${hotelId}/dashboard`);
     },
-    [navigate]
+    [navigate],
   );
 
   // Error Handling
@@ -290,7 +289,7 @@ const ViewHotel = memo(() => {
               subtitle={
                 hotelStats.total
                   ? `${Math.round(
-                      (hotelStats.active / hotelStats.total) * 100
+                      (hotelStats.active / hotelStats.total) * 100,
                     )}% active`
                   : ""
               }

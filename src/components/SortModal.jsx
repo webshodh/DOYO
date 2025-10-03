@@ -13,7 +13,7 @@ const SortModal = memo(({ isOpen, onClose, currentSort, onSort }) => {
       { key: "lowToHigh", label: "Price: Low to High", icon: SortAsc },
       { key: "highToLow", label: "Price: High to Low", icon: SortDesc },
     ],
-    []
+    [],
   );
 
   const handleSortSelect = useCallback(
@@ -23,7 +23,7 @@ const SortModal = memo(({ isOpen, onClose, currentSort, onSort }) => {
       }
       onClose();
     },
-    [onSort, onClose]
+    [onSort, onClose],
   );
 
   if (!isOpen) return null;

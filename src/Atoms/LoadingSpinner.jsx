@@ -20,4 +20,4 @@ const LoadingSpinner = memo(({ size = "md", text = "Loading..." }) => {
 });
 
 LoadingSpinner.displayName = "LoadingSpinner";
-export default LoadingSpinner
+export default LoadingSpinner;

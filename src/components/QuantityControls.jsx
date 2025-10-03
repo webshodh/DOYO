@@ -204,7 +204,7 @@ const QuantityControls = memo(
         </button>
       </div>
     );
-  }
+  },
 );
 
 QuantityControls.displayName = "QuantityControls";

@@ -17,7 +17,7 @@ const AddToCartButton = memo(
         )}
       </button>
     );
-  }
+  },
 );
 
 AddToCartButton.displayName = "AddToCartButton";

@@ -52,7 +52,7 @@ export const hotelServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      }
+      },
     );
     return unsubscribe;
   },
@@ -82,7 +82,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "categories",
-        "_meta"
+        "_meta",
       );
       const categoryMetaDoc = await getDoc(categoryMetaRef);
       if (categoryMetaDoc.exists()) {
@@ -102,7 +102,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "captains",
-        "_meta"
+        "_meta",
       );
       const captainMetaDoc = await getDoc(captainMetaRef);
       if (captainMetaDoc.exists()) {
@@ -115,7 +115,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "subscription",
-        "current"
+        "current",
       );
       const subscriptionDoc = await getDoc(subscriptionRef);
       if (subscriptionDoc.exists()) {
@@ -142,7 +142,7 @@ export const hotelServices = {
       // Enhanced duplicate checking
       const duplicateCheck = hotelServices.checkDuplicateHotel(
         hotelData,
-        existingHotels
+        existingHotels,
       );
       if (duplicateCheck.isDuplicate) {
         toast.error(duplicateCheck.message, {
@@ -176,10 +176,10 @@ export const hotelServices = {
         totalOrders: 0,
         // Contact normalization
         primaryContact: hotelServices.normalizePhoneNumber(
-          hotelData.primaryContact
+          hotelData.primaryContact,
         ),
         alternateContact: hotelServices.normalizePhoneNumber(
-          hotelData.alternateContact
+          hotelData.alternateContact,
         ),
       };
 
@@ -214,7 +214,7 @@ export const hotelServices = {
     const duplicateByName = existingHotels.find(
       (h) =>
         h.businessName?.toLowerCase().trim() ===
-        hotelData.businessName?.toLowerCase().trim()
+        hotelData.businessName?.toLowerCase().trim(),
     );
     if (duplicateByName) {
       return { isDuplicate: true, message: "Business name already exists" };
@@ -225,7 +225,7 @@ export const hotelServices = {
       const duplicateByEmail = existingHotels.find(
         (h) =>
           h.businessEmail?.toLowerCase().trim() ===
-          hotelData.businessEmail?.toLowerCase().trim()
+          hotelData.businessEmail?.toLowerCase().trim(),
       );
       if (duplicateByEmail) {
         return { isDuplicate: true, message: "Business email already exists" };
@@ -235,12 +235,12 @@ export const hotelServices = {
     // Check primary contact
     if (hotelData.primaryContact) {
       const normalizedPhone = hotelServices.normalizePhoneNumber(
-        hotelData.primaryContact
+        hotelData.primaryContact,
       );
       const duplicateByPhone = existingHotels.find(
         (h) =>
           hotelServices.normalizePhoneNumber(h.primaryContact) ===
-          normalizedPhone
+          normalizedPhone,
       );
       if (duplicateByPhone) {
         return {
@@ -289,7 +289,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "categories",
-        "_meta"
+        "_meta",
       );
       batch.set(categoryMetaRef, {
         createdAt: timestamp,
@@ -315,7 +315,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "orders",
-        "_meta"
+        "_meta",
       );
       batch.set(ordersMetaRef, {
         createdAt: timestamp,
@@ -333,7 +333,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "captains",
-        "_meta"
+        "_meta",
       );
       batch.set(captainsMetaRef, {
         createdAt: timestamp,
@@ -349,7 +349,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "subscription",
-        "current"
+        "current",
       );
       batch.set(subscriptionRef, {
         planId: "free",
@@ -383,7 +383,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "settings",
-        "general"
+        "general",
       );
       batch.set(settingsRef, {
         currency: "INR",
@@ -406,8 +406,6 @@ export const hotelServices = {
         createdAt: timestamp,
         hotelId,
       });
-
-      console.log("Hotel collections initialized successfully for:", hotelId);
     } catch (error) {
       console.error("Error initializing hotel collections:", error);
       throw error;
@@ -421,7 +419,7 @@ export const hotelServices = {
       const otherHotels = existingHotels.filter((h) => h.hotelId !== hotelId);
       const duplicateCheck = hotelServices.checkDuplicateHotel(
         hotelData,
-        otherHotels
+        otherHotels,
       );
       if (duplicateCheck.isDuplicate) {
         toast.error(duplicateCheck.message, {
@@ -438,10 +436,10 @@ export const hotelServices = {
         status: hotelData.isActive === "active" ? "active" : "inactive",
         // Normalize contact numbers
         primaryContact: hotelServices.normalizePhoneNumber(
-          hotelData.primaryContact
+          hotelData.primaryContact,
         ),
         alternateContact: hotelServices.normalizePhoneNumber(
-          hotelData.alternateContact
+          hotelData.alternateContact,
         ),
         updatedAt: Timestamp.fromDate(new Date()),
       };
@@ -558,20 +556,20 @@ Type "DELETE" to confirm:`;
     // Business type filter
     if (filters.businessType && filters.businessType !== "all") {
       filteredHotels = filteredHotels.filter(
-        (hotel) => hotel.businessType === filters.businessType
+        (hotel) => hotel.businessType === filters.businessType,
       );
     }
 
     // Location filters
     if (filters.city && filters.city !== "all") {
       filteredHotels = filteredHotels.filter(
-        (hotel) => hotel.city?.toLowerCase() === filters.city.toLowerCase()
+        (hotel) => hotel.city?.toLowerCase() === filters.city.toLowerCase(),
       );
     }
 
     if (filters.state && filters.state !== "all") {
       filteredHotels = filteredHotels.filter(
-        (hotel) => hotel.state?.toLowerCase() === filters.state.toLowerCase()
+        (hotel) => hotel.state?.toLowerCase() === filters.state.toLowerCase(),
       );
     }
 
@@ -580,7 +578,7 @@ Type "DELETE" to confirm:`;
       filteredHotels = filteredHotels.filter(
         (hotel) =>
           hotel.metrics?.subscription?.planName?.toLowerCase() ===
-          filters.subscriptionPlan.toLowerCase()
+          filters.subscriptionPlan.toLowerCase(),
       );
     }
 

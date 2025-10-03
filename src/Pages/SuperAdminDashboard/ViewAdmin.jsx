@@ -56,8 +56,6 @@ const ViewAdmin = memo(() => {
     filterActive: true, // Only get active hotels
   });
 
-  console.log("Available hotels:", availableHotels); // Debug log
-
   const {
     admins,
     filteredAdmins,
@@ -78,9 +76,7 @@ const ViewAdmin = memo(() => {
     clearError,
   } = useAdmin({
     hotelId, // If hotelId is provided, only show admins for that hotel
-    onAdminAdded: (adminData) => {
-      console.log("Admin added successfully:", adminData);
-    },
+    onAdminAdded: (adminData) => {},
   });
 
   // Filter admins based on status, role, and hotel
@@ -171,7 +167,7 @@ const ViewAdmin = memo(() => {
         console.error("Error preparing admin for edit:", err);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit],
   );
 
   const handleDeleteClick = useCallback(
@@ -180,7 +176,7 @@ const ViewAdmin = memo(() => {
       const hotelName = admin.hotelInfo?.businessName || "no hotel";
 
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${adminName}" (linked to: ${hotelName})?\n\nThis action cannot be undone and will remove the admin's access to the system.`
+        `Are you sure you want to delete "${adminName}" (linked to: ${hotelName})?\n\nThis action cannot be undone and will remove the admin's access to the system.`,
       );
 
       if (confirmed) {
@@ -191,7 +187,7 @@ const ViewAdmin = memo(() => {
         }
       }
     },
-    [deleteAdmin]
+    [deleteAdmin],
   );
 
   const handleLinkToHotel = useCallback(
@@ -212,7 +208,7 @@ const ViewAdmin = memo(() => {
         console.error("Error linking admin to hotel:", err);
       }
     },
-    [linkAdminToHotel, unlinkAdminFromHotel]
+    [linkAdminToHotel, unlinkAdminFromHotel],
   );
 
   const handleModalClose = useCallback(() => {
@@ -229,12 +225,10 @@ const ViewAdmin = memo(() => {
           adminData.linkedHotelId = hotelId;
         }
 
-        console.log("Submitting admin data:", adminData); // Debug log
-
         const success = await handleFormSubmit(
           adminData,
           adminId,
-          adminData.linkedHotelId
+          adminData.linkedHotelId,
         );
         return success;
       } catch (error) {
@@ -242,7 +236,7 @@ const ViewAdmin = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit, hotelId]
+    [handleFormSubmit, hotelId],
   );
 
   const handleClearSearch = useCallback(() => {
@@ -262,7 +256,7 @@ const ViewAdmin = memo(() => {
         navigate(`/super-admin/${admin.linkedHotelId}/dashboard`);
       }
     },
-    [navigate]
+    [navigate],
   );
 
   // Error Handling
@@ -346,7 +340,7 @@ const ViewAdmin = memo(() => {
               subtitle={
                 adminStats.total
                   ? `${Math.round(
-                      (adminStats.active / adminStats.total) * 100
+                      (adminStats.active / adminStats.total) * 100,
                     )}% active`
                   : ""
               }
@@ -527,10 +521,10 @@ const ViewAdmin = memo(() => {
                             value === "super_admin"
                               ? "bg-purple-100 text-purple-800"
                               : value === "admin"
-                              ? "bg-blue-100 text-blue-800"
-                              : value === "manager"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : value === "manager"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
                           }`}
                         >
                           <Shield size={12} className="mr-1" />
@@ -591,8 +585,8 @@ const ViewAdmin = memo(() => {
                             value === "active"
                               ? "bg-green-100 text-green-800"
                               : value === "inactive"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
                           {value === "active" ? (

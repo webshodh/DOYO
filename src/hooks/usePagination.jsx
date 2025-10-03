@@ -7,7 +7,7 @@ const usePagination = (data, initialRowsPerPage = 10) => {
 
   const totalPages = useMemo(
     () => Math.ceil(data.length / rowsPerPage),
-    [data.length, rowsPerPage]
+    [data.length, rowsPerPage],
   );
 
   const paginatedData = useMemo(() => {
@@ -20,7 +20,7 @@ const usePagination = (data, initialRowsPerPage = 10) => {
     (page) => {
       setCurrentPage(Math.max(1, Math.min(page, totalPages)));
     },
-    [totalPages]
+    [totalPages],
   );
 
   const changeRowsPerPage = useCallback((newRowsPerPage) => {

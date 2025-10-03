@@ -81,7 +81,7 @@ const ActiveFilters = memo(
         </div> */}
       </div>
     );
-  }
+  },
 );
 
 ActiveFilters.displayName = "ActiveFilters";

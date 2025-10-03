@@ -51,7 +51,7 @@ const VerticalMenuImage = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 VerticalMenuImage.displayName = "VerticalMenuImage";

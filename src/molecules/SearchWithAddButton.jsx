@@ -40,8 +40,8 @@ const SearchInput = memo(
             error
               ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200"
               : disabled
-              ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300"
-              : "border-gray-300 bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-200 hover:border-gray-400"
+                ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300"
+                : "border-gray-300 bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-200 hover:border-gray-400"
           } focus:outline-none`}
           aria-label={placeholder}
         />
@@ -59,7 +59,7 @@ const SearchInput = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 SearchInput.displayName = "SearchInput";
@@ -110,7 +110,7 @@ const ActionButton = memo(
         {children}
       </button>
     );
-  }
+  },
 );
 
 ActionButton.displayName = "ActionButton";
@@ -190,7 +190,7 @@ const SearchWithButton = memo(
           }
         }
       },
-      [onSearchChange, debounceMs, debounceTimer]
+      [onSearchChange, debounceMs, debounceTimer],
     );
 
     // Handle search submit (Enter key)
@@ -201,7 +201,7 @@ const SearchWithButton = memo(
           onSearchSubmit(localSearchTerm, e);
         }
       },
-      [localSearchTerm, onSearchSubmit]
+      [localSearchTerm, onSearchSubmit],
     );
 
     // Handle clear
@@ -225,7 +225,7 @@ const SearchWithButton = memo(
         setIsFocused(true);
         if (onFocus) onFocus(e);
       },
-      [onFocus]
+      [onFocus],
     );
 
     const handleBlur = useCallback(
@@ -233,7 +233,7 @@ const SearchWithButton = memo(
         setIsFocused(false);
         if (onBlur) onBlur(e);
       },
-      [onBlur]
+      [onBlur],
     );
 
     // Handle button click
@@ -243,7 +243,7 @@ const SearchWithButton = memo(
           onButtonClick(localSearchTerm, e);
         }
       },
-      [localSearchTerm, onButtonClick]
+      [localSearchTerm, onButtonClick],
     );
 
     // Layout classes
@@ -327,7 +327,7 @@ const SearchWithButton = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 SearchWithButton.displayName = "SearchWithButton";

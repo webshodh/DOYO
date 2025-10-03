@@ -110,7 +110,7 @@ const AdminDashboardLayout = memo(({ children }) => {
       toggleSidebar,
       closeSidebar,
     }),
-    [isSidebarOpen, isDesktop, toggleSidebar, closeSidebar]
+    [isSidebarOpen, isDesktop, toggleSidebar, closeSidebar],
   );
 
   return (

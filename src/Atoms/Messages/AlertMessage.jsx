@@ -20,9 +20,9 @@ const AlertMessage = ({
     <div
       className={`alert alert-${type} d-flex align-items-center justify-content-between`}
       role="alert"
-      style={{marginBottom:'0px'}}
+      style={{ marginBottom: "0px" }}
     >
-      <div className="d-flex align-items-center" >
+      <div className="d-flex align-items-center">
         <svg
           className="bi flex-shrink-0 me-2"
           width="24"

@@ -66,7 +66,6 @@ export const useCaptain = (hotelName) => {
   const addCaptain = useCallback(
     async (captainData) => {
       if (submitting) {
-        console.log("Already submitting, please wait");
         return false;
       }
 
@@ -77,7 +76,7 @@ export const useCaptain = (hotelName) => {
         const success = await captainServices.addCaptain(
           hotelName,
           captainData,
-          captains
+          captains,
         );
         return success;
       } catch (error) {
@@ -89,14 +88,13 @@ export const useCaptain = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, captains, submitting]
+    [hotelName, captains, submitting],
   );
 
   // Update captain
   const updateCaptain = useCallback(
     async (captainId, captainData) => {
       if (submitting) {
-        console.log("Already submitting, please wait");
         return false;
       }
 
@@ -113,7 +111,7 @@ export const useCaptain = (hotelName) => {
           hotelName,
           captainId,
           captainData,
-          captains
+          captains,
         );
         return success;
       } catch (error) {
@@ -125,14 +123,13 @@ export const useCaptain = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, captains, submitting]
+    [hotelName, captains, submitting],
   );
 
   // Delete captain
   const deleteCaptain = useCallback(
     async (captain) => {
       if (submitting) {
-        console.log("Already submitting, please wait");
         return false;
       }
 
@@ -156,14 +153,13 @@ export const useCaptain = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting],
   );
 
   // Toggle captain status
   const toggleCaptainStatus = useCallback(
     async (captainId, currentStatus) => {
       if (submitting) {
-        console.log("Already submitting, please wait");
         return false;
       }
 
@@ -179,7 +175,7 @@ export const useCaptain = (hotelName) => {
         const success = await captainServices.toggleCaptainStatus(
           hotelName,
           captainId,
-          currentStatus
+          currentStatus,
         );
         return success;
       } catch (error) {
@@ -191,7 +187,7 @@ export const useCaptain = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting],
   );
 
   // Prepare captain for editing
@@ -205,7 +201,7 @@ export const useCaptain = (hotelName) => {
       try {
         const captainToEdit = await captainServices.prepareForEdit(
           hotelName,
-          captain
+          captain,
         );
         return captainToEdit;
       } catch (error) {
@@ -216,7 +212,7 @@ export const useCaptain = (hotelName) => {
         return null;
       }
     },
-    [hotelName]
+    [hotelName],
   );
 
   // Handle form submit (add or update)
@@ -233,7 +229,7 @@ export const useCaptain = (hotelName) => {
         return false;
       }
     },
-    [addCaptain, updateCaptain]
+    [addCaptain, updateCaptain],
   );
 
   // Handle search change
@@ -273,7 +269,7 @@ export const useCaptain = (hotelName) => {
         return captains.some(
           (captain) =>
             captain.email?.toLowerCase() === email.toLowerCase() &&
-            captain.captainId !== excludeId
+            captain.captainId !== excludeId,
         );
       },
 
@@ -281,7 +277,7 @@ export const useCaptain = (hotelName) => {
         if (!mobileNo || !Array.isArray(captains)) return false;
         return captains.some(
           (captain) =>
-            captain.mobileNo === mobileNo && captain.captainId !== excludeId
+            captain.mobileNo === mobileNo && captain.captainId !== excludeId,
         );
       },
 
@@ -289,7 +285,7 @@ export const useCaptain = (hotelName) => {
         if (!adharNo || !Array.isArray(captains)) return false;
         return captains.some(
           (captain) =>
-            captain.adharNo === adharNo && captain.captainId !== excludeId
+            captain.adharNo === adharNo && captain.captainId !== excludeId,
         );
       },
 
@@ -298,11 +294,11 @@ export const useCaptain = (hotelName) => {
         return captains.some(
           (captain) =>
             captain.panNo?.toUpperCase() === panNo.toUpperCase() &&
-            captain.captainId !== excludeId
+            captain.captainId !== excludeId,
         );
       },
     }),
-    [captains]
+    [captains],
   );
 
   // Memoize computed values

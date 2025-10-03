@@ -32,7 +32,7 @@ const EditOrderModal = ({
     if (!searchTerm) return availableMenuItems.slice(0, 20);
     return availableMenuItems
       .filter((item) =>
-        item.menuName?.toLowerCase().includes(searchTerm.toLowerCase())
+        item.menuName?.toLowerCase().includes(searchTerm.toLowerCase()),
       )
       .slice(0, 10);
   }, [availableMenuItems, searchTerm]);
@@ -51,7 +51,7 @@ const EditOrderModal = ({
                   (item.finalPrice || item.originalPrice) *
                   Math.max(0, newQuantity),
               }
-            : item
+            : item,
         )
         .filter((item) => item.quantity > 0),
     }));
@@ -62,7 +62,7 @@ const EditOrderModal = ({
     (menuItem) => {
       setEditedOrder((prev) => {
         const existingItemIndex = prev.items.findIndex(
-          (item) => item.id === menuItem.id
+          (item) => item.id === menuItem.id,
         );
 
         if (existingItemIndex !== -1) {
@@ -87,11 +87,11 @@ const EditOrderModal = ({
             categoryType: menuItem.categoryType || "",
             originalPrice: parseFloat(menuItem.menuPrice || 0),
             finalPrice: parseFloat(
-              menuItem.finalPrice || menuItem.menuPrice || 0
+              menuItem.finalPrice || menuItem.menuPrice || 0,
             ),
             quantity: 1,
             itemTotal: parseFloat(
-              menuItem.finalPrice || menuItem.menuPrice || 0
+              menuItem.finalPrice || menuItem.menuPrice || 0,
             ),
             isVeg:
               menuItem.categoryType === "Veg" ||
@@ -106,20 +106,20 @@ const EditOrderModal = ({
         setActiveTab("current");
       }
     },
-    [setEditedOrder, setSearchTerm, setActiveTab]
+    [setEditedOrder, setSearchTerm, setActiveTab],
   );
 
   // Calculate totals
   const totals = useMemo(() => {
     const subtotal = editedOrder.items.reduce(
       (sum, item) => sum + (item.itemTotal || 0),
-      0
+      0,
     );
     const tax = Math.round(subtotal * 0.18);
     const total = subtotal + tax;
     const totalItems = editedOrder.items.reduce(
       (sum, item) => sum + (item.quantity || 0),
-      0
+      0,
     );
     return { subtotal, tax, total, totalItems };
   }, [editedOrder.items]);

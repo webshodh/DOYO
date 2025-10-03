@@ -93,19 +93,19 @@ export const calculateOrderAnalytics = (orders, menuData = []) => {
   // Basic metrics
   const totalOrders = orders.length;
   const completedOrders = orders.filter(
-    (o) => (o.kitchen?.status || o.status) === "completed"
+    (o) => (o.kitchen?.status || o.status) === "completed",
   );
   const pendingOrders = orders.filter((o) => {
     const status = o.kitchen?.status || o.status || "received";
     return ["received", "preparing", "ready"].includes(status);
   });
   const rejectedOrders = orders.filter(
-    (o) => (o.kitchen?.status || o.status) === "rejected"
+    (o) => (o.kitchen?.status || o.status) === "rejected",
   );
 
   const totalRevenue = completedOrders.reduce(
     (sum, order) => sum + (order.pricing?.total || 0),
-    0
+    0,
   );
 
   const avgOrderValue =
@@ -130,7 +130,7 @@ export const calculateOrderAnalytics = (orders, menuData = []) => {
     Object.keys(hourCounts).length > 0
       ? Object.keys(hourCounts).reduce(
           (a, b) => (hourCounts[a] > hourCounts[b] ? a : b),
-          "0"
+          "0",
         )
       : "0";
 
@@ -138,7 +138,7 @@ export const calculateOrderAnalytics = (orders, menuData = []) => {
   const uniqueTables = new Set(
     orders
       .map((o) => o.tableNumber || o.customerInfo?.tableNumber)
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   // Category and menu analysis
@@ -243,7 +243,7 @@ export const dateUtils = {
 export const filterOrdersByTimePeriod = (
   orders,
   selectedTimePeriod,
-  selectedDate
+  selectedDate,
 ) => {
   if (selectedTimePeriod === "total") {
     return orders;
@@ -305,4 +305,3 @@ export const formatCurrency = (amount) => {
 export const getStatusConfig = (status) => {
   return ORDER_STATUSES.find((s) => s.value === status) || ORDER_STATUSES[0];
 };
-

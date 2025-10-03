@@ -116,7 +116,7 @@ const OrderCard = ({
               </h3>
               <p className="text-sm text-gray-600">
                 {formatDateTime(
-                  order.timestamps?.orderPlaced || order.orderTimestamp
+                  order.timestamps?.orderPlaced || order.orderTimestamp,
                 )}
               </p>
             </div>

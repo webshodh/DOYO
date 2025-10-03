@@ -23,7 +23,7 @@ const LoginPage = () => {
   // Determine user type and get config
   const userType = useMemo(
     () => getUserType(location.pathname),
-    [location.pathname]
+    [location.pathname],
   );
   const loginConfig = useMemo(() => LOGIN_CONFIGS[userType], [userType]);
 
@@ -88,7 +88,7 @@ const LoginPage = () => {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 

@@ -8,7 +8,7 @@ const HotelSplashScreen = () => {
   const navigate = useNavigate();
   const { availableHotels, loading, selectHotel } = useHotelSelection();
   const [selectedHotelId, setSelectedHotelId] = useState("");
-console.log("availableHotels", availableHotels)
+
   useEffect(() => {
     let timer;
 
@@ -16,7 +16,7 @@ console.log("availableHotels", availableHotels)
       timer = setTimeout(() => {
         if (availableHotels.length === 0) {
           toast.error(
-            "No hotels assigned to your account. Please contact administrator."
+            "No hotels assigned to your account. Please contact administrator.",
           );
         }
       }, 2000); // 2 second delay
@@ -36,7 +36,7 @@ console.log("availableHotels", availableHotels)
     }
 
     const selectedHotelData = availableHotels.find(
-      (hotel) => hotel.id === selectedHotelId
+      (hotel) => hotel.id === selectedHotelId,
     );
     if (selectedHotelData) {
       selectHotel(selectedHotelData);

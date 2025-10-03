@@ -349,7 +349,7 @@ export const getAdminValidationSchema = () => {
         newErrors.password = "Password must be at least 8 characters long";
       } else if (
         !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
-          values.password
+          values.password,
         )
       ) {
         newErrors.password =

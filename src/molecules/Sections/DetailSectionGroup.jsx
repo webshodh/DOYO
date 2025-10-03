@@ -1,7 +1,6 @@
 import DetailSectionCard from "components/Cards/DetailSectionCard";
 import React, { memo } from "react";
 
-
 const DetailSectionGroup = memo(
   ({
     sections = [],
@@ -18,7 +17,7 @@ const DetailSectionGroup = memo(
         ))}
       </div>
     );
-  }
+  },
 );
 
 DetailSectionGroup.displayName = "DetailSectionGroup";

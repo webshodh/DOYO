@@ -22,8 +22,8 @@ import SearchWithResults from "molecules/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 
 // Lazy load heavy components
-const OffersFormModal = React.lazy(() =>
-  import("../../components/FormModals/OffersFormModal")
+const OffersFormModal = React.lazy(
+  () => import("../../components/FormModals/OffersFormModal"),
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -71,7 +71,7 @@ const AddOffers = memo(() => {
         return createdDate > weekAgo;
       }).length,
     }),
-    [offers, offerCount]
+    [offers, offerCount],
   );
 
   // Event handlers
@@ -92,14 +92,14 @@ const AddOffers = memo(() => {
         console.error("Error preparing offer for edit:", error);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit],
   );
 
   const handleDeleteClick = useCallback(
     async (offer) => {
       // Show confirmation dialog
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${offer.title}"? This action cannot be undone.`
+        `Are you sure you want to delete "${offer.title}"? This action cannot be undone.`,
       );
 
       if (confirmed) {
@@ -110,7 +110,7 @@ const AddOffers = memo(() => {
         }
       }
     },
-    [deleteOffer]
+    [deleteOffer],
   );
 
   const handleStatusToggle = useCallback(
@@ -121,7 +121,7 @@ const AddOffers = memo(() => {
         console.error("Error toggling offer status:", error);
       }
     },
-    [toggleOfferStatus]
+    [toggleOfferStatus],
   );
 
   const handleModalClose = useCallback(() => {
@@ -139,7 +139,7 @@ const AddOffers = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit]
+    [handleFormSubmit],
   );
 
   const handleClearSearch = useCallback(() => {

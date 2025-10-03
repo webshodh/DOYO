@@ -147,7 +147,7 @@ export const menuServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      }
+      },
     );
 
     return unsubscribe;
@@ -158,7 +158,7 @@ export const menuServices = {
     try {
       if (!hotelName || !menuId) return null;
       const menuDoc = await getDoc(
-        doc(firestore, `hotels/${hotelName}/menu/${menuId}`)
+        doc(firestore, `hotels/${hotelName}/menu/${menuId}`),
       );
       if (!menuDoc.exists()) {
         console.error("Menu item not found:", menuId);
@@ -176,7 +176,7 @@ export const menuServices = {
     try {
       if (!hotelName) return [];
       const menusSnapshot = await getDocs(
-        collection(firestore, `hotels/${hotelName}/menu`)
+        collection(firestore, `hotels/${hotelName}/menu`),
       );
       const menus = [];
       menusSnapshot.forEach((docSnap, index) => {
@@ -206,7 +206,7 @@ export const menuServices = {
 
       const finalPrice = menuServices.calculateFinalPrice(
         menuData.menuPrice,
-        menuData.discount
+        menuData.discount,
       );
       const menuId = uid();
       const currentAdminId = menuServices.getCurrentAdminId();
@@ -265,7 +265,7 @@ export const menuServices = {
 
       await setDoc(
         doc(firestore, `hotels/${hotelName}/menu/${menuId}`),
-        newMenuData
+        newMenuData,
       );
 
       toast.success("Menu Added Successfully!", {
@@ -296,7 +296,7 @@ export const menuServices = {
 
       const finalPrice = menuServices.calculateFinalPrice(
         menuData.menuPrice,
-        menuData.discount
+        menuData.discount,
       );
       const currentAdminId = menuServices.getCurrentAdminId();
 
@@ -354,7 +354,7 @@ export const menuServices = {
 
       await updateDoc(
         doc(firestore, `hotels/${hotelName}/menu/${menuId}`),
-        updatedMenuData
+        updatedMenuData,
       );
 
       toast.success("Menu Updated Successfully!", {
@@ -375,7 +375,7 @@ export const menuServices = {
     try {
       // Delete image if exists
       const menuDoc = await getDoc(
-        doc(firestore, `hotels/${hotelName}/menu/${menuId}`)
+        doc(firestore, `hotels/${hotelName}/menu/${menuId}`),
       );
       if (menuDoc.exists()) {
         const menuData = menuDoc.data();
@@ -445,31 +445,31 @@ export const menuServices = {
     let filteredItems = menus.filter(
       (menu) =>
         typeof menu.menuName === "string" &&
-        menu.menuName.toLowerCase().includes(searchTerm.toLowerCase())
+        menu.menuName.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     if (selectedCategory) {
       filteredItems = filteredItems.filter(
         (menu) =>
-          menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase()
+          menu.menuCategory.toLowerCase() === selectedCategory.toLowerCase(),
       );
     }
 
     if (sortOrder === "lowToHigh") {
       filteredItems.sort(
-        (a, b) => parseFloat(a.menuPrice) - parseFloat(b.menuPrice)
+        (a, b) => parseFloat(a.menuPrice) - parseFloat(b.menuPrice),
       );
     } else if (sortOrder === "highToLow") {
       filteredItems.sort(
-        (a, b) => parseFloat(b.menuPrice) - parseFloat(a.menuPrice)
+        (a, b) => parseFloat(b.menuPrice) - parseFloat(a.menuPrice),
       );
     } else if (sortOrder === "newest") {
       filteredItems.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
       );
     } else if (sortOrder === "oldest") {
       filteredItems.sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
       );
     }
 
@@ -490,7 +490,7 @@ export const menuServices = {
   getMenuStats: async (hotelName) => {
     try {
       const menusSnapshot = await getDocs(
-        collection(firestore, `hotels/${hotelName}/menu`)
+        collection(firestore, `hotels/${hotelName}/menu`),
       );
 
       const menus = [];
@@ -500,10 +500,10 @@ export const menuServices = {
 
       const totalMenus = menus.length;
       const availableMenus = menus.filter(
-        (m) => m.availability === "Available"
+        (m) => m.availability === "Available",
       ).length;
       const unavailableMenus = menus.filter(
-        (m) => m.availability === "Unavailable"
+        (m) => m.availability === "Unavailable",
       ).length;
       const discountedMenus = menus.filter((m) => m.discount > 0).length;
       const popularMenus = menus.filter((m) => m.isPopular).length;

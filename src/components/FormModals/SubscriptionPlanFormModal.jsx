@@ -263,12 +263,12 @@ const FormSection = memo(
             return null;
         }
       },
-      [formData, onChange, errors, disabled, firstFieldRef]
+      [formData, onChange, errors, disabled, firstFieldRef],
     );
 
     const sectionFields = subscriptionFormFields[section.fields] || [];
     const sectionErrorCount = sectionFields.filter(
-      (field) => errors[field.name]
+      (field) => errors[field.name],
     ).length;
 
     return (
@@ -322,7 +322,7 @@ const FormSection = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 // Quick Template Selector Component
@@ -403,7 +403,7 @@ const SubscriptionFormModal = memo(
 
     const validationSchema = useMemo(
       () => getSubscriptionValidationSchema(),
-      []
+      [],
     );
 
     // Initialize form data
@@ -463,7 +463,7 @@ const SubscriptionFormModal = memo(
       });
 
       const completedFields = requiredFields.filter((fieldName) =>
-        formData[fieldName]?.toString().trim()
+        formData[fieldName]?.toString().trim(),
       ).length;
 
       return requiredFields.length > 0
@@ -541,7 +541,7 @@ const SubscriptionFormModal = memo(
           setIsSubmitting(false);
         }
       },
-      [formData, editPlan, onSubmit, validationSchema]
+      [formData, editPlan, onSubmit, validationSchema],
     );
 
     const handleClose = useCallback(() => {
@@ -550,7 +550,7 @@ const SubscriptionFormModal = memo(
       // Check if user has unsaved changes
       if (isDirty) {
         const confirmed = window.confirm(
-          "You have unsaved changes. Are you sure you want to close?"
+          "You have unsaved changes. Are you sure you want to close?",
         );
         if (!confirmed) return;
       }
@@ -765,7 +765,7 @@ const SubscriptionFormModal = memo(
         </div>
       </Modal>
     );
-  }
+  },
 );
 
 SubscriptionFormModal.displayName = "SubscriptionFormModal";

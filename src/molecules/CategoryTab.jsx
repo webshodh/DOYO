@@ -33,22 +33,22 @@ const CategoryTabs = memo(
   }) => {
     const [activeTab, setActiveTab] = useState(initialActiveTab);
     const [selectedTabs, setSelectedTabs] = useState(
-      new Set([initialActiveTab])
+      new Set([initialActiveTab]),
     );
 
     // Calculate total count for "All"
     const totalCount = useMemo(() => {
       const regularCount = Object.values(menuCountsByCategory).reduce(
         (a, b) => a + b,
-        0
+        0,
       );
       const specialCount = Object.values(menuCountsBySpecialCategory).reduce(
         (a, b) => a + b,
-        0
+        0,
       );
       const mainCount = Object.values(menuCountsByMainCategory).reduce(
         (a, b) => a + b,
-        0
+        0,
       );
       return regularCount + specialCount + mainCount;
     }, [
@@ -77,7 +77,7 @@ const CategoryTabs = memo(
             label: item.name,
             count: menuCountsByMainCategory[item.name],
             type: "main",
-          })
+          }),
         );
 
       specialCategories
@@ -88,7 +88,7 @@ const CategoryTabs = memo(
             label: item.name,
             count: menuCountsBySpecialCategory[item.name],
             type: "special",
-          })
+          }),
         );
 
       categories
@@ -99,7 +99,7 @@ const CategoryTabs = memo(
             label: item.name,
             count: menuCountsByCategory[item.name],
             type: "regular",
-          })
+          }),
         );
 
       return tabList;
@@ -142,7 +142,7 @@ const CategoryTabs = memo(
         maxSelections,
         handleCategoryFilter,
         onTabChange,
-      ]
+      ],
     );
 
     // Size classes
@@ -222,7 +222,7 @@ const CategoryTabs = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 CategoryTabs.displayName = "CategoryTabs";

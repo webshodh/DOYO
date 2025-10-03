@@ -20,7 +20,7 @@ const ResultsSummary = memo(
         )}
       </p>
     </div>
-  )
+  ),
 );
 
 ResultsSummary.displayName = "ResultsSummary";

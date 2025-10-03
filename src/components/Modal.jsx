@@ -110,7 +110,7 @@ const useFocusTrap = (isOpen) => {
 
     // Get all focusable elements
     const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
 
     const firstElement = focusableElements[0];
@@ -171,7 +171,7 @@ const CloseButton = memo(
         <X size={20} />
       </button>
     );
-  }
+  },
 );
 
 CloseButton.displayName = "CloseButton";
@@ -215,7 +215,7 @@ const ModalHeader = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 ModalHeader.displayName = "ModalHeader";
@@ -240,7 +240,7 @@ const ModalBody = memo(
         {children}
       </div>
     );
-  }
+  },
 );
 
 ModalBody.displayName = "ModalBody";
@@ -269,7 +269,7 @@ const ModalFooter = memo(
         {children}
       </div>
     );
-  }
+  },
 );
 
 ModalFooter.displayName = "ModalFooter";
@@ -319,7 +319,7 @@ const DefaultFooterButtons = memo(
         </button>
       </>
     );
-  }
+  },
 );
 
 DefaultFooterButtons.displayName = "DefaultFooterButtons";
@@ -360,7 +360,7 @@ const Modal = memo(
         testId,
         ...rest
       },
-      ref
+      ref,
     ) => {
       const modalRef = useFocusTrap(isOpen);
       const combinedRef = useRef();
@@ -379,12 +379,12 @@ const Modal = memo(
       // Memoized theme and size configurations
       const themeConfig = useMemo(
         () => THEME_CONFIG[theme] || THEME_CONFIG.default,
-        [theme]
+        [theme],
       );
 
       const sizeConfig = useMemo(
         () => SIZE_CONFIG[size] || SIZE_CONFIG.md,
-        [size]
+        [size],
       );
 
       // Handle escape key press
@@ -422,7 +422,7 @@ const Modal = memo(
             onClose();
           }
         },
-        [closeOnBackdrop, onClose]
+        [closeOnBackdrop, onClose],
       );
 
       // Modal content click handler to prevent event bubbling
@@ -499,8 +499,8 @@ const Modal = memo(
           </div>
         </div>
       );
-    }
-  )
+    },
+  ),
 );
 
 Modal.displayName = "Modal";

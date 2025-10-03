@@ -25,7 +25,7 @@ export const useCategory = (hotelName) => {
       (categoriesData) => {
         setCategories(categoriesData || []);
         setLoading(false);
-      }
+      },
     );
 
     return () => {
@@ -51,7 +51,7 @@ export const useCategory = (hotelName) => {
         const result = await categoryServices.addCategory(
           hotelName,
           categoryName,
-          categories
+          categories,
         );
         return result;
       } catch (err) {
@@ -62,7 +62,7 @@ export const useCategory = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting, categories]
+    [hotelName, submitting, categories],
   );
 
   // Update category using service
@@ -79,16 +79,11 @@ export const useCategory = (hotelName) => {
       setError(null);
 
       try {
-        console.log("Hook - Updating category:", {
-          categoryName,
-          categoryId,
-          hotelName,
-        });
         const result = await categoryServices.updateCategory(
           hotelName,
           categoryId,
           categoryName,
-          categories
+          categories,
         );
         return result;
       } catch (err) {
@@ -99,7 +94,7 @@ export const useCategory = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting, categories]
+    [hotelName, submitting, categories],
   );
 
   // Delete category using service
@@ -116,10 +111,9 @@ export const useCategory = (hotelName) => {
       setError(null);
 
       try {
-        console.log("Hook - Deleting category:", category);
         const result = await categoryServices.deleteCategory(
           hotelName,
-          category
+          category,
         );
         return result;
       } catch (err) {
@@ -130,14 +124,13 @@ export const useCategory = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting],
   );
 
   // Prepare category for editing using service
   const prepareForEdit = useCallback(
     async (category) => {
       try {
-        console.log("Hook - Preparing for edit:", category);
         return await categoryServices.prepareForEdit(hotelName, category);
       } catch (err) {
         console.error("Error preparing category for edit:", err);
@@ -145,21 +138,19 @@ export const useCategory = (hotelName) => {
         return null;
       }
     },
-    [hotelName]
+    [hotelName],
   );
 
   // Handle form submission (add or update)
   const handleFormSubmit = useCallback(
     async (categoryName, categoryId = null) => {
-      console.log("Hook - Form submit:", { categoryName, categoryId });
-
       if (categoryId) {
         return await updateCategory(categoryName, categoryId);
       } else {
         return await addCategory(categoryName);
       }
     },
-    [addCategory, updateCategory]
+    [addCategory, updateCategory],
   );
 
   // Handle search change
@@ -203,7 +194,7 @@ export const useCategory = (hotelName) => {
       return categories.some(
         (c) =>
           (c?.categoryName || "").toLowerCase() === name.toLowerCase() &&
-          (c.categoryId || c.id) !== excludeId
+          (c.categoryId || c.id) !== excludeId,
       );
     };
   }, [categories]);
@@ -221,7 +212,7 @@ export const useCategory = (hotelName) => {
       hasCategories: (categories?.length || 0) > 0,
       hasSearchResults: (filteredCategories?.length || 0) > 0,
     }),
-    [categories, filteredCategories]
+    [categories, filteredCategories],
   );
 
   return {

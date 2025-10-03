@@ -68,7 +68,7 @@ export const adminMenuItems = (hotelName, t) => [
     icon: "dashboard",
     description: t("sidebar.orderDashboardDesc"),
   },
-   {
+  {
     name: t("sidebar.customerDashboard"),
     path: `/${hotelName}/admin/customer-dashboard`,
     icon: "kitchen",

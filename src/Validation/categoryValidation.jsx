@@ -40,14 +40,14 @@ export const validateCategoryName = (categoryName) => {
 export const checkDuplicateCategory = (
   categories,
   categoryName,
-  excludeCategoryId = null
+  excludeCategoryId = null,
 ) => {
   const normalizedCategoryName = categoryName.trim().toLowerCase();
 
   const isDuplicate = categories.some(
     (category) =>
       category.categoryName.toLowerCase() === normalizedCategoryName &&
-      (category.categoryId || category.id) !== excludeCategoryId
+      (category.categoryId || category.id) !== excludeCategoryId,
   );
 
   return isDuplicate;
@@ -56,7 +56,7 @@ export const checkDuplicateCategory = (
 export const validateCategoryForm = (
   categoryName,
   categories,
-  excludeCategoryId = null
+  excludeCategoryId = null,
 ) => {
   const basicValidation = validateCategoryName(categoryName);
   if (!basicValidation.isValid) {

@@ -35,7 +35,7 @@ root.render(
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 // Note: AuthProvider and HotelProvider are now handled inside App.js

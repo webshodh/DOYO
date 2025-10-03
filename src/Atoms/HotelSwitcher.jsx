@@ -22,7 +22,7 @@ const HotelSwitcher = memo(
           setIsLoading(false);
         }
       },
-      [onHotelSwitch]
+      [onHotelSwitch],
     );
 
     return (
@@ -102,8 +102,8 @@ const HotelSwitcher = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 HotelSwitcher.displayName = "HotelSwitcher";
-export default HotelSwitcher
+export default HotelSwitcher;

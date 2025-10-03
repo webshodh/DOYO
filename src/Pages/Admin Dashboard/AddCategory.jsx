@@ -17,8 +17,8 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 
 // Lazy load heavy components
-const CategoryFormModal = React.lazy(() =>
-  import("../../components/FormModals/CategoryFormModals")
+const CategoryFormModal = React.lazy(
+  () => import("../../components/FormModals/CategoryFormModals"),
 );
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -59,13 +59,13 @@ const AddCategory = memo(() => {
       withItems: categories.filter((cat) => cat.itemCount > 0).length,
       recent: categories.filter((cat) => {
         const createdDate = new Date(
-          cat.createdAt?.toDate ? cat.createdAt.toDate() : cat.createdAt
+          cat.createdAt?.toDate ? cat.createdAt.toDate() : cat.createdAt,
         );
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return createdDate > weekAgo;
       }).length,
     }),
-    [categories, categoryCount]
+    [categories, categoryCount],
   );
 
   // Event handlers
@@ -86,14 +86,14 @@ const AddCategory = memo(() => {
         console.error("Error preparing category for edit:", error);
       }
     },
-    [prepareForEdit]
+    [prepareForEdit],
   );
 
   const handleDeleteClick = useCallback(
     async (category) => {
       // Show confirmation dialog
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`,
       );
 
       if (confirmed) {
@@ -104,7 +104,7 @@ const AddCategory = memo(() => {
         }
       }
     },
-    [deleteCategory]
+    [deleteCategory],
   );
 
   const handleModalClose = useCallback(() => {
@@ -122,7 +122,7 @@ const AddCategory = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit]
+    [handleFormSubmit],
   );
 
   const handleClearSearch = useCallback(() => {

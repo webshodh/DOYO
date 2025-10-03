@@ -25,11 +25,9 @@ export function useCustomers(hotelName) {
             ...doc.data(),
           }));
 
-          console.log("Fetched customers:", customersData);
           setCustomers(customersData);
           setError(null);
         } else {
-          console.log("No customers found");
           setCustomers([]);
           setError(null);
         }
@@ -38,7 +36,7 @@ export function useCustomers(hotelName) {
         console.error("Error fetching customers:", err);
         setError(err.message || "Failed to fetch customers");
         setCustomers([]);
-      }
+      },
     );
 
     return unsubscribe;
@@ -74,32 +72,32 @@ export function useCustomers(hotelName) {
 
     // Customer segmentation by visit count
     const oneTimeCustomers = customers.filter(
-      (c) => (c.orderCount || 0) === 1
+      (c) => (c.orderCount || 0) === 1,
     ).length;
     const repeatCustomers = customers.filter(
-      (c) => (c.orderCount || 0) >= 2 && (c.orderCount || 0) < 3
+      (c) => (c.orderCount || 0) >= 2 && (c.orderCount || 0) < 3,
     ).length;
     const frequentCustomers = customers.filter(
-      (c) => (c.orderCount || 0) >= 3 && (c.orderCount || 0) < 5
+      (c) => (c.orderCount || 0) >= 3 && (c.orderCount || 0) < 5,
     ).length;
     const superFrequentCustomers = customers.filter(
-      (c) => (c.orderCount || 0) >= 5 && (c.orderCount || 0) < 10
+      (c) => (c.orderCount || 0) >= 5 && (c.orderCount || 0) < 10,
     ).length;
     const eliteCustomers = customers.filter(
-      (c) => (c.orderCount || 0) >= 10
+      (c) => (c.orderCount || 0) >= 10,
     ).length;
 
     const loyalCustomers = customers.filter(
-      (c) => (c.orderCount || 0) >= 2
+      (c) => (c.orderCount || 0) >= 2,
     ).length;
 
     const totalRevenue = customers.reduce(
       (sum, c) => sum + (c.totalOrderValue || 0),
-      0
+      0,
     );
     const totalOrders = customers.reduce(
       (sum, c) => sum + (c.orderCount || 0),
-      0
+      0,
     );
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -114,7 +112,7 @@ export function useCustomers(hotelName) {
     }).length;
 
     const vipCustomers = customers.filter(
-      (c) => (c.totalOrderValue || 0) >= 50000
+      (c) => (c.totalOrderValue || 0) >= 50000,
     ).length;
     const activeCustomers = customers.filter((c) => {
       if (!c.lastOrderDate) return false;

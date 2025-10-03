@@ -353,7 +353,7 @@ export const getHotelValidationSchema = () => ({
     if (
       values.gstNumber &&
       !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]1[1-9A-Z]Z[0-9A-Z]$/.test(
-        values.gstNumber
+        values.gstNumber,
       )
     ) {
       errs.gstNumber = "Invalid GST number";
@@ -364,7 +364,7 @@ export const getHotelValidationSchema = () => ({
     if (
       values.website &&
       !/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b/.test(
-        values.website
+        values.website,
       )
     ) {
       errs.website = "Invalid website URL";

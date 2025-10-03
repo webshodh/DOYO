@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ChefHat, Sparkles, ArrowRight, Star } from "lucide-react";
 
-
 const WelcomeScreen = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 

@@ -20,7 +20,7 @@ const ScrollButton = memo(
         <Icon className="w-4 h-4 text-gray-600" />
       </button>
     );
-  }
+  },
 );
 
 ScrollButton.displayName = "ScrollButton";

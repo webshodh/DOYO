@@ -15,7 +15,7 @@ export function simplifyOptions(optionsData) {
 
   const simplified = {};
 
-  Object.keys(optionsData).forEach(category => {
+  Object.keys(optionsData).forEach((category) => {
     if (!Array.isArray(optionsData[category])) return;
 
     // Convert snake_case → camelCase for key
@@ -23,8 +23,8 @@ export function simplifyOptions(optionsData) {
 
     // Extract only the option names (value field)
     const optionNames = optionsData[category]
-      .filter(item => item && item.value)   // remove invalid
-      .map(item => item.value);             // take only name
+      .filter((item) => item && item.value) // remove invalid
+      .map((item) => item.value); // take only name
 
     if (optionNames.length > 0) {
       simplified[categoryName] = optionNames;
@@ -33,15 +33,3 @@ export function simplifyOptions(optionsData) {
 
   return simplified;
 }
-
-// ✅ Example usage:
-// const OPTIONS_OBJ = simplifyOptions(optionsData);
-// console.log(OPTIONS_OBJ);
-
-/*
-{
-  foodCategory: ["Veg", "Non-Veg", "Vegan"],
-  cuisines: ["Italian", "Indian", "Chinese"],
-  menuType: ["Breakfast", "Lunch", "Dinner"]
-}
-*/

@@ -28,7 +28,7 @@ const EmptyState = memo(
       )}
       {children}
     </div>
-  )
+  ),
 );
 
 EmptyState.displayName = "EmptyState";

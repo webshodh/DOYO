@@ -38,7 +38,11 @@ export const validateOfferName = (offerName) => {
 };
 
 export const validateDiscountValue = (discountValue, offerType) => {
-  if (!discountValue && offerType !== "free_delivery" && offerType !== "buy_one_get_one") {
+  if (
+    !discountValue &&
+    offerType !== "free_delivery" &&
+    offerType !== "buy_one_get_one"
+  ) {
     return {
       isValid: false,
       error: "Discount value is required",
@@ -47,14 +51,22 @@ export const validateDiscountValue = (discountValue, offerType) => {
 
   const numValue = parseFloat(discountValue);
 
-  if (isNaN(numValue) && offerType !== "free_delivery" && offerType !== "buy_one_get_one") {
+  if (
+    isNaN(numValue) &&
+    offerType !== "free_delivery" &&
+    offerType !== "buy_one_get_one"
+  ) {
     return {
       isValid: false,
       error: "Discount value must be a valid number",
     };
   }
 
-  if (numValue <= 0 && offerType !== "free_delivery" && offerType !== "buy_one_get_one") {
+  if (
+    numValue <= 0 &&
+    offerType !== "free_delivery" &&
+    offerType !== "buy_one_get_one"
+  ) {
     return {
       isValid: false,
       error: "Discount value must be greater than 0",
@@ -122,7 +134,7 @@ export const validateDateRange = (validFrom, validUntil) => {
   // Check if offer duration is reasonable (max 1 year)
   const maxDate = new Date(fromDate);
   maxDate.setFullYear(maxDate.getFullYear() + 1);
-  
+
   if (untilDate > maxDate) {
     return {
       isValid: false,
@@ -161,7 +173,8 @@ export const validateUsageLimits = (maxUsageCount, usagePerCustomer) => {
     if (maxUsageCount && maxUsageCount.trim()) {
       const maxUsage = parseInt(maxUsageCount);
       if (!isNaN(maxUsage) && !isNaN(perCustomer) && perCustomer > maxUsage) {
-        errors.usagePerCustomer = "Usage per customer cannot exceed max total usage";
+        errors.usagePerCustomer =
+          "Usage per customer cannot exceed max total usage";
       }
     }
   }
@@ -198,20 +211,24 @@ export const validateMinimumAmount = (minimumOrderAmount) => {
 export const checkDuplicateOffer = (
   offers,
   offerName,
-  excludeOfferId = null
+  excludeOfferId = null,
 ) => {
   const normalizedOfferName = offerName.trim().toLowerCase();
 
   const isDuplicate = offers.some(
     (offer) =>
       offer.offerName.toLowerCase() === normalizedOfferName &&
-      offer.offerId !== excludeOfferId
+      offer.offerId !== excludeOfferId,
   );
 
   return isDuplicate;
 };
 
-export const validateOfferForm = (offerData, offers = [], excludeOfferId = null) => {
+export const validateOfferForm = (
+  offerData,
+  offers = [],
+  excludeOfferId = null,
+) => {
   const errors = {};
 
   // Validate offer name
@@ -221,30 +238,44 @@ export const validateOfferForm = (offerData, offers = [], excludeOfferId = null)
   }
 
   // Check for duplicate offer names
-  if (nameValidation.isValid && checkDuplicateOffer(offers, offerData.offerName, excludeOfferId)) {
+  if (
+    nameValidation.isValid &&
+    checkDuplicateOffer(offers, offerData.offerName, excludeOfferId)
+  ) {
     errors.offerName = "An offer with this name already exists";
   }
 
   // Validate discount value
-  const discountValidation = validateDiscountValue(offerData.discountValue, offerData.offerType);
+  const discountValidation = validateDiscountValue(
+    offerData.discountValue,
+    offerData.offerType,
+  );
   if (!discountValidation.isValid) {
     errors.discountValue = discountValidation.error;
   }
 
   // Validate date range
-  const dateValidation = validateDateRange(offerData.validFrom, offerData.validUntil);
+  const dateValidation = validateDateRange(
+    offerData.validFrom,
+    offerData.validUntil,
+  );
   if (!dateValidation.isValid) {
     errors[dateValidation.field] = dateValidation.error;
   }
 
   // Validate usage limits
-  const usageValidation = validateUsageLimits(offerData.maxUsageCount, offerData.usagePerCustomer);
+  const usageValidation = validateUsageLimits(
+    offerData.maxUsageCount,
+    offerData.usagePerCustomer,
+  );
   if (!usageValidation.isValid) {
     Object.assign(errors, usageValidation.errors);
   }
 
   // Validate minimum amount
-  const minAmountValidation = validateMinimumAmount(offerData.minimumOrderAmount);
+  const minAmountValidation = validateMinimumAmount(
+    offerData.minimumOrderAmount,
+  );
   if (!minAmountValidation.isValid) {
     errors.minimumOrderAmount = minAmountValidation.error;
   }
@@ -268,10 +299,10 @@ export const validateOfferForm = (offerData, offers = [], excludeOfferId = null)
 export const validateOfferFormWithToast = (
   offerData,
   offers = [],
-  excludeOfferId = null
+  excludeOfferId = null,
 ) => {
   const validation = validateOfferForm(offerData, offers, excludeOfferId);
-  
+
   if (!validation.isValid) {
     // Show the first error as toast
     const firstError = Object.values(validation.errors)[0];
@@ -289,10 +320,18 @@ export const sanitizeOfferData = (offerData) => {
     ...offerData,
     offerName: offerData.offerName.trim().replace(/\s+/g, " "),
     offerDescription: offerData.offerDescription.trim(),
-    discountValue: offerData.discountValue ? parseFloat(offerData.discountValue) : null,
-    minimumOrderAmount: offerData.minimumOrderAmount ? parseFloat(offerData.minimumOrderAmount) : null,
-    maxUsageCount: offerData.maxUsageCount ? parseInt(offerData.maxUsageCount) : null,
-    usagePerCustomer: offerData.usagePerCustomer ? parseInt(offerData.usagePerCustomer) : null,
+    discountValue: offerData.discountValue
+      ? parseFloat(offerData.discountValue)
+      : null,
+    minimumOrderAmount: offerData.minimumOrderAmount
+      ? parseFloat(offerData.minimumOrderAmount)
+      : null,
+    maxUsageCount: offerData.maxUsageCount
+      ? parseInt(offerData.maxUsageCount)
+      : null,
+    usagePerCustomer: offerData.usagePerCustomer
+      ? parseInt(offerData.usagePerCustomer)
+      : null,
     terms: offerData.terms.trim(),
   };
 };
@@ -300,7 +339,7 @@ export const sanitizeOfferData = (offerData) => {
 // Utility function to format offer for display
 export const formatOfferDisplay = (offer) => {
   let displayText = offer.offerName;
-  
+
   if (offer.offerType === "percentage" && offer.discountValue) {
     displayText += ` (${offer.discountValue}% off)`;
   } else if (offer.offerType === "fixed" && offer.discountValue) {
@@ -319,7 +358,7 @@ export const isOfferValid = (offer) => {
   const now = new Date();
   const fromDate = new Date(offer.validFrom);
   const untilDate = new Date(offer.validUntil);
-  
+
   return offer.isActive && now >= fromDate && now <= untilDate;
 };
 
@@ -327,6 +366,6 @@ export const isOfferValid = (offer) => {
 export const isOfferExpired = (offer) => {
   const now = new Date();
   const untilDate = new Date(offer.validUntil);
-  
+
   return now > untilDate;
 };

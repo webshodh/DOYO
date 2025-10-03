@@ -120,7 +120,7 @@ const AdminDashboard = () => {
       taxRate: 0.18,
       footer: "Thank you for dining with us!",
     }),
-    [hotelName]
+    [hotelName],
   );
 
   // Stats memoization
@@ -167,13 +167,13 @@ const AdminDashboard = () => {
 
     const total = filteredAndSortedMenus.length;
     const available = filteredAndSortedMenus.filter(
-      (m) => m.availability === "Available"
+      (m) => m.availability === "Available",
     ).length;
     const discounted = filteredAndSortedMenus.filter(
-      (m) => m.discount && m.discount > 0
+      (m) => m.discount && m.discount > 0,
     ).length;
     const uniqueCategories = new Set(
-      filteredAndSortedMenus.map((m) => m.menuCategory || "Other")
+      filteredAndSortedMenus.map((m) => m.menuCategory || "Other"),
     ).size;
 
     return { total, available, discounted, uniqueCategories };
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
             menuOrderCount[menuId].totalQuantity += item.quantity || 0;
             // Use itemTotal which is already calculated in useOrder hook
             menuOrderCount[menuId].totalRevenue += parseFloat(
-              item.itemTotal || 0
+              item.itemTotal || 0,
             );
           }
         });
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
           categoryOrderCount[category].totalQuantity += item.quantity || 0;
           // Use itemTotal which is already calculated
           categoryOrderCount[category].totalRevenue += parseFloat(
-            item.itemTotal || 0
+            item.itemTotal || 0,
           );
           categoryOrderCount[category].itemCount += 1;
         });
@@ -285,7 +285,7 @@ const AdminDashboard = () => {
             menuOrderCount[menuId].totalQuantity += item.quantity || 0;
             // Use itemTotal which is already calculated
             menuOrderCount[menuId].totalRevenue += parseFloat(
-              item.itemTotal || 0
+              item.itemTotal || 0,
             );
           }
         });
@@ -362,7 +362,7 @@ const AdminDashboard = () => {
         ),
       },
     ],
-    []
+    [],
   );
 
   const menuTableColumns = useMemo(
@@ -433,7 +433,7 @@ const AdminDashboard = () => {
         ),
       },
     ],
-    []
+    [],
   );
 
   // Handlers wrapped with useCallback
@@ -484,7 +484,7 @@ const AdminDashboard = () => {
       }
       return res;
     },
-    [updateOrderStatus, selectedOrder]
+    [updateOrderStatus, selectedOrder],
   );
 
   const isLoading =
@@ -713,7 +713,7 @@ const AdminDashboard = () => {
                                     <span className="text-lg sm:text-xl font-bold text-green-600">
                                       ₹
                                       {parseFloat(
-                                        menu.totalRevenue
+                                        menu.totalRevenue,
                                       ).toLocaleString("en-IN", {
                                         maximumFractionDigits: 0,
                                       })}

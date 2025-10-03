@@ -119,13 +119,13 @@ const AddMenu = memo(() => {
     () => ({
       total: menuCount,
       available: enhancedMenus.filter(
-        (menu) => menu.availability === "Available"
+        (menu) => menu.availability === "Available",
       ).length,
       discounted: enhancedMenus.filter((menu) => menu.discount > 0).length,
       categories: new Set(enhancedMenus.map((menu) => menu.menuCategoryName))
         .size,
     }),
-    [enhancedMenus, menuCount]
+    [enhancedMenus, menuCount],
   );
 
   // Table data - Use enhanced menus with resolved category names
@@ -144,7 +144,7 @@ const AddMenu = memo(() => {
         id: item.id,
         _id: item._id,
       })),
-    [enhancedMenus]
+    [enhancedMenus],
   );
 
   // Transform categories for CategoryTabs with counts
@@ -176,7 +176,7 @@ const AddMenu = memo(() => {
     (rowData) => {
       const menuId = rowData.uuid || rowData.id || rowData._id;
       const selectedMenu = enhancedMenus.find((menu) =>
-        [menu.uuid, menu.id, menu._id].includes(menuId)
+        [menu.uuid, menu.id, menu._id].includes(menuId),
       );
       if (!selectedMenu) {
         alert("Menu not found. Please refresh and try again.");
@@ -185,21 +185,21 @@ const AddMenu = memo(() => {
       setEditingMenu(selectedMenu);
       setShowModal(true);
     },
-    [enhancedMenus]
+    [enhancedMenus],
   );
 
   const handleDelete = useCallback(
     async (rowData) => {
       const menuId = rowData.uuid || rowData.id || rowData._id;
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${rowData["Menu Name"]}"?`
+        `Are you sure you want to delete "${rowData["Menu Name"]}"?`,
       );
       if (confirmed) {
         const success = await deleteMenu(menuId);
         if (!success) alert("Failed to delete menu. Please try again.");
       }
     },
-    [deleteMenu]
+    [deleteMenu],
   );
 
   const closeModal = useCallback(() => {
@@ -214,12 +214,12 @@ const AddMenu = memo(() => {
       }
       return await addMenu(data);
     },
-    [addMenu, updateMenu, editingMenu]
+    [addMenu, updateMenu, editingMenu],
   );
 
   const clearSearch = useCallback(
     () => handleSearchChange(""),
-    [handleSearchChange]
+    [handleSearchChange],
   );
 
   const refresh = useCallback(() => refreshMenus(), [refreshMenus]);

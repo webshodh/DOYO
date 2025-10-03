@@ -26,7 +26,7 @@ const CaptainMenuCard = memo(
         testId,
         ...rest
       },
-      ref
+      ref,
     ) => {
       // Memoized computations
       const isVeg = useMemo(() => {
@@ -36,7 +36,7 @@ const CaptainMenuCard = memo(
 
       const isAvailable = useMemo(
         () => item?.availability === "Available",
-        [item?.availability]
+        [item?.availability],
       );
 
       const truncatedTitle = useMemo(() => {
@@ -70,7 +70,7 @@ const CaptainMenuCard = memo(
             onCardClick(item, e);
           }
         },
-        [onCardClick, item]
+        [onCardClick, item],
       );
 
       const handleKeyDown = useCallback(
@@ -80,7 +80,7 @@ const CaptainMenuCard = memo(
             onCardClick(item, e);
           }
         },
-        [onCardClick, item]
+        [onCardClick, item],
       );
 
       // Validate item prop
@@ -185,8 +185,8 @@ const CaptainMenuCard = memo(
           </div>
         </article>
       );
-    }
-  )
+    },
+  ),
 );
 
 CaptainMenuCard.displayName = "CaptainMenuCard";

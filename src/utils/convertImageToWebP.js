@@ -3,19 +3,14 @@ export const convertImageToWebP = (
   file,
   quality = 0.8,
   maxWidth = 400,
-  maxHeight = 400
+  maxHeight = 400,
 ) => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const img = new Image();
 
-    console.log(`🔄 Converting ${file.name} (${file.type})`);
-    console.log(`📁 Original size: ${(file.size / 1024).toFixed(2)} KB`);
-
     img.onload = () => {
-      console.log(`🖼️ Original dimensions: ${img.width}x${img.height}px`);
-
       // Calculate new dimensions while maintaining aspect ratio
       let { width, height } = img;
 
@@ -32,11 +27,6 @@ export const convertImageToWebP = (
         }
       }
 
-      console.log(
-        `📐 New dimensions: ${Math.round(width)}x${Math.round(height)}px`
-      );
-      console.log(`⚙️ Quality: ${quality * 100}%`);
-
       // Set canvas dimensions
       canvas.width = width;
       canvas.height = height;
@@ -52,20 +42,13 @@ export const convertImageToWebP = (
             const webpFile = new File(
               [blob],
               file.name.replace(/\.[^/.]+$/, ".webp"),
-              { type: "image/webp" }
+              { type: "image/webp" },
             );
 
             const originalKB = (file.size / 1024).toFixed(2);
             const newKB = (webpFile.size / 1024).toFixed(2);
             const reduction = ((1 - webpFile.size / file.size) * 100).toFixed(
-              1
-            );
-
-            console.log(`✅ Original: ${originalKB} KB → WebP: ${newKB} KB`);
-            console.log(
-              `📉 Reduction: ${reduction}% (Saved: ${(
-                originalKB - newKB
-              ).toFixed(2)} KB)`
+              1,
             );
 
             resolve(webpFile);
@@ -74,7 +57,7 @@ export const convertImageToWebP = (
           }
         },
         "image/webp",
-        quality
+        quality,
       );
     };
 
@@ -88,22 +71,15 @@ export const handleGifConversion = async (
   file,
   quality = 0.7,
   maxWidth = 400,
-  maxHeight = 400
+  maxHeight = 400,
 ) => {
-  console.log(`🎭 Handling GIF: ${file.name}`);
-  console.log(`📏 Original GIF size: ${(file.size / 1024).toFixed(2)} KB`);
-
   // Check if it's an animated GIF or static
   const isAnimated = await checkIfGifIsAnimated(file);
 
   if (isAnimated) {
-    console.log(`🎬 Animated GIF detected - keeping as GIF but compressing`);
     // For animated GIFs, just resize but keep as GIF
     return await compressGif(file, maxWidth, maxHeight);
   } else {
-    console.log(
-      `🖼️ Static GIF detected - converting to WebP for better compression`
-    );
     // For static GIFs, convert to WebP for much better compression
     return await convertImageToWebP(file, quality, maxWidth, maxHeight);
   }
@@ -140,8 +116,6 @@ export const compressGif = (file, maxWidth = 400, maxHeight = 400) => {
     const ctx = canvas.getContext("2d");
     const img = new Image();
 
-    console.log(`🎬 Compressing animated GIF...`);
-
     img.onload = () => {
       let { width, height } = img;
 
@@ -176,16 +150,13 @@ export const compressGif = (file, maxWidth = 400, maxHeight = 400) => {
               100
             ).toFixed(1);
 
-            console.log(`✅ GIF compressed: ${originalKB} KB → ${newKB} KB`);
-            console.log(`📉 Reduction: ${reduction}% (Animation preserved)`);
-
             resolve(compressedGif);
           } else {
             reject(new Error("Failed to compress GIF"));
           }
         },
         "image/gif",
-        0.8 // GIF quality
+        0.8, // GIF quality
       );
     };
 
@@ -198,10 +169,6 @@ export const compressGif = (file, maxWidth = 400, maxHeight = 400) => {
 export const smartImageConverter = async (file, targetMaxSize = 200) => {
   const targetMaxSizeBytes = targetMaxSize * 1024; // Convert KB to bytes
   const originalSizeKB = (file.size / 1024).toFixed(2);
-
-  console.log(`🧠 Smart converter started for ${file.name}`);
-  console.log(`🎯 Target max size: ${targetMaxSize} KB`);
-  console.log(`📏 Current size: ${originalSizeKB} KB`);
 
   let processedFile = file;
 
@@ -230,11 +197,6 @@ export const smartImageConverter = async (file, targetMaxSize = 200) => {
 
   while (processedFile.size > targetMaxSizeBytes && attempts < maxAttempts) {
     attempts++;
-    console.log(
-      `🔄 File still ${(processedFile.size / 1024).toFixed(
-        2
-      )} KB, attempt ${attempts} for more compression...`
-    );
 
     const aggressiveQuality = Math.max(0.3, 0.8 - attempts * 0.2);
     const smallerDimension = Math.max(200, 400 - attempts * 100);
@@ -243,26 +205,21 @@ export const smartImageConverter = async (file, targetMaxSize = 200) => {
       processedFile = await compressGif(
         file,
         smallerDimension,
-        smallerDimension
+        smallerDimension,
       );
     } else {
       processedFile = await convertImageToWebP(
         file,
         aggressiveQuality,
         smallerDimension,
-        smallerDimension
+        smallerDimension,
       );
     }
   }
 
   const finalSizeKB = (processedFile.size / 1024).toFixed(2);
   const totalReduction = ((1 - processedFile.size / file.size) * 100).toFixed(
-    1
-  );
-
-  console.log(`🎉 Smart conversion complete!`);
-  console.log(
-    `📊 ${originalSizeKB} KB → ${finalSizeKB} KB (${totalReduction}% reduction)`
+    1,
   );
 
   return processedFile;

@@ -101,7 +101,7 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
 
   const menuItems = useMemo(
     () => getMenuItems(role, t, hotelName),
-    [role, hotelName, t]
+    [role, hotelName, t],
   );
 
   // Event handlers
@@ -121,7 +121,7 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
         toast.error("Failed to switch hotel");
       }
     },
-    [selectHotel, navigate, role]
+    [selectHotel, navigate, role],
   );
 
   return (

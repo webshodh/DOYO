@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-const plugin = require('tailwindcss/plugin');
+const plugin = require("tailwindcss/plugin");
 module.exports = {
   darkMode: "class",
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
@@ -183,7 +183,7 @@ module.exports = {
         300: "#fdba74",
         400: "#fb923c",
         //500: "#FE724C",
-        500:"#FA6502",
+        500: "#FA6502",
         600: "#ea580c",
         700: "#c2410c",
         800: "#9a3412",
@@ -197,11 +197,11 @@ module.exports = {
       //           "linear-gradient(107deg, rgb(255, 67, 5) 11.1%, rgb(245, 135, 0) 95.3%)",
       //       },
       //     };
-    
+
       //     addUtilities(newUtilities, ["responsive", "hover"]);
       //   }),
       // ],
-      
+
       amber: {
         50: "#fffbeb",
         100: "#fef3c7",

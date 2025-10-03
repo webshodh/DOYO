@@ -70,7 +70,7 @@ const OrderSummary = memo(
         </div>
       )} */}
     </div>
-  )
+  ),
 );
 
 OrderSummary.displayName = "OrderSummary";

@@ -42,7 +42,7 @@ export const captainServices = {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       return { user: userCredential.user };
     } catch (error) {
@@ -69,7 +69,7 @@ export const captainServices = {
     }
     const photoReference = storageRef(
       storage,
-      `hotels/${hotelName}/captains/${captainId}/photo`
+      `hotels/${hotelName}/captains/${captainId}/photo`,
     );
     const snapshot = await uploadBytes(photoReference, photoFile);
     return await getDownloadURL(snapshot.ref);
@@ -80,7 +80,7 @@ export const captainServices = {
     try {
       const photoReference = storageRef(
         storage,
-        `hotels/${hotelName}/captains/${captainId}/photo`
+        `hotels/${hotelName}/captains/${captainId}/photo`,
       );
       await deleteObject(photoReference);
     } catch (error) {
@@ -96,7 +96,7 @@ export const captainServices = {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     if (currentAdmin) {
       await auth.updateCurrentUser(currentAdmin);
@@ -105,9 +105,7 @@ export const captainServices = {
   },
 
   // Placeholder for auth user deletion (requires backend/Admin SDK)
-  deleteCaptainAuthUser: async (userId) => {
-    console.log("Auth user deletion queued for:", userId);
-  },
+  deleteCaptainAuthUser: async (userId) => {},
 
   // Subscribe to captains collection realtime updates
   subscribeToCaptains: (hotelName, callback) => {
@@ -130,7 +128,7 @@ export const captainServices = {
         console.error("Error fetching captains:", error);
         toast.error("Error loading captains", { position: "top-right" });
         callback([]);
-      }
+      },
     );
     return unsubscribe;
   },
@@ -153,7 +151,7 @@ export const captainServices = {
 
       const authUser = await captainServices.createCaptainAuthUser(
         captainData.email,
-        captainData.password
+        captainData.password,
       );
       authUserId = authUser.uid;
 
@@ -165,7 +163,7 @@ export const captainServices = {
           photoUrl = await captainServices.uploadCaptainPhoto(
             hotelName,
             captainId,
-            captainData.photoFile
+            captainData.photoFile,
           );
           photoUploaded = true;
         } catch (photoError) {
@@ -189,7 +187,7 @@ export const captainServices = {
 
       await setDoc(
         doc(firestore, `hotels/${hotelName}/captains/${captainId}`),
-        finalCaptainData
+        finalCaptainData,
       );
 
       toast.success("Captain added successfully!", { position: "top-right" });
@@ -209,7 +207,7 @@ export const captainServices = {
       if (captainId) {
         try {
           await deleteDoc(
-            doc(firestore, `hotels/${hotelName}/captains/${captainId}`)
+            doc(firestore, `hotels/${hotelName}/captains/${captainId}`),
           );
         } catch {}
       }
@@ -239,13 +237,13 @@ export const captainServices = {
     hotelName,
     captainId,
     captainData,
-    existingCaptains = []
+    existingCaptains = [],
   ) => {
     try {
       const validation = validateCaptainForm(
         captainData,
         existingCaptains,
-        captainId
+        captainId,
       );
       if (!validation.isValid) {
         const errorMessage =
@@ -257,7 +255,7 @@ export const captainServices = {
 
       const captainDocRef = doc(
         firestore,
-        `hotels/${hotelName}/captains/${captainId}`
+        `hotels/${hotelName}/captains/${captainId}`,
       );
       const existingCaptainDoc = await getDoc(captainDocRef);
       if (!existingCaptainDoc.exists()) {
@@ -275,7 +273,7 @@ export const captainServices = {
           photoUrl = await captainServices.uploadCaptainPhoto(
             hotelName,
             captainId,
-            captainData.photoFile
+            captainData.photoFile,
           );
         } catch {
           toast.warning("Photo update failed, but other changes were saved", {
@@ -300,7 +298,7 @@ export const captainServices = {
           {
             position: "top-right",
             autoClose: 7000,
-          }
+          },
         );
       }
 
@@ -328,13 +326,13 @@ export const captainServices = {
         try {
           await captainServices.deleteCaptainPhoto(
             hotelName,
-            captain.captainId
+            captain.captainId,
           );
         } catch {}
       }
 
       await deleteDoc(
-        doc(firestore, `hotels/${hotelName}/captains/${captain.captainId}`)
+        doc(firestore, `hotels/${hotelName}/captains/${captain.captainId}`),
       );
 
       if (captain.firebaseAuthId) {
@@ -385,7 +383,7 @@ export const captainServices = {
           c.email?.toLowerCase().includes(term) ||
           c.mobileNo?.includes(term) ||
           c.adharNo?.includes(term) ||
-          c.panNo?.toLowerCase().includes(term)
+          c.panNo?.toLowerCase().includes(term),
       )
       .map((captain, index) => ({ ...captain, srNo: index + 1 }));
   },
@@ -393,7 +391,7 @@ export const captainServices = {
   getCaptainStats: async (hotelName) => {
     try {
       const snapshot = await getDocs(
-        collection(firestore, `hotels/${hotelName}/captains`)
+        collection(firestore, `hotels/${hotelName}/captains`),
       );
       if (snapshot.empty) {
         return {
@@ -437,7 +435,7 @@ export const captainServices = {
           status: newStatus,
           updatedAt: Timestamp.fromDate(new Date()),
           updatedBy: captainServices.getCurrentAdminId(),
-        }
+        },
       );
       toast.success(`Captain status changed to ${newStatus}`, {
         position: "top-right",

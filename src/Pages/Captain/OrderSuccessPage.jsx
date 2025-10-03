@@ -70,7 +70,7 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
 
     const orderRef = ref(
       rtdb,
-      `/hotels/${hotelName}/orders/${orderDetails.firebaseId}`
+      `/hotels/${hotelName}/orders/${orderDetails.firebaseId}`,
     );
 
     const unsubscribe = onValue(
@@ -93,9 +93,9 @@ const OrderSuccessPage = ({ orderDetails, onGoHome }) => {
       (error) => {
         console.error("Error tracking order:", error);
         toast.error(
-          "Unable to track order status. Please check your connection."
+          "Unable to track order status. Please check your connection.",
         );
-      }
+      },
     );
 
     return () => unsubscribe();

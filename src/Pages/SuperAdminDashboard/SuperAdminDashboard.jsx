@@ -156,7 +156,7 @@ const SuperAdminDashboard = () => {
 
     // Admin stats
     const activeAdmins = admins.filter(
-      (admin) => admin.status === "active"
+      (admin) => admin.status === "active",
     ).length;
 
     // Performance metrics
@@ -400,7 +400,6 @@ const SuperAdminDashboard = () => {
                 {enhancedStats.activeSubscriptions} active subscriptions.
               </p>
             </div>
-           
           </div>
         </div>
 
@@ -587,7 +586,7 @@ const SuperAdminDashboard = () => {
                 color="bg-blue-500"
                 maxValue={Math.max(
                   ...Object.values(enhancedStats.geographicStats.states),
-                  1
+                  1,
                 )}
                 icon={MapPin}
                 delay={0}
@@ -601,7 +600,7 @@ const SuperAdminDashboard = () => {
                 color="bg-green-500"
                 maxValue={Math.max(
                   ...Object.values(enhancedStats.businessTypeStats),
-                  1
+                  1,
                 )}
                 icon={Building2}
                 delay={200}
@@ -618,7 +617,7 @@ const SuperAdminDashboard = () => {
                 color="bg-purple-500"
                 maxValue={Math.max(
                   ...Object.values(enhancedStats.geographicStats.cities),
-                  1
+                  1,
                 )}
                 icon={Users}
                 delay={400}
@@ -640,9 +639,9 @@ const SuperAdminDashboard = () => {
                       const role = admin.role || "unassigned";
                       acc[role] = (acc[role] || 0) + 1;
                       return acc;
-                    }, {})
+                    }, {}),
                   ),
-                  1
+                  1,
                 )}
                 icon={Shield}
                 delay={600}

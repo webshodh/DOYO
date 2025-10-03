@@ -188,7 +188,7 @@ export const useFormValidation = (config, existingData = [], editId = null) => {
                   item[fieldName] &&
                   item[fieldName].toString().toLowerCase() ===
                     value.toString().toLowerCase() &&
-                  item.id !== editId
+                  item.id !== editId,
               );
               if (isDuplicate) {
                 return `${field.label} already exists`;
@@ -280,7 +280,7 @@ export const useFormValidation = (config, existingData = [], editId = null) => {
 
       return null;
     },
-    [config, existingData, editId]
+    [config, existingData, editId],
   );
 
   const validateForm = useCallback(
@@ -308,7 +308,7 @@ export const useFormValidation = (config, existingData = [], editId = null) => {
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     },
-    [validateField, config]
+    [validateField, config],
   );
 
   const clearError = useCallback((fieldName) => {
@@ -418,8 +418,8 @@ export const UniversalInput = memo(
         hasError
           ? "border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50"
           : isValid
-          ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
-          : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
+            ? "border-green-300 focus:border-green-500 focus:ring-green-500 bg-green-50"
+            : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 hover:border-gray-400"
       }
       ${className}
     `.trim();
@@ -465,7 +465,7 @@ export const UniversalInput = memo(
           });
         }
       },
-      [field.name, field.accept, field.maxSize, field.type, onChange]
+      [field.name, field.accept, field.maxSize, field.type, onChange],
     );
 
     // Handle change with transformations
@@ -493,7 +493,7 @@ export const UniversalInput = memo(
           },
         });
       },
-      [field.name, field.transform, onChange]
+      [field.name, field.transform, onChange],
     );
 
     // Handle checkbox change
@@ -509,7 +509,7 @@ export const UniversalInput = memo(
           },
         });
       },
-      [field.name, onChange]
+      [field.name, onChange],
     );
 
     // Handle array changes (for multi-select, etc.)
@@ -525,7 +525,7 @@ export const UniversalInput = memo(
           },
         });
       },
-      [field.name, onChange]
+      [field.name, onChange],
     );
 
     // Clear file/photo
@@ -814,7 +814,7 @@ export const UniversalInput = memo(
     };
 
     return renderInput();
-  }
+  },
 );
 
 UniversalInput.displayName = "UniversalInput";
@@ -922,7 +922,7 @@ export const FormField = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 FormField.displayName = "FormField";
@@ -962,7 +962,7 @@ export const FormSection = memo(
           }));
         }
       },
-      [onChange]
+      [onChange],
     );
 
     if (!section) {
@@ -1028,7 +1028,7 @@ export const FormSection = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 FormSection.displayName = "FormSection";
@@ -1062,7 +1062,7 @@ export const ActionButtons = memo(
           onSubmit(e);
         }
       },
-      [onSubmit, canSubmit, isSubmitting]
+      [onSubmit, canSubmit, isSubmitting],
     );
 
     const handleCancel = useCallback(
@@ -1072,7 +1072,7 @@ export const ActionButtons = memo(
           onCancel();
         }
       },
-      [onCancel]
+      [onCancel],
     );
 
     return (
@@ -1149,7 +1149,7 @@ export const ActionButtons = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 ActionButtons.displayName = "ActionButtons";
@@ -1205,7 +1205,7 @@ export const UniversalModal = memo(
           onClose?.();
         }
       },
-      [closeOnBackdrop, onClose]
+      [closeOnBackdrop, onClose],
     );
 
     if (!show) return null;
@@ -1270,7 +1270,7 @@ export const UniversalModal = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 UniversalModal.displayName = "UniversalModal";
@@ -1341,7 +1341,7 @@ export const useUniversalForm = (config, options = {}) => {
         }
       }, 300);
     },
-    [formData, validateField, clearError, setErrors]
+    [formData, validateField, clearError, setErrors],
   );
 
   const canSubmit = useMemo(() => {
@@ -1415,7 +1415,7 @@ export const useUniversalForm = (config, options = {}) => {
       config,
       setErrors,
       resetOnSubmit,
-    ]
+    ],
   );
 
   const resetForm = useCallback(() => {
@@ -1434,7 +1434,7 @@ export const useUniversalForm = (config, options = {}) => {
     (fieldName, error) => {
       setErrors((prev) => ({ ...prev, [fieldName]: error }));
     },
-    [setErrors]
+    [setErrors],
   );
 
   return {

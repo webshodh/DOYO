@@ -87,7 +87,7 @@ const QuickInfoCard = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 QuickInfoCard.displayName = "QuickInfoCard";

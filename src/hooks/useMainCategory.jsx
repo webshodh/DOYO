@@ -16,7 +16,7 @@ export const useMainCategory = (hotelName) => {
   const adminId = useMemo(() => auth.currentUser?.uid, [auth.currentUser?.uid]);
   const categoryService = useMemo(
     () => createCategoryService(hotelName),
-    [hotelName]
+    [hotelName],
   );
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export const useMainCategory = (hotelName) => {
   // Memoize filtered categories to prevent recalculation
   const filteredCategories = useMemo(() => {
     return categories.filter((category) =>
-      category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
+      category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [categories, searchTerm]);
 
@@ -83,7 +83,7 @@ export const useMainCategory = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [adminId, categoryService, submitting]
+    [adminId, categoryService, submitting],
   );
 
   const updateCategory = useCallback(
@@ -111,7 +111,7 @@ export const useMainCategory = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [adminId, categoryService, submitting]
+    [adminId, categoryService, submitting],
   );
 
   const deleteCategory = useCallback(
@@ -121,7 +121,7 @@ export const useMainCategory = (hotelName) => {
       setError(null);
 
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`,
       );
       if (!confirmed) {
         setSubmitting(false);
@@ -147,7 +147,7 @@ export const useMainCategory = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [adminId, categoryService, submitting]
+    [adminId, categoryService, submitting],
   );
 
   const prepareForEdit = useCallback(async (category) => {
@@ -170,7 +170,7 @@ export const useMainCategory = (hotelName) => {
         return await addCategory(categoryName);
       }
     },
-    [addCategory, updateCategory]
+    [addCategory, updateCategory],
   );
 
   const handleSearchChange = useCallback((term) => {
@@ -189,7 +189,7 @@ export const useMainCategory = (hotelName) => {
         categories.some(
           (category) =>
             category.categoryName?.toLowerCase() === name.toLowerCase() &&
-            category.categoryId !== excludeId
+            category.categoryId !== excludeId,
         ),
 
       getCategoryById: (categoryId) =>
@@ -199,7 +199,7 @@ export const useMainCategory = (hotelName) => {
         categories.filter((category) =>
           category.categoryName
             ?.toLowerCase()
-            .includes(searchName.toLowerCase())
+            .includes(searchName.toLowerCase()),
         ),
 
       validateCategoryName: (name) => {
@@ -243,7 +243,7 @@ export const useMainCategory = (hotelName) => {
         setSearchTerm("");
       },
     }),
-    [categories]
+    [categories],
   );
 
   // Memoize computed values to prevent recalculation
@@ -256,7 +256,7 @@ export const useMainCategory = (hotelName) => {
       isEmpty: categories.length === 0,
       hasFilters: searchTerm.length > 0,
     }),
-    [categories.length, filteredCategories.length, searchTerm.length]
+    [categories.length, filteredCategories.length, searchTerm.length],
   );
 
   // Memoize error handling functions
@@ -271,7 +271,7 @@ export const useMainCategory = (hotelName) => {
         return errorMessage;
       },
     }),
-    []
+    [],
   );
 
   return {

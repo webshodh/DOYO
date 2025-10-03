@@ -22,14 +22,14 @@ export class CategoryService {
     this.hotelName = hotelName;
     this.baseCollection = collection(
       firestore,
-      `hotels/${hotelName}/Maincategories`
+      `hotels/${hotelName}/Maincategories`,
     );
   }
 
   async checkAdminPermission(adminId) {
     try {
       const adminHotelDoc = await getDoc(
-        doc(firestore, `admins/${adminId}/hotels/${this.hotelName}`)
+        doc(firestore, `admins/${adminId}/hotels/${this.hotelName}`),
       );
       const hotelDoc = await getDoc(doc(firestore, `hotels/${this.hotelName}`));
 
@@ -55,7 +55,7 @@ export class CategoryService {
       return snapshot.docs.some(
         (doc) =>
           doc.id !== excludeId &&
-          doc.data().categoryName.trim().toLowerCase() === normalizedName
+          doc.data().categoryName.trim().toLowerCase() === normalizedName,
       );
     } catch (error) {
       console.error("Error checking category existence:", error);
@@ -78,7 +78,7 @@ export class CategoryService {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
       throw new Error(
-        "You do not have permission to add categories for this hotel."
+        "You do not have permission to add categories for this hotel.",
       );
     }
 
@@ -103,13 +103,13 @@ export class CategoryService {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
       throw new Error(
-        "You do not have permission to update categories for this hotel."
+        "You do not have permission to update categories for this hotel.",
       );
     }
 
     const categoryExists = await this.checkCategoryExists(
       categoryName,
-      categoryId
+      categoryId,
     );
     if (categoryExists) {
       throw new Error("Category with this name already exists.");
@@ -129,7 +129,7 @@ export class CategoryService {
     const hasPermission = await this.checkAdminPermission(adminId);
     if (!hasPermission) {
       throw new Error(
-        "You do not have permission to delete categories for this hotel."
+        "You do not have permission to delete categories for this hotel.",
       );
     }
 

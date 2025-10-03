@@ -25,7 +25,7 @@ export default function AddAdminPage() {
         value: h.hotelId,
         label: h.businessName || h.hotelName,
       })),
-    [hotels]
+    [hotels],
   );
 
   const [initialValues, setInitialValues] = useState(adminFormInitialValues);
@@ -54,7 +54,7 @@ export default function AddAdminPage() {
   const goBack = useCallback(() => navigate(-1), [navigate]);
   const goToList = useCallback(
     () => navigate("/super-admin/view-admin"),
-    [navigate]
+    [navigate],
   );
 
   const handleSubmit = useCallback(
@@ -73,7 +73,7 @@ export default function AddAdminPage() {
         setSubmitting(false);
       }
     },
-    [isEditMode, adminId, goToList]
+    [isEditMode, adminId, goToList],
   );
 
   // Build sections with actual fields arrays & inject hotel options
@@ -85,17 +85,17 @@ export default function AddAdminPage() {
         const mappedFields = fieldsArray.map((f) =>
           f.name === "linkedHotelId"
             ? { ...f, options: hotelOptions, loading: hotelsLoading }
-            : f
+            : f,
         );
         return { ...section, fields: mappedFields };
       }),
-    [hotelOptions, hotelsLoading]
+    [hotelOptions, hotelsLoading],
   );
 
   // Flatten for FormContainer
   const fieldsConfig = useMemo(
     () => sectionsWithFields.flatMap((sec) => sec.fields),
-    [sectionsWithFields]
+    [sectionsWithFields],
   );
 
   return (

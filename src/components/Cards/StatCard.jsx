@@ -6,7 +6,6 @@ const StatCard = ({ title, value, icon: Icon, color, change }) => {
       <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          
           <p className="text-2xl font-bold text-gray-900">{value}</p>
           {change && (
             <p

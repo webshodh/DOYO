@@ -20,7 +20,7 @@ const CategoryFilters = memo(
         ))}
       </div>
     </div>
-  )
+  ),
 );
 
 CategoryFilters.displayName = "CategoryFilters";

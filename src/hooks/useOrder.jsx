@@ -25,7 +25,7 @@ export const useOrder = (hotelName, options = {}) => {
   // Filter state
   const [statusFilter, setStatusFilter] = useState(defaultStatusFilter);
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [selectedTimePeriod, setSelectedTimePeriod] =
     useState(defaultTimePeriod);
@@ -188,7 +188,7 @@ export const useOrder = (hotelName, options = {}) => {
         displayTime: new Date(normalizedTimestamp).toLocaleString(),
         displayDate: new Date(normalizedTimestamp).toLocaleDateString(),
         displayAmount: `₹${parseFloat(
-          totalAmount.toFixed(2)
+          totalAmount.toFixed(2),
         ).toLocaleString()}`,
       };
     });
@@ -244,7 +244,7 @@ export const useOrder = (hotelName, options = {}) => {
         }
       },
     }),
-    []
+    [],
   );
 
   // Real-time order subscription with error handling and retry
@@ -312,7 +312,7 @@ export const useOrder = (hotelName, options = {}) => {
             retryCount++;
             setTimeout(() => connectToFirebase(), 2000 * retryCount);
           }
-        }
+        },
       );
     };
 
@@ -338,10 +338,10 @@ export const useOrder = (hotelName, options = {}) => {
                 menuId: key,
                 ...val,
               }))
-            : []
+            : [],
         );
       },
-      (err) => {}
+      (err) => {},
     );
     return () => unsubscribe();
   }, [hotelName, includeMenuData]);
@@ -355,12 +355,12 @@ export const useOrder = (hotelName, options = {}) => {
     } else if (selectedTimePeriod === "weekly") {
       const { start, end } = dateRangeHelpers.getCurrentWeekRange();
       filtered = filtered.filter((order) =>
-        dateRangeHelpers.isDateInRange(order.orderDate, start, end)
+        dateRangeHelpers.isDateInRange(order.orderDate, start, end),
       );
     } else if (selectedTimePeriod === "monthly") {
       const { start, end } = dateRangeHelpers.getCurrentMonthRange();
       filtered = filtered.filter((order) =>
-        dateRangeHelpers.isDateInRange(order.orderDate, start, end)
+        dateRangeHelpers.isDateInRange(order.orderDate, start, end),
       );
     }
     return filtered;
@@ -370,7 +370,7 @@ export const useOrder = (hotelName, options = {}) => {
     let filtered = [...timeFilteredOrders];
     if (statusFilter !== "all") {
       filtered = filtered.filter(
-        (order) => order.normalizedStatus === statusFilter
+        (order) => order.normalizedStatus === statusFilter,
       );
     }
     if (debouncedSearchTerm) {
@@ -387,9 +387,9 @@ export const useOrder = (hotelName, options = {}) => {
             ?.toLowerCase()
             .includes(searchLower) ||
           order.items?.some((item) =>
-            item.menuName?.toLowerCase().includes(searchLower)
+            item.menuName?.toLowerCase().includes(searchLower),
           ) ||
-          order.normalizedStatus.toLowerCase().includes(searchLower)
+          order.normalizedStatus.toLowerCase().includes(searchLower),
       );
     }
     return filtered;
@@ -409,11 +409,11 @@ export const useOrder = (hotelName, options = {}) => {
       else if (order.normalizedStatus === "rejected") stats.rejected++;
     });
     const revenueOrders = timeFilteredOrders.filter((o) =>
-      ["completed"].includes(o.normalizedStatus)
+      ["completed"].includes(o.normalizedStatus),
     );
     stats.totalRevenue = revenueOrders.reduce(
       (sum, order) => sum + (order.totalAmount || 0),
-      0
+      0,
     );
     stats.avgOrderValue =
       revenueOrders.length > 0
@@ -422,7 +422,7 @@ export const useOrder = (hotelName, options = {}) => {
     const uniqueTables = new Set(
       timeFilteredOrders
         .map((o) => o.tableInfo)
-        .filter((table) => table && table !== "Unknown" && table !== "0")
+        .filter((table) => table && table !== "Unknown" && table !== "0"),
     );
     stats.uniqueCustomers = uniqueTables.size;
     const hourCounts = {};
@@ -434,7 +434,7 @@ export const useOrder = (hotelName, options = {}) => {
     });
     const peakHour = Object.keys(hourCounts).reduce(
       (a, b) => (hourCounts[a] > hourCounts[b] ? a : b),
-      "0"
+      "0",
     );
     stats.peakHour = peakHour !== "0" ? `${peakHour}:00` : "N/A";
     return stats;
@@ -577,7 +577,7 @@ export const useOrder = (hotelName, options = {}) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting],
   );
 
   const deleteOrder = useCallback(
@@ -605,7 +605,7 @@ export const useOrder = (hotelName, options = {}) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting],
   );
 
   const updateOrder = useCallback(
@@ -634,7 +634,7 @@ export const useOrder = (hotelName, options = {}) => {
               parseFloat(item.price) ||
               0) *
               (parseInt(item.quantity) || 1),
-          0
+          0,
         );
         const updates = {};
         Object.keys(orderData).forEach((key) => {
@@ -690,7 +690,7 @@ export const useOrder = (hotelName, options = {}) => {
         setSubmitting(false);
       }
     },
-    [hotelName, submitting]
+    [hotelName, submitting],
   );
 
   // Filter and search handlers, all memoized
@@ -707,7 +707,7 @@ export const useOrder = (hotelName, options = {}) => {
         if (selectedTimePeriod !== "daily") setSelectedTimePeriod("daily");
       }
     },
-    [selectedTimePeriod]
+    [selectedTimePeriod],
   );
   const handleTimePeriodChange = useCallback((period) => {
     if (period && typeof period === "string") {
@@ -731,21 +731,21 @@ export const useOrder = (hotelName, options = {}) => {
     (orderId) => {
       return orders.find((order) => order.id === orderId) || null;
     },
-    [orders]
+    [orders],
   );
   const getOrdersByStatus = useCallback(
     (status) => {
       return orders.filter((order) => order.normalizedStatus === status);
     },
-    [orders]
+    [orders],
   );
   const getOrdersByTable = useCallback(
     (tableNumber) => {
       return orders.filter(
-        (order) => order.tableInfo === tableNumber.toString()
+        (order) => order.tableInfo === tableNumber.toString(),
       );
     },
-    [orders]
+    [orders],
   );
 
   // Today's stats
@@ -796,7 +796,7 @@ export const useOrder = (hotelName, options = {}) => {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `orders_${new Date().toISOString().split("T")[0]}.csv`
+      `orders_${new Date().toISOString().split("T")[0]}.csv`,
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
@@ -866,7 +866,7 @@ export const useOrder = (hotelName, options = {}) => {
     ],
     periodDisplayText: dateRangeHelpers.getPeriodDisplayText(
       selectedTimePeriod,
-      selectedDate
+      selectedDate,
     ),
     hasOrders: orders.length > 0,
     hasFilteredOrders: filteredOrders.length > 0,

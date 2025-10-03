@@ -96,7 +96,7 @@ const DynamicFormField = ({ field, value, onChange }) => {
                   if (value.includes(opt)) {
                     onChange(
                       field.name,
-                      value.filter((v) => v !== opt)
+                      value.filter((v) => v !== opt),
                     );
                   } else {
                     onChange(field.name, [...value, opt]);
@@ -113,4 +113,4 @@ const DynamicFormField = ({ field, value, onChange }) => {
   );
 };
 
-export default DynamicFormField
+export default DynamicFormField;

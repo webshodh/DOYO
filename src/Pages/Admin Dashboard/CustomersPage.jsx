@@ -42,8 +42,6 @@ const CustomersPage = memo(() => {
     error,
   } = useCustomers(hotelName);
 
-  console.log("customers", customers);
-
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredCustomers = useMemo(() => {
@@ -54,7 +52,7 @@ const CustomersPage = memo(() => {
       (c) =>
         c.name?.toLowerCase().includes(term) ||
         c.mobile?.includes(term) ||
-        c.email?.toLowerCase().includes(term)
+        c.email?.toLowerCase().includes(term),
     );
   }, [customers, searchTerm]);
 
@@ -205,7 +203,7 @@ const CustomersPage = memo(() => {
         },
       },
     ],
-    []
+    [],
   );
 
   if (customers === null) {

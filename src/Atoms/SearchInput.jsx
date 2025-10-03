@@ -24,7 +24,7 @@ const SearchInput = memo(
           onSearchChange(e);
         }
       },
-      [onSearchChange]
+      [onSearchChange],
     );
 
     const handleClear = useCallback(() => {
@@ -67,7 +67,7 @@ const SearchInput = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 SearchInput.displayName = "SearchInput";

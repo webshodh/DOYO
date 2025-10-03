@@ -172,8 +172,8 @@ const OffersFormModal = ({
                   validationErrors.offerName
                     ? "border-red-300 focus:ring-red-500"
                     : offerData.offerName.trim()
-                    ? "border-green-300 focus:ring-green-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                      ? "border-green-300 focus:ring-green-500"
+                      : "border-gray-300 focus:ring-blue-500"
                 }`}
                 disabled={isSubmitting || submitting}
                 required
@@ -240,8 +240,8 @@ const OffersFormModal = ({
                 {offerData.offerType === "percentage"
                   ? "Discount %"
                   : offerData.offerType === "fixed"
-                  ? "Discount Amount"
-                  : "Discount Value"}{" "}
+                    ? "Discount Amount"
+                    : "Discount Value"}{" "}
                 *
               </label>
               <input
@@ -254,8 +254,8 @@ const OffersFormModal = ({
                   offerData.offerType === "percentage"
                     ? "e.g., 10"
                     : offerData.offerType === "fixed"
-                    ? "e.g., 100"
-                    : "Enter value"
+                      ? "e.g., 100"
+                      : "Enter value"
                 }
                 className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
                   validationErrors.discountValue
@@ -467,8 +467,8 @@ const OffersFormModal = ({
                   ? "Updating..."
                   : "Adding..."
                 : isEditMode
-                ? "Update Offer"
-                : "Add Offer"}
+                  ? "Update Offer"
+                  : "Add Offer"}
             </button>
 
             <button

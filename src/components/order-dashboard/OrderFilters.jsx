@@ -55,7 +55,7 @@ const OrderFilters = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 OrderFilters.displayName = "OrderFilters";
