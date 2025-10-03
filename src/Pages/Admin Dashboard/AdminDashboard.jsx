@@ -19,7 +19,7 @@ import { useHotelSelection } from "../../context/HotelSelectionContext";
 import AdminDashboardLayout from "../../layout/AdminDashboardLayout";
 import StatCard from "../../components/Cards/StatCard";
 import TopMenuCards from "../../components/Cards/TopMenuCard";
-import { DynamicTable } from "../../components";
+import { DynamicTable, HorizontalMenuCard } from "../../components";
 import { OrderInsights } from "../../molecules/OrderInsights";
 import TimePeriodSelector from "../../atoms/TimePeriodSelector";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
@@ -92,25 +92,23 @@ const AdminDashboard = () => {
 
   // Fetch menu and categories data
   const {
-    filteredAndSortedMenus, // FIXED: Changed from filteredAndSorted
+    filteredAndSortedMenus,
     loading: menuLoading,
     error: menuError,
-    refreshMenus, // FIXED: Changed from refresh
-    menuCount, // FIXED: Changed from count
-    hasMenus, // FIXED: This is correct
+    refreshMenus,
+    menuCount,
+    hasMenus,
   } = useMenu(hotelName);
 
   const {
     categories,
     loading: categoriesLoading,
     error: categoriesError,
-    categoryCount, // FIXED: Changed from count
+    categoryCount,
   } = useCategory(hotelName);
 
-  const {
-    mainCategoryCount, // FIXED: Changed from total
-    loading: mainCategoryLoading,
-  } = useMainCategory(hotelName) || {};
+  const { mainCategoryCount, loading: mainCategoryLoading } =
+    useMainCategory(hotelName) || {};
 
   // Derived restaurant info once
   const restaurantInfo = useMemo(
@@ -125,7 +123,7 @@ const AdminDashboard = () => {
     [hotelName]
   );
 
-  // Stats memoization - FIXED: Better null/undefined handling
+  // Stats memoization
   const displayStats = useMemo(() => {
     if (!orderStats) {
       return {
@@ -156,7 +154,7 @@ const AdminDashboard = () => {
     };
   }, [orderStats]);
 
-  // Menu statistics - FIXED: Using correct variable name
+  // Menu statistics
   const menuStats = useMemo(() => {
     if (!filteredAndSortedMenus || filteredAndSortedMenus.length === 0) {
       return {
@@ -180,6 +178,263 @@ const AdminDashboard = () => {
 
     return { total, available, discounted, uniqueCategories };
   }, [filteredAndSortedMenus]);
+
+  // Calculate Top 5 Menus by Order Count - FIXED REVENUE CALCULATION
+  const topMenusByOrders = useMemo(() => {
+    if (!filteredOrders || filteredOrders.length === 0) {
+      return [];
+    }
+
+    const menuOrderCount = {};
+
+    filteredOrders.forEach((order) => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item) => {
+          const menuId = item.menuId || item.id || item.menuName;
+          if (menuId) {
+            if (!menuOrderCount[menuId]) {
+              menuOrderCount[menuId] = {
+                menuId,
+                menuName: item.menuName || "Unknown",
+                orderCount: 0,
+                totalQuantity: 0,
+                totalRevenue: 0,
+              };
+            }
+            menuOrderCount[menuId].orderCount += 1;
+            menuOrderCount[menuId].totalQuantity += item.quantity || 0;
+            // Use itemTotal which is already calculated in useOrder hook
+            menuOrderCount[menuId].totalRevenue += parseFloat(
+              item.itemTotal || 0
+            );
+          }
+        });
+      }
+    });
+
+    return Object.values(menuOrderCount)
+      .sort((a, b) => b.orderCount - a.orderCount)
+      .slice(0, 5);
+  }, [filteredOrders]);
+
+  // Calculate Top 10 Orders by Category - FIXED REVENUE CALCULATION
+  const topOrdersByCategory = useMemo(() => {
+    if (!filteredOrders || filteredOrders.length === 0) {
+      return [];
+    }
+
+    const categoryOrderCount = {};
+
+    filteredOrders.forEach((order) => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item) => {
+          const category =
+            item.menuCategory || item.category || "Uncategorized";
+          if (!categoryOrderCount[category]) {
+            categoryOrderCount[category] = {
+              category,
+              orderCount: 0,
+              totalQuantity: 0,
+              totalRevenue: 0,
+              itemCount: 0,
+            };
+          }
+          categoryOrderCount[category].orderCount += 1;
+          categoryOrderCount[category].totalQuantity += item.quantity || 0;
+          // Use itemTotal which is already calculated
+          categoryOrderCount[category].totalRevenue += parseFloat(
+            item.itemTotal || 0
+          );
+          categoryOrderCount[category].itemCount += 1;
+        });
+      }
+    });
+
+    return Object.values(categoryOrderCount)
+      .sort((a, b) => b.orderCount - a.orderCount)
+      .slice(0, 10);
+  }, [filteredOrders]);
+
+  // Calculate Top 10 Orders by Menu - FIXED REVENUE CALCULATION
+  const topOrdersByMenu = useMemo(() => {
+    if (!filteredOrders || filteredOrders.length === 0) {
+      return [];
+    }
+
+    const menuOrderCount = {};
+
+    filteredOrders.forEach((order) => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item) => {
+          const menuId = item.menuId || item.id || item.menuName;
+          const menuName = item.menuName || "Unknown";
+
+          if (menuId) {
+            if (!menuOrderCount[menuId]) {
+              menuOrderCount[menuId] = {
+                menuId,
+                menuName,
+                category: item.menuCategory || item.category || "Uncategorized",
+                orderCount: 0,
+                totalQuantity: 0,
+                totalRevenue: 0,
+                avgPrice: 0,
+              };
+            }
+            menuOrderCount[menuId].orderCount += 1;
+            menuOrderCount[menuId].totalQuantity += item.quantity || 0;
+            // Use itemTotal which is already calculated
+            menuOrderCount[menuId].totalRevenue += parseFloat(
+              item.itemTotal || 0
+            );
+          }
+        });
+      }
+    });
+
+    const menuArray = Object.values(menuOrderCount);
+    menuArray.forEach((menu) => {
+      menu.avgPrice =
+        menu.totalQuantity > 0 ? menu.totalRevenue / menu.totalQuantity : 0;
+    });
+
+    return menuArray.sort((a, b) => b.orderCount - a.orderCount).slice(0, 10);
+  }, [filteredOrders]);
+
+  // FIXED: Table columns with proper accessor format
+  const categoryTableColumns = useMemo(
+    () => [
+      {
+        Header: "Rank",
+        accessor: "rank",
+        Cell: ({ row }) => (
+          <div className="flex items-center justify-center">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm shadow-sm">
+              {row.index + 1}
+            </span>
+          </div>
+        ),
+      },
+      {
+        Header: "Category",
+        accessor: "category",
+        Cell: ({ value }) => (
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-blue-500 mr-3"></div>
+            <span className="font-semibold text-gray-900">{value}</span>
+          </div>
+        ),
+      },
+      {
+        Header: "Order Count",
+        accessor: "orderCount",
+        Cell: ({ value }) => (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
+            {value}
+          </span>
+        ),
+      },
+      {
+        Header: "Total Quantity",
+        accessor: "totalQuantity",
+        Cell: ({ value }) => (
+          <span className="text-gray-700 font-medium">{value}</span>
+        ),
+      },
+      {
+        Header: "Revenue",
+        accessor: "totalRevenue",
+        Cell: ({ value }) => (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
+            ₹
+            {parseFloat(value).toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        ),
+      },
+      {
+        Header: "Items",
+        accessor: "itemCount",
+        Cell: ({ value }) => (
+          <span className="text-gray-600 font-medium">{value}</span>
+        ),
+      },
+    ],
+    []
+  );
+
+  const menuTableColumns = useMemo(
+    () => [
+      {
+        Header: "Rank",
+        accessor: "rank",
+        Cell: ({ row }) => (
+          <div className="flex items-center justify-center">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold text-sm shadow-sm">
+              {row.index + 1}
+            </span>
+          </div>
+        ),
+      },
+      {
+        Header: "Menu Name",
+        accessor: "menuName",
+        Cell: ({ row }) => (
+          <div>
+            <p className="font-semibold text-gray-900">
+              {row.original.menuName}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                {row.original.category}
+              </span>
+            </p>
+          </div>
+        ),
+      },
+      {
+        Header: "Order Count",
+        accessor: "orderCount",
+        Cell: ({ value }) => (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
+            {value}
+          </span>
+        ),
+      },
+      {
+        Header: "Total Quantity",
+        accessor: "totalQuantity",
+        Cell: ({ value }) => (
+          <span className="text-gray-700 font-medium">{value}</span>
+        ),
+      },
+      {
+        Header: "Avg Price",
+        accessor: "avgPrice",
+        Cell: ({ value }) => (
+          <span className="text-gray-700 font-medium">
+            ₹{parseFloat(value).toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        Header: "Total Revenue",
+        accessor: "totalRevenue",
+        Cell: ({ value }) => (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
+            ₹
+            {parseFloat(value).toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        ),
+      },
+    ],
+    []
+  );
 
   // Handlers wrapped with useCallback
   const handleViewDetails = useCallback((order) => {
@@ -220,7 +475,6 @@ const AdminDashboard = () => {
         kitchen: { notes: "Status updated via admin dashboard" },
       });
 
-      // Update selected order locally if matched
       if (res.success && selectedOrder?.id === orderId) {
         setSelectedOrder((s) => ({
           ...s,
@@ -233,71 +487,66 @@ const AdminDashboard = () => {
     [updateOrderStatus, selectedOrder]
   );
 
-  // FIXED: Better loading state
   const isLoading =
     loading || menuLoading || categoriesLoading || mainCategoryLoading;
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6 sm:space-y-8">
+      <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 lg:px-6 py-4">
         {/* Header */}
-        <div className="flex flex-row items-center justify-between gap-4 mb-1">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
           <PageTitle
             pageTitle={t("dashboard.title")}
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description={
-              t("dashboard.welcome", {
-                hotelName: selectedHotel?.name || hotelName,
-              }) +
-              " " +
-              t("dashboard.today")
-            }
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
           />
-
-          {selectedTimePeriod === "daily" && (
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
-              <Calendar size={16} className="text-gray-500" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
-                className="bg-transparent border-none focus:outline-none text-sm"
-              />
-            </div>
-          )}
+          <p className="text-blue-100 text-sm sm:text-base">
+            {t("dashboard.welcome", {
+              hotelName: selectedHotel?.name || hotelName,
+            })}{" "}
+            {t("dashboard.today")}
+          </p>
         </div>
 
         {/* Enhanced Time Period Navigation */}
-        <TimePeriodSelector
-          selectedTimePeriod={selectedTimePeriod}
-          onTimePeriodChange={handleTimePeriodChange}
-          selectedDate={selectedDate}
-          onDateChange={handleDateChange}
-          variant="default"
-          showDatePicker={true}
-          className="mb-6"
-          options={timePeriodOptions}
-          disableFutureDates={true}
-        />
-
-        {/* Status info */}
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          <span className="font-medium">{periodDisplayText}</span>
-          <span className="text-gray-600">
-            {filteredOrders?.length || 0} Orders
-          </span>
-          {displayStats.revenue > 0 && (
-            <span className="text-green-600 font-semibold">
-              ₹{displayStats.revenue.toLocaleString()}
-            </span>
-          )}
-          <span className="text-blue-600">
-            {displayStats.completionRate}% Completion
-          </span>
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4">
+          <TimePeriodSelector
+            selectedTimePeriod={selectedTimePeriod}
+            onTimePeriodChange={handleTimePeriodChange}
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            variant="default"
+            showDatePicker={true}
+            className="mb-0"
+            options={timePeriodOptions}
+            disableFutureDates={true}
+          />
         </div>
 
-        {/* Error handling - FIXED: Show before stats */}
+        {/* Status info */}
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+            <span className="font-semibold text-gray-900 px-3 py-1 bg-blue-50 rounded-full">
+              {periodDisplayText}
+            </span>
+            <span className="text-gray-700 px-3 py-1 bg-gray-50 rounded-full">
+              {filteredOrders?.length || 0} Orders
+            </span>
+            {displayStats.revenue > 0 && (
+              <span className="text-green-700 font-bold px-3 py-1 bg-green-50 rounded-full">
+                ₹
+                {displayStats.revenue.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            )}
+            <span className="text-blue-700 font-semibold px-3 py-1 bg-blue-50 rounded-full">
+              {displayStats.completionRate}% Complete
+            </span>
+          </div>
+        </div>
+
+        {/* Error handling */}
         {(error || menuError || categoriesError) && (
           <ErrorState
             title={t("dashboard.errorTitle")}
@@ -306,7 +555,7 @@ const AdminDashboard = () => {
           />
         )}
 
-        {/* Loading state - FIXED */}
+        {/* Loading state */}
         {isLoading &&
         !filteredOrders?.length &&
         !filteredAndSortedMenus?.length ? (
@@ -314,7 +563,7 @@ const AdminDashboard = () => {
         ) : (
           <>
             {/* Order Stats cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <StatCard
                 title={t("dashboard.totalOrders")}
                 value={displayStats.total}
@@ -335,14 +584,17 @@ const AdminDashboard = () => {
               />
               <StatCard
                 title={t("dashboard.revenue")}
-                value={`₹${(displayStats.revenue || 0).toLocaleString()}`}
+                value={`₹${(displayStats.revenue || 0).toLocaleString("en-IN", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}`}
                 icon={DollarSign}
                 color="yellow"
               />
             </div>
 
-            {/* Menu stats cards - FIXED: Now using correct data */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {/* Menu stats cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <StatCard
                 title={t("dashboard.totalMenuItems")}
                 value={menuStats.total}
@@ -369,15 +621,169 @@ const AdminDashboard = () => {
               />
             </div>
 
-            {/* Orders Table - FIXED: Added conditional rendering */}
-            {filteredOrders && filteredOrders.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-4">
-                <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
-                <DynamicTable
-                  columns={OrdersByCategoryColumn}
-                  data={filteredOrders}
-                  onView={handleViewDetails}
-                />
+            {/* Top 5 Menus by Orders - Horizontal Card Style */}
+            {topMenusByOrders.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-1.5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg shadow-sm">
+                    <Award className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                    Top 5 Menu Items by Orders
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+                  {topMenusByOrders.map((menu, index) => {
+                    const rankColors = [
+                      {
+                        gradient: "from-yellow-400 to-orange-500",
+                        text: "text-yellow-600",
+                      },
+                      {
+                        gradient: "from-gray-400 to-gray-600",
+                        text: "text-gray-600",
+                      },
+                      {
+                        gradient: "from-orange-400 to-red-500",
+                        text: "text-orange-600",
+                      },
+                      {
+                        gradient: "from-blue-400 to-blue-600",
+                        text: "text-blue-600",
+                      },
+                      {
+                        gradient: "from-purple-400 to-purple-600",
+                        text: "text-purple-600",
+                      },
+                    ];
+                    const color = rankColors[index];
+
+                    return (
+                      <article
+                        key={menu.menuId}
+                        className="w-full h-28 sm:h-32"
+                      >
+                        <div className="h-full bg-white rounded-xl shadow-md hover:shadow-xl overflow-hidden relative group transition-all duration-300 ease-in-out transform hover:-translate-y-1 border border-gray-100 hover:border-orange-300 cursor-pointer">
+                          <div className="flex h-full">
+                            {/* Rank Section - Left Side (Image Replacement) */}
+                            <div
+                              className={`w-24 sm:w-32 flex-shrink-0 bg-gradient-to-br ${color.gradient} relative flex items-center justify-center`}
+                            >
+                              <div className="text-center z-10">
+                                <div className="text-3xl sm:text-4xl font-black text-white mb-1">
+                                  #{index + 1}
+                                </div>
+                                <div className="bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-full">
+                                  Top Seller
+                                </div>
+                              </div>
+
+                              {/* Decorative circles */}
+                              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+                              <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/10 rounded-full -ml-6 -mb-6"></div>
+                            </div>
+
+                            {/* Order Count Badge - Top Right */}
+                            <div className="absolute top-2 right-2 z-10">
+                              <div className="flex items-center gap-1 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+                                <TrendingUp className="w-3 h-3" />
+                                <span>{menu.orderCount} orders</span>
+                              </div>
+                            </div>
+
+                            {/* Content Container */}
+                            <div className="flex-1 p-3 flex flex-col justify-between relative min-w-0">
+                              {/* Top Section */}
+                              <div className="flex-1 pr-16">
+                                {/* Menu Name */}
+                                <h3 className="text-sm sm:text-base font-bold text-gray-800 leading-tight mb-2 line-clamp-2">
+                                  {menu.menuName}
+                                </h3>
+                              </div>
+
+                              {/* Bottom Section */}
+                              <div className="flex items-center justify-between">
+                                {/* Revenue Display */}
+                                <div className="flex flex-col">
+                                  <span className="text-xs text-gray-500">
+                                    Total Revenue
+                                  </span>
+                                  <div className="flex items-baseline gap-1">
+                                    <span className="text-lg sm:text-xl font-bold text-green-600">
+                                      ₹
+                                      {parseFloat(
+                                        menu.totalRevenue
+                                      ).toLocaleString("en-IN", {
+                                        maximumFractionDigits: 0,
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Stats Row */}
+                                <div className="flex items-center gap-3 text-xs text-gray-600">
+                                  <div className="flex items-center gap-1">
+                                    <ShoppingBag className="w-3 h-3 text-blue-500" />
+                                    <span className="font-medium">
+                                      {menu.totalQuantity} QTY
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Enhanced Hover Effects */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-orange-50 via-transparent to-red-50 opacity-0 group-hover:opacity-40 transition-all duration-500 pointer-events-none" />
+
+                          {/* Animated glow effect */}
+                          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 to-red-400 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none blur-sm" />
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Top 10 Orders by Category - Table */}
+            {topOrdersByCategory.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className=" p-2 sm:p-4">
+                  <div className="flex items-center gap-2 text-black">
+                    <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <h2 className="text-lg sm:text-xl font-bold">
+                      Top 10 Categories by Orders
+                    </h2>
+                  </div>
+                </div>
+                <div className=" overflow-x-auto">
+                  <DynamicTable
+                    columns={categoryTableColumns}
+                    data={topOrdersByCategory}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Top 10 Orders by Menu - Table */}
+            {topOrdersByMenu.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className=" p-2 sm:p-4">
+                  <div className="flex items-center gap-2 text-black">
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <h2 className="text-lg sm:text-xl font-bold">
+                      Top 10 Menu Items by Orders
+                    </h2>
+                  </div>
+                </div>
+                <div className=" overflow-x-auto">
+                  <DynamicTable
+                    columns={menuTableColumns}
+                    data={topOrdersByMenu}
+                  />
+                </div>
               </div>
             )}
           </>

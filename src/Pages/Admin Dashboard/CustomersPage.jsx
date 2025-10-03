@@ -19,6 +19,7 @@ import EmptyState from "atoms/Messages/EmptyState";
 import NoSearchResults from "molecules/NoSearchResults";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import { useCustomers } from "../../hooks/useCustomers";
+import { t } from "i18next";
 
 const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
 
@@ -229,12 +230,17 @@ const CustomersPage = memo(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <PageTitle
-        pageTitle="Customers Analytics"
-        className="text-2xl font-bold mb-2"
-        description="Comprehensive overview of customer metrics and insights"
-      />
+    <div className="min-h-screen bg-gray-50 p-2">
+      {/* Enhanced Header Section */}
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
+        <PageTitle
+          pageTitle={t("dashboard.title")}
+          className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
+        />
+        <p className="text-blue-100 text-sm sm:text-base">
+          {t("dashboard.welcome")}
+        </p>
+      </div>
 
       {/* Primary Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">

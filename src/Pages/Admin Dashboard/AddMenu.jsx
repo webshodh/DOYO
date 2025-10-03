@@ -241,16 +241,11 @@ const AddMenu = memo(() => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header & Stats */}
-      <div className="flex flex-row lg:flex-row lg:items-center justify-between mb-4 gap-4">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
         <PageTitle
           pageTitle={t("menu.managePageTitle")}
           className="text-2xl font-bold"
           description={t("menu.manageDescription")}
-        />
-        <PrimaryButton
-          onAdd={openAddModal}
-          btnText={t("menu.addButton")}
-          loading={submitting}
         />
       </div>
       {hasMenus && (
@@ -293,6 +288,9 @@ const AddMenu = memo(() => {
             filteredCount={enhancedMenus.length}
             onClearSearch={clearSearch}
             totalLabel={t("menu.totalLabel")}
+            onAdd={openAddModal}
+            addButtonText="Add"
+            addButtonLoading={submitting}
           />
           <div className="bg-white rounded-lg shadow mb-6 p-4 overflow-x-auto">
             <CategoryTabs

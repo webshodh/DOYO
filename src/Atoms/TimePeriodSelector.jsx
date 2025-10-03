@@ -9,17 +9,15 @@ const TimePeriodSelector = memo(
     onTimePeriodChange,
     selectedDate,
     onDateChange,
-    className = "",
+    className = "2",
     variant = "default", // default, compact, full-width
     showDatePicker = true,
     datePickerProps = {},
     customPeriods = null,
     disableFutureDates = true,
   }) => {
-    // Internal state for custom date selection mode
     const [isCustomDateMode, setIsCustomDateMode] = useState(false);
 
-    // Default periods configuration
     const defaultPeriods = [
       { key: "daily", label: "Today", icon: Calendar },
       { key: "weekly", label: "This Week", icon: BarChart3 },
@@ -29,7 +27,6 @@ const TimePeriodSelector = memo(
 
     const periods = customPeriods || defaultPeriods;
 
-    // Handle time period change
     const handleTimePeriodChange = useCallback(
       (periodKey) => {
         setIsCustomDateMode(false);
@@ -38,7 +35,6 @@ const TimePeriodSelector = memo(
       [onTimePeriodChange]
     );
 
-    // Handle date picker change
     const handleDateChange = useCallback(
       (newDate) => {
         setIsCustomDateMode(true);
@@ -47,17 +43,14 @@ const TimePeriodSelector = memo(
       [onDateChange]
     );
 
-    // Handle custom date button click
     const handleCustomDateClick = useCallback(() => {
       setIsCustomDateMode(true);
-      // If no date is selected, default to today
       if (!selectedDate) {
-        const today = new Date().toISOString().split("T");
+        const today = new Date().toISOString().split("T")[0];
         onDateChange(today);
       }
     }, [selectedDate, onDateChange]);
 
-    // Variant classes
     const getVariantClasses = () => {
       switch (variant) {
         case "compact":
@@ -70,7 +63,7 @@ const TimePeriodSelector = memo(
     };
 
     const getButtonClasses = (isSelected) => {
-      const baseClasses = `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors`;
+      const baseClasses = `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap`;
       const selectedClasses = isSelected
         ? "bg-orange-500 text-white"
         : "bg-gray-100 text-gray-700 hover:bg-gray-200";
@@ -93,7 +86,9 @@ const TimePeriodSelector = memo(
     return (
       <div className={`flex flex-col gap-4 ${className}`}>
         {/* Time Period Tabs */}
-        <div className={`flex flex-wrap ${getVariantClasses()}`}>
+        <div
+          className={`flex overflow-x-auto no-scrollbar ${getVariantClasses()}`}
+        >
           {periods.map((period) => {
             const IconComponent = period.icon;
             const isSelected =
@@ -111,7 +106,6 @@ const TimePeriodSelector = memo(
             );
           })}
 
-          {/* Custom Date Button */}
           {showDatePicker && (
             <button
               onClick={handleCustomDateClick}
@@ -123,9 +117,9 @@ const TimePeriodSelector = memo(
           )}
         </div>
 
-        {/* Date Picker - Show when custom date mode is active */}
+        {/* Date Picker */}
         {showDatePicker && isCustomDateMode && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
               Select Date:
             </span>
@@ -136,24 +130,24 @@ const TimePeriodSelector = memo(
               variant="outlined"
               showIcon={true}
               iconPosition="left"
-              containerClassName="w-auto"
+              containerClassName="w-full sm:w-auto"
               className="min-w-[160px]"
               maxDate={
                 disableFutureDates
-                  ? new Date().toISOString().split("T")
+                  ? new Date().toISOString().split("T")[0]
                   : undefined
               }
               {...datePickerProps}
             />
 
             {/* Quick Actions */}
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <button
                 onClick={() => {
-                  const today = new Date().toISOString().split("T");
+                  const today = new Date().toISOString().split("T")[0];
                   handleDateChange(today);
                 }}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
               >
                 Today
               </button>
@@ -161,9 +155,9 @@ const TimePeriodSelector = memo(
                 onClick={() => {
                   const yesterday = new Date();
                   yesterday.setDate(yesterday.getDate() - 1);
-                  handleDateChange(yesterday.toISOString().split("T"));
+                  handleDateChange(yesterday.toISOString().split("T")[0]);
                 }}
-                className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
               >
                 Yesterday
               </button>
@@ -171,8 +165,8 @@ const TimePeriodSelector = memo(
           </div>
         )}
 
-        {/* Display current selection */}
-        <div className="text-sm text-gray-600 font-medium">
+        {/* Current Selection */}
+        <div className="text-sm text-gray-600 font-medium break-words">
           {isCustomDateMode && selectedDate
             ? `Showing data for ${new Date(selectedDate).toLocaleDateString(
                 "en-US",
