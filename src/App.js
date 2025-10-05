@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ToastContainer } from "react-toastify";
@@ -46,6 +47,7 @@ import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan
 import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
 import DOYOLandingPage from "Pages/LandingPage";
 import POSDashboard from "Pages/Admin Dashboard/POSDashboard";
+import { useHotelDetails } from "hooks/useHotel";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -83,6 +85,21 @@ const ProtectedAdminRoute = ({
 
   if (user && user.email === SUPER_ADMIN_EMAIL) {
     return <Navigate to="/super-admin/dashboard" replace />;
+  }
+
+  return children;
+};
+
+// Feature-Protected Route Component for Admin Routes that require order feature
+const FeatureProtectedRoute = ({ children, requiresOrderFeature = false }) => {
+  const { hotelName } = useParams();
+  const { isOrderEnabled, loading } = useHotelDetails(hotelName);
+
+  if (loading) return <LoadingSpinner />;
+
+  // Check if feature is required and not enabled
+  if (requiresOrderFeature && !isOrderEnabled) {
+    return <Navigate to={`/${hotelName}/admin/dashboard`} replace />;
   }
 
   return children;
@@ -238,7 +255,6 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-
                       <Route
                         path="add-subscription-plan"
                         element={
@@ -247,7 +263,6 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-
                       <Route
                         path="add-admin"
                         element={
@@ -256,7 +271,6 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-
                       <Route
                         path=""
                         element={<Navigate to="dashboard" replace />}
@@ -275,28 +289,58 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
+                      
+                      {/* Routes that require order feature to be enabled */}
                       <Route
                         path="pos-dashboard"
                         element={
-                          <AdminLayout>
-                            <POSDashboard />
-                          </AdminLayout>
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <POSDashboard />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
                         }
                       />
                       <Route
                         path="order-dashboard"
-                        element={<OrderDashboard />}
+                        element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <OrderDashboard />
+                          </FeatureProtectedRoute>
+                        }
                       />
-
                       <Route
                         path="customer-dashboard"
                         element={
-                          <AdminLayout>
-                            <CustomersPage />
-                          </AdminLayout>
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <CustomersPage />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="add-captain"
+                        element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <AddCaptain />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="kitchen"
+                        element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <KitchenAdminPage />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
                         }
                       />
 
+                      {/* Routes that don't require order feature */}
                       <Route
                         path="profile"
                         element={
@@ -321,30 +365,11 @@ function App() {
                           </AdminLayout>
                         }
                       />
-
                       <Route
                         path="add-menu"
                         element={
                           <AdminLayout>
                             <AddMenu />
-                          </AdminLayout>
-                        }
-                      />
-
-                      <Route
-                        path="add-captain"
-                        element={
-                          <AdminLayout>
-                            <AddCaptain />
-                          </AdminLayout>
-                        }
-                      />
-
-                      <Route
-                        path="kitchen"
-                        element={
-                          <AdminLayout>
-                            <KitchenAdminPage />
                           </AdminLayout>
                         }
                       />
@@ -413,7 +438,6 @@ function App() {
                           </CaptainDashboardLayout>
                         }
                       />
-
                       <Route
                         path="settings"
                         element={

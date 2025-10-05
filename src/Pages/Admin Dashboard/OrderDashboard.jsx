@@ -37,6 +37,9 @@ import PlatformAnalytics from "../../components/Dashboard/PlatformAnalytics";
 
 // Other imports
 import { useTranslation } from "react-i18next";
+import TabNavigationSkeleton from "atoms/Skeleton/TabNavigationSkeleton";
+import ErrorBoundary from "atoms/ErrorBoundary";
+import DashboardContentSkeleton from "atoms/Skeleton/DashboardContentSkeleton";
 
 /**
  * Enhanced Order Dashboard using Reusable Components
@@ -322,165 +325,164 @@ const OrderDashboard = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="min-h-screen bg-gray-50">
-        {/* Enhanced Header Section */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-          <PageTitle
-            pageTitle={t("dashboard.title")}
-            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
-          />
-          <p className="text-blue-100 text-sm sm:text-base">
-            {t("dashboard.welcome", {
-              hotelName: selectedHotel?.name || hotelName,
-            })}{" "}
-            {t("dashboard.today")}
-          </p>
-        </div>
+  <div className="min-h-screen bg-gray-50">
+    {/* Enhanced Header Section */}
+    <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+      <PageTitle
+        pageTitle={t("dashboard.title")}
+        className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
+      />
+      <p className="text-blue-100 text-sm sm:text-base">
+        {t("dashboard.welcome", {
+          hotelName: selectedHotel?.name || hotelName,
+        })}{" "}
+        {t("dashboard.today")}
+      </p>
+    </div>
 
-        {/* Time Period Selector */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
-          <TimePeriodSelector
-            selectedTimePeriod={selectedTimePeriod}
-            onTimePeriodChange={handleTimePeriodChange}
-            selectedDate={selectedDate}
-            onDateChange={handleDateChange}
-            variant="default"
-            showDatePicker={true}
-            className="mb-0"
-            options={timePeriodOptions}
-            disableFutureDates={true}
-          />
-        </div>
+    {/* Time Period Selector */}
+    <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
+      <TimePeriodSelector
+        selectedTimePeriod={selectedTimePeriod}
+        onTimePeriodChange={handleTimePeriodChange}
+        selectedDate={selectedDate}
+        onDateChange={handleDateChange}
+        variant="default"
+        showDatePicker={true}
+        className="mb-0"
+        options={timePeriodOptions}
+        disableFutureDates={true}
+      />
+    </div>
 
-        {/* Main Content */}
-        <div className=" py-6 sm:py-8 space-y-8">
-          {/* Tab Navigation Component */}
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={tabs}
-          />
+    {/* Main Content */}
+    <div className="py-6 sm:py-8 space-y-8">
+      {/* Tab Navigation Component */}
+      {isLoadingData && !filteredOrders?.length && !filteredAndSortedMenus?.length ? (
+        <TabNavigationSkeleton />
+      ) : (
+        <TabNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          tabs={tabs}
+        />
+      )}
 
-          {/* Error handling */}
-          {(error || menuError || categoriesError) && (
-            <ErrorState
-              title={t("dashboard.errorTitle")}
-              message={error?.message || menuError || categoriesError}
-              retryAction={handleRefresh}
+      {/* Error handling */}
+      {(error || menuError || categoriesError) && (
+        <ErrorBoundary
+          error={error || menuError || categoriesError}
+          onRetry={handleRefresh}
+        />
+      )}
+
+      {/* Loading state */}
+      {isLoadingData && !filteredOrders?.length && !filteredAndSortedMenus?.length ? (
+        <DashboardContentSkeleton activeTab={activeTab} hasOrders={hasOrders} />
+      ) : (
+        <>
+          {/* Overview Tab */}
+          {activeTab === "overview" && (
+            <>
+              <OrderAnalytics displayStats={displayStats} />
+              <RevenueOverview displayStats={displayStats} />
+            </>
+          )}
+
+          {/* Platform Analytics Tab */}
+          {activeTab === "platforms" && (
+            <PlatformAnalytics
+              displayStats={displayStats}
+              platformAnalytics={platformAnalytics}
+              orderTypeFilter={orderTypeFilter}
+              platformFilter={platformFilter}
+              priorityFilter={priorityFilter}
+              onOrderTypeFilterChange={handleOrderTypeFilterChange}
+              onPlatformFilterChange={handlePlatformFilterChange}
+              onPriorityFilterChange={handlePriorityFilterChange}
             />
           )}
 
-          {/* Loading state */}
-          {isLoadingData &&
-          !filteredOrders?.length &&
-          !filteredAndSortedMenus?.length ? (
-            <LoadingSpinner text={t("dashboard.loading")} />
-          ) : (
-            <>
-              {/* Overview Tab */}
-              {activeTab === "overview" && (
-                <>
-                  <OrderAnalytics displayStats={displayStats} />
-                  <RevenueOverview displayStats={displayStats} />
-                </>
-              )}
-
-              {/* Platform Analytics Tab */}
-              {activeTab === "platforms" && (
-                <PlatformAnalytics
-                  displayStats={displayStats}
-                  platformAnalytics={platformAnalytics}
-                  orderTypeFilter={orderTypeFilter}
-                  platformFilter={platformFilter}
-                  priorityFilter={priorityFilter}
-                  onOrderTypeFilterChange={handleOrderTypeFilterChange}
-                  onPlatformFilterChange={handlePlatformFilterChange}
-                  onPriorityFilterChange={handlePriorityFilterChange}
-                />
-              )}
-
-              {/* Recent Orders Tab */}
-              {activeTab === "recentOrders" && hasOrders && (
-                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-2">
-                        <BarChart3 className="w-6 h-6 text-indigo-600" />
-                        <h2 className="text-xl font-bold text-gray-900">
-                          Recent Orders
-                        </h2>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>
-                          Showing {filteredOrders.length} of {orders.length}{" "}
-                          orders
-                        </span>
-                      </div>
-                    </div>
-
-                    <OrderDetailsTable
-                      orders={filteredOrders.slice(0, 20)}
-                      onViewDetails={handleViewDetails}
-                      onUpdateStatus={handleUpdateStatus}
-                      isUpdating={submitting}
-                      showConnectionStatus={!isConnected}
-                      onPrintBill={handlePrintBill}
-                      showEnhancedColumns={true}
-                    />
+          {/* Recent Orders Tab */}
+          {activeTab === "recentOrders" && hasOrders && (
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-6 h-6 text-indigo-600" />
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Recent Orders
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>
+                      Showing {filteredOrders.length} of {orders.length} orders
+                    </span>
                   </div>
                 </div>
-              )}
 
-              {/* Performance Tab */}
-              {activeTab === "performance" && (
-                <>
-                  <TopMenusByOrders topMenusByOrders={topMenusByOrders} />
-                  <TopOrdersByCategory
-                    topOrdersByCategory={topOrdersByCategory}
-                  />
-                  <TopOrdersByMenu topOrdersByMenu={topOrdersByMenu} />
-                </>
-              )}
+                <OrderDetailsTable
+                  orders={filteredOrders.slice(0, 20)}
+                  onViewDetails={handleViewDetails}
+                  onUpdateStatus={handleUpdateStatus}
+                  isUpdating={submitting}
+                  showConnectionStatus={!isConnected}
+                  onPrintBill={handlePrintBill}
+                  showEnhancedColumns={true}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Performance Tab */}
+          {activeTab === "performance" && (
+            <>
+              <TopMenusByOrders topMenusByOrders={topMenusByOrders} />
+              <TopOrdersByCategory topOrdersByCategory={topOrdersByCategory} />
+              <TopOrdersByMenu topOrdersByMenu={topOrdersByMenu} />
             </>
           )}
-        </div>
+        </>
+      )}
+    </div>
 
-        {/* Modals */}
-        {showOrderDetails && selectedOrder && (
-          <OrderDetailsModal
-            order={selectedOrder}
-            onClose={handleCloseDetails}
-            onStatusUpdate={handleUpdateStatus}
-            isSubmitting={submitting}
-            orderStatuses={statusOptions}
-            showEnhancedDetails={true}
-          />
-        )}
+    {/* Modals */}
+    {showOrderDetails && selectedOrder && (
+      <OrderDetailsModal
+        order={selectedOrder}
+        onClose={handleCloseDetails}
+        onStatusUpdate={handleUpdateStatus}
+        isSubmitting={submitting}
+        orderStatuses={statusOptions}
+        showEnhancedDetails={true}
+      />
+    )}
 
-        {showPrintBill && selectedOrderForBill && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-auto shadow-2xl">
-              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
-                <h2 className="text-xl font-semibold">Print Bill</h2>
-                <button
-                  onClick={() => {
-                    setShowPrintBill(false);
-                    setSelectedOrderForBill(null);
-                  }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
-                >
-                  ×
-                </button>
-              </div>
-              <PrintBill
-                order={selectedOrderForBill}
-                restaurantInfo={restaurantInfo}
-              />
-            </div>
+    {showPrintBill && selectedOrderForBill && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-auto shadow-2xl">
+          <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
+            <h2 className="text-xl font-semibold">Print Bill</h2>
+            <button
+              onClick={() => {
+                setShowPrintBill(false);
+                setSelectedOrderForBill(null);
+              }}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+            >
+              ×
+            </button>
           </div>
-        )}
+          <PrintBill
+            order={selectedOrderForBill}
+            restaurantInfo={restaurantInfo}
+          />
+        </div>
       </div>
-    </AdminDashboardLayout>
+    )}
+  </div>
+</AdminDashboardLayout>
+
   );
 };
 

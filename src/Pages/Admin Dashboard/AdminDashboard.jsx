@@ -33,6 +33,9 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 import useColumns from "../../Constants/Columns";
 import { useHotelDetails } from "hooks/useHotel";
+import TabNavigationSkeleton from "atoms/Skeleton/TabNavigationSkeleton";
+import ErrorBoundary from "atoms/ErrorBoundary";
+import DashboardSkeleton from "atoms/Skeleton/DashboardSkeleton";
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -331,7 +334,7 @@ const AdminDashboard = () => {
 
   const isLoading =
     loading || menuLoading || categoriesLoading || mainCategoryLoading;
-  console.log("isOrderEnabled", isOrderEnabled);
+
   return (
     <AdminDashboardLayout>
       <div className="min-h-screen bg-gray-50">
@@ -350,35 +353,42 @@ const AdminDashboard = () => {
         </div>
 
         {/* Time Period Selector */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
-          <TimePeriodSelector
-            selectedTimePeriod={selectedTimePeriod}
-            onTimePeriodChange={handleTimePeriodChange}
-            selectedDate={selectedDate}
-            onDateChange={handleDateChange}
-            variant="default"
-            showDatePicker={true}
-            className="mb-0"
-            options={timePeriodOptions}
-            disableFutureDates={true}
-          />
-        </div>
+        {isOrderEnabled && (
+          <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
+            <TimePeriodSelector
+              selectedTimePeriod={selectedTimePeriod}
+              onTimePeriodChange={handleTimePeriodChange}
+              selectedDate={selectedDate}
+              onDateChange={handleDateChange}
+              variant="default"
+              showDatePicker={true}
+              className="mb-0"
+              options={timePeriodOptions}
+              disableFutureDates={true}
+            />
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="py-6 sm:py-8 space-y-8">
           {/* Tab Navigation Component */}
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={tabs}
-          />
+          {isLoading &&
+          !filteredOrders?.length &&
+          !filteredAndSortedMenus?.length ? (
+            <TabNavigationSkeleton />
+          ) : (
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              tabs={tabs}
+            />
+          )}
 
           {/* Error handling */}
           {(error || menuError || categoriesError) && (
-            <ErrorState
-              title={t("dashboard.errorTitle")}
-              message={error?.message || menuError || categoriesError}
-              retryAction={handleRefresh}
+            <ErrorBoundary
+              error={error || menuError || categoriesError}
+              onRetry={handleRefresh}
             />
           )}
 
@@ -386,7 +396,10 @@ const AdminDashboard = () => {
           {isLoading &&
           !filteredOrders?.length &&
           !filteredAndSortedMenus?.length ? (
-            <LoadingSpinner text={t("dashboard.loading")} />
+            <DashboardSkeleton
+              activeTab={activeTab}
+              isOrderEnabled={isOrderEnabled}
+            />
           ) : (
             <>
               {/* Overview Tab */}

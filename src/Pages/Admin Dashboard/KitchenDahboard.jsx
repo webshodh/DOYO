@@ -1,5 +1,3 @@
-// KitchenAdminPage.jsx
-
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -18,9 +16,13 @@ import StatCard from "components/Cards/StatCard";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useOrder } from "hooks/useOrder";
 import TimePeriodSelector from "atoms/Selector/TimePeriodSelector";
+import ErrorBoundary from "atoms/ErrorBoundary";
+import KitchenDashboardSkeleton from "atoms/Skeleton/KitchenDashboardSkeleton";
 
 // Lazy load heavy components
-const HeaderStats = React.lazy(() => import("components/Dashboard/HeaderStats"));
+const HeaderStats = React.lazy(() =>
+  import("components/Dashboard/HeaderStats")
+);
 const OrderFilters = React.lazy(() =>
   import("components/Filters/OrderFilters")
 );
@@ -86,10 +88,6 @@ const KitchenAdminPage = memo(() => {
     hasOrders,
     hasFilteredOrders,
     orderStats: stats,
-    // computed counts
-    offerCount, // not used here
-    // additional fields renamed:
-    // use `filteredOrders.length`, `timeFilteredOrders.length` directly
     timePeriodOptions,
   } = useOrder(hotelName);
 
@@ -115,21 +113,12 @@ const KitchenAdminPage = memo(() => {
     setSelectedOrder(null);
   }, []);
 
-  // Error state
-  if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        onRetry={refreshOrders}
-        title="Error Loading Kitchen Orders"
-      />
-    );
-  }
+  const handleRefresh = useCallback(() => {
+    refreshOrders();
+  }, [refreshOrders]);
 
-  // Loading state
-  if (loading && !orders.length) {
-    return <LoadingSpinner size="lg" text="Loading kitchen orders..." />;
-  }
+  // Determine loading state
+  const isLoadingData = loading && !orders.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -143,117 +132,128 @@ const KitchenAdminPage = memo(() => {
           />
         </div>
 
-        {/* Time Period Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
-            {/* Enhanced Time Period Navigation */}
-            <TimePeriodSelector
-              selectedTimePeriod={selectedTimePeriod}
-              onTimePeriodChange={handleTimePeriodChange}
-              selectedDate={selectedDate}
-              onDateChange={handleDateChange}
-              variant="default"
-              showDatePicker={true}
-              className="mb-6"
-              options={timePeriodOptions}
-              disableFutureDates={true}
-            />
-            <div className="text-sm text-gray-600 font-medium">
-              {/* optional period display text */}
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        {hasOrders && (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={ChefHat}
-              title="Total Orders"
-              value={dashboardStats.totalOrders}
-              color="blue"
-            />
-            <StatCard
-              icon={LoaderCircle}
-              title="Received"
-              value={dashboardStats.received}
-              color="orange"
-            />
-            <StatCard
-              icon={TrendingUp}
-              title="Completed"
-              value={dashboardStats.completed}
-              color="green"
-            />
-            <StatCard
-              icon={Grid}
-              title="Rejected"
-              value={dashboardStats.rejected}
-              color="red"
-            />
-          </div>
+        {/* Error handling */}
+        {error && !loading && (
+          <ErrorBoundary error={error} onRetry={handleRefresh} />
         )}
 
-        {/* Order Filters */}
-        {hasOrders && (
-          <Suspense fallback={<LoadingSpinner text="Loading filters..." />}>
-            <OrderFilters
-              statusFilter={statusFilter}
-              onFilterChange={handleStatusFilterChange}
-              selectedDate={selectedDate}
-              onSearchChange={handleSearchChange}
-              orderStats={orderStats}
-              totalOrders={timeFilteredOrders.length}
-            />
-          </Suspense>
-        )}
-
-        {/* Orders List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {hasOrders ? (
-            hasFilteredOrders ? (
-              <div className="p-6 space-y-4">
-                <Suspense
-                  fallback={<LoadingSpinner text="Loading orders..." />}
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredOrders.map((order) => (
-                      <OrderCard
-                        key={order.id}
-                        order={order}
-                        onStatusChange={handleStatusFilterChange}
-                        onViewDetails={handleViewDetails}
-                        loading={submitting}
-                      />
-                    ))}
-                  </div>
-                </Suspense>
-                <div className="mt-6 text-center text-sm text-gray-600">
-                  Showing {filteredOrders.length} of {timeFilteredOrders.length}{" "}
-                  orders
+        {/* Loading state */}
+        {isLoadingData ? (
+          <KitchenDashboardSkeleton />
+        ) : (
+          <>
+            {/* Time Period Navigation */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="flex items-center justify-between">
+                <TimePeriodSelector
+                  selectedTimePeriod={selectedTimePeriod}
+                  onTimePeriodChange={handleTimePeriodChange}
+                  selectedDate={selectedDate}
+                  onDateChange={handleDateChange}
+                  variant="default"
+                  showDatePicker={true}
+                  className="mb-6"
+                  options={timePeriodOptions}
+                  disableFutureDates={true}
+                />
+                <div className="text-sm text-gray-600 font-medium">
+                  {/* optional period display text */}
                 </div>
               </div>
-            ) : (
-              <EmptyState
-                icon={AlertCircle}
-                title={`No ${
-                  statusFilter !== "all" ? statusFilter : ""
-                } Orders Found`}
-                description={
-                  statusFilter === "all"
-                    ? `No orders found for the selected ${selectedTimePeriod} period.`
-                    : `No ${statusFilter} orders found for the selected period.`
-                }
-              />
-            )
-          ) : (
-            <EmptyState
-              icon={ChefHat}
-              title="No Orders Yet"
-              description="When customers place orders, they will appear here for kitchen management."
-            />
-          )}
-        </div>
+            </div>
+
+            {/* Stats Cards */}
+            {hasOrders && (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <StatCard
+                  icon={ChefHat}
+                  title="Total Orders"
+                  value={dashboardStats.totalOrders}
+                  color="blue"
+                />
+                <StatCard
+                  icon={LoaderCircle}
+                  title="Received"
+                  value={dashboardStats.received}
+                  color="orange"
+                />
+                <StatCard
+                  icon={TrendingUp}
+                  title="Completed"
+                  value={dashboardStats.completed}
+                  color="green"
+                />
+                <StatCard
+                  icon={Grid}
+                  title="Rejected"
+                  value={dashboardStats.rejected}
+                  color="red"
+                />
+              </div>
+            )}
+
+            {/* Order Filters */}
+            {hasOrders && (
+              <Suspense fallback={<LoadingSpinner text="Loading filters..." />}>
+                <OrderFilters
+                  statusFilter={statusFilter}
+                  onFilterChange={handleStatusFilterChange}
+                  selectedDate={selectedDate}
+                  onSearchChange={handleSearchChange}
+                  orderStats={orderStats}
+                  totalOrders={timeFilteredOrders.length}
+                />
+              </Suspense>
+            )}
+
+            {/* Orders List */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              {hasOrders ? (
+                hasFilteredOrders ? (
+                  <div className="p-6 space-y-4">
+                    <Suspense
+                      fallback={<LoadingSpinner text="Loading orders..." />}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredOrders.map((order) => (
+                          <OrderCard
+                            key={order.id}
+                            order={order}
+                            onStatusChange={handleStatusFilterChange}
+                            onViewDetails={handleViewDetails}
+                            loading={submitting}
+                          />
+                        ))}
+                      </div>
+                    </Suspense>
+                    <div className="mt-6 text-center text-sm text-gray-600">
+                      Showing {filteredOrders.length} of{" "}
+                      {timeFilteredOrders.length} orders
+                    </div>
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={AlertCircle}
+                    title={`No ${
+                      statusFilter !== "all" ? statusFilter : ""
+                    } Orders Found`}
+                    description={
+                      statusFilter === "all"
+                        ? `No orders found for the selected ${selectedTimePeriod} period.`
+                        : `No ${statusFilter} orders found for the selected period.`
+                    }
+                  />
+                )
+              ) : (
+                <EmptyState
+                  icon={ChefHat}
+                  title="No Orders Yet"
+                  description="When customers place orders, they will appear here for kitchen management."
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Order Details Modal */}
