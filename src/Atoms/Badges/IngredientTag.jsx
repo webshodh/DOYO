@@ -9,43 +9,7 @@ import {
   AlertCircle,
   Plus,
 } from "lucide-react";
-
-// Constants moved outside components for better performance
-const INGREDIENT_COLORS = [
-  { bg: "bg-red-500", text: "text-white", hover: "hover:bg-red-600" },
-  { bg: "bg-blue-500", text: "text-white", hover: "hover:bg-blue-600" },
-  { bg: "bg-green-500", text: "text-white", hover: "hover:bg-green-600" },
-  { bg: "bg-purple-500", text: "text-white", hover: "hover:bg-purple-600" },
-  { bg: "bg-pink-500", text: "text-white", hover: "hover:bg-pink-600" },
-  { bg: "bg-indigo-500", text: "text-white", hover: "hover:bg-indigo-600" },
-  { bg: "bg-yellow-500", text: "text-black", hover: "hover:bg-yellow-600" },
-  { bg: "bg-teal-500", text: "text-white", hover: "hover:bg-teal-600" },
-  { bg: "bg-orange-500", text: "text-white", hover: "hover:bg-orange-600" },
-  { bg: "bg-cyan-500", text: "text-white", hover: "hover:bg-cyan-600" },
-  { bg: "bg-lime-500", text: "text-black", hover: "hover:bg-lime-600" },
-  { bg: "bg-rose-500", text: "text-white", hover: "hover:bg-rose-600" },
-  { bg: "bg-emerald-500", text: "text-white", hover: "hover:bg-emerald-600" },
-  { bg: "bg-sky-500", text: "text-white", hover: "hover:bg-sky-600" },
-  { bg: "bg-violet-500", text: "text-white", hover: "hover:bg-violet-600" },
-];
-
-const GRADIENT_STYLES = [
-  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-  "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-  "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-  "linear-gradient(135deg, #ff8a80 0%, #ea80fc 100%)",
-  "linear-gradient(135deg, #8fd3f4 0%, #84fab0 100%)",
-  "linear-gradient(135deg, #b794f6 0%, #f093fb 100%)",
-  "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)",
-  "linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%)",
-  "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-  "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
-  "linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)",
-];
+import { INGREDIENT_COLORS, INGREDIENT_GRADIENT_STYLES } from "Constants/constant";
 
 // Utility function for parsing ingredients
 const parseIngredients = (ingredients) => {
@@ -95,7 +59,7 @@ const IngredientTag = memo(
   `;
 
     if (variant === "gradient") {
-      const gradient = GRADIENT_STYLES[index % GRADIENT_STYLES.length];
+      const gradient = INGREDIENT_GRADIENT_STYLES[index % INGREDIENT_GRADIENT_STYLES.length];
 
       return (
         <span
@@ -130,7 +94,7 @@ const IngredientTag = memo(
           ${baseClasses} border-2 bg-white transition-colors duration-200
           ${color.bg.replace("bg-", "border-")} ${color.bg.replace(
             "bg-",
-            "text-",
+            "text-"
           )}
           ${interactive ? `hover:${color.bg} hover:text-white` : ""}
         `}
@@ -169,7 +133,7 @@ const IngredientTag = memo(
         {ingredient}
       </span>
     );
-  },
+  }
 );
 
 IngredientTag.displayName = "IngredientTag";
@@ -194,7 +158,7 @@ const EnhancedIngredientsDisplay = memo(
 
     const ingredientsList = useMemo(
       () => parseIngredients(ingredients),
-      [ingredients],
+      [ingredients]
     );
 
     if (ingredientsList.length === 0) return null;
@@ -292,7 +256,7 @@ const EnhancedIngredientsDisplay = memo(
         )}
       </section>
     );
-  },
+  }
 );
 
 EnhancedIngredientsDisplay.displayName = "EnhancedIngredientsDisplay";
@@ -349,7 +313,7 @@ const InteractiveIngredientsDisplay = memo(
         maxDisplay={8}
       />
     );
-  },
+  }
 );
 
 InteractiveIngredientsDisplay.displayName = "InteractiveIngredientsDisplay";
@@ -358,7 +322,7 @@ InteractiveIngredientsDisplay.displayName = "InteractiveIngredientsDisplay";
 const DebugIngredientsDisplay = memo(({ ingredients }) => {
   const ingredientsList = useMemo(
     () => parseIngredients(ingredients),
-    [ingredients],
+    [ingredients]
   );
 
   if (!ingredients) {
@@ -486,7 +450,7 @@ export {
 
   // Constants for customization
   INGREDIENT_COLORS,
-  GRADIENT_STYLES,
+  INGREDIENT_GRADIENT_STYLES,
 };
 
 // Default export

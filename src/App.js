@@ -27,8 +27,6 @@ import {
   NotFound,
   SuperAdminDashboard,
 } from "./Pages";
-import AddOffers from "./Pages/Admin Dashboard/AddOffers";
-import Offers from "./Pages/User/Offers";
 import LoadingSpinner from "./atoms/LoadingSpinner";
 import AdminLayout from "./layout/AdminDashboardLayout";
 import SuperAdminLayout from "./layout/SuperAdminDashboardLayout";
@@ -172,14 +170,6 @@ function App() {
                 </PublicRoute>
               }
             />
-            <Route
-              path="/viewMenu/:hotelName/offers"
-              element={
-                <PublicRoute>
-                  <Offers />
-                </PublicRoute>
-              }
-            />
 
             {/* Admin Login */}
             <Route
@@ -287,7 +277,11 @@ function App() {
                       <Route path="dashboard" element={<AdminDashboard />} />
                       <Route
                         path="pos-dashboard"
-                        element={<AdminLayout><POSDashboard /></AdminLayout>}
+                        element={
+                          <AdminLayout>
+                            <POSDashboard />
+                          </AdminLayout>
+                        }
                       />
                       <Route
                         path="order-dashboard"
@@ -333,15 +327,6 @@ function App() {
                         element={
                           <AdminLayout>
                             <AddMenu />
-                          </AdminLayout>
-                        }
-                      />
-
-                      <Route
-                        path="add-offers"
-                        element={
-                          <AdminLayout>
-                            <AddOffers />
                           </AdminLayout>
                         }
                       />
