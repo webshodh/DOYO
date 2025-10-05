@@ -1,4 +1,4 @@
-//  Subscription Services - services/api/subscriptionServices.js
+// services/api/subscriptionServices.js
 
 import {
   getFirestore,
@@ -12,6 +12,7 @@ import {
   getDoc,
   query,
   where,
+  orderBy,
   Timestamp,
   writeBatch,
 } from "firebase/firestore";
@@ -20,18 +21,27 @@ import { toast } from "react-toastify";
 const firestore = getFirestore();
 
 export const subscriptionServices = {
-  // Subscribe to all subscription plans
+  // Subscribe to all subscription plans with enhanced structure
   subscribeToPlans: (callback) => {
     const plansRef = collection(firestore, "subscription-plans");
+    const q = query(plansRef, orderBy("createdAt", "desc"));
+
     const unsubscribe = onSnapshot(
-      plansRef,
+      q,
       (querySnapshot) => {
         const plansArray = [];
         querySnapshot.forEach((docSnap, index) => {
+          const data = docSnap.data();
           plansArray.push({
-            ...docSnap.data(),
+            ...data,
             srNo: index + 1,
             planId: docSnap.id,
+            // Flatten features and limits for easier access
+            ...(data.features || {}),
+            ...(data.limits || {}),
+            // Keep original nested structure
+            originalFeatures: data.features || {},
+            originalLimits: data.limits || {},
           });
         });
         callback(plansArray);
@@ -42,19 +52,19 @@ export const subscriptionServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      },
+      }
     );
     return unsubscribe;
   },
 
-  // Add a new subscription plan
+  // Add a new subscription plan with enhanced feature structure
   addPlan: async (planData, existingPlans = []) => {
     try {
       // Check duplicate plan name
       if (
         existingPlans.some(
           (plan) =>
-            plan.planName?.toLowerCase() === planData.planName?.toLowerCase(),
+            plan.planName?.toLowerCase() === planData.planName?.toLowerCase()
         )
       ) {
         toast.error("Plan name already exists", {
@@ -68,44 +78,65 @@ export const subscriptionServices = {
         .replace(/[^a-zA-Z0-9]/g, "_")
         .toLowerCase();
 
-      // Prepare plan data with all features as boolean flags
+      // Prepare enhanced plan data structure
       const data = {
-        ...planData,
-        planId,
-        price: parseFloat(planData.price) || 0,
-        duration: parseInt(planData.duration) || 1,
-        features: {
-          // Core features
-          isCustomerOrderEnable: planData.isCustomerOrderEnable || false,
-          isCaptainDashboard: planData.isCaptainDashboard || false,
-          isKitchenDashboard: planData.isKitchenDashboard || false,
-          isAnalyticsDashboard: planData.isAnalyticsDashboard || false,
-          isInventoryManagement: planData.isInventoryManagement || false,
-          isTableManagement: planData.isTableManagement || false,
-          isStaffManagement: planData.isStaffManagement || false,
-          isReportsExport: planData.isReportsExport || false,
-          isMultiLanguage: planData.isMultiLanguage || false,
-          isWhatsAppIntegration: planData.isWhatsAppIntegration || false,
-          isSmsNotifications: planData.isSmsNotifications || false,
-          isEmailReports: planData.isEmailReports || false,
-          isCustomBranding: planData.isCustomBranding || false,
-          is24x7Support: planData.is24x7Support || false,
-          isAPIAccess: planData.isAPIAccess || false,
+        planName: planData.planName,
+        description: planData.description,
+        status: planData.status || "active",
 
-          // Limits
+        // Pricing structure
+        pricing: {
+          monthlyPrice: parseFloat(planData.price) || 0,
+          duration: parseInt(planData.duration) || 1,
+          currency: "INR",
+        },
+
+        // Core restaurant features
+        features: {
+          // Customer & Ordering Features
+          isCustomerOrderEnable: Boolean(planData.isCustomerOrderEnable),
+          isCaptainDashboard: Boolean(planData.isCaptainDashboard),
+          isKitchenDashboard: Boolean(planData.isKitchenDashboard),
+          isOrderDashboard: Boolean(planData.isOrderDashboard),
+
+          // Management Features
+          isInventoryManagement: Boolean(planData.isInventoryManagement),
+          isTableManagement: Boolean(planData.isTableManagement),
+          isStaffManagement: Boolean(planData.isStaffManagement),
+
+          // Analytics & Reports
+          isAnalyticsDashboard: Boolean(planData.isAnalyticsDashboard),
+          isReportsExport: Boolean(planData.isReportsExport),
+          isSalesReports: Boolean(planData.isSalesReports),
+          isCustomerInsights: Boolean(planData.isCustomerInsights),
+
+          // Communication & Integration
+          isWhatsAppIntegration: Boolean(planData.isWhatsAppIntegration),
+          isSmsNotifications: Boolean(planData.isSmsNotifications),
+          isEmailReports: Boolean(planData.isEmailReports),
+          isMultiLanguage: Boolean(planData.isMultiLanguage),
+          is24x7Support: Boolean(planData.is24x7Support),
+        },
+
+        // Usage limits and quotas
+        limits: {
           maxAdmins: parseInt(planData.maxAdmins) || 1,
           maxCategories: parseInt(planData.maxCategories) || 5,
           maxMenuItems: parseInt(planData.maxMenuItems) || 50,
           maxCaptains: parseInt(planData.maxCaptains) || 2,
           maxTables: parseInt(planData.maxTables) || 10,
+          maxOrders: parseInt(planData.maxOrders) || 1000,
           maxStorage: parseInt(planData.maxStorage) || 1024, // MB
-
-          // Custom features from form
-          ...planData.features,
         },
-        status: planData.status || "active",
+
+        // Metadata
+        planId,
         createdAt: Timestamp.fromDate(new Date()),
         updatedAt: Timestamp.fromDate(new Date()),
+
+        // Legacy support - keep flat price and duration
+        price: parseFloat(planData.price) || 0,
+        duration: parseInt(planData.duration) || 1,
       };
 
       const planRef = doc(firestore, "subscription-plans", planId);
@@ -124,42 +155,60 @@ export const subscriptionServices = {
     }
   },
 
-  // Update subscription plan
+  // Update subscription plan with enhanced structure
   updatePlan: async (planId, planData) => {
     try {
       const data = {
-        ...planData,
-        price: parseFloat(planData.price) || 0,
-        duration: parseInt(planData.duration) || 1,
-        features: {
-          // Core features
-          isCustomerOrderEnable: planData.isCustomerOrderEnable || false,
-          isCaptainDashboard: planData.isCaptainDashboard || false,
-          isKitchenDashboard: planData.isKitchenDashboard || false,
-          isAnalyticsDashboard: planData.isAnalyticsDashboard || false,
-          isInventoryManagement: planData.isInventoryManagement || false,
-          isTableManagement: planData.isTableManagement || false,
-          isStaffManagement: planData.isStaffManagement || false,
-          isReportsExport: planData.isReportsExport || false,
-          isMultiLanguage: planData.isMultiLanguage || false,
-          isWhatsAppIntegration: planData.isWhatsAppIntegration || false,
-          isSmsNotifications: planData.isSmsNotifications || false,
-          isEmailReports: planData.isEmailReports || false,
-          isCustomBranding: planData.isCustomBranding || false,
-          is24x7Support: planData.is24x7Support || false,
-          isAPIAccess: planData.isAPIAccess || false,
+        planName: planData.planName,
+        description: planData.description,
+        status: planData.status || "active",
 
-          // Limits
+        pricing: {
+          monthlyPrice: parseFloat(planData.price) || 0,
+          duration: parseInt(planData.duration) || 1,
+          currency: "INR",
+        },
+
+        features: {
+          // Customer & Ordering Features
+          isCustomerOrderEnable: Boolean(planData.isCustomerOrderEnable),
+          isCaptainDashboard: Boolean(planData.isCaptainDashboard),
+          isKitchenDashboard: Boolean(planData.isKitchenDashboard),
+          isOrderDashboard: Boolean(planData.isOrderDashboard),
+
+          // Management Features
+          isInventoryManagement: Boolean(planData.isInventoryManagement),
+          isTableManagement: Boolean(planData.isTableManagement),
+          isStaffManagement: Boolean(planData.isStaffManagement),
+
+          // Analytics & Reports
+          isAnalyticsDashboard: Boolean(planData.isAnalyticsDashboard),
+          isReportsExport: Boolean(planData.isReportsExport),
+          isSalesReports: Boolean(planData.isSalesReports),
+          isCustomerInsights: Boolean(planData.isCustomerInsights),
+
+          // Communication & Integration
+          isWhatsAppIntegration: Boolean(planData.isWhatsAppIntegration),
+          isSmsNotifications: Boolean(planData.isSmsNotifications),
+          isEmailReports: Boolean(planData.isEmailReports),
+          isMultiLanguage: Boolean(planData.isMultiLanguage),
+          is24x7Support: Boolean(planData.is24x7Support),
+        },
+
+        limits: {
           maxAdmins: parseInt(planData.maxAdmins) || 1,
           maxCategories: parseInt(planData.maxCategories) || 5,
           maxMenuItems: parseInt(planData.maxMenuItems) || 50,
           maxCaptains: parseInt(planData.maxCaptains) || 2,
           maxTables: parseInt(planData.maxTables) || 10,
+          maxOrders: parseInt(planData.maxOrders) || 1000,
           maxStorage: parseInt(planData.maxStorage) || 1024,
-
-          // Custom features from form
-          ...planData.features,
         },
+
+        // Legacy support
+        price: parseFloat(planData.price) || 0,
+        duration: parseInt(planData.duration) || 1,
+
         updatedAt: Timestamp.fromDate(new Date()),
       };
 
@@ -178,10 +227,10 @@ export const subscriptionServices = {
     }
   },
 
-  // Delete subscription plan
+  // Enhanced delete with better validation
   deletePlan: async (plan) => {
     try {
-      // Check if plan is assigned to any hotels before deleting
+      // Check if plan is assigned to any hotels
       const hotelsRef = collection(firestore, "hotels");
       const hotelsSnapshot = await getDocs(hotelsRef);
 
@@ -192,7 +241,7 @@ export const subscriptionServices = {
           "hotels",
           hotelDoc.id,
           "subscription",
-          "current",
+          "current"
         );
         const subscriptionDoc = await getDoc(subscriptionRef);
 
@@ -207,11 +256,11 @@ export const subscriptionServices = {
       if (assignedToHotels.length > 0) {
         toast.error(
           `Cannot delete plan. It's assigned to: ${assignedToHotels.join(
-            ", ",
+            ", "
           )}`,
           {
             position: toast.POSITION.TOP_RIGHT,
-          },
+          }
         );
         return false;
       }
@@ -231,7 +280,7 @@ export const subscriptionServices = {
     }
   },
 
-  // Assign plan to hotel
+  // Enhanced assign plan with better data structure
   assignPlanToHotel: async (hotelId, planId) => {
     try {
       const batch = writeBatch(firestore);
@@ -248,43 +297,77 @@ export const subscriptionServices = {
       }
 
       const planData = planDoc.data();
+      const duration = planData.pricing?.duration || planData.duration || 1;
+      const price = planData.pricing?.monthlyPrice || planData.price || 0;
 
-      // Update hotel's current subscription
+      // Calculate expiration date
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + duration);
+
+      // Update hotel's current subscription with enhanced structure
       const subscriptionRef = doc(
         firestore,
         "hotels",
         hotelId,
         "subscription",
-        "current",
+        "current"
       );
 
       batch.set(subscriptionRef, {
         planId,
         planName: planData.planName,
-        price: planData.price,
-        duration: planData.duration,
-        features: planData.features,
+
+        // Pricing info
+        pricing: planData.pricing || {
+          monthlyPrice: price,
+          duration,
+          currency: "INR",
+        },
+
+        // All features and limits for quick access
+        features: planData.features || {},
+        limits: planData.limits || {},
+
+        // Subscription status
         status: "active",
         assignedAt: Timestamp.fromDate(new Date()),
-        expiresAt: Timestamp.fromDate(
-          new Date(Date.now() + planData.duration * 30 * 24 * 60 * 60 * 1000),
-        ), // duration in months
+        expiresAt: Timestamp.fromDate(expiresAt),
+
+        // Legacy support
+        price,
+        duration,
+
         updatedAt: Timestamp.fromDate(new Date()),
+      });
+
+      // Update hotel document with subscription info
+      const hotelRef = doc(firestore, "hotels", hotelId);
+      batch.update(hotelRef, {
+        currentSubscription: {
+          planId,
+          planName: planData.planName,
+          status: "active",
+          features: planData.features || {},
+          limits: planData.limits || {},
+        },
+        subscriptionUpdatedAt: Timestamp.fromDate(new Date()),
       });
 
       // Create subscription history entry
       const historyRef = doc(
-        collection(firestore, "hotels", hotelId, "subscription", "history"),
+        collection(firestore, "hotels", hotelId, "subscription", "history")
       );
 
       batch.set(historyRef, {
         planId,
         planName: planData.planName,
-        price: planData.price,
-        duration: planData.duration,
+        price,
+        duration,
         assignedAt: Timestamp.fromDate(new Date()),
-        assignedBy: "super-admin", // You can pass this as parameter
+        assignedBy: "super-admin",
         action: "assigned",
+        features: planData.features || {},
+        limits: planData.limits || {},
       });
 
       await batch.commit();
@@ -302,7 +385,7 @@ export const subscriptionServices = {
     }
   },
 
-  // Get hotel's current subscription
+  // Enhanced hotel subscription getter
   getHotelSubscription: async (hotelId) => {
     try {
       const subscriptionRef = doc(
@@ -310,12 +393,26 @@ export const subscriptionServices = {
         "hotels",
         hotelId,
         "subscription",
-        "current",
+        "current"
       );
       const subscriptionDoc = await getDoc(subscriptionRef);
 
       if (subscriptionDoc.exists()) {
-        return subscriptionDoc.data();
+        const data = subscriptionDoc.data();
+        const now = new Date();
+        const expiresAt = data.expiresAt?.toDate
+          ? data.expiresAt.toDate()
+          : new Date(data.expiresAt);
+
+        return {
+          ...data,
+          isActive: data.status === "active" && expiresAt > now,
+          isExpired: expiresAt <= now,
+          daysRemaining: Math.max(
+            0,
+            Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24))
+          ),
+        };
       }
       return null;
     } catch (error) {
@@ -324,13 +421,13 @@ export const subscriptionServices = {
     }
   },
 
-  // Subscribe to hotel subscriptions (for dashboard overview)
+  // Enhanced hotel subscriptions overview
   subscribeToHotelSubscriptions: (callback) => {
-    const unsubscribes = [];
-
     const hotelsRef = collection(firestore, "hotels");
-    const hotelsUnsubscribe = onSnapshot(hotelsRef, async (querySnapshot) => {
+
+    const unsubscribe = onSnapshot(hotelsRef, async (querySnapshot) => {
       const subscriptions = [];
+      const now = new Date();
 
       for (const hotelDoc of querySnapshot.docs) {
         const hotelData = hotelDoc.data();
@@ -339,31 +436,81 @@ export const subscriptionServices = {
           "hotels",
           hotelDoc.id,
           "subscription",
-          "current",
+          "current"
         );
 
-        const subscriptionDoc = await getDoc(subscriptionRef);
+        try {
+          const subscriptionDoc = await getDoc(subscriptionRef);
+          let subscriptionData = null;
 
-        subscriptions.push({
-          hotelId: hotelDoc.id,
-          hotelName: hotelData.businessName,
-          subscription: subscriptionDoc.exists()
-            ? subscriptionDoc.data()
-            : null,
-        });
+          if (subscriptionDoc.exists()) {
+            const data = subscriptionDoc.data();
+            const expiresAt = data.expiresAt?.toDate
+              ? data.expiresAt.toDate()
+              : new Date(data.expiresAt);
+
+            subscriptionData = {
+              ...data,
+              isActive: data.status === "active" && expiresAt > now,
+              isExpired: expiresAt <= now,
+              daysRemaining: Math.max(
+                0,
+                Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24))
+              ),
+            };
+          }
+
+          subscriptions.push({
+            hotelId: hotelDoc.id,
+            hotelName: hotelData.businessName,
+            subscription: subscriptionData,
+          });
+        } catch (error) {
+          console.error(
+            `Error getting subscription for hotel ${hotelDoc.id}:`,
+            error
+          );
+        }
       }
 
       callback(subscriptions);
     });
 
-    unsubscribes.push(hotelsUnsubscribe);
-
-    return () => {
-      unsubscribes.forEach((unsubscribe) => unsubscribe());
-    };
+    return unsubscribe;
   },
 
-  // Filter plans
+  // Get active plans for selection
+  getActivePlans: async () => {
+    try {
+      const plansRef = collection(firestore, "subscription-plans");
+      const q = query(plansRef, where("status", "==", "active"));
+      const snapshot = await getDocs(q);
+
+      const plans = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        plans.push({
+          planId: doc.id,
+          ...data,
+          // Flatten for easier access
+          ...(data.features || {}),
+          ...(data.limits || {}),
+        });
+      });
+
+      // Sort by price
+      return plans.sort((a, b) => {
+        const priceA = a.pricing?.monthlyPrice || a.price || 0;
+        const priceB = b.pricing?.monthlyPrice || b.price || 0;
+        return priceA - priceB;
+      });
+    } catch (error) {
+      console.error("Error getting active plans:", error);
+      return [];
+    }
+  },
+
+  // Enhanced filter plans
   filterPlans: (plans, searchTerm) => {
     if (!searchTerm.trim()) {
       return plans.map((plan, index) => ({ ...plan, srNo: index + 1 }));
@@ -372,14 +519,40 @@ export const subscriptionServices = {
     const term = searchTerm.toLowerCase();
     return plans
       .filter((plan) => {
+        const price = plan.pricing?.monthlyPrice || plan.price || 0;
         return (
           plan.planName?.toLowerCase().includes(term) ||
           plan.description?.toLowerCase().includes(term) ||
-          plan.price?.toString().includes(term) ||
+          price.toString().includes(term) ||
           plan.duration?.toString().includes(term)
         );
       })
       .map((plan, index) => ({ ...plan, srNo: index + 1 }));
+  },
+
+  // Enhanced prepare for edit
+  prepareForEdit: async (plan) => {
+    try {
+      const price = plan.pricing?.monthlyPrice || plan.price || 0;
+      const duration = plan.pricing?.duration || plan.duration || 1;
+
+      return {
+        ...plan,
+        // Flatten for form
+        price,
+        duration,
+
+        // Features (already flattened in subscription)
+        ...(plan.originalFeatures || plan.features || {}),
+        ...(plan.originalLimits || plan.limits || {}),
+      };
+    } catch (error) {
+      console.error("Error preparing plan for edit:", error);
+      toast.error("Error loading plan data for editing.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return null;
+    }
   },
 
   // Get plan by ID
@@ -389,51 +562,18 @@ export const subscriptionServices = {
       const planSnapshot = await getDoc(planRef);
 
       if (planSnapshot.exists()) {
+        const data = planSnapshot.data();
         return {
-          ...planSnapshot.data(),
+          ...data,
           planId: planSnapshot.id,
+          // Flatten features and limits
+          ...(data.features || {}),
+          ...(data.limits || {}),
         };
       }
       return null;
     } catch (error) {
       console.error("Error getting plan by ID:", error);
-      return null;
-    }
-  },
-
-  // Prepare plan for edit
-  prepareForEdit: async (plan) => {
-    try {
-      return {
-        ...plan,
-        // Flatten features for form
-        isCustomerOrderEnable: plan.features?.isCustomerOrderEnable || false,
-        isCaptainDashboard: plan.features?.isCaptainDashboard || false,
-        isKitchenDashboard: plan.features?.isKitchenDashboard || false,
-        isAnalyticsDashboard: plan.features?.isAnalyticsDashboard || false,
-        isInventoryManagement: plan.features?.isInventoryManagement || false,
-        isTableManagement: plan.features?.isTableManagement || false,
-        isStaffManagement: plan.features?.isStaffManagement || false,
-        isReportsExport: plan.features?.isReportsExport || false,
-        isMultiLanguage: plan.features?.isMultiLanguage || false,
-        isWhatsAppIntegration: plan.features?.isWhatsAppIntegration || false,
-        isSmsNotifications: plan.features?.isSmsNotifications || false,
-        isEmailReports: plan.features?.isEmailReports || false,
-        isCustomBranding: plan.features?.isCustomBranding || false,
-        is24x7Support: plan.features?.is24x7Support || false,
-        isAPIAccess: plan.features?.isAPIAccess || false,
-        maxAdmins: plan.features?.maxAdmins || 1,
-        maxCategories: plan.features?.maxCategories || 5,
-        maxMenuItems: plan.features?.maxMenuItems || 50,
-        maxCaptains: plan.features?.maxCaptains || 2,
-        maxTables: plan.features?.maxTables || 10,
-        maxStorage: plan.features?.maxStorage || 1024,
-      };
-    } catch (error) {
-      console.error("Error preparing plan for edit:", error);
-      toast.error("Error loading plan data for editing.", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
       return null;
     }
   },

@@ -66,41 +66,11 @@ import {
 import { useHotelSelection } from "../context/HotelSelectionContext";
 import LanguageSelector from "atoms/Selector/LanguageSelector";
 import useFormValidation from "../hooks/useFormValidation";
-
-// Enhanced Stats Card Component
-const StatsCard = memo(
-  ({ icon: Icon, title, value, subtitle, color = "blue", trend }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-all duration-200">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg bg-${color}-50`}>
-              <Icon className={`w-5 h-5 text-${color}-600`} />
-            </div>
-            <h3 className="text-sm font-medium text-gray-600">{title}</h3>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
-        </div>
-        {trend && (
-          <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-              trend > 0
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            <TrendingUp className="w-3 h-3" />
-            {trend > 0 ? "+" : ""}
-            {trend}%
-          </div>
-        )}
-      </div>
-    </div>
-  ),
-);
-
-StatsCard.displayName = "StatsCard";
+import StatCard from "components/Cards/StatCard";
+import TextInputField from "components/Forms/TextInputField";
+import NumberField from "components/Forms/NumberField";
+import PasswordInputField from "components/Forms/PasswordInputField";
+import EmailField from "components/Forms/EmailField";
 
 // Enhanced Toggle Switch Component
 const ToggleSwitch = memo(
@@ -127,7 +97,7 @@ const ToggleSwitch = memo(
         />
       </button>
     </div>
-  ),
+  )
 );
 
 ToggleSwitch.displayName = "ToggleSwitch";
@@ -195,10 +165,10 @@ const PasswordStrength = memo(({ password }) => {
             strength >= 4
               ? "text-green-600"
               : strength >= 3
-                ? "text-blue-600"
-                : strength >= 2
-                  ? "text-yellow-600"
-                  : "text-red-600"
+              ? "text-blue-600"
+              : strength >= 2
+              ? "text-yellow-600"
+              : "text-red-600"
           }`}
         >
           {getStrengthText()}
@@ -233,86 +203,6 @@ const PasswordStrength = memo(({ password }) => {
     </div>
   );
 });
-
-// Enhanced Form field component
-const FormField = memo(
-  ({
-    label,
-    type = "text",
-    name,
-    value,
-    onChange,
-    error,
-    placeholder,
-    disabled = false,
-    icon: Icon,
-    required = false,
-    showPasswordToggle = false,
-    onPasswordToggle,
-    showPassword = false,
-    children,
-    className = "",
-    helpText,
-  }) => {
-    return (
-      <div className={className}>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          <div className="flex items-center gap-2">
-            {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-            <span>{label}</span>
-            {required && <span className="text-red-500">*</span>}
-          </div>
-        </label>
-        <div className="relative">
-          <input
-            type={
-              showPasswordToggle ? (showPassword ? "text" : "password") : type
-            }
-            name={name}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={`w-full px-4 py-3 text-base border rounded-lg transition-all duration-200 min-h-[44px] ${
-              disabled
-                ? "bg-gray-50 text-gray-500 cursor-not-allowed"
-                : "bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            } ${
-              error
-                ? "border-red-500 bg-red-50"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
-          />
-          {showPasswordToggle && (
-            <button
-              type="button"
-              onClick={onPasswordToggle}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1"
-            >
-              {showPassword ? (
-                <EyeOff className="w-5 h-5" />
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
-          )}
-        </div>
-        {helpText && !error && (
-          <p className="mt-2 text-sm text-gray-500">{helpText}</p>
-        )}
-        {error && (
-          <div className="flex items-start gap-2 mt-2 text-red-600 text-sm">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-        {children}
-      </div>
-    );
-  },
-);
-
-FormField.displayName = "FormField";
 
 // Enhanced Profile header component
 const ProfileHeader = memo(({ profileData, selectedHotel, onImageUpload }) => {
@@ -507,17 +397,15 @@ const EnhancedAdminProfile = memo(() => {
   // Tab configuration
   const tabs = useMemo(
     () => [
-      { id: "overview", label: "Overview", icon: BarChart3 },
       { id: "profile", label: "Personal Info", icon: User },
       { id: "security", label: "Security", icon: Shield },
       { id: "notifications", label: "Notifications", icon: Bell },
       { id: "preferences", label: "Preferences", icon: Settings },
       { id: "privacy", label: "Privacy", icon: Lock },
       { id: "billing", label: "Billing", icon: CreditCard },
-      { id: "integrations", label: "Integrations", icon: Link2 },
       { id: "support", label: "Help & Support", icon: HelpCircle },
     ],
-    [],
+    []
   );
 
   // Load user profile and stats
@@ -581,7 +469,7 @@ const EnhancedAdminProfile = memo(() => {
       setProfileData((prev) => ({ ...prev, [name]: value }));
       clearError(name);
     },
-    [clearError],
+    [clearError]
   );
 
   const handlePasswordChange = useCallback(
@@ -590,7 +478,7 @@ const EnhancedAdminProfile = memo(() => {
       setPasswordData((prev) => ({ ...prev, [name]: value }));
       clearError(name);
     },
-    [clearError],
+    [clearError]
   );
 
   const handleSettingChange = useCallback((category, setting, value) => {
@@ -646,7 +534,7 @@ const EnhancedAdminProfile = memo(() => {
         setLoading(false);
       }
     },
-    [auth, profileData, settings],
+    [auth, profileData, settings]
   );
 
   const handleUpdatePassword = useCallback(
@@ -661,7 +549,7 @@ const EnhancedAdminProfile = memo(() => {
         // Reauthenticate user
         const credential = EmailAuthProvider.credential(
           user.email,
-          passwordData.currentPassword,
+          passwordData.currentPassword
         );
         await reauthenticateWithCredential(user, credential);
 
@@ -685,7 +573,7 @@ const EnhancedAdminProfile = memo(() => {
         setLoading(false);
       }
     },
-    [auth, passwordData, setError],
+    [auth, passwordData, setError]
   );
 
   const handleExportData = useCallback(() => {
@@ -701,123 +589,11 @@ const EnhancedAdminProfile = memo(() => {
   // Render tab content
   const renderTabContent = () => {
     switch (activeTab) {
-      case "overview":
-        return (
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <StatsCard
-                icon={Building}
-                title="Total Properties"
-                value={stats.totalHotels}
-                subtitle="Active hotels"
-                color="blue"
-                trend={12}
-              />
-              <StatsCard
-                icon={Calendar}
-                title="Active Reservations"
-                value={stats.activeReservations}
-                subtitle="This month"
-                color="green"
-                trend={8}
-              />
-              <StatsCard
-                icon={DollarSign}
-                title="Total Revenue"
-                value={`$${(stats.totalRevenue / 1000).toFixed(1)}K`}
-                subtitle="This year"
-                color="purple"
-                trend={15}
-              />
-              <StatsCard
-                icon={Star}
-                title="Average Rating"
-                value={stats.avgRating}
-                subtitle="Customer satisfaction"
-                color="yellow"
-                trend={2}
-              />
-              <StatsCard
-                icon={Users}
-                title="Total Orders"
-                value={stats.totalOrders}
-                subtitle="All time"
-                color="indigo"
-                trend={-3}
-              />
-              <StatsCard
-                icon={Clock}
-                title="Pending Tasks"
-                value={stats.pendingTasks}
-                subtitle="Requires attention"
-                color="red"
-              />
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Recent Activity
-              </h3>
-              <div className="space-y-4">
-                {[
-                  {
-                    action: "Updated hotel settings",
-                    time: "2 hours ago",
-                    type: "settings",
-                  },
-                  {
-                    action: "New booking received",
-                    time: "4 hours ago",
-                    type: "booking",
-                  },
-                  {
-                    action: "Profile updated",
-                    time: "1 day ago",
-                    type: "profile",
-                  },
-                  {
-                    action: "Password changed",
-                    time: "3 days ago",
-                    type: "security",
-                  },
-                ].map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div
-                      className={`p-2 rounded-full ${
-                        activity.type === "booking"
-                          ? "bg-green-100"
-                          : activity.type === "security"
-                            ? "bg-red-100"
-                            : activity.type === "settings"
-                              ? "bg-blue-100"
-                              : "bg-purple-100"
-                      }`}
-                    >
-                      <Activity className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {activity.action}
-                      </p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
       case "profile":
         return (
           <form onSubmit={handleUpdateProfile} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <FormField
+              <TextInputField
                 label="Display Name"
                 name="displayName"
                 value={profileData.displayName}
@@ -828,7 +604,7 @@ const EnhancedAdminProfile = memo(() => {
                 icon={User}
                 required
               />
-              <FormField
+              <EmailField
                 label="Email Address"
                 type="email"
                 name="email"
@@ -841,7 +617,7 @@ const EnhancedAdminProfile = memo(() => {
                 required
                 helpText="Email changes require verification"
               />
-              <FormField
+              <NumberField
                 label="Phone Number"
                 type="tel"
                 name="phone"
@@ -852,7 +628,7 @@ const EnhancedAdminProfile = memo(() => {
                 disabled={loading}
                 icon={Phone}
               />
-              <FormField
+              <TextInputField
                 label="Location"
                 name="location"
                 value={profileData.location}
@@ -862,17 +638,6 @@ const EnhancedAdminProfile = memo(() => {
                 icon={MapPin}
               />
             </div>
-
-            <FormField
-              label="Bio"
-              name="bio"
-              value={profileData.bio}
-              onChange={handleProfileChange}
-              placeholder="Tell us about yourself"
-              disabled={loading}
-              icon={FileText}
-              helpText="Brief description about yourself (optional)"
-            />
 
             <div className="flex justify-end">
               <button
@@ -906,7 +671,7 @@ const EnhancedAdminProfile = memo(() => {
               </h3>
               <form onSubmit={handleUpdatePassword} className="space-y-6">
                 <div className="max-w-md space-y-4">
-                  <FormField
+                  <PasswordInputField
                     label="Current Password"
                     name="currentPassword"
                     value={passwordData.currentPassword}
@@ -920,7 +685,7 @@ const EnhancedAdminProfile = memo(() => {
                     showPassword={showPasswords.current}
                     onPasswordToggle={() => togglePasswordVisibility("current")}
                   />
-                  <FormField
+                  <PasswordInputField
                     label="New Password"
                     name="newPassword"
                     value={passwordData.newPassword}
@@ -935,8 +700,8 @@ const EnhancedAdminProfile = memo(() => {
                     onPasswordToggle={() => togglePasswordVisibility("new")}
                   >
                     <PasswordStrength password={passwordData.newPassword} />
-                  </FormField>
-                  <FormField
+                  </PasswordInputField>
+                  <PasswordInputField
                     label="Confirm New Password"
                     name="confirmPassword"
                     value={passwordData.confirmPassword}
@@ -983,7 +748,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "security",
                       "twoFactorEnabled",
-                      !settings.security.twoFactorEnabled,
+                      !settings.security.twoFactorEnabled
                     )
                   }
                   label="Enable Two-Factor Authentication"
@@ -1015,14 +780,14 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "security",
                       "loginAlerts",
-                      !settings.security.loginAlerts,
+                      !settings.security.loginAlerts
                     )
                   }
                   label="Login Alerts"
                   description="Get notified when someone logs into your account"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
+                  <NumberField
                     label="Session Timeout (minutes)"
                     type="number"
                     name="sessionTimeout"
@@ -1031,7 +796,7 @@ const EnhancedAdminProfile = memo(() => {
                       handleSettingChange(
                         "security",
                         "sessionTimeout",
-                        parseInt(e.target.value),
+                        parseInt(e.target.value)
                       )
                     }
                     placeholder="30"
@@ -1059,7 +824,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "email",
-                      !settings.notifications.email,
+                      !settings.notifications.email
                     )
                   }
                   label="Email Notifications"
@@ -1071,7 +836,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "marketing",
-                      !settings.notifications.marketing,
+                      !settings.notifications.marketing
                     )
                   }
                   label="Marketing Emails"
@@ -1092,7 +857,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "push",
-                      !settings.notifications.push,
+                      !settings.notifications.push
                     )
                   }
                   label="Push Notifications"
@@ -1104,7 +869,7 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "notifications",
                       "sms",
-                      !settings.notifications.sms,
+                      !settings.notifications.sms
                     )
                   }
                   label="SMS Notifications"
@@ -1169,13 +934,12 @@ const EnhancedAdminProfile = memo(() => {
                     handleSettingChange(
                       "preferences",
                       "darkMode",
-                      !settings.preferences.darkMode,
+                      !settings.preferences.darkMode
                     )
                   }
                   label="Dark Mode"
                   description="Use dark theme across the application"
                 />
-                <LanguageSelector />
               </div>
             </div>
 
@@ -1185,30 +949,7 @@ const EnhancedAdminProfile = memo(() => {
                 System Preferences
               </h3>
               <div className="space-y-4">
-                <ToggleSwitch
-                  enabled={settings.preferences.soundEnabled}
-                  onToggle={() =>
-                    handleSettingChange(
-                      "preferences",
-                      "soundEnabled",
-                      !settings.preferences.soundEnabled,
-                    )
-                  }
-                  label="Sound Effects"
-                  description="Play sounds for notifications and actions"
-                />
-                <ToggleSwitch
-                  enabled={settings.preferences.autoSave}
-                  onToggle={() =>
-                    handleSettingChange(
-                      "preferences",
-                      "autoSave",
-                      !settings.preferences.autoSave,
-                    )
-                  }
-                  label="Auto-save"
-                  description="Automatically save changes as you work"
-                />
+                <LanguageSelector />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Currency
@@ -1219,7 +960,7 @@ const EnhancedAdminProfile = memo(() => {
                       handleSettingChange(
                         "preferences",
                         "currency",
-                        e.target.value,
+                        e.target.value
                       )
                     }
                     className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -1239,51 +980,6 @@ const EnhancedAdminProfile = memo(() => {
       case "privacy":
         return (
           <div className="space-y-6">
-            {/* Profile Visibility */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Profile Visibility
-              </h3>
-              <div className="space-y-4">
-                <ToggleSwitch
-                  enabled={settings.privacy.profileVisible}
-                  onToggle={() =>
-                    handleSettingChange(
-                      "privacy",
-                      "profileVisible",
-                      !settings.privacy.profileVisible,
-                    )
-                  }
-                  label="Public Profile"
-                  description="Make your profile visible to other users"
-                />
-                <ToggleSwitch
-                  enabled={settings.privacy.showEmail}
-                  onToggle={() =>
-                    handleSettingChange(
-                      "privacy",
-                      "showEmail",
-                      !settings.privacy.showEmail,
-                    )
-                  }
-                  label="Show Email"
-                  description="Display email address on your public profile"
-                />
-                <ToggleSwitch
-                  enabled={settings.privacy.showPhone}
-                  onToggle={() =>
-                    handleSettingChange(
-                      "privacy",
-                      "showPhone",
-                      !settings.privacy.showPhone,
-                    )
-                  }
-                  label="Show Phone"
-                  description="Display phone number on your public profile"
-                />
-              </div>
-            </div>
-
             {/* Data & Privacy */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -1419,98 +1115,6 @@ const EnhancedAdminProfile = memo(() => {
                     </button>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case "integrations":
-        return (
-          <div className="space-y-6">
-            {/* Connected Apps */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Connected Applications
-              </h3>
-              <div className="space-y-4">
-                {[
-                  {
-                    name: "Google Calendar",
-                    icon: Calendar,
-                    connected: true,
-                    desc: "Sync bookings with your calendar",
-                  },
-                  {
-                    name: "Slack",
-                    icon: Bell,
-                    connected: false,
-                    desc: "Get notifications in Slack",
-                  },
-                  {
-                    name: "WhatsApp Business",
-                    icon: Phone,
-                    connected: true,
-                    desc: "Send booking confirmations via WhatsApp",
-                  },
-                  {
-                    name: "Stripe",
-                    icon: CreditCard,
-                    connected: true,
-                    desc: "Process payments securely",
-                  },
-                ].map((app, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <app.icon className="w-5 h-5 text-gray-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          {app.name}
-                        </h4>
-                        <p className="text-sm text-gray-500">{app.desc}</p>
-                      </div>
-                    </div>
-                    <button
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        app.connected
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : "bg-orange-600 text-white hover:bg-orange-700"
-                      }`}
-                    >
-                      {app.connected ? "Connected" : "Connect"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* API Keys */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                API Access
-              </h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-blue-900">API Key</h4>
-                    <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
-                      Active
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2 mt-3">
-                    <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                      Regenerate
-                    </button>
-                    <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                      Copy
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

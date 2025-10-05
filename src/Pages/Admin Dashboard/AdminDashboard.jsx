@@ -276,8 +276,8 @@ const AdminDashboard = () => {
   // Tab configuration
   const tabs = [
     { id: "overview", name: "Overview", icon: BarChart3 },
-    { id: "platforms", name: "Platform Analytics", icon: Smartphone },
-    { id: "menu", name: "Menu Analytics", icon: ChefHat },
+    { id: "platforms", name: "Analytics", icon: Smartphone },
+    { id: "menu", name: "Menu", icon: ChefHat },
     { id: "performance", name: "Performance", icon: TrendingUp },
   ];
 

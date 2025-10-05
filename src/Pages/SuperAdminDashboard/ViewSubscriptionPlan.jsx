@@ -1,20 +1,20 @@
+// components/Pages/ViewSubscriptionPlan.js
+
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import {
   Plus,
   CreditCard,
   TrendingUp,
-  AlertTriangle,
   DollarSign,
   Package,
   Search,
-  Filter,
-  Download,
-  Users,
-  Building2,
-  Star,
-  Clock,
   Check,
   X,
+  Users,
+  ShoppingCart,
+  BarChart3,
+  MessageSquare,
+  Settings,
 } from "lucide-react";
 import { ToastContainer } from "react-toastify";
 import PageTitle from "../../atoms/PageTitle";
@@ -36,7 +36,281 @@ import { useNavigate } from "react-router-dom";
 const SubscriptionFormModal = React.lazy(() =>
   import("../../components/FormModals/SubscriptionPlanFormModal")
 );
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+
+// Feature configuration for dynamic rendering
+const FEATURE_CONFIG = {
+  // Core Features
+  coreFeatures: {
+    title: "Core Features",
+    icon: Settings,
+    features: [
+      {
+        key: "isOrderDashboard",
+        label: "Order Management",
+        description: "Manage all orders and track status"
+      },
+      {
+        key: "isCustomerOrderEnable",
+        label: "Online Ordering",
+        description: "Customer self-ordering via QR codes"
+      },
+      {
+        key: "isCaptainDashboard",
+        label: "Captain Dashboard",
+        description: "Waiter/Captain order management"
+      },
+      {
+        key: "isKitchenDashboard",
+        label: "Kitchen Display",
+        description: "Kitchen order preparation system"
+      },
+      {
+        key: "isInventoryManagement",
+        label: "Inventory Management",
+        description: "Track stock and ingredients"
+      },
+      {
+        key: "isTableManagement",
+        label: "Table Management",
+        description: "Manage tables and reservations"
+      },
+      {
+        key: "isStaffManagement",
+        label: "Staff Management",
+        description: "Employee scheduling and management"
+      },
+    ],
+  },
+  
+  // Analytics Features
+  analyticsFeatures: {
+    title: "Analytics & Reports",
+    icon: BarChart3,
+    features: [
+      {
+        key: "isAnalyticsDashboard",
+        label: "Analytics Dashboard",
+        description: "Business insights and metrics"
+      },
+      {
+        key: "isReportsExport",
+        label: "Export Reports",
+        description: "Download reports as PDF/Excel"
+      },
+      {
+        key: "isSalesReports",
+        label: "Sales Reports",
+        description: "Detailed sales analysis"
+      },
+      {
+        key: "isCustomerInsights",
+        label: "Customer Insights",
+        description: "Customer behavior analytics"
+      },
+    ],
+  },
+  
+  // Integration Features
+  integrationFeatures: {
+    title: "Integrations",
+    icon: MessageSquare,
+    features: [
+      {
+        key: "isWhatsAppIntegration",
+        label: "WhatsApp Integration",
+        description: "Send orders via WhatsApp"
+      },
+      {
+        key: "isSmsNotifications",
+        label: "SMS Notifications",
+        description: "SMS alerts and updates"
+      },
+      {
+        key: "isEmailReports",
+        label: "Email Reports",
+        description: "Automated email reports"
+      },
+      {
+        key: "isMultiLanguage",
+        label: "Multi-Language",
+        description: "Support multiple languages"
+      },
+      {
+        key: "is24x7Support",
+        label: "24x7 Support",
+        description: "Round-the-clock support"
+      },
+    ],
+  },
+};
+
+// Usage limits configuration
+const LIMIT_CONFIG = [
+  { key: "maxAdmins", label: "Admins", icon: Users },
+  { key: "maxCategories", label: "Categories", icon: Package },
+  { key: "maxMenuItems", label: "Menu Items", icon: ShoppingCart },
+  { key: "maxCaptains", label: "Captains", icon: Users },
+  { key: "maxTables", label: "Tables", icon: Settings },
+  { key: "maxOrders", label: "Orders/Month", icon: ShoppingCart },
+  { key: "maxStorage", label: "Storage (MB)", icon: Package },
+];
+
+// Enhanced Plan Card Component
+const PlanCard = memo(({ plan, onEdit, onDelete, onAssign }) => {
+  const getPrice = () => plan.pricing?.monthlyPrice || plan.price || 0;
+  const getDuration = () => plan.pricing?.duration || plan.duration || 1;
+  
+  // Count enabled features dynamically
+  const getEnabledFeatures = () => {
+    const features = plan.originalFeatures || plan.features || {};
+    return Object.values(FEATURE_CONFIG).flatMap(category => 
+      category.features.filter(feature => features[feature.key])
+    );
+  };
+
+  const enabledFeatures = getEnabledFeatures();
+  const totalPossibleFeatures = Object.values(FEATURE_CONFIG)
+    .flatMap(category => category.features).length;
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200">
+      {/* Plan Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-bold text-gray-900 truncate">
+            {plan.planName}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+            {plan.description}
+          </p>
+        </div>
+        <span
+          className={`px-2 py-1 text-xs rounded-full whitespace-nowrap ml-2 ${
+            plan.status === "active"
+              ? "bg-green-100 text-green-600"
+              : plan.status === "inactive"
+              ? "bg-red-100 text-red-600"
+              : "bg-yellow-100 text-yellow-600"
+          }`}
+        >
+          {plan.status}
+        </span>
+      </div>
+
+      {/* Plan Price */}
+      <div className="mb-4">
+        <div className="flex items-baseline">
+          <span className="text-3xl font-bold text-gray-900">
+            ₹{getPrice()}
+          </span>
+          <span className="text-gray-600 ml-1">
+            /{getDuration()} month{getDuration() !== 1 ? "s" : ""}
+          </span>
+        </div>
+        {getPrice() === 0 && (
+          <span className="text-sm text-green-600 font-medium">
+            Free Forever
+          </span>
+        )}
+      </div>
+
+      {/* Feature Summary */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-sm font-medium text-gray-700">Features</h4>
+          <span className="text-xs text-gray-500">
+            {enabledFeatures.length}/{totalPossibleFeatures} enabled
+          </span>
+        </div>
+        
+        {/* Feature Categories */}
+        {Object.entries(FEATURE_CONFIG).map(([categoryKey, category]) => {
+          const categoryFeatures = category.features.filter(feature => 
+            (plan.originalFeatures || plan.features || {})[feature.key]
+          );
+          
+          if (categoryFeatures.length === 0) return null;
+          
+          const Icon = category.icon;
+          
+          return (
+            <div key={categoryKey} className="mb-2">
+              <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
+                <Icon size={12} />
+                <span>{category.title} ({categoryFeatures.length})</span>
+              </div>
+              <div className="pl-4 space-y-1">
+                {categoryFeatures.slice(0, 3).map((feature) => (
+                  <div key={feature.key} className="flex items-center text-xs text-green-600">
+                    <Check size={10} className="mr-1 flex-shrink-0" />
+                    <span className="truncate">{feature.label}</span>
+                  </div>
+                ))}
+                {categoryFeatures.length > 3 && (
+                  <div className="text-xs text-gray-500 pl-3">
+                    +{categoryFeatures.length - 3} more
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        
+        {enabledFeatures.length === 0 && (
+          <div className="flex items-center text-xs text-gray-400">
+            <X size={10} className="mr-1" />
+            <span>No features enabled</span>
+          </div>
+        )}
+      </div>
+
+      {/* Usage Limits */}
+      <div className="mb-4 text-sm text-gray-600">
+        <h4 className="font-medium text-gray-700 mb-2">Usage Limits</h4>
+        <div className="grid grid-cols-2 gap-1 text-xs">
+          {LIMIT_CONFIG.slice(0, 6).map((limit) => {
+            const value = (plan.originalLimits || plan.limits || {})[limit.key] || 
+                         plan[limit.key] || 0;
+            return (
+              <div key={limit.key} className="flex items-center">
+                <limit.icon size={10} className="mr-1 text-gray-400" />
+                <span>{limit.label}: {value}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEdit(plan)}
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onAssign(plan)}
+            disabled={plan.status !== "active"}
+            className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Assign
+          </button>
+        </div>
+        
+        <button
+          onClick={() => onDelete(plan)}
+          className="w-full px-3 py-2 text-sm border border-red-200 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+});
+
+PlanCard.displayName = "PlanCard";
 
 const ViewSubscriptionPlan = memo(() => {
   const { t } = useTranslation();
@@ -47,7 +321,6 @@ const ViewSubscriptionPlan = memo(() => {
   const [editingPlan, setEditingPlan] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priceRangeFilter, setPriceRangeFilter] = useState("all");
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedPlanForAssign, setSelectedPlanForAssign] = useState(null);
 
@@ -94,16 +367,28 @@ const ViewSubscriptionPlan = memo(() => {
     if (priceRangeFilter !== "all") {
       switch (priceRangeFilter) {
         case "free":
-          arr = arr.filter((plan) => plan.price === 0);
+          arr = arr.filter((plan) => {
+            const price = plan.pricing?.monthlyPrice || plan.price || 0;
+            return price === 0;
+          });
           break;
         case "budget":
-          arr = arr.filter((plan) => plan.price > 0 && plan.price <= 1000);
+          arr = arr.filter((plan) => {
+            const price = plan.pricing?.monthlyPrice || plan.price || 0;
+            return price > 0 && price <= 1000;
+          });
           break;
         case "premium":
-          arr = arr.filter((plan) => plan.price > 1000 && plan.price <= 5000);
+          arr = arr.filter((plan) => {
+            const price = plan.pricing?.monthlyPrice || plan.price || 0;
+            return price > 1000 && price <= 5000;
+          });
           break;
         case "enterprise":
-          arr = arr.filter((plan) => plan.price > 5000);
+          arr = arr.filter((plan) => {
+            const price = plan.pricing?.monthlyPrice || plan.price || 0;
+            return price > 5000;
+          });
           break;
         default:
           break;
@@ -112,7 +397,9 @@ const ViewSubscriptionPlan = memo(() => {
 
     // Sort by price ascending
     arr = [...arr].sort((a, b) => {
-      return (a.price || 0) - (b.price || 0);
+      const priceA = a.pricing?.monthlyPrice || a.price || 0;
+      const priceB = b.pricing?.monthlyPrice || b.price || 0;
+      return priceA - priceB;
     });
 
     return arr;
@@ -127,7 +414,10 @@ const ViewSubscriptionPlan = memo(() => {
     const totalRevenue = subscriptionStats?.revenue || 0;
     const averagePrice =
       total > 0
-        ? plans.reduce((sum, plan) => sum + (plan.price || 0), 0) / total
+        ? plans.reduce((sum, plan) => {
+            const price = plan.pricing?.monthlyPrice || plan.price || 0;
+            return sum + price;
+          }, 0) / total
         : 0;
 
     return {
@@ -302,8 +592,6 @@ const ViewSubscriptionPlan = memo(() => {
       )}
 
       <div className="p-6">
-        {/* Header */}
-
         {/* Enhanced Header Section */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
           <PageTitle
@@ -448,120 +736,19 @@ const ViewSubscriptionPlan = memo(() => {
           )}
         </div>
 
-        {/* Plans Grid/Table */}
+        {/* Plans Grid */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {hasPlans ? (
             filteredAndSorted.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
                 {filteredAndSorted.map((plan) => (
-                  <div
+                  <PlanCard
                     key={plan.planId}
-                    className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200"
-                  >
-                    {/* Plan Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          {plan.planName}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {plan.description}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          plan.status === "active"
-                            ? "bg-green-100 text-green-600"
-                            : plan.status === "inactive"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-yellow-100 text-yellow-600"
-                        }`}
-                      >
-                        {plan.status}
-                      </span>
-                    </div>
-
-                    {/* Plan Price */}
-                    <div className="mb-4">
-                      <div className="flex items-baseline">
-                        <span className="text-3xl font-bold text-gray-900">
-                          ₹{plan.price || 0}
-                        </span>
-                        <span className="text-gray-600 ml-1">
-                          /{plan.duration} month{plan.duration !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      {plan.price === 0 && (
-                        <span className="text-sm text-green-600 font-medium">
-                          Free Forever
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Key Features */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Key Features
-                      </h4>
-                      <div className="space-y-1 text-sm">
-                        {plan.features?.isCustomerOrderEnable && (
-                          <div className="flex items-center text-green-600">
-                            <Check size={14} className="mr-2" />
-                            Customer Ordering
-                          </div>
-                        )}
-                        {plan.features?.isCaptainDashboard && (
-                          <div className="flex items-center text-green-600">
-                            <Check size={14} className="mr-2" />
-                            Captain Dashboard
-                          </div>
-                        )}
-                        {plan.features?.isAnalyticsDashboard && (
-                          <div className="flex items-center text-green-600">
-                            <Check size={14} className="mr-2" />
-                            Analytics & Reports
-                          </div>
-                        )}
-                        {!plan.features?.isAnalyticsDashboard && (
-                          <div className="flex items-center text-gray-400">
-                            <X size={14} className="mr-2" />
-                            Analytics & Reports
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Usage Limits */}
-                    <div className="mb-4 text-sm text-gray-600 space-y-1">
-                      <div>Max Admins: {plan.features?.maxAdmins || 1}</div>
-                      <div>Menu Items: {plan.features?.maxMenuItems || 50}</div>
-                      <div>Storage: {plan.features?.maxStorage || 500}MB</div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 mt-4">
-                      <button
-                        onClick={() => handleEditClick(plan)}
-                        className="flex-1 px-3 py-2 text-sm border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleAssignClick(plan)}
-                        disabled={plan.status !== "active"}
-                        className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Assign
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => handleDeleteClick(plan)}
-                      className="w-full mt-2 px-3 py-2 text-sm border border-red-200 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                    plan={plan}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteClick}
+                    onAssign={handleAssignClick}
+                  />
                 ))}
               </div>
             ) : (
