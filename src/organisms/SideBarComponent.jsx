@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, memo } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useHotelSelection } from "context/HotelSelectionContext";
+import { useHotelDetails } from "../hooks/useHotel"; // Add this import
 import { User } from "lucide-react";
 import { toast } from "react-toastify";
 import {
@@ -96,13 +97,39 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
     useHotelSelection();
   const { t } = useTranslation();
 
+  // Get isOrderEnabled from hotel details
+  const { isOrderEnabled } = useHotelDetails(hotelName);
+
   // Determine role and get configuration
   const role = getRoleConfig(admin, captain);
 
-  const menuItems = useMemo(
-    () => getMenuItems(role, t, hotelName),
-    [role, hotelName, t],
-  );
+  // Filter menu items based on isOrderEnabled
+  const menuItems = useMemo(() => {
+    const allItems = getMenuItems(role, t, hotelName);
+
+    // Items that should be hidden when isOrderEnabled is false
+    const orderDependentPaths = [
+      "pos-dashboard",
+      "order-dashboard",
+      "customer-dashboard",
+      "add-captain",
+      "kitchen",
+    ];
+
+    // For captain role, hide the entire menu if orders are disabled
+    if (role === "captain" && !isOrderEnabled) {
+      return [];
+    }
+
+    // For admin role, filter out order-dependent items
+    if (role === "admin" && !isOrderEnabled) {
+      return allItems.filter(
+        (item) => !orderDependentPaths.some((path) => item.path.includes(path))
+      );
+    }
+
+    return allItems;
+  }, [role, hotelName, t, isOrderEnabled]);
 
   // Event handlers
   const handleItemClick = useCallback(() => {
@@ -121,7 +148,7 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
         toast.error("Failed to switch hotel");
       }
     },
-    [selectHotel, navigate, role],
+    [selectHotel, navigate, role]
   );
 
   return (
@@ -146,17 +173,25 @@ const Sidebar = memo(({ isOpen, onClose, admin = false, captain = false }) => {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-3 px-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-            <ul className="space-y-1">
-              {menuItems.map((item) => (
-                <MenuItem
-                  key={item.name}
-                  item={item}
-                  onClick={handleItemClick}
-                  role={role}
-                  t={t}
-                />
-              ))}
-            </ul>
+            {menuItems.length > 0 ? (
+              <ul className="space-y-1">
+                {menuItems.map((item) => (
+                  <MenuItem
+                    key={item.name}
+                    item={item}
+                    onClick={handleItemClick}
+                    role={role}
+                    t={t}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <div className="text-center py-8 px-4">
+                <p className="text-sm text-gray-500">
+                  {t("sidebar.noMenuItems", "No menu items available")}
+                </p>
+              </div>
+            )}
           </nav>
 
           {/* Footer */}

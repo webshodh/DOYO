@@ -1,4 +1,4 @@
-// src/constants/addHotelFormConfig.js
+// src/constants/addHotelFormConfig.js (UPDATED WITH isOrderEnabled)
 
 export const hotelFormSections = [
   {
@@ -126,8 +126,44 @@ export const hotelFormFields = {
       required: true,
       options: [
         { value: "andhra_pradesh", label: "Andhra Pradesh" },
-        /* … all other states … */
+        { value: "arunachal_pradesh", label: "Arunachal Pradesh" },
+        { value: "assam", label: "Assam" },
+        { value: "bihar", label: "Bihar" },
+        { value: "chhattisgarh", label: "Chhattisgarh" },
+        { value: "goa", label: "Goa" },
+        { value: "gujarat", label: "Gujarat" },
+        { value: "haryana", label: "Haryana" },
+        { value: "himachal_pradesh", label: "Himachal Pradesh" },
+        { value: "jharkhand", label: "Jharkhand" },
+        { value: "karnataka", label: "Karnataka" },
+        { value: "kerala", label: "Kerala" },
+        { value: "madhya_pradesh", label: "Madhya Pradesh" },
+        { value: "maharashtra", label: "Maharashtra" },
+        { value: "manipur", label: "Manipur" },
+        { value: "meghalaya", label: "Meghalaya" },
+        { value: "mizoram", label: "Mizoram" },
+        { value: "nagaland", label: "Nagaland" },
+        { value: "odisha", label: "Odisha" },
+        { value: "punjab", label: "Punjab" },
+        { value: "rajasthan", label: "Rajasthan" },
+        { value: "sikkim", label: "Sikkim" },
+        { value: "tamil_nadu", label: "Tamil Nadu" },
+        { value: "telangana", label: "Telangana" },
+        { value: "tripura", label: "Tripura" },
+        { value: "uttar_pradesh", label: "Uttar Pradesh" },
+        { value: "uttarakhand", label: "Uttarakhand" },
+        { value: "west_bengal", label: "West Bengal" },
+        { value: "delhi", label: "Delhi" },
+        { value: "chandigarh", label: "Chandigarh" },
         { value: "puducherry", label: "Puducherry" },
+        { value: "jammu_kashmir", label: "Jammu & Kashmir" },
+        { value: "ladakh", label: "Ladakh" },
+        { value: "lakshadweep", label: "Lakshadweep" },
+        { value: "andaman_nicobar", label: "Andaman & Nicobar Islands" },
+        {
+          value: "dadra_nagar_haveli",
+          label: "Dadra & Nagar Haveli and Daman & Diu",
+        },
       ],
       placeholder: "Select state",
     },
@@ -164,37 +200,23 @@ export const hotelFormFields = {
       description:
         "Only active hotels will be visible to customers and can take orders",
     },
+    // MOVED isOrderEnabled HERE - PROPERLY STRUCTURED
     {
-      name: "setupPriority",
-      label: "Setup Priority",
-      type: "select",
-      required: false,
-      options: [
-        { value: "high", label: "High - Setup Immediately" },
-        { value: "medium", label: "Medium - Setup This Week" },
-        { value: "low", label: "Low - Setup Later" },
-      ],
-      defaultValue: "medium",
-      description: "Priority level for hotel setup and onboarding",
-    },
-    {
-      name: "autoAcceptOrders",
-      label: "Auto Accept Orders",
+      name: "isOrderEnabled",
+      label: "Enable Orders",
       type: "checkbox",
+      required: false,
       defaultValue: false,
       description:
-        "Automatically accept incoming orders without manual confirmation",
+        "Allow captain and admin to place orders online through the DOYO.",
+      helperText:
+        "When enabled, captain can browse your menu and place orders directly",
+      className:
+        "border-2 border-dashed border-orange-300 bg-orange-50 p-4 rounded-lg mt-4",
+      labelClassName: "text-orange-800 font-semibold flex items-center",
+      descriptionClassName: "text-orange-600 text-sm mt-2",
     },
-    {
-      name: "minimumOrderAmount",
-      label: "Minimum Order Amount (₹)",
-      type: "number",
-      placeholder: "Enter minimum order amount",
-      required: false,
-      min: 0,
-      max: 10000,
-      defaultValue: 0,
-    },
+   
   ],
 
   additionalInfo: [
@@ -204,6 +226,7 @@ export const hotelFormFields = {
       type: "text",
       placeholder: "Enter GST number (optional)",
       required: false,
+      description: "15-digit GST registration number",
     },
     {
       name: "fssaiNumber",
@@ -211,61 +234,43 @@ export const hotelFormFields = {
       type: "text",
       placeholder: "Enter FSSAI license number (optional)",
       required: false,
+      description: "14-digit FSSAI food license number",
     },
     {
       name: "website",
       label: "Website URL",
       type: "url",
-      placeholder: "Enter website URL (optional)",
+      placeholder: "https://yourwebsite.com",
       required: false,
+      description: "Your business website (if any)",
     },
     {
       name: "socialMedia.facebook",
       label: "Facebook Page",
       type: "url",
-      placeholder: "Facebook page URL",
+      placeholder: "https://facebook.com/yourpage",
       required: false,
     },
     {
       name: "socialMedia.instagram",
       label: "Instagram Handle",
       type: "text",
-      placeholder: "@username",
+      placeholder: "@yourbusiness",
       required: false,
     },
     {
       name: "socialMedia.twitter",
       label: "Twitter Handle",
       type: "text",
-      placeholder: "@username",
+      placeholder: "@yourbusiness",
       required: false,
     },
-    {
-      name: "specialInstructions",
-      label: "Special Instructions/Notes",
-      type: "textarea",
-      placeholder: "Any special notes or instructions for setup",
-      required: false,
-      rows: 4,
-    },
-    {
-      name: "preferredContactTime",
-      label: "Preferred Contact Time",
-      type: "select",
-      required: false,
-      options: [
-        { value: "morning", label: "Morning (9 AM - 12 PM)" },
-        { value: "afternoon", label: "Afternoon (12 PM - 5 PM)" },
-        { value: "evening", label: "Evening (5 PM - 9 PM)" },
-        { value: "anytime", label: "Anytime" },
-      ],
-      defaultValue: "anytime",
-      description: "Best time to contact for setup and support",
-    },
+    
   ],
 };
 
 export const hotelFormInitialValues = {
+  // Basic Information
   businessName: "",
   businessType: "",
   ownerName: "",
@@ -273,6 +278,7 @@ export const hotelFormInitialValues = {
   primaryContact: "",
   alternateContact: "",
 
+  // Location Details
   address: "",
   area: "",
   city: "",
@@ -280,15 +286,20 @@ export const hotelFormInitialValues = {
   pincode: "",
   coordinates: "",
 
+  // Status & Settings
   isActive: "active",
-  setupPriority: "medium",
-  autoAcceptOrders: false,
-  minimumOrderAmount: 0,
+  isOrderEnabled: false, // NEW FIELD - Properly included
 
+
+  // Additional Information
   gstNumber: "",
   fssaiNumber: "",
   website: "",
-  socialMedia: { facebook: "", instagram: "", twitter: "" },
+  socialMedia: {
+    facebook: "",
+    instagram: "",
+    twitter: "",
+  },
   specialInstructions: "",
   preferredContactTime: "anytime",
 };
@@ -296,82 +307,158 @@ export const hotelFormInitialValues = {
 export const getHotelValidationSchema = () => ({
   validate: (values) => {
     const errs = {};
-    // Basic Info
+
+    // Basic Info Validation
     if (!values.businessName?.trim()) {
       errs.businessName = "Business name is required";
     } else if (
       values.businessName.length < 2 ||
       values.businessName.length > 100
     ) {
-      errs.businessName = "Business name should be 2–100 chars";
+      errs.businessName = "Business name should be 2–100 characters";
     } else if (!/^[a-zA-Z0-9\s&'-]+$/.test(values.businessName)) {
       errs.businessName = "Invalid characters in business name";
     }
-    if (!values.businessType) errs.businessType = "Business type is required";
-    if (!values.ownerName?.trim()) {
-      errs.ownerName = "Owner name is required";
-    } else if (!/^[a-zA-Z\s]+$/.test(values.ownerName)) {
-      errs.ownerName = "Owner name must be letters only";
-    }
-    if (!values.businessEmail?.trim()) {
-      errs.businessEmail = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.businessEmail)) {
-      errs.businessEmail = "Invalid email address";
-    }
-    if (!values.primaryContact?.trim()) {
-      errs.primaryContact = "Primary contact is required";
-    } else if (!/^[\+]?[0-9]{10,15}$/.test(values.primaryContact)) {
-      errs.primaryContact = "Invalid phone number";
+
+    if (!values.businessType) {
+      errs.businessType = "Business type is required";
     }
 
-    // Location
+    if (!values.ownerName?.trim()) {
+      errs.ownerName = "Owner name is required";
+    } else if (values.ownerName.length < 2 || values.ownerName.length > 50) {
+      errs.ownerName = "Owner name should be 2–50 characters";
+    } else if (!/^[a-zA-Z\s\.]+$/.test(values.ownerName)) {
+      errs.ownerName = "Owner name should contain only letters and spaces";
+    }
+
+    if (!values.businessEmail?.trim()) {
+      errs.businessEmail = "Business email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.businessEmail)) {
+      errs.businessEmail = "Invalid email address format";
+    }
+
+    if (!values.primaryContact?.trim()) {
+      errs.primaryContact = "Primary contact is required";
+    } else if (
+      !/^[\+]?[0-9]{10,15}$/.test(values.primaryContact.replace(/\s+/g, ""))
+    ) {
+      errs.primaryContact = "Invalid phone number (10-15 digits required)";
+    }
+
+    // Location Validation
     if (!values.address?.trim()) {
       errs.address = "Address is required";
     } else if (values.address.length < 10 || values.address.length > 500) {
-      errs.address = "Address should be 10–500 chars";
+      errs.address = "Address should be 10–500 characters";
     }
-    if (!values.area?.trim()) errs.area = "Area is required";
+
+    if (!values.area?.trim()) {
+      errs.area = "Area/Locality is required";
+    } else if (values.area.length < 2 || values.area.length > 50) {
+      errs.area = "Area should be 2–50 characters";
+    }
+
     if (!values.city?.trim()) {
       errs.city = "City is required";
+    } else if (values.city.length < 2 || values.city.length > 50) {
+      errs.city = "City should be 2–50 characters";
     } else if (!/^[a-zA-Z\s]+$/.test(values.city)) {
-      errs.city = "City must be letters only";
+      errs.city = "City should contain only letters and spaces";
     }
-    if (!values.state) errs.state = "State is required";
+
+    if (!values.state) {
+      errs.state = "State is required";
+    }
+
     if (!values.pincode?.trim()) {
       errs.pincode = "PIN code is required";
     } else if (!/^[0-9]{6}$/.test(values.pincode)) {
-      errs.pincode = "PIN code must be 6 digits";
+      errs.pincode = "PIN code must be exactly 6 digits";
     }
 
-    // Optional
+    // Status & Settings Validation
+    if (!values.isActive) {
+      errs.isActive = "Hotel status is required";
+    }
+
+    // isOrderEnabled validation (optional but must be boolean)
+    if (
+      values.isOrderEnabled !== undefined &&
+      typeof values.isOrderEnabled !== "boolean"
+    ) {
+      errs.isOrderEnabled = "Order enabled status must be true or false";
+    }
+
+    if (values.minimumOrderAmount !== undefined) {
+      const minAmount = Number(values.minimumOrderAmount);
+      if (isNaN(minAmount) || minAmount < 0 || minAmount > 10000) {
+        errs.minimumOrderAmount =
+          "Minimum order amount should be between 0 and 10,000";
+      }
+    }
+
+    // Optional Field Validations
     if (
       values.alternateContact &&
-      !/^[\+]?[0-9]{10,15}$/.test(values.alternateContact)
+      !/^[\+]?[0-9]{10,15}$/.test(values.alternateContact.replace(/\s+/g, ""))
     ) {
-      errs.alternateContact = "Invalid phone number";
+      errs.alternateContact = "Invalid alternate phone number";
     }
+
     if (
       values.gstNumber &&
-      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]1[1-9A-Z]Z[0-9A-Z]$/.test(
-        values.gstNumber,
+      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z][Z][0-9A-Z]$/.test(
+        values.gstNumber
       )
     ) {
-      errs.gstNumber = "Invalid GST number";
+      errs.gstNumber = "Invalid GST number format";
     }
+
     if (values.fssaiNumber && !/^[0-9]{14}$/.test(values.fssaiNumber)) {
-      errs.fssaiNumber = "FSSAI must be 14 digits";
+      errs.fssaiNumber = "FSSAI number must be exactly 14 digits";
     }
+
     if (
       values.website &&
       !/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b/.test(
-        values.website,
+        values.website
       )
     ) {
-      errs.website = "Invalid website URL";
+      errs.website = "Invalid website URL format";
     }
-    if (values.minimumOrderAmount < 0 || values.minimumOrderAmount > 10000) {
-      errs.minimumOrderAmount = "Min amount 0–10,000";
+
+    if (
+      values.coordinates &&
+      !/^-?([1-8]?[0-9]\.{1}\d{1,6}|90\.{1}0{1,6}),\s?-?(180\.{1}0{1,6}|((1[0-7][0-9])|([1-9]?[0-9]))\.{1}\d{1,6})$/.test(
+        values.coordinates
+      )
+    ) {
+      errs.coordinates =
+        "Invalid GPS coordinates format (e.g., 12.9716,77.5946)";
     }
+
+    if (
+      values.socialMedia?.facebook &&
+      !/^https?:\/\/(www\.)?facebook\.com\//.test(values.socialMedia.facebook)
+    ) {
+      errs["socialMedia.facebook"] = "Invalid Facebook URL";
+    }
+
+    if (
+      values.socialMedia?.instagram &&
+      !/^@?[a-zA-Z0-9._]+$/.test(values.socialMedia.instagram)
+    ) {
+      errs["socialMedia.instagram"] = "Invalid Instagram handle";
+    }
+
+    if (
+      values.socialMedia?.twitter &&
+      !/^@?[a-zA-Z0-9._]+$/.test(values.socialMedia.twitter)
+    ) {
+      errs["socialMedia.twitter"] = "Invalid Twitter handle";
+    }
+
     return errs;
   },
 });

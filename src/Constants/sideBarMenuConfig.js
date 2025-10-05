@@ -1,4 +1,3 @@
-// src/constants/menuConfig.js
 import {
   Home,
   Users,
@@ -19,8 +18,8 @@ import {
   TableProperties,
   UserPlus,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-// Role-based theme configurations
+
+// 🧩 Role-based theme configurations
 export const getRoleThemes = (t) => ({
   admin: {
     title: t("sidebar.adminPanel"),
@@ -54,21 +53,20 @@ export const getRoleThemes = (t) => ({
   },
 });
 
-// Admin menu items
+// ✅ Admin menu items (hotelName & t are passed as arguments)
 export const adminMenuItems = (hotelName, t) => [
   {
     name: t("sidebar.dashboard"),
     path: `/${hotelName}/admin/dashboard`,
-    icon: "dashboard", // assuming icon name matches your icon set
+    icon: "dashboard",
     description: t("sidebar.dashboardDesc"),
   },
   {
-    name: t("sidebar.dashboard"),
+    name: t("sidebar.posDashboard"),
     path: `/${hotelName}/admin/pos-dashboard`,
-    icon: "dashboard", // assuming icon name matches your icon set
+    icon: "dashboard",
     description: t("sidebar.dashboardDesc"),
   },
-  
   {
     name: t("sidebar.orderDashboard"),
     path: `/${hotelName}/admin/order-dashboard`,
@@ -87,26 +85,12 @@ export const adminMenuItems = (hotelName, t) => [
     icon: "category",
     description: t("sidebar.addCategoryDesc"),
   },
-  // Uncomment or remove as needed
-  // {
-  //   name: t("sidebar.addOptions"),
-  //   path: `/${hotelName}/admin/add-options`,
-  //   icon: "options",
-  //   description: t("sidebar.addOptionsDesc"),
-  // },
   {
     name: t("sidebar.addMenu"),
     path: `/${hotelName}/admin/add-menu`,
     icon: "menu",
     description: t("sidebar.addMenuDesc"),
   },
-
-  // {
-  //   name: t("sidebar.addOffers"),
-  //   path: `/${hotelName}/admin/add-offers`,
-  //   icon: "offers",
-  //   description: t("sidebar.addOffersDesc"),
-  // },
   {
     name: t("sidebar.addCaptain"),
     path: `/${hotelName}/admin/add-captain`,
@@ -133,8 +117,8 @@ export const adminMenuItems = (hotelName, t) => [
   },
 ];
 
-// Super Admin menu items
-export const superAdminMenuItems = (t, hotelName) => [
+// ✅ Super Admin menu items
+export const superAdminMenuItems = (t) => [
   {
     name: t("sidebar.dashboard"),
     path: "/super-admin/dashboard",
@@ -151,15 +135,14 @@ export const superAdminMenuItems = (t, hotelName) => [
     name: t("sidebar.viewHotels"),
     path: "/super-admin/view-hotel",
     icon: "hotels",
-    description: t("sidebar.addHotelsDesc"),
+    description: t("sidebar.viewHotelsDesc"),
   },
   {
     name: t("sidebar.addAdmin"),
     path: "/super-admin/add-admin",
     icon: "users",
-    description: t("sidebar.viewAdminsDesc"),
+    description: t("sidebar.addAdminDesc"),
   },
-
   {
     name: t("sidebar.subscriptions"),
     path: "/super-admin/add-subscription-plan",
@@ -168,7 +151,7 @@ export const superAdminMenuItems = (t, hotelName) => [
   },
 ];
 
-// Captain menu items
+// ✅ Captain menu items
 export const captainMenuItems = (hotelName, t) => [
   {
     name: t("sidebar.dashboard"),
@@ -176,12 +159,6 @@ export const captainMenuItems = (hotelName, t) => [
     icon: "dashboard",
     description: t("sidebar.dashboardDesc"),
   },
-  // {
-  //   name: t("sidebar.tables"),
-  //   path: `/viewMenu/${hotelName}/captain/tables`,
-  //   icon: "tables",
-  //   description: t("sidebar.tablesDesc"),
-  // },
   {
     name: t("sidebar.addOrder"),
     path: `/viewMenu/${hotelName}/captain/home`,
@@ -194,21 +171,9 @@ export const captainMenuItems = (hotelName, t) => [
     icon: "orders",
     description: t("sidebar.myOrdersDesc"),
   },
-  // {
-  //   name: t("sidebar.kitchen"),
-  //   path: `/viewMenu/${hotelName}/captain/kitchen`,
-  //   icon: "kitchen",
-  //   description: t("sidebar.kitchenDesc"),
-  // },
-  // {
-  //   name: t("sidebar.bills"),
-  //   path: `/viewMenu/${hotelName}/captain/bills`,
-  //   icon: "bills",
-  //   description: t("sidebar.billsDesc"),
-  // },
 ];
 
-// Icon mapping stays the same
+// 🧭 Icon mapping
 export const iconMap = {
   dashboard: Home,
   settings: Settings,
@@ -230,14 +195,14 @@ export const iconMap = {
   messages: MessageSquare,
 };
 
-// Get role configuration
+// 🧩 Get role name
 export const getRoleConfig = (admin = false, captain = false) => {
   if (captain) return "captain";
   if (admin) return "admin";
   return "superAdmin";
 };
 
-// Get menu items based on role
+// ✅ Hook-safe role-based menu generator
 export const getMenuItems = (role, t, hotelName = null) => {
   switch (role) {
     case "admin":
@@ -246,6 +211,6 @@ export const getMenuItems = (role, t, hotelName = null) => {
       return captainMenuItems(hotelName, t);
     case "superAdmin":
     default:
-      return superAdminMenuItems(t, hotelName);
+      return superAdminMenuItems(t);
   }
 };

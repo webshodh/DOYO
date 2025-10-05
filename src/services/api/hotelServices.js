@@ -1,3 +1,4 @@
+// hotelServices.js (COMPLETE WITH isOrderEnabled)
 import {
   getFirestore,
   collection,
@@ -41,6 +42,7 @@ export const hotelServices = {
             srNo: i + 1,
             hotelId: docSnap.id,
             metrics,
+            isOrderEnabled: Boolean(hotelData.isOrderEnabled || false), // Ensure boolean
           });
         }
 
@@ -52,7 +54,7 @@ export const hotelServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      },
+      }
     );
     return unsubscribe;
   },
@@ -65,6 +67,7 @@ export const hotelServices = {
         totalCategories: 0,
         totalMenuItems: 0,
         totalCaptains: 0,
+        totalOrders: 0,
         subscription: null,
         lastActivity: null,
       };
@@ -82,7 +85,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "categories",
-        "_meta",
+        "_meta"
       );
       const categoryMetaDoc = await getDoc(categoryMetaRef);
       if (categoryMetaDoc.exists()) {
@@ -102,11 +105,25 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "captains",
-        "_meta",
+        "_meta"
       );
       const captainMetaDoc = await getDoc(captainMetaRef);
       if (captainMetaDoc.exists()) {
         metrics.totalCaptains = captainMetaDoc.data().totalCaptains || 0;
+      }
+
+      // Get orders count
+      const ordersMetaRef = doc(
+        firestore,
+        "hotels",
+        hotelId,
+        "orders",
+        "_meta"
+      );
+      const ordersMetaDoc = await getDoc(ordersMetaRef);
+      if (ordersMetaDoc.exists()) {
+        const orderData = ordersMetaDoc.data();
+        metrics.totalOrders = orderData.totalOrders || 0;
       }
 
       // Get current subscription
@@ -115,7 +132,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "subscription",
-        "current",
+        "current"
       );
       const subscriptionDoc = await getDoc(subscriptionRef);
       if (subscriptionDoc.exists()) {
@@ -130,9 +147,36 @@ export const hotelServices = {
         totalCategories: 0,
         totalMenuItems: 0,
         totalCaptains: 0,
+        totalOrders: 0,
         subscription: null,
         lastActivity: null,
       };
+    }
+  },
+
+  // Toggle order enabled status for a hotel
+  toggleOrderEnabled: async (hotelId, isEnabled) => {
+    try {
+      const hotelRef = doc(firestore, "hotels", hotelId);
+      await updateDoc(hotelRef, {
+        isOrderEnabled: Boolean(isEnabled),
+        updatedAt: Timestamp.fromDate(new Date()),
+      });
+
+      toast.success(
+        `Orders ${isEnabled ? "enabled" : "disabled"} successfully!`,
+        {
+          position: toast.POSITION.TOP_RIGHT,
+        }
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error toggling order status:", error);
+      toast.error("Error updating order status. Please try again.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return { success: false, error: error.message };
     }
   },
 
@@ -142,13 +186,13 @@ export const hotelServices = {
       // Enhanced duplicate checking
       const duplicateCheck = hotelServices.checkDuplicateHotel(
         hotelData,
-        existingHotels,
+        existingHotels
       );
       if (duplicateCheck.isDuplicate) {
         toast.error(duplicateCheck.message, {
           position: toast.POSITION.TOP_RIGHT,
         });
-        return false;
+        return { success: false, error: duplicateCheck.message };
       }
 
       // Generate hotelId from business name
@@ -164,6 +208,8 @@ export const hotelServices = {
         // Status handling
         status: hotelData.isActive === "active" ? "active" : "inactive",
         isActive: hotelData.isActive || "active",
+        // Order enabled status - NEW FIELD
+        isOrderEnabled: Boolean(hotelData.isOrderEnabled || false),
         // Timestamps
         createdAt: Timestamp.fromDate(new Date()),
         updatedAt: Timestamp.fromDate(new Date()),
@@ -176,10 +222,10 @@ export const hotelServices = {
         totalOrders: 0,
         // Contact normalization
         primaryContact: hotelServices.normalizePhoneNumber(
-          hotelData.primaryContact,
+          hotelData.primaryContact
         ),
         alternateContact: hotelServices.normalizePhoneNumber(
-          hotelData.alternateContact,
+          hotelData.alternateContact
         ),
       };
 
@@ -214,7 +260,7 @@ export const hotelServices = {
     const duplicateByName = existingHotels.find(
       (h) =>
         h.businessName?.toLowerCase().trim() ===
-        hotelData.businessName?.toLowerCase().trim(),
+        hotelData.businessName?.toLowerCase().trim()
     );
     if (duplicateByName) {
       return { isDuplicate: true, message: "Business name already exists" };
@@ -225,7 +271,7 @@ export const hotelServices = {
       const duplicateByEmail = existingHotels.find(
         (h) =>
           h.businessEmail?.toLowerCase().trim() ===
-          hotelData.businessEmail?.toLowerCase().trim(),
+          hotelData.businessEmail?.toLowerCase().trim()
       );
       if (duplicateByEmail) {
         return { isDuplicate: true, message: "Business email already exists" };
@@ -235,12 +281,12 @@ export const hotelServices = {
     // Check primary contact
     if (hotelData.primaryContact) {
       const normalizedPhone = hotelServices.normalizePhoneNumber(
-        hotelData.primaryContact,
+        hotelData.primaryContact
       );
       const duplicateByPhone = existingHotels.find(
         (h) =>
           hotelServices.normalizePhoneNumber(h.primaryContact) ===
-          normalizedPhone,
+          normalizedPhone
       );
       if (duplicateByPhone) {
         return {
@@ -289,7 +335,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "categories",
-        "_meta",
+        "_meta"
       );
       batch.set(categoryMetaRef, {
         createdAt: timestamp,
@@ -315,7 +361,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "orders",
-        "_meta",
+        "_meta"
       );
       batch.set(ordersMetaRef, {
         createdAt: timestamp,
@@ -333,7 +379,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "captains",
-        "_meta",
+        "_meta"
       );
       batch.set(captainsMetaRef, {
         createdAt: timestamp,
@@ -343,13 +389,13 @@ export const hotelServices = {
         hotelId,
       });
 
-      // Initialize subscription with free plan
+      // Initialize subscription with free plan - Enhanced with order feature
       const subscriptionRef = doc(
         firestore,
         "hotels",
         hotelId,
         "subscription",
-        "current",
+        "current"
       );
       batch.set(subscriptionRef, {
         planId: "free",
@@ -358,7 +404,7 @@ export const hotelServices = {
         duration: 0, // Unlimited for free
         status: "active",
         features: {
-          isCustomerOrderEnable: true,
+          isCustomerOrderEnable: Boolean(hotelData.isOrderEnabled || true), // Based on hotel setting
           isCaptainDashboard: false,
           isKitchenDashboard: false,
           isAnalyticsDashboard: false,
@@ -383,7 +429,7 @@ export const hotelServices = {
         "hotels",
         hotelId,
         "settings",
-        "general",
+        "general"
       );
       batch.set(settingsRef, {
         currency: "INR",
@@ -402,6 +448,7 @@ export const hotelServices = {
           autoAcceptOrders: false,
           orderPreparationTime: 30, // minutes
           minimumOrderAmount: 0,
+          isOrderEnabled: Boolean(hotelData.isOrderEnabled || false), // Hotel-specific order setting
         },
         createdAt: timestamp,
         hotelId,
@@ -419,7 +466,7 @@ export const hotelServices = {
       const otherHotels = existingHotels.filter((h) => h.hotelId !== hotelId);
       const duplicateCheck = hotelServices.checkDuplicateHotel(
         hotelData,
-        otherHotels,
+        otherHotels
       );
       if (duplicateCheck.isDuplicate) {
         toast.error(duplicateCheck.message, {
@@ -434,17 +481,41 @@ export const hotelServices = {
         hotelName: hotelData.businessName || hotelData.hotelName,
         businessName: hotelData.businessName || hotelData.hotelName,
         status: hotelData.isActive === "active" ? "active" : "inactive",
+        // Order enabled status
+        isOrderEnabled: Boolean(
+          hotelData.isOrderEnabled !== undefined
+            ? hotelData.isOrderEnabled
+            : false
+        ),
         // Normalize contact numbers
         primaryContact: hotelServices.normalizePhoneNumber(
-          hotelData.primaryContact,
+          hotelData.primaryContact
         ),
         alternateContact: hotelServices.normalizePhoneNumber(
-          hotelData.alternateContact,
+          hotelData.alternateContact
         ),
         updatedAt: Timestamp.fromDate(new Date()),
       };
 
       await updateDoc(doc(firestore, "hotels", hotelId), data);
+
+      // Also update the order settings in the hotel's settings collection
+      try {
+        const settingsRef = doc(
+          firestore,
+          "hotels",
+          hotelId,
+          "settings",
+          "general"
+        );
+        await updateDoc(settingsRef, {
+          "orderSettings.isOrderEnabled": Boolean(hotelData.isOrderEnabled),
+          updatedAt: Timestamp.fromDate(new Date()),
+        });
+      } catch (settingsError) {
+        console.warn("Could not update settings collection:", settingsError);
+        // Don't fail the entire update if settings update fails
+      }
 
       toast.success("Hotel updated successfully!", {
         position: toast.POSITION.TOP_RIGHT,
@@ -474,7 +545,9 @@ export const hotelServices = {
         const confirmMessage = `⚠️ WARNING: This hotel has:
 • ${metrics.totalAdmins} admin(s)
 • ${metrics.totalMenuItems} menu item(s)
+• ${metrics.totalOrders} order(s)
 • Active subscription: ${metrics.subscription?.planName || "Free"}
+• Orders ${hotel.isOrderEnabled ? "ENABLED" : "DISABLED"}
 
 Deleting will permanently remove ALL data including orders, categories, and admin accounts.
 
@@ -513,7 +586,7 @@ Type "DELETE" to confirm:`;
     }
   },
 
-  // Enhanced filtering with multiple criteria
+  // Enhanced filtering with multiple criteria including order status
   filterHotels: (hotels, searchTerm, filters = {}) => {
     let filteredHotels = [...hotels];
 
@@ -553,23 +626,37 @@ Type "DELETE" to confirm:`;
       });
     }
 
+    // Order enabled filter - NEW FILTER
+    if (filters.orderEnabled && filters.orderEnabled !== "all") {
+      filteredHotels = filteredHotels.filter((hotel) => {
+        if (filters.orderEnabled === "enabled") {
+          return hotel.isOrderEnabled === true;
+        } else if (filters.orderEnabled === "disabled") {
+          return (
+            hotel.isOrderEnabled === false || hotel.isOrderEnabled === undefined
+          );
+        }
+        return true;
+      });
+    }
+
     // Business type filter
     if (filters.businessType && filters.businessType !== "all") {
       filteredHotels = filteredHotels.filter(
-        (hotel) => hotel.businessType === filters.businessType,
+        (hotel) => hotel.businessType === filters.businessType
       );
     }
 
     // Location filters
     if (filters.city && filters.city !== "all") {
       filteredHotels = filteredHotels.filter(
-        (hotel) => hotel.city?.toLowerCase() === filters.city.toLowerCase(),
+        (hotel) => hotel.city?.toLowerCase() === filters.city.toLowerCase()
       );
     }
 
     if (filters.state && filters.state !== "all") {
       filteredHotels = filteredHotels.filter(
-        (hotel) => hotel.state?.toLowerCase() === filters.state.toLowerCase(),
+        (hotel) => hotel.state?.toLowerCase() === filters.state.toLowerCase()
       );
     }
 
@@ -578,7 +665,7 @@ Type "DELETE" to confirm:`;
       filteredHotels = filteredHotels.filter(
         (hotel) =>
           hotel.metrics?.subscription?.planName?.toLowerCase() ===
-          filters.subscriptionPlan.toLowerCase(),
+          filters.subscriptionPlan.toLowerCase()
       );
     }
 
@@ -596,6 +683,10 @@ Type "DELETE" to confirm:`;
       cities: [],
       states: [],
       subscriptionPlans: [],
+      orderStatuses: [
+        { value: "enabled", label: "Orders Enabled" },
+        { value: "disabled", label: "Orders Disabled" },
+      ],
     };
 
     const businessTypesSet = new Set();
@@ -627,6 +718,8 @@ Type "DELETE" to confirm:`;
         ...hotel,
         // Convert status back to isActive for form compatibility
         isActive: hotel.status === "active" ? "active" : "in_active",
+        // Ensure isOrderEnabled is properly formatted
+        isOrderEnabled: Boolean(hotel.isOrderEnabled || false),
       };
     } catch (error) {
       console.error("Error preparing hotel for edit:", error);
@@ -651,6 +744,7 @@ Type "DELETE" to confirm:`;
           ...hotelData,
           hotelId: hotelSnapshot.id,
           metrics,
+          isOrderEnabled: Boolean(hotelData.isOrderEnabled || false), // Ensure boolean
         };
       }
       return null;
@@ -667,10 +761,17 @@ Type "DELETE" to confirm:`;
 
       hotelIds.forEach((hotelId) => {
         const hotelRef = doc(firestore, "hotels", hotelId);
-        batch.update(hotelRef, {
+        const processedData = {
           ...updateData,
           updatedAt: Timestamp.fromDate(new Date()),
-        });
+        };
+
+        // Ensure isOrderEnabled is boolean if provided
+        if (updateData.hasOwnProperty("isOrderEnabled")) {
+          processedData.isOrderEnabled = Boolean(updateData.isOrderEnabled);
+        }
+
+        batch.update(hotelRef, processedData);
       });
 
       await batch.commit();
@@ -688,7 +789,7 @@ Type "DELETE" to confirm:`;
     }
   },
 
-  // Export hotels data
+  // Export hotels data with order status
   exportHotelsData: (hotels, format = "csv") => {
     try {
       const exportData = hotels.map((hotel) => ({
@@ -701,10 +802,12 @@ Type "DELETE" to confirm:`;
         City: hotel.city,
         State: hotel.state,
         Status: hotel.status,
+        "Orders Enabled": hotel.isOrderEnabled ? "Yes" : "No", // NEW FIELD
         "Created Date":
           hotel.createdAt?.toDate?.()?.toLocaleDateString() || "N/A",
         "Total Admins": hotel.metrics?.totalAdmins || 0,
         "Total Menu Items": hotel.metrics?.totalMenuItems || 0,
+        "Total Orders": hotel.metrics?.totalOrders || 0,
         "Subscription Plan": hotel.metrics?.subscription?.planName || "Free",
       }));
 
@@ -719,16 +822,22 @@ Type "DELETE" to confirm:`;
     }
   },
 
-  // Hotel analytics
+  // Hotel analytics with order status
   getHotelAnalytics: (hotels) => {
     const analytics = {
       total: hotels.length,
       active: 0,
       inactive: 0,
+      orderEnabled: 0,
+      orderDisabled: 0,
       byBusinessType: {},
       byCity: {},
       byState: {},
       bySubscriptionPlan: {},
+      byOrderStatus: {
+        enabled: 0,
+        disabled: 0,
+      },
       revenueStats: {
         totalRevenue: 0,
         averageRevenue: 0,
@@ -743,6 +852,15 @@ Type "DELETE" to confirm:`;
         analytics.active++;
       } else {
         analytics.inactive++;
+      }
+
+      // Order status counts
+      if (hotel.isOrderEnabled) {
+        analytics.orderEnabled++;
+        analytics.byOrderStatus.enabled++;
+      } else {
+        analytics.orderDisabled++;
+        analytics.byOrderStatus.disabled++;
       }
 
       // Business type distribution

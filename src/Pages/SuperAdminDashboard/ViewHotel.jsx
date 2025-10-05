@@ -365,7 +365,7 @@ const ViewHotel = memo(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-4">
       {/* Hotel Form Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         <AddHotelFormModal
