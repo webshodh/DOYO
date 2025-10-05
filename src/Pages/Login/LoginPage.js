@@ -3,10 +3,10 @@ import { toast, ToastContainer } from "react-toastify";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-import LoginHeader from "components/login-form/LoginHeader";
-import LoginForm from "components/login-form/LoginForm";
-import SecurityNotice from "components/login-form/LoginSecurityNotice";
-import LoginRightPanel from "components/login-form/LoginRightPanel";
+import LoginHeader from "components/Login/LoginHeader";
+import LoginForm from "components/Login/LoginForm";
+import SecurityNotice from "components/Login/LoginSecurityNotice";
+import LoginRightPanel from "components/Login/LoginRightPanel";
 import { getUserType, LOGIN_CONFIGS } from "Constants/ConfigForms/loginConfigs";
 
 const LoginPage = () => {

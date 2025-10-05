@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "organisms/SideBarComponent";
-import Navbar from "organisms/NavBarComponent";
+import Sidebar from "components/SideBarComponent";
+import Navbar from "components/NavBarComponent";
 
 const CaptainDashboardLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

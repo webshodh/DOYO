@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from "react";
-import OrderItem from "./OrderItem";
+import OrderItem from "../../atoms/OrderItem";
 
 const OrderDetailsModal = memo(({ order, onClose }) => {
   useEffect(() => {

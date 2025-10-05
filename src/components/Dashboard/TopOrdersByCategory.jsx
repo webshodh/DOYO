@@ -1,6 +1,6 @@
 // components/dashboard/TopOrdersByCategory.jsx
 import React, { useMemo } from "react";
-import DynamicTable from "../organisms/DynamicTable";
+import DynamicTable from "../DynamicTable";
 import { BarChart3 } from "lucide-react";
 
 const TopOrdersByCategory = ({ topOrdersByCategory = [] }) => {

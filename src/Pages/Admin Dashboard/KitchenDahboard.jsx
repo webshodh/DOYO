@@ -17,16 +17,16 @@ import EmptyState from "atoms/Messages/EmptyState";
 import StatCard from "components/Cards/StatCard";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useOrder } from "hooks/useOrder";
-import TimePeriodSelector from "atoms/TimePeriodSelector";
+import TimePeriodSelector from "atoms/Selector/TimePeriodSelector";
 
 // Lazy load heavy components
-const HeaderStats = React.lazy(() => import("components/HeaderStats"));
+const HeaderStats = React.lazy(() => import("components/Dashboard/HeaderStats"));
 const OrderFilters = React.lazy(() =>
-  import("components/order-dashboard/OrderFilters")
+  import("components/Filters/OrderFilters")
 );
 const OrderCard = React.lazy(() => import("components/Cards/OrderCard"));
 const OrderDetailsModal = React.lazy(() =>
-  import("components/order-dashboard/OrderDetailsModal")
+  import("components/Dashboard/OrderDetailsModal")
 );
 
 // Time period tabs component

@@ -17,13 +17,13 @@ import { app } from "../../services/firebase/firebaseConfig";
 // Components
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "../../atoms/Messages/EmptyState";
-import NoSearchResults from "../../molecules/NoSearchResults";
-import SearchWithResults from "../../molecules/SearchWithResults";
+import NoSearchResults from "../../components/NoSearchResults";
+import SearchWithResults from "../../components/SearchWithResults";
 import StatCard from "../../components/Cards/StatCard";
 import ErrorMessage from "../../atoms/Messages/ErrorMessage";
 import { PageTitle } from "../../atoms";
-import TimePeriodSelector from "../../atoms/TimePeriodSelector";
-import OrderDetailsTable from "../../components/order-dashboard/OrderDetailsTable";
+import TimePeriodSelector from "../../atoms/Selector/TimePeriodSelector";
+import OrderDetailsTable from "../../components/Dashboard/OrderDetailsTable";
 
 // Modals
 import EditOrderModal from "./EditOrderModal";

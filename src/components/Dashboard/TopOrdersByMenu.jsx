@@ -1,6 +1,6 @@
 // components/dashboard/TopOrdersByMenu.jsx
 import React, { useMemo } from "react";
-import DynamicTable from "../organisms/DynamicTable";
+import DynamicTable from "../DynamicTable";
 import { TrendingUp } from "lucide-react";
 
 const TopOrdersByMenu = ({ topOrdersByMenu = [] }) => {

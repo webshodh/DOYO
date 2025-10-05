@@ -16,7 +16,7 @@ import { HotelSelectionProvider } from "./context/HotelSelectionContext";
 import LoginPage from "./Pages/Login/LoginPage";
 import SplashScreen from "./Pages/Screens/SplashScreen";
 import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
-import Profile from "./organisms/ProfileComponent";
+import Profile from "./components/ProfileComponent";
 import AddCategory from "./Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "./Pages/Admin Dashboard/AddMenu";

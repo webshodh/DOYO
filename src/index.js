@@ -16,7 +16,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import "./i18n/index";
-import "./styles/theme.css";
+
 import { AuthProvider } from "context/AuthContext";
 import { HotelProvider } from "context/HotelContext";
 import { HotelSelectionProvider } from "context/HotelSelectionContext";
@@ -35,7 +35,7 @@ root.render(
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );
 
 // Note: AuthProvider and HotelProvider are now handled inside App.js

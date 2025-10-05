@@ -1,12 +1,12 @@
 // components/customers/CustomerTableSection.jsx
 import React, { Suspense } from "react";
-import SearchWithResults from "../molecules/SearchWithResults";
+import SearchWithResults from "../SearchWithResults";
 import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
-import LoadingSpinner from "../atoms/LoadingSpinner";
+import NoSearchResults from "components/NoSearchResults";
+import LoadingSpinner from "../../atoms/LoadingSpinner";
 import { Users } from "lucide-react";
 
-const DynamicTable = React.lazy(() => import("../organisms/DynamicTable"));
+const DynamicTable = React.lazy(() => import("../DynamicTable"));
 
 const CustomerTableSection = ({
   customers,

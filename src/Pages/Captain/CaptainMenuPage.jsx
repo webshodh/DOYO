@@ -12,9 +12,9 @@ import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig
 import ErrorState from "atoms/Messages/ErrorState";
 import ConnectionStatus from "atoms/Messages/ConnectionStatus";
 import EmptyState from "atoms/Messages/EmptyState";
-import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
+import SpecialCategoriesFilter from "components/Filters/SpecialCategoriesFilter";
 import CartButton from "atoms/Buttons/CartButton";
-import CategoryTabs from "molecules/CategoryTab";
+import CategoryTabs from "components/CategoryTab";
 
 const firestore = getFirestore(app);
 
@@ -91,13 +91,13 @@ const CaptainMenuPage = () => {
       const specialCounts = {};
       specialCategories.forEach((category) => {
         const count = menusData.filter(
-          (menu) => menu[category.name] === true,
+          (menu) => menu[category.name] === true
         ).length;
         specialCounts[category.name] = count;
       });
       setSpecialCategoryCounts(specialCounts);
     },
-    [],
+    []
   );
 
   // Firestore listeners: menus, categories, mainCategories
@@ -126,14 +126,14 @@ const CaptainMenuPage = () => {
         console.error("Error fetching menus:", err);
         setError("Failed to load menu data");
         setIsLoading(false);
-      },
+      }
     );
     unsubscribes.push(unsubscribeMenus);
 
     // Categories listener
     const categoriesRef = collection(
       firestore,
-      `hotels/${hotelName}/categories`,
+      `hotels/${hotelName}/categories`
     );
     const unsubscribeCategories = onSnapshot(
       categoriesRef,
@@ -146,14 +146,14 @@ const CaptainMenuPage = () => {
       },
       (err) => {
         console.error("Error fetching categories:", err);
-      },
+      }
     );
     unsubscribes.push(unsubscribeCategories);
 
     // Main categories listener
     const mainCategoriesRef = collection(
       firestore,
-      `hotels/${hotelName}/Maincategories`,
+      `hotels/${hotelName}/Maincategories`
     );
     const unsubscribeMainCategories = onSnapshot(
       mainCategoriesRef,
@@ -166,7 +166,7 @@ const CaptainMenuPage = () => {
       },
       (err) => {
         console.error("Error fetching main categories:", err);
-      },
+      }
     );
     unsubscribes.push(unsubscribeMainCategories);
 
@@ -188,7 +188,7 @@ const CaptainMenuPage = () => {
     const search = (searchTerm || "").toLowerCase();
 
     let filtered = menus.filter((menu) =>
-      menu.menuName?.toLowerCase().includes(search),
+      menu.menuName?.toLowerCase().includes(search)
     );
 
     // Apply category filter
@@ -196,10 +196,10 @@ const CaptainMenuPage = () => {
       filtered = filtered.filter((menu) => {
         // Find the category object by name
         const categoryObj = categories.find(
-          (cat) => cat.categoryName === selectedCategory,
+          (cat) => cat.categoryName === selectedCategory
         );
         const mainCategoryObj = mainCategories.find(
-          (cat) => cat.mainCategoryName === selectedCategory,
+          (cat) => cat.mainCategoryName === selectedCategory
         );
 
         // Check if menu's category matches (by ID or name)
@@ -225,7 +225,7 @@ const CaptainMenuPage = () => {
       filtered = filtered.filter((menu) => {
         // Find the main category object by name
         const mainCategoryObj = mainCategories.find(
-          (cat) => cat.mainCategoryName === selectedMainCategory,
+          (cat) => cat.mainCategoryName === selectedMainCategory
         );
 
         return (
@@ -241,7 +241,7 @@ const CaptainMenuPage = () => {
     // Apply special filters
     if (selectedSpecialFilters.length > 0) {
       filtered = filtered.filter((menu) =>
-        selectedSpecialFilters.every((filter) => menu[filter] === true),
+        selectedSpecialFilters.every((filter) => menu[filter] === true)
       );
     }
 
@@ -250,13 +250,13 @@ const CaptainMenuPage = () => {
       filtered.sort(
         (a, b) =>
           parseFloat(a.finalPrice || a.menuPrice) -
-          parseFloat(b.finalPrice || b.menuPrice),
+          parseFloat(b.finalPrice || b.menuPrice)
       );
     } else if (sortOrder === "highToLow") {
       filtered.sort(
         (a, b) =>
           parseFloat(b.finalPrice || b.menuPrice) -
-          parseFloat(a.finalPrice || a.menuPrice),
+          parseFloat(a.finalPrice || a.menuPrice)
       );
     }
 
@@ -276,12 +276,12 @@ const CaptainMenuPage = () => {
   const cartCalculations = useMemo(() => {
     const totalItems = cartItems.reduce(
       (total, item) => total + item.quantity,
-      0,
+      0
     );
     const totalAmount = cartItems.reduce(
       (total, item) =>
         total + (item.finalPrice || item.menuPrice) * item.quantity,
-      0,
+      0
     );
     return { totalItems, totalAmount };
   }, [cartItems]);
@@ -292,7 +292,7 @@ const CaptainMenuPage = () => {
       const item = cartItems.find((i) => i.id === itemId);
       return item ? item.quantity : 0;
     },
-    [cartItems],
+    [cartItems]
   );
 
   // Add or remove items from cart
@@ -330,7 +330,7 @@ const CaptainMenuPage = () => {
     (category) => {
       // Check if it's a main category
       const isMainCategory = mainCategories.some(
-        (mc) => mc.mainCategoryName === category,
+        (mc) => mc.mainCategoryName === category
       );
 
       if (isMainCategory) {
@@ -341,14 +341,14 @@ const CaptainMenuPage = () => {
         setSelectedMainCategory("");
       }
     },
-    [mainCategories],
+    [mainCategories]
   );
 
   const handleSpecialFilterToggle = useCallback((filterName) => {
     setSelectedSpecialFilters((prev) =>
       prev.includes(filterName)
         ? prev.filter((f) => f !== filterName)
-        : [...prev, filterName],
+        : [...prev, filterName]
     );
   }, []);
 

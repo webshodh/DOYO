@@ -10,7 +10,7 @@ import { Search, SortAsc, SortDesc, X, Check } from "lucide-react";
 import useOutsideClick from "hooks/useOutsideClick";
 import SearchInput from "atoms/SearchInput";
 
-import SortModal from "../components/SortModal";
+import SortModal from "./SortModal";
 
 // Main FilterSortSearch component
 const FilterSortSearch = memo(
@@ -78,8 +78,8 @@ const FilterSortSearch = memo(
               disabled
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : hasActiveSort
-                  ? "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 shadow-sm hover:shadow-md"
-                  : "bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500 shadow-sm hover:shadow-md"
+                ? "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 shadow-sm hover:shadow-md"
+                : "bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500 shadow-sm hover:shadow-md"
             }`}
           >
             {React.createElement(getSortIcon, {
@@ -105,7 +105,7 @@ const FilterSortSearch = memo(
         />
       </>
     );
-  },
+  }
 );
 
 FilterSortSearch.displayName = "FilterSortSearch";

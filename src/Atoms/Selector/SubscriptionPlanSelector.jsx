@@ -1,7 +1,7 @@
 // components/Forms/SubscriptionPlanSelector.js
 
 import React, { useState, useEffect } from "react";
-import { subscriptionServices } from "../services/api/subscriptionPlanServices";
+import { subscriptionServices } from "../../services/api/subscriptionPlanServices";
 import { Check, Crown, Zap, Star } from "lucide-react";
 
 const SubscriptionPlanSelector = ({

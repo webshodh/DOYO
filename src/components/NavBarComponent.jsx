@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 import useOutsideClick from "hooks/useOutsideClick";
 import LanguageSelector from "atoms/Selector/LanguageSelector";
 import MenuToggleButton from "../atoms/Buttons/MenuToggleButton";
-import HotelSwitcher from "../atoms/HotelSwitcher";
+import HotelSwitcher from "../atoms/Selector/HotelSwitcher";
 import ProfileDropdown from "../atoms/ProfileDropdown";
 
 function Navbar({ onMenuToggle, isSidebarOpen, admin }) {

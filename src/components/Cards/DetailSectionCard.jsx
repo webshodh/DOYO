@@ -1,7 +1,7 @@
 import React, { useMemo, memo, forwardRef } from "react";
 import { AlertCircle, Info } from "lucide-react";
 import { DETAIL_SECTION_COLOR_THEMES } from "Constants/Themes/detailSectionColorThemes";
-import InfoItemSkeleton from "atoms/InfoItemSkeleton";
+import InfoItemSkeleton from "atoms/Skeleton/InfoItemSkeleton";
 import InfoItem from "components/InfoItem";
 import { GRID_LAYOUTS } from "Constants/Themes/gridLayouts";
 
@@ -29,7 +29,7 @@ const DetailSectionCard = memo(
         testId,
         ...rest
       },
-      ref,
+      ref
     ) => {
       const IconComponent = iconComponent;
 
@@ -38,14 +38,14 @@ const DetailSectionCard = memo(
         () =>
           DETAIL_SECTION_COLOR_THEMES[colorScheme] ||
           DETAIL_SECTION_COLOR_THEMES.red,
-        [colorScheme],
+        [colorScheme]
       );
 
       // Memoized grid configuration
       const gridConfig = useMemo(
         () =>
           customGridCols || GRID_LAYOUTS[gridLayout] || GRID_LAYOUTS.balanced,
-        [gridLayout, customGridCols],
+        [gridLayout, customGridCols]
       );
 
       // Memoized grid classes
@@ -182,8 +182,8 @@ const DetailSectionCard = memo(
           </div>
         </div>
       );
-    },
-  ),
+    }
+  )
 );
 
 DetailSectionCard.displayName = "DetailSectionCard";

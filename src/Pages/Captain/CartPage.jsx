@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import { ArrowLeft, ShoppingCart, Info } from "lucide-react";
 import ErrorState from "atoms/Messages/ErrorState";
 import CartItem from "components/CartItem";
-import OrderSummary from "components/order-dashboard/OrderSummary";
+import OrderSummary from "components/Dashboard/OrderSummary";
 import InfoCard from "components/Cards/InfoCard";
 import EmptyState from "atoms/Messages/EmptyState";
 
@@ -55,12 +55,12 @@ const CartPage = ({ cartItems = [], onUpdateCart, onGoBack, onCheckout }) => {
 
     const totalItems = cartItems.reduce(
       (total, item) => total + (item.quantity || 0),
-      0,
+      0
     );
     const subtotal = cartItems.reduce(
       (total, item) =>
         total + (item.finalPrice || item.menuPrice || 0) * (item.quantity || 0),
-      0,
+      0
     );
     const taxAmount = Math.round(subtotal * 0.18);
     const grandTotal = subtotal + taxAmount;
@@ -92,7 +92,7 @@ const CartPage = ({ cartItems = [], onUpdateCart, onGoBack, onCheckout }) => {
         });
       }
     },
-    [onUpdateCart],
+    [onUpdateCart]
   );
 
   const handleCheckout = useCallback(async () => {

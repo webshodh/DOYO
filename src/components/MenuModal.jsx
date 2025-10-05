@@ -13,11 +13,11 @@ import QuickInfoCard from "../components/Cards/QuickInfoCard"; // Adjust path as
 import CloseButton from "atoms/Buttons/CloseButton";
 import SpecialBadges from "atoms/Badges/SpecialBadges";
 import ImageHeader from "../atoms/Headers/ImageHeader";
-import TitlePriceSection from "molecules/Sections/TitlePriceSection";
-import TagsSection from "molecules/Sections/TagsSection";
-import DescriptionSection from "molecules/Sections/DescriptionSection";
-import NutritionalSection from "molecules/Sections/NutritionalSection";
-import DetailSectionGroup from "molecules/Sections/DetailSectionGroup";
+import TitlePriceSection from "components/Sections/TitlePriceSection";
+import TagsSection from "components/Sections/TagsSection";
+import DescriptionSection from "components/Sections/DescriptionSection";
+import NutritionalSection from "components/Sections/NutritionalSection";
+import DetailSectionGroup from "components/Sections/DetailSectionGroup";
 import UnavailableNotice from "atoms/Messages/UnavailableNotice";
 import {
   getAdditionalDetails,

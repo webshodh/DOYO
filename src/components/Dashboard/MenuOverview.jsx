@@ -1,6 +1,6 @@
 // components/dashboard/MenuOverview.jsx
 import React from "react";
-import StatCard from "../components/Cards/StatCard";
+import StatCard from "../Cards/StatCard";
 import { ChefHat, Package, CheckCircle, Star, BarChart3 } from "lucide-react";
 
 const MenuOverview = ({ menuStats }) => {

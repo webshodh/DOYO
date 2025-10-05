@@ -16,14 +16,14 @@ import { t } from "i18next";
 // Layout and components
 import PageTitle from "../../atoms/PageTitle";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
-import TabNavigation from "../../components/TabNavigation";
+import TabNavigation from "../../atoms/Buttons/TabNavigation";
 
 // Reusable Customer Components
-import CustomerOverviewStats from "../../components/CustomerOverviewStats";
-import TopCustomers from "../../components/TopCustomers";
-import CustomerSegmentation from "../../components/CustomerSegmentation";
-import CustomerTableSection from "../../components/CustomerTableSection";
-import CustomerAnalytics from "../../components/CustomerAnalytics";
+import CustomerOverviewStats from "../../components/Dashboard/CustomerOverviewStats";
+import TopCustomers from "../../components/Dashboard/TopCustomers";
+import CustomerSegmentation from "../../components/Dashboard/CustomerSegmentation";
+import CustomerTableSection from "../../components/Dashboard/CustomerTableSection";
+import CustomerAnalytics from "../../components/Dashboard/CustomerAnalytics";
 
 // Hooks
 import { useCustomers } from "../../hooks/useCustomers";

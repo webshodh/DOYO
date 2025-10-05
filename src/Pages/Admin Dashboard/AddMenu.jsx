@@ -13,20 +13,20 @@ import {
   Eye,
 } from "lucide-react";
 import useColumns from "Constants/Columns";
-import CategoryTabs from "molecules/CategoryTab";
+import CategoryTabs from "components/CategoryTab";
 import { useMenu } from "../../hooks/useMenu";
 import PageTitle from "../../atoms/PageTitle";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
+import NoSearchResults from "components/NoSearchResults";
 import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
-import SearchWithResults from "molecules/SearchWithResults";
+import SearchWithResults from "components/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 import MenuFormModal from "../../components/FormModals/MenuFormModal";
 
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+const DynamicTable = React.lazy(() => import("../../components/DynamicTable"));
 
 const AddMenu = memo(() => {
   const { hotelName } = useParams();

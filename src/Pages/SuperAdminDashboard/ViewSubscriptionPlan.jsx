@@ -25,7 +25,7 @@ import {
 import { useHotelsList } from "../../hooks/useHotel";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
+import NoSearchResults from "components/NoSearchResults";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import StatCard from "components/Cards/StatCard";
 import { useTranslation } from "react-i18next";
@@ -47,41 +47,41 @@ const FEATURE_CONFIG = {
       {
         key: "isOrderDashboard",
         label: "Order Management",
-        description: "Manage all orders and track status"
+        description: "Manage all orders and track status",
       },
       {
         key: "isCustomerOrderEnable",
         label: "Online Ordering",
-        description: "Customer self-ordering via QR codes"
+        description: "Customer self-ordering via QR codes",
       },
       {
         key: "isCaptainDashboard",
         label: "Captain Dashboard",
-        description: "Waiter/Captain order management"
+        description: "Waiter/Captain order management",
       },
       {
         key: "isKitchenDashboard",
         label: "Kitchen Display",
-        description: "Kitchen order preparation system"
+        description: "Kitchen order preparation system",
       },
       {
         key: "isInventoryManagement",
         label: "Inventory Management",
-        description: "Track stock and ingredients"
+        description: "Track stock and ingredients",
       },
       {
         key: "isTableManagement",
         label: "Table Management",
-        description: "Manage tables and reservations"
+        description: "Manage tables and reservations",
       },
       {
         key: "isStaffManagement",
         label: "Staff Management",
-        description: "Employee scheduling and management"
+        description: "Employee scheduling and management",
       },
     ],
   },
-  
+
   // Analytics Features
   analyticsFeatures: {
     title: "Analytics & Reports",
@@ -90,26 +90,26 @@ const FEATURE_CONFIG = {
       {
         key: "isAnalyticsDashboard",
         label: "Analytics Dashboard",
-        description: "Business insights and metrics"
+        description: "Business insights and metrics",
       },
       {
         key: "isReportsExport",
         label: "Export Reports",
-        description: "Download reports as PDF/Excel"
+        description: "Download reports as PDF/Excel",
       },
       {
         key: "isSalesReports",
         label: "Sales Reports",
-        description: "Detailed sales analysis"
+        description: "Detailed sales analysis",
       },
       {
         key: "isCustomerInsights",
         label: "Customer Insights",
-        description: "Customer behavior analytics"
+        description: "Customer behavior analytics",
       },
     ],
   },
-  
+
   // Integration Features
   integrationFeatures: {
     title: "Integrations",
@@ -118,27 +118,27 @@ const FEATURE_CONFIG = {
       {
         key: "isWhatsAppIntegration",
         label: "WhatsApp Integration",
-        description: "Send orders via WhatsApp"
+        description: "Send orders via WhatsApp",
       },
       {
         key: "isSmsNotifications",
         label: "SMS Notifications",
-        description: "SMS alerts and updates"
+        description: "SMS alerts and updates",
       },
       {
         key: "isEmailReports",
         label: "Email Reports",
-        description: "Automated email reports"
+        description: "Automated email reports",
       },
       {
         key: "isMultiLanguage",
         label: "Multi-Language",
-        description: "Support multiple languages"
+        description: "Support multiple languages",
       },
       {
         key: "is24x7Support",
         label: "24x7 Support",
-        description: "Round-the-clock support"
+        description: "Round-the-clock support",
       },
     ],
   },
@@ -159,18 +159,19 @@ const LIMIT_CONFIG = [
 const PlanCard = memo(({ plan, onEdit, onDelete, onAssign }) => {
   const getPrice = () => plan.pricing?.monthlyPrice || plan.price || 0;
   const getDuration = () => plan.pricing?.duration || plan.duration || 1;
-  
+
   // Count enabled features dynamically
   const getEnabledFeatures = () => {
     const features = plan.originalFeatures || plan.features || {};
-    return Object.values(FEATURE_CONFIG).flatMap(category => 
-      category.features.filter(feature => features[feature.key])
+    return Object.values(FEATURE_CONFIG).flatMap((category) =>
+      category.features.filter((feature) => features[feature.key])
     );
   };
 
   const enabledFeatures = getEnabledFeatures();
-  const totalPossibleFeatures = Object.values(FEATURE_CONFIG)
-    .flatMap(category => category.features).length;
+  const totalPossibleFeatures = Object.values(FEATURE_CONFIG).flatMap(
+    (category) => category.features
+  ).length;
 
   return (
     <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200">
@@ -222,26 +223,32 @@ const PlanCard = memo(({ plan, onEdit, onDelete, onAssign }) => {
             {enabledFeatures.length}/{totalPossibleFeatures} enabled
           </span>
         </div>
-        
+
         {/* Feature Categories */}
         {Object.entries(FEATURE_CONFIG).map(([categoryKey, category]) => {
-          const categoryFeatures = category.features.filter(feature => 
-            (plan.originalFeatures || plan.features || {})[feature.key]
+          const categoryFeatures = category.features.filter(
+            (feature) =>
+              (plan.originalFeatures || plan.features || {})[feature.key]
           );
-          
+
           if (categoryFeatures.length === 0) return null;
-          
+
           const Icon = category.icon;
-          
+
           return (
             <div key={categoryKey} className="mb-2">
               <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
                 <Icon size={12} />
-                <span>{category.title} ({categoryFeatures.length})</span>
+                <span>
+                  {category.title} ({categoryFeatures.length})
+                </span>
               </div>
               <div className="pl-4 space-y-1">
                 {categoryFeatures.slice(0, 3).map((feature) => (
-                  <div key={feature.key} className="flex items-center text-xs text-green-600">
+                  <div
+                    key={feature.key}
+                    className="flex items-center text-xs text-green-600"
+                  >
                     <Check size={10} className="mr-1 flex-shrink-0" />
                     <span className="truncate">{feature.label}</span>
                   </div>
@@ -255,7 +262,7 @@ const PlanCard = memo(({ plan, onEdit, onDelete, onAssign }) => {
             </div>
           );
         })}
-        
+
         {enabledFeatures.length === 0 && (
           <div className="flex items-center text-xs text-gray-400">
             <X size={10} className="mr-1" />
@@ -269,12 +276,16 @@ const PlanCard = memo(({ plan, onEdit, onDelete, onAssign }) => {
         <h4 className="font-medium text-gray-700 mb-2">Usage Limits</h4>
         <div className="grid grid-cols-2 gap-1 text-xs">
           {LIMIT_CONFIG.slice(0, 6).map((limit) => {
-            const value = (plan.originalLimits || plan.limits || {})[limit.key] || 
-                         plan[limit.key] || 0;
+            const value =
+              (plan.originalLimits || plan.limits || {})[limit.key] ||
+              plan[limit.key] ||
+              0;
             return (
               <div key={limit.key} className="flex items-center">
                 <limit.icon size={10} className="mr-1 text-gray-400" />
-                <span>{limit.label}: {value}</span>
+                <span>
+                  {limit.label}: {value}
+                </span>
               </div>
             );
           })}
@@ -298,7 +309,7 @@ const PlanCard = memo(({ plan, onEdit, onDelete, onAssign }) => {
             Assign
           </button>
         </div>
-        
+
         <button
           onClick={() => onDelete(plan)}
           className="w-full px-3 py-2 text-sm border border-red-200 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"

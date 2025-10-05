@@ -8,18 +8,18 @@ import useColumns from "../../Constants/Columns";
 import { useCaptain } from "../../hooks/useCaptain";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
+import NoSearchResults from "components/NoSearchResults";
 import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
-import SearchWithResults from "molecules/SearchWithResults";
+import SearchWithResults from "components/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 
 // Lazy load heavy components
-const CaptainFormModal = React.lazy(
-  () => import("../../components/FormModals/CaptainFormModal"),
+const CaptainFormModal = React.lazy(() =>
+  import("../../components/FormModals/CaptainFormModal")
 );
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+const DynamicTable = React.lazy(() => import("../../components/DynamicTable"));
 
 // Main AddCaptain component
 const AddCaptain = memo(() => {
@@ -62,13 +62,13 @@ const AddCaptain = memo(() => {
         const createdDate = new Date(
           captain.createdAt?.toDate
             ? captain.createdAt.toDate()
-            : captain.createdAt,
+            : captain.createdAt
         );
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return createdDate > weekAgo;
       }).length,
     }),
-    [captains, captainCount, activeCaptains, inactiveCaptains],
+    [captains, captainCount, activeCaptains, inactiveCaptains]
   );
 
   // Event handlers
@@ -89,7 +89,7 @@ const AddCaptain = memo(() => {
         console.error("Error preparing captain for edit:", error);
       }
     },
-    [prepareForEdit],
+    [prepareForEdit]
   );
 
   const handleDeleteClick = useCallback(
@@ -98,7 +98,7 @@ const AddCaptain = memo(() => {
         t("confirmations.deleteCaptain", {
           firstName: captain.firstName,
           lastName: captain.lastName,
-        }),
+        })
       );
 
       if (confirmed) {
@@ -109,7 +109,7 @@ const AddCaptain = memo(() => {
         }
       }
     },
-    [deleteCaptain, t],
+    [deleteCaptain, t]
   );
 
   const handleToggleStatus = useCallback(
@@ -120,7 +120,7 @@ const AddCaptain = memo(() => {
         console.error("Error toggling captain status:", error);
       }
     },
-    [toggleCaptainStatus],
+    [toggleCaptainStatus]
   );
 
   const handleModalClose = useCallback(() => {
@@ -138,7 +138,7 @@ const AddCaptain = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit],
+    [handleFormSubmit]
   );
 
   const handleClearSearch = useCallback(() => {

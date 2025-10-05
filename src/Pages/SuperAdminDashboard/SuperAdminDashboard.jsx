@@ -64,7 +64,7 @@ import {
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { t } from "i18next";
 import QuickActions from "atoms/Buttons/QuickActions";
-import PerformanceInsights from "atoms/PerformanceInsights";
+import PerformanceInsights from "components/Dashboard/PerformanceInsights";
 import ChartCard from "components/Charts/ChartCard";
 import SuperAdminFooter from "../../atoms/SuperAdminFooter";
 import { toast } from "react-toastify";

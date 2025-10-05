@@ -1,6 +1,6 @@
 // components/dashboard/PlatformAnalytics.jsx
 import React from "react";
-import StatCard from "../components/Cards/StatCard";
+import StatCard from "../Cards/StatCard";
 import {
   Smartphone,
   Store,

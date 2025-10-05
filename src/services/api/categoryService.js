@@ -56,13 +56,13 @@ export const categoryServices = {
   checkDuplicateCategory: (
     categories,
     categoryName,
-    excludeCategoryId = null,
+    excludeCategoryId = null
   ) => {
     const normalizedCategoryName = categoryName.trim().toLowerCase();
     return categories.some(
       (category) =>
         category.categoryName.toLowerCase() === normalizedCategoryName &&
-        (category.categoryId || category.id) !== excludeCategoryId,
+        (category.categoryId || category.id) !== excludeCategoryId
     );
   },
 
@@ -70,7 +70,7 @@ export const categoryServices = {
   validateCategoryForm: (
     categoryName,
     categories,
-    excludeCategoryId = null,
+    excludeCategoryId = null
   ) => {
     const basicValidation = categoryServices.validateCategoryName(categoryName);
     if (!basicValidation.isValid) {
@@ -84,7 +84,7 @@ export const categoryServices = {
       categoryServices.checkDuplicateCategory(
         categories,
         categoryName,
-        excludeCategoryId,
+        excludeCategoryId
       )
     ) {
       toast.error("Category already exists", {
@@ -109,7 +109,7 @@ export const categoryServices = {
 
     const categoriesRef = collection(
       firestore,
-      `hotels/${hotelName}/categories`,
+      `hotels/${hotelName}/categories`
     );
     const unsubscribe = onSnapshot(
       categoriesRef,
@@ -131,7 +131,7 @@ export const categoryServices = {
           position: toast.POSITION.TOP_RIGHT,
         });
         callback([]);
-      },
+      }
     );
 
     return unsubscribe;
@@ -155,7 +155,7 @@ export const categoryServices = {
 
       await setDoc(
         doc(firestore, `hotels/${hotelName}/categories/${categoryId}`),
-        categoryData,
+        categoryData
       );
 
       toast.success("Category added successfully!", {
@@ -176,7 +176,7 @@ export const categoryServices = {
     hotelName,
     categoryId,
     categoryName,
-    existingCategories = [],
+    existingCategories = []
   ) => {
     try {
       if (!categoryId) {
@@ -191,7 +191,7 @@ export const categoryServices = {
         !categoryServices.validateCategoryForm(
           categoryName,
           existingCategories,
-          categoryId,
+          categoryId
         )
       )
         return false;
@@ -199,7 +199,7 @@ export const categoryServices = {
       const sanitizedName = categoryServices.sanitizeCategoryName(categoryName);
       const categoryDocRef = doc(
         firestore,
-        `hotels/${hotelName}/categories/${categoryId}`,
+        `hotels/${hotelName}/categories/${categoryId}`
       );
 
       const categoryDoc = await getDoc(categoryDocRef);
@@ -246,12 +246,12 @@ export const categoryServices = {
       // Check if category is in use
       const isInUse = await categoryServices.checkCategoryUsage(
         hotelName,
-        category.categoryName,
+        category.categoryName
       );
 
       if (isInUse) {
         const confirmDelete = window.confirm(
-          "This category is being used by menu items. Deleting it may affect those items. Do you want to continue?",
+          "This category is being used by menu items. Deleting it may affect those items. Do you want to continue?"
         );
         if (!confirmDelete) return false;
       }
@@ -259,7 +259,7 @@ export const categoryServices = {
       const docId = category.categoryId || category.id;
       const categoryDocRef = doc(
         firestore,
-        `hotels/${hotelName}/categories/${docId}`,
+        `hotels/${hotelName}/categories/${docId}`
       );
 
       const categoryDoc = await getDoc(categoryDocRef);
@@ -291,7 +291,7 @@ export const categoryServices = {
     try {
       const menuRef = collection(firestore, `hotels/${hotelName}/menu`);
       const snapshot = await getDocs(
-        query(menuRef, where("menuCategory", "==", categoryName)),
+        query(menuRef, where("menuCategory", "==", categoryName))
       );
       return !snapshot.empty;
     } catch (error) {
@@ -330,7 +330,7 @@ export const categoryServices = {
     }
     return categories
       .filter((category) =>
-        category.categoryName.toLowerCase().includes(searchTerm.toLowerCase()),
+        category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .map((category, index) => ({
         ...category,
@@ -341,10 +341,10 @@ export const categoryServices = {
   getCategoryStats: async (hotelName) => {
     try {
       const categorySnapshot = await getDocs(
-        collection(firestore, `hotels/${hotelName}/categories`),
+        collection(firestore, `hotels/${hotelName}/categories`)
       );
       const menuSnapshot = await getDocs(
-        collection(firestore, `hotels/${hotelName}/menu`),
+        collection(firestore, `hotels/${hotelName}/menu`)
       );
 
       const totalCategories = categorySnapshot.size;
@@ -374,7 +374,7 @@ export const categoryServices = {
       if (!hotelName) return [];
 
       const categoriesSnapshot = await getDocs(
-        collection(firestore, `hotels/${hotelName}/categories`),
+        collection(firestore, `hotels/${hotelName}/categories`)
       );
 
       const categories = [];
@@ -393,4 +393,5 @@ export const categoryServices = {
       return [];
     }
   },
+  // In categoryService.js at line 270
 };

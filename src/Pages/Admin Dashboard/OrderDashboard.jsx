@@ -19,21 +19,21 @@ import { useMainCategory } from "hooks/useMainCategory";
 // Layout and UI components
 import AdminDashboardLayout from "../../layout/AdminDashboardLayout";
 import { PageTitle } from "atoms";
-import TimePeriodSelector from "../../atoms/TimePeriodSelector";
+import TimePeriodSelector from "../../atoms/Selector/TimePeriodSelector";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import ErrorState from "../../atoms/Messages/ErrorState";
-import OrderDetailsModal from "../../components/order-dashboard/OrderDetailsModal";
-import OrderDetailsTable from "../../components/order-dashboard/OrderDetailsTable";
+import OrderDetailsModal from "../../components/Dashboard/OrderDetailsModal";
+import OrderDetailsTable from "../../components/Dashboard/OrderDetailsTable";
 import PrintBill from "Pages/Captain/PrintBill";
 
 // Reusable Dashboard Components
-import TabNavigation from "../../components/TabNavigation";
-import OrderAnalytics from "../../components/OrderAnalytics";
-import RevenueOverview from "../../components/RevenueOverview";
-import TopMenusByOrders from "../../components/TopMenusByOrders";
-import TopOrdersByCategory from "../../components/TopOrdersByCategory";
-import TopOrdersByMenu from "../../components/TopOrdersByMenu";
-import PlatformAnalytics from "../../components/PlatformAnalytics";
+import TabNavigation from "../../atoms/Buttons/TabNavigation";
+import OrderAnalytics from "../../components/Dashboard/OrderAnalytics";
+import RevenueOverview from "../../components/Dashboard/RevenueOverview";
+import TopMenusByOrders from "../../components/Dashboard/TopMenusByOrders";
+import TopOrdersByCategory from "../../components/Dashboard/TopOrdersByCategory";
+import TopOrdersByMenu from "../../components/Dashboard/TopOrdersByMenu";
+import PlatformAnalytics from "../../components/Dashboard/PlatformAnalytics";
 
 // Other imports
 import { useTranslation } from "react-i18next";

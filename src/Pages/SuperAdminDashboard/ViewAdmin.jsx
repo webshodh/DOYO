@@ -16,9 +16,9 @@ import { useAdmin } from "../../hooks/useAdmin";
 import { useHotel } from "../../hooks/useHotel";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
+import NoSearchResults from "components/NoSearchResults";
 import StatCard from "components/Cards/StatCard";
-import SearchWithResults from "molecules/SearchWithResults";
+import SearchWithResults from "components/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
@@ -27,7 +27,7 @@ import { useTheme } from "context/ThemeContext";
 const AddAdminFormModal = React.lazy(() =>
   import("../../components/FormModals/AdminFormModal")
 );
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+const DynamicTable = React.lazy(() => import("../../components/DynamicTable"));
 
 // Advanced Filters Component
 const AdvancedFilters = memo(

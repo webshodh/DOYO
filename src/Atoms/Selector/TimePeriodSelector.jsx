@@ -1,7 +1,7 @@
 // components/TimePeriodSelector/TimePeriodSelector.jsx
 import React, { useState, useCallback, memo } from "react";
 import { Calendar, BarChart3, TrendingUp, Activity } from "lucide-react";
-import DatePicker from "./Buttons/DatePicker";
+import DatePicker from "../Buttons/DatePicker";
 
 const TimePeriodSelector = memo(
   ({
@@ -32,7 +32,7 @@ const TimePeriodSelector = memo(
         setIsCustomDateMode(false);
         onTimePeriodChange(periodKey);
       },
-      [onTimePeriodChange],
+      [onTimePeriodChange]
     );
 
     const handleDateChange = useCallback(
@@ -40,7 +40,7 @@ const TimePeriodSelector = memo(
         setIsCustomDateMode(true);
         onDateChange(newDate);
       },
-      [onDateChange],
+      [onDateChange]
     );
 
     const handleCustomDateClick = useCallback(() => {
@@ -175,7 +175,7 @@ const TimePeriodSelector = memo(
                   year: "numeric",
                   month: "long",
                   day: "numeric",
-                },
+                }
               )}`
             : `Showing ${
                 periods
@@ -185,7 +185,7 @@ const TimePeriodSelector = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 TimePeriodSelector.displayName = "TimePeriodSelector";

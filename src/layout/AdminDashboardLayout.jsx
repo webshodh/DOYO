@@ -10,8 +10,8 @@ import React, {
 import { useParams, useLocation } from "react-router-dom";
 import { ChevronUp } from "lucide-react";
 
-import Sidebar from "organisms/SideBarComponent";
-import Navbar from "organisms/NavBarComponent";
+import Sidebar from "components/SideBarComponent";
+import Navbar from "components/NavBarComponent";
 
 // Layout context
 const LayoutContext = createContext({
@@ -110,7 +110,7 @@ const AdminDashboardLayout = memo(({ children }) => {
       toggleSidebar,
       closeSidebar,
     }),
-    [isSidebarOpen, isDesktop, toggleSidebar, closeSidebar],
+    [isSidebarOpen, isDesktop, toggleSidebar, closeSidebar]
   );
 
   return (

@@ -40,9 +40,9 @@ import { specialCategories } from "../../Constants/ConfigForms/addMenuFormConfig
 import ErrorState from "atoms/Messages/ErrorState";
 import ConnectionStatus from "atoms/Messages/ConnectionStatus";
 import EmptyState from "atoms/Messages/EmptyState";
-import SpecialCategoriesFilter from "organisms/SpecialCategoriesFilter";
+import SpecialCategoriesFilter from "components/Filters/SpecialCategoriesFilter";
 import CartButton from "atoms/Buttons/CartButton";
-import CategoryTabs from "molecules/CategoryTab";
+import CategoryTabs from "components/CategoryTab";
 import { PageTitle } from "atoms";
 
 const firestore = getFirestore(app);

@@ -13,12 +13,12 @@ import { toast } from "react-toastify";
 import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
 import CheckoutHeader from "atoms/Headers/CheckoutHeader";
 import OrderNumberDisplay from "atoms/OrderNumberDisplay";
-import TableNumberInput from "atoms/FormInput";
-import OrderSummary from "components/order-dashboard/OrderSummary";
+import TableNumberInput from "components/Forms/FormInput";
+import OrderSummary from "components/Dashboard/OrderSummary";
 import PlaceOrderButton from "atoms/Buttons/PlaceOrderButton";
 import OrderInfoAlert from "atoms/Messages/OrderInfoAlert";
-import FormSelect from "atoms/FormSelect";
-import FormInput from "atoms/FormInput";
+import FormSelect from "components/Forms/FormSelect";
+import FormInput from "components/Forms/FormInput";
 
 const firestore = getFirestore();
 
@@ -182,16 +182,11 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     }
 
     if (orderType === "delivery") {
-      
       if (!deliveryPlatform) {
         setError("Please select delivery platform");
         return false;
       }
     }
-
-    
-
-  
 
     return true;
   }, [
