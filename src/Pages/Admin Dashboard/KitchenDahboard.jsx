@@ -20,9 +20,7 @@ import ErrorBoundary from "atoms/ErrorBoundary";
 import KitchenDashboardSkeleton from "atoms/Skeleton/KitchenDashboardSkeleton";
 
 // Lazy load heavy components
-const HeaderStats = React.lazy(() =>
-  import("components/Dashboard/HeaderStats")
-);
+
 const OrderFilters = React.lazy(() =>
   import("components/Filters/OrderFilters")
 );

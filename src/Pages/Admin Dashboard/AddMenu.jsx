@@ -1,3 +1,4 @@
+// AddMenu.js (ENHANCED WITH SKELETON AND TRANSLATIONS)
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -23,6 +24,8 @@ import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
 import SearchWithResults from "components/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import ErrorBoundary from "atoms/ErrorBoundary";
+import MenuManagementSkeleton from "atoms/Skeleton/MenuManagementSkeleton";
 import { useTranslation } from "react-i18next";
 import MenuFormModal from "../../components/FormModals/MenuFormModal";
 
@@ -62,14 +65,12 @@ const AddMenu = memo(() => {
   const categoryMap = useMemo(() => {
     const map = {};
     categories.forEach((category) => {
-      // Handle both possible structures
       const categoryName = category.categoryName || category.name;
       const categoryId = category.id;
 
       if (categoryId && categoryName) {
         map[categoryId] = categoryName;
       }
-      // Also map name to name (in case some items use names directly)
       if (categoryName) {
         map[categoryName] = categoryName;
       }
@@ -107,7 +108,6 @@ const AddMenu = memo(() => {
         ...menu,
         menuCategoryName: resolvedCategoryName,
         mainCategoryName: resolvedMainCategoryName,
-        // Override for display purposes
         menuCategory: resolvedCategoryName,
         mainCategory: resolvedMainCategoryName,
       };
@@ -152,7 +152,6 @@ const AddMenu = memo(() => {
     return categories.map((cat) => {
       const categoryName = cat.categoryName || cat.name;
       const categoryId = cat.id;
-      // Get count from menuCountsByCategory using either ID or name
       const count =
         menuCountsByCategory[categoryId] ||
         menuCountsByCategory[categoryName] ||
@@ -179,27 +178,27 @@ const AddMenu = memo(() => {
         [menu.uuid, menu.id, menu._id].includes(menuId)
       );
       if (!selectedMenu) {
-        alert("Menu not found. Please refresh and try again.");
+        alert(t("menu.menuNotFound"));
         return;
       }
       setEditingMenu(selectedMenu);
       setShowModal(true);
     },
-    [enhancedMenus]
+    [enhancedMenus, t]
   );
 
   const handleDelete = useCallback(
     async (rowData) => {
       const menuId = rowData.uuid || rowData.id || rowData._id;
       const confirmed = window.confirm(
-        `Are you sure you want to delete "${rowData["Menu Name"]}"?`
+        t("menu.deleteConfirmation", { menuName: rowData["Menu Name"] })
       );
       if (confirmed) {
         const success = await deleteMenu(menuId);
-        if (!success) alert("Failed to delete menu. Please try again.");
+        if (!success) alert(t("menu.deleteError"));
       }
     },
-    [deleteMenu]
+    [deleteMenu, t]
   );
 
   const closeModal = useCallback(() => {
@@ -222,21 +221,22 @@ const AddMenu = memo(() => {
     [handleSearchChange]
   );
 
-  const refresh = useCallback(() => refreshMenus(), [refreshMenus]);
+  const handleRefresh = useCallback(() => {
+    try {
+      if (typeof refreshMenus === "function") {
+        refreshMenus();
+      } else {
+        console.warn("Refresh function not available");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error(t("menu.refreshError"), error);
+      window.location.reload();
+    }
+  }, [refreshMenus, t]);
 
-  // Render error or loading
-  if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        onRetry={refresh}
-        title={t("menu.errorLoading")}
-      />
-    );
-  }
-  if (loading && !enhancedMenus.length) {
-    return <LoadingSpinner size="lg" text={t("menu.loading")} />;
-  }
+  // Determine loading state
+  const isLoadingData = loading && !enhancedMenus.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -252,109 +252,126 @@ const AddMenu = memo(() => {
             editMode={Boolean(editingMenu)}
             initialData={editingMenu}
             hotelName={hotelName}
+            title={editingMenu ? t("menu.editTitle") : t("menu.addTitle")}
+            submitting={submitting}
           />
         )}
       </Suspense>
-      {/* Header & Stats */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
-        <PageTitle
-          pageTitle={t("menu.managePageTitle")}
-          className="text-2xl font-bold"
-          description={t("menu.manageDescription")}
-        />
-      </div>
-      {hasMenus && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={ChefHat}
-            title={t("menu.totalItems")}
-            value={stats.total}
-            color="blue"
-          />
-          <StatCard
-            icon={TrendingUp}
-            title={t("menu.totalAvailable")}
-            value={stats.available}
-            color="green"
-          />
-          <StatCard
-            icon={DollarSign}
-            title={t("menu.withDiscount")}
-            value={stats.discounted}
-            color="orange"
-          />
-          <StatCard
-            icon={Grid}
-            title={t("menu.totalCategories")}
-            value={stats.categories}
-            color="purple"
-          />
-        </div>
+
+      {/* Error handling */}
+      {error && !loading && (
+        <ErrorBoundary error={error} onRetry={handleRefresh} />
       )}
 
-      {/* Search & Filters */}
-      {hasMenus && (
+      {/* Loading state */}
+      {isLoadingData ? (
+        <MenuManagementSkeleton />
+      ) : (
         <>
-          <SearchWithResults
-            searchTerm={searchTerm}
-            onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder={t("menu.searchPlaceholder")}
-            totalCount={menuCount}
-            filteredCount={enhancedMenus.length}
-            onClearSearch={clearSearch}
-            totalLabel={t("menu.totalLabel")}
-            onAdd={openAddModal}
-            addButtonText="Add"
-            addButtonLoading={submitting}
-          />
-          <div className="bg-white rounded-lg shadow mb-6 p-4 overflow-x-auto">
-            <CategoryTabs
-              categories={transformedCategories}
-              menuCountsByCategory={menuCountsByCategory}
-              handleCategoryFilter={handleCategoryFilter}
+          {/* Header & Stats */}
+          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
+            <PageTitle
+              pageTitle={t("menu.managePageTitle")}
+              className="text-2xl font-bold text-white"
+              description={t("menu.manageDescription")}
             />
+          </div>
+
+          {hasMenus && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <StatCard
+                icon={ChefHat}
+                title={t("menu.totalItems")}
+                value={stats.total}
+                color="blue"
+              />
+              <StatCard
+                icon={TrendingUp}
+                title={t("menu.totalAvailable")}
+                value={stats.available}
+                color="green"
+              />
+              <StatCard
+                icon={DollarSign}
+                title={t("menu.withDiscount")}
+                value={stats.discounted}
+                color="orange"
+              />
+              <StatCard
+                icon={Grid}
+                title={t("menu.totalCategories")}
+                value={stats.categories}
+                color="purple"
+              />
+            </div>
+          )}
+
+          {/* Search & Filters */}
+          {hasMenus && (
+            <>
+              <SearchWithResults
+                searchTerm={searchTerm}
+                onSearchChange={(e) => handleSearchChange(e.target.value)}
+                placeholder={t("menu.searchPlaceholder")}
+                totalCount={menuCount}
+                filteredCount={enhancedMenus.length}
+                onClearSearch={clearSearch}
+                totalLabel={t("menu.totalLabel")}
+                onAdd={openAddModal}
+                addButtonText={t("menu.addButton")}
+                addButtonLoading={submitting}
+              />
+              <div className="bg-white rounded-lg shadow mb-6 p-4 overflow-x-auto">
+                <CategoryTabs
+                  categories={transformedCategories}
+                  menuCountsByCategory={menuCountsByCategory}
+                  handleCategoryFilter={handleCategoryFilter}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Table or Empty State */}
+          <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+            {hasMenus ? (
+              hasSearchResults ? (
+                <Suspense
+                  fallback={<LoadingSpinner text={t("menu.loadingTable")} />}
+                >
+                  <DynamicTable
+                    columns={ViewMenuColumns}
+                    data={tableData}
+                    onEdit={openEditModal}
+                    onDelete={handleDelete}
+                    loading={submitting}
+                    showPagination
+                    initialRowsPerPage={10}
+                    sortable
+                    className="border-0"
+                    emptyMessage={t("menu.noSearchResults")}
+                  />
+                </Suspense>
+              ) : (
+                <NoSearchResults
+                  btnText={t("menu.addButton")}
+                  searchTerm={searchTerm}
+                  onClearSearch={clearSearch}
+                  onAddNew={openAddModal}
+                />
+              )
+            ) : (
+              <EmptyState
+                icon={ChefHat}
+                title={t("menu.noItems")}
+                description={t("menu.noItemsDescription")}
+                actionLabel={t("menu.emptyAction")}
+                onAction={openAddModal}
+                loading={submitting}
+              />
+            )}
           </div>
         </>
       )}
-
-      {/* Table or Empty State */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        {hasMenus ? (
-          hasSearchResults ? (
-            <Suspense
-              fallback={<LoadingSpinner text={t("menu.loadingTable")} />}
-            >
-              <DynamicTable
-                columns={ViewMenuColumns}
-                data={tableData}
-                onEdit={openEditModal}
-                onDelete={handleDelete}
-                loading={submitting}
-                showPagination
-                initialRowsPerPage={10}
-                sortable
-                className="border-0"
-              />
-            </Suspense>
-          ) : (
-            <NoSearchResults
-              btnText={t("menu.addButton")}
-              searchTerm={searchTerm}
-              onClearSearch={clearSearch}
-              onAddNew={openAddModal}
-            />
-          )
-        ) : (
-          <EmptyState
-            icon={ChefHat}
-            title={t("menu.noItems")}
-            description={t("menu.noItemsDescription")}
-            actionLabel={t("menu.emptyAction")}
-            onAction={openAddModal}
-            loading={submitting}
-          />
-        )}
-      </div>
 
       {/* Toast Container */}
       <ToastContainer

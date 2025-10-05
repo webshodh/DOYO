@@ -156,14 +156,41 @@ const DashboardSkeleton = memo(({ activeTab, isOrderEnabled }) => {
     </div>
   );
 
+  // Default fallback - always show overview skeleton if no matching tab
+  const renderDefaultSkeleton = () => renderOverviewSkeleton();
+
   return (
-    <div className="space-y-8">
-      {activeTab === "overview" && isOrderEnabled && renderOverviewSkeleton()}
-      {activeTab === "platforms" && isOrderEnabled && renderPlatformsSkeleton()}
-      {activeTab === "menu" && renderMenuSkeleton()}
-      {activeTab === "performance" &&
-        isOrderEnabled &&
-        renderPerformanceSkeleton()}
+    <div className="space-y-8 animate-pulse">
+      {/* Debug info - remove in production */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="text-xs text-gray-500 p-2 bg-yellow-100 rounded">
+          Debug: activeTab="{activeTab}", isOrderEnabled=
+          {isOrderEnabled?.toString()}
+        </div>
+      )}
+
+      {/* Render based on activeTab with fallbacks */}
+      {(() => {
+        switch (activeTab) {
+          case "overview":
+            return isOrderEnabled
+              ? renderOverviewSkeleton()
+              : renderDefaultSkeleton();
+          case "platforms":
+            return isOrderEnabled
+              ? renderPlatformsSkeleton()
+              : renderDefaultSkeleton();
+          case "menu":
+            return renderMenuSkeleton();
+          case "performance":
+            return isOrderEnabled
+              ? renderPerformanceSkeleton()
+              : renderDefaultSkeleton();
+          default:
+            // Always show default skeleton if no matching tab
+            return renderDefaultSkeleton();
+        }
+      })()}
     </div>
   );
 });

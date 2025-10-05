@@ -24,7 +24,7 @@ import {
   getDietaryItems,
   getPreparationItems,
 } from "Constants/constant";
-import  BackToTop  from "atoms/Buttons/BackToTop";
+import BackToTop from "atoms/Buttons/BackToTop";
 
 const MenuModal = memo(
   ({ show, handleClose, modalData, addToCart, isLoading = false }) => {
@@ -54,7 +54,7 @@ const MenuModal = memo(
           handleClose();
         }
       },
-      [handleClose],
+      [handleClose]
     );
 
     // Helper function for spice level icons
@@ -156,18 +156,19 @@ const MenuModal = memo(
           <CloseButton onClose={handleClose} />
 
           {/* Special Badges */}
+
           <SpecialBadges modalData={modalData} />
 
           {/* Header with Image */}
-          <ImageHeader
+          {/* <ImageHeader
             imageUrl={modalData.imageUrl}
             menuName={modalData.menuName}
             availability={modalData.availability}
             isLoading={isLoading}
-          />
+          /> */}
 
           {/* Content */}
-          <div className="p-4 sm:p-6">
+          <div className="p-4 sm:p-6 mt-20">
             {/* Title and Price Section */}
             <TitlePriceSection modalData={modalData} />
 
@@ -265,7 +266,7 @@ const MenuModal = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 MenuModal.displayName = "MenuModal";

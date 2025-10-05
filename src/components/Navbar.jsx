@@ -70,14 +70,7 @@ const NavBar = ({
       gradient: "from-yellow-400 to-orange-500",
       bgHover: "hover:bg-yellow-50",
     },
-    offers && {
-      label: "Special Offers",
-      description: "Discover amazing deals & discounts",
-      icon: Gift,
-      onClick: handleOfferClick,
-      gradient: "from-pink-500 to-red-500",
-      bgHover: "hover:bg-pink-50",
-    },
+
     home && {
       label: "Browse Menu",
       description: "Explore our delicious menu items",

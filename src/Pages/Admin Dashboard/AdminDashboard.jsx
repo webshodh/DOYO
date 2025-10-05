@@ -393,9 +393,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Loading state */}
-          {isLoading &&
-          !filteredOrders?.length &&
-          !filteredAndSortedMenus?.length ? (
+          {isLoading ? (
             <DashboardSkeleton
               activeTab={activeTab}
               isOrderEnabled={isOrderEnabled}
