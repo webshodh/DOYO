@@ -32,6 +32,7 @@ import PlatformAnalytics from "../../components/PlatformAnalytics";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 import useColumns from "../../Constants/Columns";
+import { useHotelDetails } from "hooks/useHotel";
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ const AdminDashboard = () => {
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
   const [activeTab, setActiveTab] = useState("overview");
-
+  const { isOrderEnabled } = useHotelDetails(hotelName);
   // Modal & UI state
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
@@ -274,12 +275,16 @@ const AdminDashboard = () => {
   }, [menuAnalytics]);
 
   // Tab configuration
-  const tabs = [
-    { id: "overview", name: "Overview", icon: BarChart3 },
-    { id: "platforms", name: "Platform Analytics", icon: Smartphone },
-    { id: "menu", name: "Menu Analytics", icon: ChefHat },
-    { id: "performance", name: "Performance", icon: TrendingUp },
-  ];
+
+  // Tab configuration
+  const tabs = isOrderEnabled
+    ? [
+        { id: "overview", name: "Overview", icon: BarChart3 },
+        { id: "platforms", name: "Analytics", icon: Smartphone },
+        { id: "menu", name: "Menu", icon: ChefHat },
+        { id: "performance", name: "Performance", icon: TrendingUp },
+      ]
+    : [{ id: "menu", name: "Menu", icon: ChefHat }];
 
   // Event handlers
   const handleViewDetails = useCallback((order) => {
@@ -326,7 +331,7 @@ const AdminDashboard = () => {
 
   const isLoading =
     loading || menuLoading || categoriesLoading || mainCategoryLoading;
-
+  console.log("isOrderEnabled", isOrderEnabled);
   return (
     <AdminDashboardLayout>
       <div className="min-h-screen bg-gray-50">
@@ -385,7 +390,7 @@ const AdminDashboard = () => {
           ) : (
             <>
               {/* Overview Tab */}
-              {activeTab === "overview" && (
+              {activeTab === "overview" && isOrderEnabled && (
                 <>
                   <OrderAnalytics displayStats={displayStats} />
                   <RevenueOverview displayStats={displayStats} />
@@ -393,7 +398,7 @@ const AdminDashboard = () => {
               )}
 
               {/* Platform Analytics Tab */}
-              {activeTab === "platforms" && (
+              {activeTab === "platforms" && isOrderEnabled && (
                 <PlatformAnalytics
                   displayStats={displayStats}
                   platformAnalytics={platformAnalytics}
@@ -415,7 +420,7 @@ const AdminDashboard = () => {
               )}
 
               {/* Performance Tab */}
-              {activeTab === "performance" && (
+              {activeTab === "performance" && isOrderEnabled && (
                 <>
                   <TopMenusByOrders topMenusByOrders={topMenusByOrders} />
                   <TopOrdersByCategory

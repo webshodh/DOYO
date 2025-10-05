@@ -1,4 +1,4 @@
-// Subscription Plan Form Fields Config - config/subscriptionFormFields.js
+// config/subscriptionFormFields.js
 
 export const subscriptionFormFields = {
   // Basic Plan Information
@@ -70,75 +70,72 @@ export const subscriptionFormFields = {
     },
   ],
 
-  // Core Features (Boolean Flags)
+  // Core Restaurant Features (Boolean Flags)
   coreFeatures: [
     {
       name: "isCustomerOrderEnable",
-      label: "Customer Ordering System",
+      label: "Customer Online Ordering",
       type: "checkbox",
-      description: "Allow customers to place orders online",
+      description: "Allow customers to place orders through QR codes/online",
       defaultValue: false,
     },
     {
       name: "isCaptainDashboard",
-      label: "Captain Dashboard",
+      label: "Captain/Waiter Dashboard",
       type: "checkbox",
-      description: "Access to captain/waiter dashboard",
+      description: "Access to captain/waiter dashboard and order management",
       defaultValue: false,
     },
     {
       name: "isKitchenDashboard",
-      label: "Kitchen Dashboard",
+      label: "Kitchen Display System",
       type: "checkbox",
-      description: "Kitchen order management system",
+      description: "Kitchen order management and preparation tracking",
       defaultValue: false,
     },
     {
-      name: "isAnalyticsDashboard",
-      label: "Analytics & Reports",
+      name: "isOrderDashboard",
+      label: "Order Management Dashboard",
       type: "checkbox",
-      description: "Advanced analytics and reporting features",
-      defaultValue: false,
-    },
-    {
-      name: "isInventoryManagement",
-      label: "Inventory Management",
-      type: "checkbox",
-      description: "Track and manage inventory levels",
-      defaultValue: false,
-    },
-    {
-      name: "isTableManagement",
-      label: "Table Management",
-      type: "checkbox",
-      description: "Manage table reservations and seating",
-      defaultValue: false,
-    },
-    {
-      name: "isStaffManagement",
-      label: "Staff Management",
-      type: "checkbox",
-      description: "Manage staff schedules and performance",
+      description: "Complete order tracking and management system",
       defaultValue: false,
     },
   ],
 
-  // Advanced Features
-  advancedFeatures: [
+  // Analytics & Reports Features
+  analyticsFeatures: [
+    {
+      name: "isAnalyticsDashboard",
+      label: "Analytics Dashboard",
+      type: "checkbox",
+      description: "Sales analytics, reports, and business insights",
+      defaultValue: false,
+    },
     {
       name: "isReportsExport",
       label: "Export Reports",
       type: "checkbox",
-      description: "Export reports to PDF, Excel, CSV",
+      description: "Export reports to PDF, Excel, CSV formats",
       defaultValue: false,
     },
     {
-      name: "isMultiLanguage",
-      label: "Multi-Language Support",
+      name: "isSalesReports",
+      label: "Advanced Sales Reports",
       type: "checkbox",
-      description: "Support for multiple languages",
+      description: "Detailed sales analysis and trending reports",
       defaultValue: false,
     },
+    {
+      name: "isCustomerInsights",
+      label: "Customer Insights",
+      type: "checkbox",
+      description: "Customer behavior analysis and preferences tracking",
+      defaultValue: false,
+    },
+  ],
+
+  // Communication & Integration Features
+  integrationFeatures: [
     {
       name: "isWhatsAppIntegration",
       label: "WhatsApp Integration",
@@ -150,44 +147,37 @@ export const subscriptionFormFields = {
       name: "isSmsNotifications",
       label: "SMS Notifications",
       type: "checkbox",
-      description: "Send SMS notifications to customers",
+      description: "Send SMS notifications to customers and staff",
       defaultValue: false,
     },
     {
       name: "isEmailReports",
-      label: "Email Reports",
+      label: "Email Reports & Notifications",
       type: "checkbox",
-      description: "Automated email reports and notifications",
+      description: "Automated email reports and customer notifications",
       defaultValue: false,
     },
     {
-      name: "isCustomBranding",
-      label: "Custom Branding",
+      name: "isMultiLanguage",
+      label: "Multi-Language Support",
       type: "checkbox",
-      description: "Customize the app with hotel branding",
+      description: "Support for multiple languages and localization",
       defaultValue: false,
     },
     {
       name: "is24x7Support",
-      label: "24x7 Support",
+      label: "24x7 Premium Support",
       type: "checkbox",
-      description: "Round the clock customer support",
-      defaultValue: false,
-    },
-    {
-      name: "isAPIAccess",
-      label: "API Access",
-      type: "checkbox",
-      description: "Access to REST API for integrations",
+      description: "Round the clock priority customer support",
       defaultValue: false,
     },
   ],
 
-  // Usage Limits
+  // Usage Limits & Quotas
   usageLimits: [
     {
       name: "maxAdmins",
-      label: "Maximum Admins",
+      label: "Maximum Admin Users",
       type: "number",
       placeholder: "Number of admin accounts allowed",
       required: true,
@@ -202,7 +192,7 @@ export const subscriptionFormFields = {
     },
     {
       name: "maxCategories",
-      label: "Maximum Categories",
+      label: "Maximum Menu Categories",
       type: "number",
       placeholder: "Number of menu categories allowed",
       required: true,
@@ -219,7 +209,7 @@ export const subscriptionFormFields = {
       name: "maxMenuItems",
       label: "Maximum Menu Items",
       type: "number",
-      placeholder: "Number of menu items allowed",
+      placeholder: "Total menu items allowed",
       required: true,
       min: 1,
       max: 10000,
@@ -232,17 +222,17 @@ export const subscriptionFormFields = {
     },
     {
       name: "maxCaptains",
-      label: "Maximum Captains",
+      label: "Maximum Captains/Waiters",
       type: "number",
       placeholder: "Number of captain accounts allowed",
       required: true,
-      min: 1,
+      min: 0,
       max: 100,
       defaultValue: 2,
       validation: {
-        min: 1,
+        min: 0,
         max: 100,
-        message: "Must be between 1-100 captains",
+        message: "Must be between 0-100 captains",
       },
     },
     {
@@ -258,6 +248,21 @@ export const subscriptionFormFields = {
         min: 1,
         max: 500,
         message: "Must be between 1-500 tables",
+      },
+    },
+    {
+      name: "maxOrders",
+      label: "Monthly Order Limit",
+      type: "number",
+      placeholder: "Maximum orders per month",
+      required: true,
+      min: 10,
+      max: 100000,
+      defaultValue: 1000,
+      validation: {
+        min: 10,
+        max: 100000,
+        message: "Must be between 10-100000 orders",
       },
     },
     {
@@ -287,27 +292,34 @@ export const subscriptionFormSections = [
     icon: "Info",
   },
   {
-    title: "Core Features",
+    title: "Core Restaurant Features",
     description: "Essential features for restaurant management",
     fields: "coreFeatures",
     icon: "Star",
   },
   {
-    title: "Advanced Features",
-    description: "Premium features and integrations",
-    fields: "advancedFeatures",
+    title: "Analytics & Reports",
+    description: "Business intelligence and reporting features",
+    fields: "analyticsFeatures",
+    icon: "BarChart",
+  },
+  {
+    title: "Integration & Communication",
+    description: "Third-party integrations and communication tools",
+    fields: "integrationFeatures",
     icon: "Zap",
   },
   {
-    title: "Usage Limits",
-    description: "Set limits for different resources",
+    title: "Usage Limits & Quotas",
+    description: "Set limits for different resources and usage",
     fields: "usageLimits",
-    icon: "BarChart",
+    icon: "Settings",
   },
 ];
 
-// Initial form values
+// Updated initial form values
 export const subscriptionFormInitialValues = {
+  // Basic info
   planName: "",
   description: "",
   price: "",
@@ -318,20 +330,20 @@ export const subscriptionFormInitialValues = {
   isCustomerOrderEnable: false,
   isCaptainDashboard: false,
   isKitchenDashboard: false,
-  isAnalyticsDashboard: false,
-  isInventoryManagement: false,
-  isTableManagement: false,
-  isStaffManagement: false,
+  isOrderDashboard: false,
 
-  // Advanced features
+  // Analytics features
+  isAnalyticsDashboard: false,
   isReportsExport: false,
-  isMultiLanguage: false,
+  isSalesReports: false,
+  isCustomerInsights: false,
+
+  // Integration features
   isWhatsAppIntegration: false,
   isSmsNotifications: false,
   isEmailReports: false,
-  isCustomBranding: false,
+  isMultiLanguage: false,
   is24x7Support: false,
-  isAPIAccess: false,
 
   // Usage limits
   maxAdmins: 1,
@@ -339,74 +351,81 @@ export const subscriptionFormInitialValues = {
   maxMenuItems: 50,
   maxCaptains: 2,
   maxTables: 10,
+  maxOrders: 1000,
   maxStorage: 1024,
 };
 
-// Predefined plan templates
+// Updated predefined plan templates
 export const planTemplates = {
-  free: {
-    planName: "Free Plan",
-    description: "Basic features for small restaurants",
-    price: 0,
-    duration: 1,
-    status: "active",
-    isCustomerOrderEnable: true,
-    isCaptainDashboard: false,
-    isKitchenDashboard: false,
-    isAnalyticsDashboard: false,
-    isInventoryManagement: false,
-    isTableManagement: false,
-    isStaffManagement: false,
-    maxAdmins: 1,
-    maxCategories: 5,
-    maxMenuItems: 25,
-    maxCaptains: 1,
-    maxTables: 5,
-    maxStorage: 500,
-  },
   basic: {
     planName: "Basic Plan",
-    description: "Essential features for growing restaurants",
+    description: "Essential features for small restaurants",
     price: 999,
     duration: 1,
     status: "active",
-    isCustomerOrderEnable: true,
-    isCaptainDashboard: true,
-    isKitchenDashboard: true,
+
+    // Core features - Basic plan has minimal features
+    isCustomerOrderEnable: false,
+    isCaptainDashboard: false,
+    isKitchenDashboard: false,
+    isOrderDashboard: true, // Basic order management
+
+    // Analytics - Basic reporting only
     isAnalyticsDashboard: false,
-    isInventoryManagement: false,
-    isTableManagement: true,
-    isStaffManagement: false,
-    maxAdmins: 2,
+    isReportsExport: false,
+    isSalesReports: false,
+    isCustomerInsights: false,
+
+    // Integration - No integrations
+    isWhatsAppIntegration: false,
+    isSmsNotifications: false,
+    isEmailReports: false,
+    isMultiLanguage: false,
+    is24x7Support: false,
+
+    // Limits
+    maxAdmins: 1,
     maxCategories: 15,
     maxMenuItems: 100,
-    maxCaptains: 3,
-    maxTables: 20,
+    maxCaptains: 0,
+    maxTables: 5,
+    maxOrders: 500,
     maxStorage: 1024,
   },
   premium: {
     planName: "Premium Plan",
-    description: "Advanced features for established restaurants",
+    description: "Advanced features for growing restaurants",
     price: 2499,
     duration: 1,
     status: "active",
+
+    // Core features - Most features enabled
     isCustomerOrderEnable: true,
     isCaptainDashboard: true,
     isKitchenDashboard: true,
+    isOrderDashboard: true,
+
+    // Analytics - Advanced reporting
     isAnalyticsDashboard: true,
-    isInventoryManagement: true,
-    isTableManagement: true,
-    isStaffManagement: true,
     isReportsExport: true,
+    isSalesReports: true,
+    isCustomerInsights: false,
+
+    // Integration - Some integrations
     isWhatsAppIntegration: true,
-    isSmsNotifications: true,
+    isSmsNotifications: false,
     isEmailReports: true,
-    maxAdmins: 5,
+    isMultiLanguage: true,
+    is24x7Support: false,
+
+    // Higher limits
+    maxAdmins: 3,
     maxCategories: 50,
     maxMenuItems: 500,
     maxCaptains: 10,
-    maxTables: 50,
-    maxStorage: 2048,
+    maxTables: 25,
+    maxOrders: 2000,
+    maxStorage: 3072,
   },
   enterprise: {
     planName: "Enterprise Plan",
@@ -414,69 +433,84 @@ export const planTemplates = {
     price: 4999,
     duration: 1,
     status: "active",
+
+    // All core features enabled
     isCustomerOrderEnable: true,
     isCaptainDashboard: true,
     isKitchenDashboard: true,
+    isOrderDashboard: true,
+
+    // All analytics features
     isAnalyticsDashboard: true,
-    isInventoryManagement: true,
-    isTableManagement: true,
-    isStaffManagement: true,
     isReportsExport: true,
-    isMultiLanguage: true,
+    isSalesReports: true,
+    isCustomerInsights: true,
+
+    // All integration features
     isWhatsAppIntegration: true,
     isSmsNotifications: true,
     isEmailReports: true,
-    isCustomBranding: true,
+    isMultiLanguage: true,
     is24x7Support: true,
-    isAPIAccess: true,
-    maxAdmins: 20,
+
+    // Maximum limits
+    maxAdmins: 10,
     maxCategories: 200,
     maxMenuItems: 2000,
     maxCaptains: 50,
-    maxTables: 200,
-    maxStorage: 5120,
+    maxTables: 100,
+    maxOrders: 10000,
+    maxStorage: 10240,
   },
 };
 
-// Validation schema helper
 export const getSubscriptionValidationSchema = () => {
   return {
     validate: (values) => {
-      const newErrors = {};
+      const errors = {};
 
-      // Required field validation
-      if (!values.planName?.trim()) {
-        newErrors.planName = "Plan name is required";
-      } else if (values.planName.length < 2 || values.planName.length > 50) {
-        newErrors.planName = "Plan name should be between 2-50 characters";
+      // Validate required basic info fields
+      if (!values.planName || !values.planName.trim()) {
+        errors.planName = "Plan name is required";
+      } else if (values.planName.length < 2) {
+        errors.planName = "Plan name must be at least 2 characters";
+      } else if (values.planName.length > 50) {
+        errors.planName = "Plan name must be less than 50 characters";
       }
 
-      if (!values.description?.trim()) {
-        newErrors.description = "Description is required";
-      } else if (
-        values.description.length < 10 ||
-        values.description.length > 500
+      if (!values.description || !values.description.trim()) {
+        errors.description = "Description is required";
+      } else if (values.description.length < 10) {
+        errors.description = "Description must be at least 10 characters";
+      } else if (values.description.length > 500) {
+        errors.description = "Description must be less than 500 characters";
+      }
+
+      // Validate price
+      if (
+        values.price === "" ||
+        values.price === null ||
+        values.price === undefined
       ) {
-        newErrors.description =
-          "Description should be between 10-500 characters";
+        errors.price = "Price is required";
+      } else {
+        const price = parseFloat(values.price);
+        if (isNaN(price) || price < 0) {
+          errors.price = "Price must be a valid positive number";
+        }
       }
 
-      if (!values.price && values.price !== 0) {
-        newErrors.price = "Price is required";
-      } else if (parseFloat(values.price) < 0) {
-        newErrors.price = "Price must be a positive number";
-      }
-
+      // Validate duration
       if (!values.duration) {
-        newErrors.duration = "Duration is required";
-      } else if (
-        parseInt(values.duration) < 1 ||
-        parseInt(values.duration) > 36
-      ) {
-        newErrors.duration = "Duration must be between 1-36 months";
+        errors.duration = "Duration is required";
+      } else {
+        const duration = parseInt(values.duration);
+        if (isNaN(duration) || duration < 1 || duration > 36) {
+          errors.duration = "Duration must be between 1-36 months";
+        }
       }
 
-      // Usage limits validation
+      // Validate usage limits
       const limits = [
         { field: "maxAdmins", min: 1, max: 100, label: "Maximum admins" },
         {
@@ -491,60 +525,65 @@ export const getSubscriptionValidationSchema = () => {
           max: 10000,
           label: "Maximum menu items",
         },
-        { field: "maxCaptains", min: 1, max: 100, label: "Maximum captains" },
+        { field: "maxCaptains", min: 0, max: 100, label: "Maximum captains" },
         { field: "maxTables", min: 1, max: 500, label: "Maximum tables" },
+        {
+          field: "maxOrders",
+          min: 10,
+          max: 100000,
+          label: "Monthly order limit",
+        },
         { field: "maxStorage", min: 100, max: 10240, label: "Storage limit" },
       ];
 
       limits.forEach(({ field, min, max, label }) => {
-        const value = parseInt(values[field]);
-        if (!value) {
-          newErrors[field] = `${label} is required`;
-        } else if (value < min || value > max) {
-          newErrors[field] = `${label} must be between ${min}-${max}`;
+        const value = values[field];
+        if (value === "" || value === null || value === undefined) {
+          errors[field] = `${label} is required`;
+        } else {
+          const numValue = parseInt(value);
+          if (isNaN(numValue) || numValue < min || numValue > max) {
+            errors[field] = `${label} must be between ${min}-${max}`;
+          }
         }
       });
 
-      return newErrors;
+      // Validate status
+      if (!values.status) {
+        errors.status = "Status is required";
+      }
+
+      return errors;
     },
   };
 };
 
-// Feature categories for better organization
-export const featureCategories = {
-  core: {
-    title: "Core Features",
-    description: "Essential restaurant management features",
-    features: [
-      "isCustomerOrderEnable",
-      "isCaptainDashboard",
-      "isKitchenDashboard",
-      "isTableManagement",
-    ],
-  },
-  analytics: {
-    title: "Analytics & Reporting",
-    description: "Data insights and reporting capabilities",
-    features: ["isAnalyticsDashboard", "isReportsExport", "isEmailReports"],
-  },
-  management: {
-    title: "Management Tools",
-    description: "Staff and inventory management",
-    features: ["isStaffManagement", "isInventoryManagement"],
-  },
-  communication: {
-    title: "Communication",
-    description: "Customer communication features",
-    features: ["isWhatsAppIntegration", "isSmsNotifications"],
-  },
-  premium: {
-    title: "Premium Features",
-    description: "Advanced customization and support",
-    features: [
-      "isMultiLanguage",
-      "isCustomBranding",
-      "is24x7Support",
-      "isAPIAccess",
-    ],
-  },
+// Helper function to validate individual fields (optional)
+export const validateField = (fieldName, value, allValues = {}) => {
+  const schema = getSubscriptionValidationSchema();
+  const errors = schema.validate({ ...allValues, [fieldName]: value });
+  return errors[fieldName] || null;
+};
+
+// Helper function to check if form is valid
+export const isFormValid = (values) => {
+  const schema = getSubscriptionValidationSchema();
+  const errors = schema.validate(values);
+  return Object.keys(errors).length === 0;
+};
+
+// Helper function to get validation rules for a specific field
+export const getFieldValidation = (fieldName) => {
+  const field =
+    subscriptionFormFields.basicInfo.find((f) => f.name === fieldName) ||
+    subscriptionFormFields.coreFeatures.find((f) => f.name === fieldName) ||
+    subscriptionFormFields.analyticsFeatures.find(
+      (f) => f.name === fieldName
+    ) ||
+    subscriptionFormFields.integrationFeatures.find(
+      (f) => f.name === fieldName
+    ) ||
+    subscriptionFormFields.usageLimits.find((f) => f.name === fieldName);
+
+  return field ? field.validation : null;
 };

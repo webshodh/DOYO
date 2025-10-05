@@ -256,8 +256,8 @@ const OrderDashboard = () => {
   // Tab configuration
   const tabs = [
     { id: "overview", name: "Overview", icon: BarChart3 },
-    { id: "platforms", name: "Platform Analytics", icon: Smartphone },
-    { id: "recentOrders", name: "Recent Orders", icon: ChefHat },
+    { id: "platforms", name: "Analytics", icon: Smartphone },
+    { id: "recentOrders", name: "Orders", icon: ChefHat },
     { id: "performance", name: "Performance", icon: TrendingUp },
   ];
 

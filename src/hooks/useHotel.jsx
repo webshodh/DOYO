@@ -1,5 +1,4 @@
-// useHotel.js (OPTIMIZED)
-
+// useHotel.js (COMPLETE WITH isOrderEnabled)
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { hotelServices } from "../services/api/hotelServices";
 
@@ -12,6 +11,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     city: "all",
     state: "all",
     subscriptionPlan: "all",
+    orderEnabled: "all", // New filter for order status
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +60,8 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       total: hotels.length,
       active: 0,
       inactive: 0,
+      orderEnabled: 0, // New stat for order-enabled hotels
+      orderDisabled: 0, // New stat for order-disabled hotels
       revenue: 0,
       businessTypes: 0,
       avgAdminsPerHotel: 0,
@@ -81,6 +83,13 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         stats.active++;
       } else {
         stats.inactive++;
+      }
+
+      // Order enabled/disabled counts
+      if (hotel.isOrderEnabled) {
+        stats.orderEnabled++;
+      } else {
+        stats.orderDisabled++;
       }
 
       // Revenue calculation
@@ -113,7 +122,45 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     return stats;
   }, [hotels]);
 
-  // Add hotel (optimized dependencies)
+  // Toggle order enabled status for a hotel
+  const toggleOrderEnabled = useCallback(
+    async (hotelId, currentStatus) => {
+      if (submitting) return { success: false, error: "Already processing" };
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        const newStatus = !currentStatus;
+        const result = await hotelServices.toggleOrderEnabled(
+          hotelId,
+          newStatus
+        );
+
+        if (result.success) {
+          // Update local state immediately for better UX
+          setHotels((prevHotels) =>
+            prevHotels.map((hotel) =>
+              hotel.hotelId === hotelId
+                ? { ...hotel, isOrderEnabled: newStatus }
+                : hotel
+            )
+          );
+        }
+
+        return result;
+      } catch (err) {
+        const errorMsg = err.message || "Error toggling order status";
+        setError(errorMsg);
+        console.error("Error in toggleOrderEnabled:", err);
+        return { success: false, error: errorMsg };
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [submitting]
+  );
+
+  // Add hotel (updated to include isOrderEnabled)
   const addHotel = useCallback(
     async (hotelData) => {
       if (submitting) return { success: false, error: "Already processing" };
@@ -121,9 +168,15 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       setError(null);
 
       try {
-        const result = await hotelServices.addHotel(hotelData, hotels);
+        // Ensure isOrderEnabled is included in hotel data
+        const enhancedHotelData = {
+          ...hotelData,
+          isOrderEnabled: Boolean(hotelData.isOrderEnabled || false),
+        };
+
+        const result = await hotelServices.addHotel(enhancedHotelData, hotels);
         if (result.success && onHotelAdded) {
-          onHotelAdded({ ...hotelData, hotelId: result.hotelId });
+          onHotelAdded({ ...enhancedHotelData, hotelId: result.hotelId });
         }
         return result;
       } catch (err) {
@@ -135,10 +188,10 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting, onHotelAdded], // Removed hotels to prevent unnecessary re-renders
+    [submitting, onHotelAdded]
   );
 
-  // Update hotel (optimized dependencies)
+  // Update hotel (updated to include isOrderEnabled)
   const updateHotel = useCallback(
     async (hotelData, hotelId) => {
       if (submitting) return false;
@@ -146,10 +199,20 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       setError(null);
 
       try {
+        // Ensure isOrderEnabled is included in hotel data
+        const enhancedHotelData = {
+          ...hotelData,
+          isOrderEnabled: Boolean(
+            hotelData.isOrderEnabled !== undefined
+              ? hotelData.isOrderEnabled
+              : false
+          ),
+        };
+
         const success = await hotelServices.updateHotel(
           hotelId,
-          hotelData,
-          hotels,
+          enhancedHotelData,
+          hotels
         );
         return success;
       } catch (err) {
@@ -161,7 +224,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting], // Removed hotels to prevent unnecessary re-renders
+    [submitting]
   );
 
   // Delete hotel
@@ -183,7 +246,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting],
+    [submitting]
   );
 
   // Bulk operations
@@ -196,7 +259,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       try {
         const success = await hotelServices.bulkUpdateHotels(
           hotelIds,
-          updateData,
+          updateData
         );
         return success;
       } catch (err) {
@@ -208,7 +271,45 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSubmitting(false);
       }
     },
-    [submitting],
+    [submitting]
+  );
+
+  // Bulk toggle order enabled for multiple hotels
+  const bulkToggleOrderEnabled = useCallback(
+    async (hotelIds, enableOrders) => {
+      if (submitting) return false;
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        const updateData = { isOrderEnabled: Boolean(enableOrders) };
+        const success = await hotelServices.bulkUpdateHotels(
+          hotelIds,
+          updateData
+        );
+
+        if (success) {
+          // Update local state
+          setHotels((prevHotels) =>
+            prevHotels.map((hotel) =>
+              hotelIds.includes(hotel.hotelId)
+                ? { ...hotel, isOrderEnabled: Boolean(enableOrders) }
+                : hotel
+            )
+          );
+        }
+
+        return success;
+      } catch (err) {
+        const errorMessage = err.message || "Error bulk updating order status";
+        setError(errorMessage);
+        console.error("Error in bulkToggleOrderEnabled:", err);
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [submitting]
   );
 
   // Prepare for edit
@@ -233,7 +334,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         return result.success;
       }
     },
-    [addHotel, updateHotel],
+    [addHotel, updateHotel]
   );
 
   // Search handling
@@ -255,6 +356,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
       city: "all",
       state: "all",
       subscriptionPlan: "all",
+      orderEnabled: "all",
     });
   }, []);
 
@@ -307,7 +409,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
         setSelectedHotels([]);
       },
     }),
-    [filteredHotels],
+    [filteredHotels]
   );
 
   // Memoize computed values to prevent recalculation
@@ -362,6 +464,10 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
     getHotelById,
     clearError,
 
+    // New Order Toggle Functions
+    toggleOrderEnabled,
+    bulkToggleOrderEnabled,
+
     // Selection (memoized)
     selectedHotels,
     ...selectionHandlers,
@@ -378,7 +484,7 @@ export const useHotel = ({ onHotelAdded, includeMetrics = true } = {}) => {
   };
 };
 
-// Hook for getting hotels list (lightweight version without metrics) - OPTIMIZED
+// Hook for getting hotels list (lightweight version without metrics)
 export const useHotelsList = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -386,7 +492,7 @@ export const useHotelsList = () => {
 
   useEffect(() => {
     let unsubscribe;
-    let isMounted = true; // Prevent state updates if component unmounted
+    let isMounted = true;
 
     const setupSubscription = () => {
       setLoading(true);
@@ -394,7 +500,7 @@ export const useHotelsList = () => {
 
       // Use a simpler subscription without metrics for better performance
       unsubscribe = hotelServices.subscribeToHotels((data) => {
-        if (!isMounted) return; // Component unmounted during callback
+        if (!isMounted) return;
 
         // Map to simpler format
         const simpleHotels = data.map((hotel) => ({
@@ -405,6 +511,7 @@ export const useHotelsList = () => {
           city: hotel.city,
           state: hotel.state,
           businessType: hotel.businessType,
+          isOrderEnabled: Boolean(hotel.isOrderEnabled), // Include order status
         }));
         setHotels(simpleHotels);
         setLoading(false);
@@ -417,12 +524,16 @@ export const useHotelsList = () => {
       isMounted = false;
       if (unsubscribe) unsubscribe();
     };
-  }, []); // Empty dependency array prevents re-subscriptions
+  }, []);
 
   const activeHotels = useMemo(() => {
     return hotels.filter(
-      (hotel) => hotel.status === "active" || hotel.status === "Active",
+      (hotel) => hotel.status === "active" || hotel.status === "Active"
     );
+  }, [hotels]);
+
+  const orderEnabledHotels = useMemo(() => {
+    return hotels.filter((hotel) => hotel.isOrderEnabled === true);
   }, [hotels]);
 
   // Memoize computed values
@@ -430,20 +541,22 @@ export const useHotelsList = () => {
     () => ({
       hotelCount: hotels.length,
       activeCount: activeHotels.length,
+      orderEnabledCount: orderEnabledHotels.length,
     }),
-    [hotels.length, activeHotels.length],
+    [hotels.length, activeHotels.length, orderEnabledHotels.length]
   );
 
   return {
     hotels,
     activeHotels,
+    orderEnabledHotels,
     loading,
     error,
     ...computedValues,
   };
 };
 
-// Hook for single hotel details - OPTIMIZED
+// Hook for single hotel details
 export const useHotelDetails = (hotelId) => {
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -455,7 +568,7 @@ export const useHotelDetails = (hotelId) => {
       return;
     }
 
-    let isMounted = true; // Prevent state updates if component unmounted
+    let isMounted = true;
 
     const fetchHotel = async () => {
       setLoading(true);
@@ -484,7 +597,7 @@ export const useHotelDetails = (hotelId) => {
     return () => {
       isMounted = false;
     };
-  }, [hotelId]); // Only re-fetch if hotelId changes
+  }, [hotelId]);
 
   const refreshHotel = useCallback(async () => {
     if (!hotelId) return;
@@ -504,8 +617,9 @@ export const useHotelDetails = (hotelId) => {
     () => ({
       isActive: hotel?.status === "active",
       hasSubscription: Boolean(hotel?.metrics?.subscription),
+      isOrderEnabled: Boolean(hotel?.isOrderEnabled),
     }),
-    [hotel?.status, hotel?.metrics?.subscription],
+    [hotel?.status, hotel?.metrics?.subscription, hotel?.isOrderEnabled]
   );
 
   return {

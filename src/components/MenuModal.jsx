@@ -23,8 +23,8 @@ import {
   getAdditionalDetails,
   getDietaryItems,
   getPreparationItems,
-} from "Constants/itemConfigurations";
-import { BackToTop } from "atoms";
+} from "Constants/constant";
+import  BackToTop  from "atoms/Buttons/BackToTop";
 
 const MenuModal = memo(
   ({ show, handleClose, modalData, addToCart, isLoading = false }) => {

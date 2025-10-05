@@ -466,7 +466,7 @@ const ViewAdmin = memo(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-4">
       {/* Admin Form Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         <AddAdminFormModal
