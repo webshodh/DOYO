@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ToastContainer } from "react-toastify";
@@ -16,7 +17,7 @@ import { HotelSelectionProvider } from "./context/HotelSelectionContext";
 import LoginPage from "./Pages/Login/LoginPage";
 import SplashScreen from "./Pages/Screens/SplashScreen";
 import AdminDashboard from "./Pages/Admin Dashboard/AdminDashboard";
-import Profile from "./organisms/ProfileComponent";
+import Profile from "./components/ProfileComponent";
 import AddCategory from "./Pages/Admin Dashboard/AddCategory";
 import CategoryManager from "./Pages/Admin Dashboard/AddMainCategory";
 import AddMenu from "./Pages/Admin Dashboard/AddMenu";
@@ -46,6 +47,8 @@ import ViewSubscriptionPlan from "Pages/SuperAdminDashboard/ViewSubscriptionPlan
 import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
 import DOYOLandingPage from "Pages/LandingPage";
 import POSDashboard from "Pages/Admin Dashboard/POSDashboard";
+import { useHotelDetails } from "hooks/useHotel";
+import ReportAnalytics from "Pages/Admin Dashboard/ReportAnalytics";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -83,6 +86,21 @@ const ProtectedAdminRoute = ({
 
   if (user && user.email === SUPER_ADMIN_EMAIL) {
     return <Navigate to="/super-admin/dashboard" replace />;
+  }
+
+  return children;
+};
+
+// Feature-Protected Route Component for Admin Routes that require order feature
+const FeatureProtectedRoute = ({ children, requiresOrderFeature = false }) => {
+  const { hotelName } = useParams();
+  const { isOrderEnabled, loading } = useHotelDetails(hotelName);
+
+  if (loading) return <LoadingSpinner />;
+
+  // Check if feature is required and not enabled
+  if (requiresOrderFeature && !isOrderEnabled) {
+    return <Navigate to={`/${hotelName}/admin/dashboard`} replace />;
   }
 
   return children;
@@ -238,7 +256,6 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-
                       <Route
                         path="add-subscription-plan"
                         element={
@@ -247,7 +264,6 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-
                       <Route
                         path="add-admin"
                         element={
@@ -256,7 +272,6 @@ function App() {
                           </SuperAdminLayout>
                         }
                       />
-
                       <Route
                         path=""
                         element={<Navigate to="dashboard" replace />}
@@ -275,28 +290,66 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
+
+                      {/* Routes that require order feature to be enabled */}
                       <Route
                         path="pos-dashboard"
                         element={
-                          <AdminLayout>
-                            <POSDashboard />
-                          </AdminLayout>
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <POSDashboard />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
                         }
                       />
                       <Route
                         path="order-dashboard"
-                        element={<OrderDashboard />}
+                        element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <OrderDashboard />
+                          </FeatureProtectedRoute>
+                        }
                       />
-
                       <Route
                         path="customer-dashboard"
                         element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <CustomersPage />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="add-captain"
+                        element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <AddCaptain />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="kitchen"
+                        element={
+                          <FeatureProtectedRoute requiresOrderFeature={true}>
+                            <AdminLayout>
+                              <KitchenAdminPage />
+                            </AdminLayout>
+                          </FeatureProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="reports"
+                        element={
                           <AdminLayout>
-                            <CustomersPage />
+                            <ReportAnalytics />
                           </AdminLayout>
                         }
                       />
 
+                      {/* Routes that don't require order feature */}
                       <Route
                         path="profile"
                         element={
@@ -321,30 +374,11 @@ function App() {
                           </AdminLayout>
                         }
                       />
-
                       <Route
                         path="add-menu"
                         element={
                           <AdminLayout>
                             <AddMenu />
-                          </AdminLayout>
-                        }
-                      />
-
-                      <Route
-                        path="add-captain"
-                        element={
-                          <AdminLayout>
-                            <AddCaptain />
-                          </AdminLayout>
-                        }
-                      />
-
-                      <Route
-                        path="kitchen"
-                        element={
-                          <AdminLayout>
-                            <KitchenAdminPage />
                           </AdminLayout>
                         }
                       />
@@ -413,7 +447,6 @@ function App() {
                           </CaptainDashboardLayout>
                         }
                       />
-
                       <Route
                         path="settings"
                         element={

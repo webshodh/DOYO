@@ -1,4 +1,4 @@
-// hooks/useMenu.js (CORRECTED VERSION)
+// hooks/useMenu.js (CORRECTED VERSION WITH IMPROVED FILTERING)
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { menuServices } from "../services/api/menuService";
 import { categoryServices } from "../services/api/categoryService";
@@ -38,9 +38,10 @@ export const useMenu = (hotelName) => {
         hotelName,
         (menusData) => {
           if (!isMounted) return;
+          console.log("Menus updated:", menusData?.length || 0);
           setMenus(menusData || []);
           setLoading(false);
-        },
+        }
       );
       unsubscribes.push(menuUnsubscribe);
 
@@ -49,15 +50,16 @@ export const useMenu = (hotelName) => {
         hotelName,
         (categoriesData) => {
           if (!isMounted) return;
+          console.log("Categories updated:", categoriesData?.length || 0);
           setCategories(categoriesData || []);
-        },
+        }
       );
       unsubscribes.push(categoryUnsubscribe);
 
       // Subscribe to main categories
       const mainCategoriesRef = collection(
         firestore,
-        `hotels/${hotelName}/Maincategories`,
+        `hotels/${hotelName}/Maincategories`
       );
       const mainCategoryUnsubscribe = onSnapshot(
         mainCategoriesRef,
@@ -67,13 +69,17 @@ export const useMenu = (hotelName) => {
             id: doc.id,
             ...doc.data(),
           }));
+          console.log(
+            "Main categories updated:",
+            mainCategoriesData?.length || 0
+          );
           setMainCategories(mainCategoriesData);
         },
         (err) => {
           if (!isMounted) return;
           console.error("Error fetching main categories:", err);
           setError(err.message || "Error fetching main categories");
-        },
+        }
       );
       unsubscribes.push(mainCategoryUnsubscribe);
     };
@@ -90,22 +96,140 @@ export const useMenu = (hotelName) => {
     };
   }, [hotelName]);
 
-  // Memoize menu counts by category
+  // Memoize menu counts by category - IMPROVED
   const menuCountsByCategory = useMemo(() => {
-    return menuServices.calculateMenuCountsByCategory(menus);
+    console.log("Calculating menu counts, menus:", menus?.length || 0);
+
+    if (!menus || menus.length === 0) {
+      return {};
+    }
+
+    const counts = {};
+
+    menus.forEach((menu) => {
+      const categoryId = menu.menuCategory;
+      const categoryName = menu.menuCategoryName || menu.categoryName;
+
+      // Count by ID
+      if (categoryId) {
+        counts[categoryId] = (counts[categoryId] || 0) + 1;
+      }
+
+      // Count by name
+      if (categoryName) {
+        counts[categoryName] = (counts[categoryName] || 0) + 1;
+      }
+
+      // Fallback to the category value itself
+      if (!categoryId && !categoryName && menu.menuCategory) {
+        counts[menu.menuCategory] = (counts[menu.menuCategory] || 0) + 1;
+      }
+    });
+
+    console.log("Menu counts by category:", counts);
+    return counts;
   }, [menus]);
 
-  // Memoize filtered and sorted menus
-  const filteredAndSortedMenus = useMemo(
-    () =>
-      menuServices.filterAndSortMenus(
-        menus,
-        searchTerm,
-        selectedCategory,
-        sortOrder,
-      ),
-    [menus, searchTerm, selectedCategory, sortOrder],
-  );
+  // IMPROVED: Custom filtering function that handles both ID and name matching
+  const filterMenusByCategory = useCallback((menusList, category) => {
+    if (!category || category === "" || category === "All") {
+      return menusList;
+    }
+
+    return menusList.filter((menu) => {
+      const menuCategoryId = menu.menuCategory;
+      const menuCategoryName = menu.menuCategoryName || menu.categoryName;
+
+      // Check direct matches
+      if (menuCategoryId === category || menuCategoryName === category) {
+        return true;
+      }
+
+      // Check if category matches any variation
+      if (menu.menuCategory === category) {
+        return true;
+      }
+
+      // Case-insensitive string comparison for names
+      if (
+        typeof menuCategoryName === "string" &&
+        typeof category === "string"
+      ) {
+        return menuCategoryName.toLowerCase() === category.toLowerCase();
+      }
+
+      return false;
+    });
+  }, []);
+
+  // IMPROVED: Memoized filtered and sorted menus
+  const filteredAndSortedMenus = useMemo(() => {
+    console.log(
+      "Filtering menus - selectedCategory:",
+      selectedCategory,
+      "searchTerm:",
+      searchTerm
+    );
+
+    let filtered = [...menus];
+
+    // Apply category filter
+    if (
+      selectedCategory &&
+      selectedCategory !== "" &&
+      selectedCategory !== "All"
+    ) {
+      filtered = filterMenusByCategory(filtered, selectedCategory);
+      console.log("After category filter:", filtered.length);
+    }
+
+    // Apply search filter
+    if (searchTerm && searchTerm.trim() !== "") {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter((menu) => {
+        const menuName = (menu.menuName || "").toLowerCase();
+        const categoryName = (
+          menu.menuCategoryName ||
+          menu.categoryName ||
+          menu.menuCategory ||
+          ""
+        ).toLowerCase();
+        const description = (
+          menu.menuDescription ||
+          menu.description ||
+          ""
+        ).toLowerCase();
+
+        return (
+          menuName.includes(searchLower) ||
+          categoryName.includes(searchLower) ||
+          description.includes(searchLower)
+        );
+      });
+      console.log("After search filter:", filtered.length);
+    }
+
+    // Apply sorting
+    if (sortOrder && sortOrder !== "default") {
+      filtered = [...filtered].sort((a, b) => {
+        switch (sortOrder) {
+          case "name-asc":
+            return (a.menuName || "").localeCompare(b.menuName || "");
+          case "name-desc":
+            return (b.menuName || "").localeCompare(a.menuName || "");
+          case "price-asc":
+            return Number(a.menuPrice || 0) - Number(b.menuPrice || 0);
+          case "price-desc":
+            return Number(b.menuPrice || 0) - Number(a.menuPrice || 0);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    console.log("Final filtered menus:", filtered.length);
+    return filtered;
+  }, [menus, selectedCategory, searchTerm, sortOrder, filterMenusByCategory]);
 
   // Memoize current user ID
   const currentUserId = useMemo(() => {
@@ -127,7 +251,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, currentUserId],
+    [hotelName, currentUserId]
   );
 
   const updateMenu = useCallback(
@@ -139,7 +263,7 @@ export const useMenu = (hotelName) => {
           menuData,
           menuId,
           hotelName,
-          adminId,
+          adminId
         );
       } catch (err) {
         console.error("Error in updateMenu:", err);
@@ -149,7 +273,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName, currentUserId],
+    [hotelName, currentUserId]
   );
 
   const deleteMenu = useCallback(
@@ -165,7 +289,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName],
+    [hotelName]
   );
 
   const toggleMenuAvailability = useCallback(
@@ -177,7 +301,7 @@ export const useMenu = (hotelName) => {
         return await menuServices.updateMenuAvailability(
           menuId,
           newAvail,
-          hotelName,
+          hotelName
         );
       } catch (err) {
         console.error("Error in toggleMenuAvailability:", err);
@@ -187,7 +311,7 @@ export const useMenu = (hotelName) => {
         setSubmitting(false);
       }
     },
-    [hotelName],
+    [hotelName]
   );
 
   const prepareForEdit = useCallback(
@@ -200,7 +324,7 @@ export const useMenu = (hotelName) => {
         return null;
       }
     },
-    [hotelName],
+    [hotelName]
   );
 
   const handleFormSubmit = useCallback(
@@ -211,23 +335,28 @@ export const useMenu = (hotelName) => {
         return await addMenu(menuData);
       }
     },
-    [addMenu, updateMenu],
+    [addMenu, updateMenu]
   );
 
-  // Filter, search, sort handlers
+  // IMPROVED: Filter, search, sort handlers with better logging
   const handleCategoryFilter = useCallback((cat) => {
+    console.log("Category filter changed to:", cat);
     setSelectedCategory(cat);
+    setActiveCategory(cat);
   }, []);
 
   const handleSearchChange = useCallback((term) => {
+    console.log("Search term changed to:", term);
     setSearchTerm(term);
   }, []);
 
   const handleSortChange = useCallback((order) => {
+    console.log("Sort order changed to:", order);
     setSortOrder(order);
   }, []);
 
   const clearAllFilters = useCallback(() => {
+    console.log("Clearing all filters");
     setSearchTerm("");
     setSelectedCategory("");
     setActiveCategory("");
@@ -264,7 +393,7 @@ export const useMenu = (hotelName) => {
         return null;
       }
     },
-    [hotelName],
+    [hotelName]
   );
 
   // Utility functions
@@ -276,10 +405,10 @@ export const useMenu = (hotelName) => {
         menus.some(
           (m) =>
             m.menuName?.toLowerCase() === name.toLowerCase() &&
-            m.id !== excludeId,
+            m.id !== excludeId
         ),
 
-      getMenusByCategory: (cat) => menus.filter((m) => m.menuCategory === cat),
+      getMenusByCategory: (cat) => filterMenusByCategory(menus, cat),
 
       getAvailableMenus: () =>
         menus.filter((m) => m.availability === "Available"),
@@ -293,14 +422,14 @@ export const useMenu = (hotelName) => {
 
       getChefSpecialMenus: () => menus.filter((m) => m.chefSpecial),
     }),
-    [hotelName, menus],
+    [hotelName, menus, filterMenusByCategory]
   );
 
   // Computed statistics
   const computedStats = useMemo(() => {
     const availableMenus = menus.filter((m) => m.availability === "Available");
     const unavailableMenus = menus.filter(
-      (m) => m.availability === "Unavailable",
+      (m) => m.availability === "Unavailable"
     );
     const discountedMenus = menus.filter((m) => m.discount > 0);
 

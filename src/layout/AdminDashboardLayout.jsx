@@ -10,8 +10,8 @@ import React, {
 import { useParams, useLocation } from "react-router-dom";
 import { ChevronUp } from "lucide-react";
 
-import Sidebar from "organisms/SideBarComponent";
-import Navbar from "organisms/NavBarComponent";
+import Sidebar from "components/SideBarComponent";
+import Navbar from "components/NavBarComponent";
 
 // Layout context
 const LayoutContext = createContext({
@@ -36,18 +36,34 @@ const useResponsive = () => {
   return { isDesktop };
 };
 
-// Main content wrapper
-const MainContent = memo(({ children }) => (
-  <main className="flex-1 overflow-hidden">
-    <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/70 scrollbar-track-gray-100">
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className=" relative">{children}</div>
+// Content area with loading overlay
+const ContentArea = memo(({ children, isLoading, loadingComponent }) => {
+  return (
+    <div className="relative h-full">
+      {/* Always render children - they handle their own loading states */}
+      <div className={`h-full ${isLoading ? "pointer-events-none" : ""}`}>
+        <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/70 scrollbar-track-gray-100">
+          <div className="px-4 sm:px-6 lg:px-8 py-6">
+            <div className="relative">{children}</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
-));
 
-MainContent.displayName = "MainContent";
+      {/* Loading overlay - only shows when explicitly requested */}
+      {isLoading && loadingComponent && (
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/70 scrollbar-track-gray-100">
+            <div className="px-4 sm:px-6 lg:px-8 py-6">
+              <div className="relative">{loadingComponent}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+ContentArea.displayName = "ContentArea";
 
 // Scroll to top button
 const ScrollToTop = memo(() => {
@@ -58,7 +74,7 @@ const ScrollToTop = memo(() => {
       setShowScrollTop(e.target.scrollTop > 300);
     };
 
-    const scrollContainer = document.querySelector("main > div");
+    const scrollContainer = document.querySelector(".content-scroll-area");
     if (scrollContainer) {
       scrollContainer.addEventListener("scroll", handleScroll);
       return () => scrollContainer.removeEventListener("scroll", handleScroll);
@@ -66,7 +82,7 @@ const ScrollToTop = memo(() => {
   }, []);
 
   const scrollToTop = () => {
-    const scrollContainer = document.querySelector("main > div");
+    const scrollContainer = document.querySelector(".content-scroll-area");
     scrollContainer?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -84,49 +100,55 @@ const ScrollToTop = memo(() => {
 ScrollToTop.displayName = "ScrollToTop";
 
 // Main layout component
-const AdminDashboardLayout = memo(({ children }) => {
-  const { hotelName } = useParams();
-  const location = useLocation();
-  const { isDesktop } = useResponsive();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+const AdminDashboardLayout = memo(
+  ({
+    children,
+    isLoading = false,
+    loadingComponent = null,
+    showLoadingOverlay = false,
+  }) => {
+    const { hotelName } = useParams();
+    const location = useLocation();
+    const { isDesktop } = useResponsive();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Auto-close sidebar on route change for mobile
-  useEffect(() => {
-    if (!isDesktop) setIsSidebarOpen(false);
-  }, [location.pathname, isDesktop]);
+    // Auto-close sidebar on route change for mobile
+    useEffect(() => {
+      if (!isDesktop) setIsSidebarOpen(false);
+    }, [location.pathname, isDesktop]);
 
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
+    const toggleSidebar = useCallback(() => {
+      setIsSidebarOpen((prev) => !prev);
+    }, []);
 
-  const closeSidebar = useCallback(() => {
-    setIsSidebarOpen(false);
-  }, []);
+    const closeSidebar = useCallback(() => {
+      setIsSidebarOpen(false);
+    }, []);
 
-  const layoutValue = useMemo(
-    () => ({
-      isSidebarOpen,
-      isDesktop,
-      toggleSidebar,
-      closeSidebar,
-    }),
-    [isSidebarOpen, isDesktop, toggleSidebar, closeSidebar],
-  );
+    const layoutValue = useMemo(
+      () => ({
+        isSidebarOpen,
+        isDesktop,
+        toggleSidebar,
+        closeSidebar,
+      }),
+      [isSidebarOpen, isDesktop, toggleSidebar, closeSidebar]
+    );
 
-  return (
-    <LayoutContext.Provider value={layoutValue}>
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Mobile overlay */}
-        {!isDesktop && isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={closeSidebar}
-          />
-        )}
+    return (
+      <LayoutContext.Provider value={layoutValue}>
+        <div className="min-h-screen bg-gray-50 flex">
+          {/* Mobile overlay */}
+          {!isDesktop && isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={closeSidebar}
+            />
+          )}
 
-        {/* Sidebar */}
-        <aside
-          className={`
+          {/* Sidebar - Always visible, never shows loading */}
+          <aside
+            className={`
           ${
             isDesktop
               ? "relative flex-shrink-0 w-64"
@@ -135,37 +157,47 @@ const AdminDashboardLayout = memo(({ children }) => {
                 }`
           }
         `}
-        >
-          <Sidebar
-            isOpen={isDesktop || isSidebarOpen}
-            onClose={closeSidebar}
-            admin={true}
-          />
-        </aside>
-
-        {/* Main content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Navbar */}
-          <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
-            <Navbar
-              title="Admin Dashboard"
-              hotelName={hotelName}
-              onMenuToggle={toggleSidebar}
-              isSidebarOpen={isSidebarOpen}
+          >
+            <Sidebar
+              isOpen={isDesktop || isSidebarOpen}
+              onClose={closeSidebar}
               admin={true}
             />
-          </header>
+          </aside>
 
           {/* Main content */}
-          <MainContent>{children}</MainContent>
-        </div>
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Navbar - Always visible, never shows loading */}
+            <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+              <Navbar
+                title="Admin Dashboard"
+                hotelName={hotelName}
+                onMenuToggle={toggleSidebar}
+                isSidebarOpen={isSidebarOpen}
+                admin={true}
+              />
+            </header>
 
-        {/* Scroll to top */}
-        <ScrollToTop />
-      </div>
-    </LayoutContext.Provider>
-  );
-});
+            {/* Main content area with conditional loading */}
+            <main className="flex-1 overflow-hidden">
+              <div className="h-full content-scroll-area">
+                <ContentArea
+                  isLoading={showLoadingOverlay && isLoading}
+                  loadingComponent={loadingComponent}
+                >
+                  {children}
+                </ContentArea>
+              </div>
+            </main>
+          </div>
+
+          {/* Scroll to top */}
+          <ScrollToTop />
+        </div>
+      </LayoutContext.Provider>
+    );
+  }
+);
 
 AdminDashboardLayout.displayName = "AdminDashboardLayout";
 

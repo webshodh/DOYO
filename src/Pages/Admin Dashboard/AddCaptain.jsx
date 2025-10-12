@@ -1,4 +1,4 @@
-// AddCaptain.js (CORRECTED VERSION)
+// AddCaptain.js (ENHANCED WITH SKELETON)
 import React, { useState, useCallback, useMemo, memo, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -8,18 +8,20 @@ import useColumns from "../../Constants/Columns";
 import { useCaptain } from "../../hooks/useCaptain";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "atoms/Messages/EmptyState";
-import NoSearchResults from "molecules/NoSearchResults";
+import NoSearchResults from "components/NoSearchResults";
 import StatCard from "components/Cards/StatCard";
 import PrimaryButton from "atoms/Buttons/PrimaryButton";
-import SearchWithResults from "molecules/SearchWithResults";
+import SearchWithResults from "components/SearchWithResults";
 import ErrorMessage from "atoms/Messages/ErrorMessage";
+import ErrorBoundary from "atoms/ErrorBoundary";
+import CaptainManagementSkeleton from "atoms/Skeleton/CaptainManagementSkeleton";
 import { useTranslation } from "react-i18next";
 
 // Lazy load heavy components
-const CaptainFormModal = React.lazy(
-  () => import("../../components/FormModals/CaptainFormModal"),
+const CaptainFormModal = React.lazy(() =>
+  import("../../components/FormModals/CaptainFormModal")
 );
-const DynamicTable = React.lazy(() => import("../../organisms/DynamicTable"));
+const DynamicTable = React.lazy(() => import("../../components/DynamicTable"));
 
 // Main AddCaptain component
 const AddCaptain = memo(() => {
@@ -62,13 +64,13 @@ const AddCaptain = memo(() => {
         const createdDate = new Date(
           captain.createdAt?.toDate
             ? captain.createdAt.toDate()
-            : captain.createdAt,
+            : captain.createdAt
         );
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return createdDate > weekAgo;
       }).length,
     }),
-    [captains, captainCount, activeCaptains, inactiveCaptains],
+    [captains, captainCount, activeCaptains, inactiveCaptains]
   );
 
   // Event handlers
@@ -89,7 +91,7 @@ const AddCaptain = memo(() => {
         console.error("Error preparing captain for edit:", error);
       }
     },
-    [prepareForEdit],
+    [prepareForEdit]
   );
 
   const handleDeleteClick = useCallback(
@@ -98,7 +100,7 @@ const AddCaptain = memo(() => {
         t("confirmations.deleteCaptain", {
           firstName: captain.firstName,
           lastName: captain.lastName,
-        }),
+        })
       );
 
       if (confirmed) {
@@ -109,7 +111,7 @@ const AddCaptain = memo(() => {
         }
       }
     },
-    [deleteCaptain, t],
+    [deleteCaptain, t]
   );
 
   const handleToggleStatus = useCallback(
@@ -120,7 +122,7 @@ const AddCaptain = memo(() => {
         console.error("Error toggling captain status:", error);
       }
     },
-    [toggleCaptainStatus],
+    [toggleCaptainStatus]
   );
 
   const handleModalClose = useCallback(() => {
@@ -138,7 +140,7 @@ const AddCaptain = memo(() => {
         return false;
       }
     },
-    [handleFormSubmit],
+    [handleFormSubmit]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -159,24 +161,11 @@ const AddCaptain = memo(() => {
     }
   }, [refreshCaptains]);
 
-  // Error state
-  if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        onRetry={handleRefresh}
-        title={t("errors.loadingCaptains")}
-      />
-    );
-  }
-
-  // Loading state
-  if (loading && !captains.length) {
-    return <LoadingSpinner size="lg" text={t("loading.captains")} />;
-  }
+  // Determine loading state
+  const isLoadingData = loading && !captains.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Captain Form Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         <CaptainFormModal
@@ -192,105 +181,117 @@ const AddCaptain = memo(() => {
         />
       </Suspense>
 
-      <div>
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
-          <PageTitle
-            pageTitle={t("pages.captainManagement")}
-            className="text-2xl sm:text-3xl font-bold text-gray-900"
-            description={t("descriptions.captainManagement")}
-          />
-        </div>
+      {/* Error handling */}
+      {error && !loading && (
+        <ErrorBoundary error={error} onRetry={handleRefresh} />
+      )}
 
-        {/* Stats Cards */}
-        {hasCaptains && (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
-            <StatCard
-              icon={Users}
-              title={t("stats.totalCaptains")}
-              value={stats.total}
-              color="blue"
-            />
-            <StatCard
-              icon={Users}
-              title={t("stats.activeCaptains")}
-              value={stats.active}
-              color="green"
-            />
-            <StatCard
-              icon={Users}
-              title={t("stats.inactiveCaptains")}
-              value={stats.inactive}
-              color="red"
-            />
-            <StatCard
-              icon={Users}
-              title={t("stats.recentCaptains")}
-              value={stats.recent}
-              color="purple"
+      {/* Loading state */}
+      {isLoadingData ? (
+        <CaptainManagementSkeleton />
+      ) : (
+        <div>
+          {/* Header */}
+          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white mb-4">
+            <PageTitle
+              pageTitle={t("pages.captainManagement")}
+              className="text-2xl sm:text-3xl font-bold text-white"
+              description={t("descriptions.captainManagement")}
             />
           </div>
-        )}
 
-        {/* Search and Filters */}
-        {hasCaptains && (
-          <SearchWithResults
-            searchTerm={searchTerm}
-            onSearchChange={(e) => handleSearchChange(e.target.value)}
-            placeholder={t("placeholders.searchCaptains")}
-            totalCount={captainCount}
-            filteredCount={filteredCaptains.length}
-            onClearSearch={handleClearSearch}
-            totalLabel={t("labels.totalCaptains")}
-            onAdd={handleAddClick}
-            addButtonText="Add"
-            addButtonLoading={loading}
-          />
-        )}
-
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {hasCaptains ? (
-            <>
-              {hasSearchResults ? (
-                <Suspense
-                  fallback={<LoadingSpinner text={t("loading.table")} />}
-                >
-                  <DynamicTable
-                    columns={ViewCaptainColumns}
-                    data={filteredCaptains}
-                    onEdit={handleEditClick}
-                    onDelete={handleDeleteClick}
-                    onToggleStatus={handleToggleStatus}
-                    loading={submitting}
-                    emptyMessage={t("messages.noSearchResults")}
-                    showPagination={true}
-                    initialRowsPerPage={10}
-                    sortable={true}
-                    className="border-0"
-                  />
-                </Suspense>
-              ) : (
-                <NoSearchResults
-                  btnText={t("buttons.addCaptain")}
-                  searchTerm={searchTerm}
-                  onClearSearch={handleClearSearch}
-                  onAddNew={handleAddClick}
-                />
-              )}
-            </>
-          ) : (
-            <EmptyState
-              icon={Users}
-              title={t("emptyStates.noCaptains.title")}
-              description={t("emptyStates.noCaptains.description")}
-              actionLabel={t("emptyStates.noCaptains.actionLabel")}
-              onAction={handleAddClick}
-              loading={submitting}
-            />
+          {/* Stats Cards */}
+          {hasCaptains && (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+              <StatCard
+                icon={Users}
+                title={t("stats.totalCaptains")}
+                value={stats.total}
+                color="blue"
+              />
+              <StatCard
+                icon={Users}
+                title={t("stats.activeCaptains")}
+                value={stats.active}
+                color="green"
+              />
+              <StatCard
+                icon={Users}
+                title={t("stats.inactiveCaptains")}
+                value={stats.inactive}
+                color="red"
+              />
+              <StatCard
+                icon={Users}
+                title={t("stats.recentCaptains")}
+                value={stats.recent}
+                color="purple"
+              />
+            </div>
           )}
+
+          {/* Search and Filters */}
+          {
+            <SearchWithResults
+              searchTerm={searchTerm}
+              onSearchChange={(e) => handleSearchChange(e.target.value)}
+              placeholder={t("placeholders.searchCaptains")}
+              totalCount={captainCount}
+              filteredCount={filteredCaptains.length}
+              onClearSearch={handleClearSearch}
+              totalLabel={t("labels.totalCaptains")}
+              onAdd={handleAddClick}
+              addButtonText="Add"
+              addButtonLoading={loading}
+            />
+          }
+
+          {/* Content */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            {hasCaptains ? (
+              <>
+                {hasSearchResults ? (
+                  <Suspense
+                    fallback={<LoadingSpinner text={t("loading.table")} />}
+                  >
+                    <DynamicTable
+                      columns={ViewCaptainColumns}
+                      data={filteredCaptains}
+                      onEdit={handleEditClick}
+                      onDelete={handleDeleteClick}
+                      onToggleStatus={handleToggleStatus}
+                      loading={submitting}
+                      emptyMessage={t("messages.noSearchResults")}
+                      showPagination={true}
+                      initialRowsPerPage={10}
+                      sortable={true}
+                      className="border-0"
+                    />
+                  </Suspense>
+                ) : (
+                  <NoSearchResults
+                    btnText={t("buttons.addCaptain")}
+                    searchTerm={searchTerm}
+                    onClearSearch={handleClearSearch}
+                    onAddNew={handleAddClick}
+                    title={t("noSearchResults.captainTitle")}
+                    description={t("noSearchResults.captainDescription")}
+                  />
+                )}
+              </>
+            ) : (
+              <EmptyState
+                icon={Users}
+                title={t("emptyStates.noCaptains.title")}
+                description={t("emptyStates.noCaptains.description")}
+                actionLabel={t("emptyStates.noCaptains.actionLabel")}
+                onAction={handleAddClick}
+                loading={submitting}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Toast Container */}
       <ToastContainer

@@ -91,30 +91,37 @@
   },
 
   "menu": {
+    "managePageTitle": "Menu Management",
+    "manageDescription": "Manage your restaurant menu items",
+    "totalItems": "Total Items",
+    "totalAvailable": "Available Items",
+    "withDiscount": "Discounted Items",
+    "totalCategories": "Categories",
+    "searchPlaceholder": "Search menu items...",
+    "totalLabel": "menu items",
+    "addButton": "Add Menu",
+    "noItems": "No Menu Items",
+    "noItemsDescription": "Start by adding your first menu item to showcase your offerings.",
+    "emptyAction": "Add First Menu Item",
     "errorLoading": "Error Loading Menu Items",
     "loading": "Loading menu items...",
-    "viewPageTitle": "View Menu",
-    "managePageTitle": "Menu Management",
-    "viewDescription": "Browse menu items",
-    "manageDescription": "Manage your menu items and categories",
-    "addButton": "Add Menu Item",
-    "totalItems": "Total Menu Items",
-    "totalAvailable": "Total Available Menu",
-    "withDiscount": "Menu With Discount",
-    "totalCategories": "Total Categories",
-    "searchPlaceholder": "Search menu items by name, category, or price...",
-    "totalLabel": "total menu items",
-    "noSearchResults": "No menu items match your search criteria",
-    "noItems": "No Menu Items Yet",
-    "noItemsDescription": "Create your first menu item to start building your restaurant's offerings. Add delicious dishes and beverages for your customers.",
-    "noItemsView": "No Menu Items to View",
-    "noItemsViewDescription": "There are no menu items available to display. Check back later or contact the restaurant.",
-    "emptyAction": "Add Your First Menu Item"
+    "loadingTable": "Loading menu table...",
+    "noSearchResults": "No menu items found matching your search criteria.",
+    "editTitle": "Edit Menu Item",
+    "addTitle": "Add New Menu Item",
+    "deleteConfirmation": "Are you sure you want to delete \"{menuName}\"? This action cannot be undone.",
+    "deleteError": "Failed to delete menu item. Please try again.",
+    "menuNotFound": "Menu item not found. Please refresh and try again.",
+    "refreshError": "Error refreshing menu items"
   },
+
   "sidebar": {
     "dashboard": "Dashboard",
     "dashboardDesc": "Overview and analytics",
+    "posDashboard": "POS",
+    "posDashboardDesc": "Manage POS",
     "orderDashboard": "Order Dashboard",
+    "orderDashboardDesc": "Manage Dashboard",
     "customerDashboard": "Customer Dashboard",
     "customerDesc": "Manage Customers",
     "addCategory": "Add Category",
@@ -153,7 +160,8 @@
     "superAdminPanelDec": "System Control",
     "captainPanel": "Captain Panel",
     "captainPanelDec": "Floor Management",
-    "appName": "Restaurant Management"
+    "appName": "Restaurant Management",
+    "reports":"Reports & Analytics"
   },
 
   "tableHeaders": {
@@ -345,5 +353,17 @@
     "prepareCategoryEdit": "Error preparing category for edit:",
     "deleteCategory": "Error deleting category:",
     "loadingCategories": "Error Loading Special Categories"
+  },
+  "noSearchResults": {
+    "captainTitle": "No Captains Found",
+    "captainDescription": "No captains match your search. Try adjusting your search terms or add a new captain.",
+    "categoryTitle": "No Category Found",
+    "categoryDescription": "No category match your search. Try adjusting your search terms or add a new category.",
+    "specialCategoryTitle": "No special category Found",
+    "specialCategoryDescription": "No special category match your search. Try adjusting your search terms or add a new special category.",
+    "menuTitle": "No menu Found",
+    "menuDescription": "No menu match your search. Try adjusting your search terms or add a new menu.",
+    "kitchenTitle": "No order Found",
+    "kitchenDescription": "No order match your search. Try adjusting your search terms"
   }
 }

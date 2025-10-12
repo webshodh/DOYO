@@ -1,23 +1,11 @@
 import React from "react";
-import styled from "styled-components";
-
-const PageTitleContainer = styled.div`
-  margin-bottom: 20px;
-`;
-
-const PageTitleHeading = styled.h1`
-  font-size: 24px;
-  margin-bottom: 0;
-  font-weight: 600;
-  color: white;
-`;
 
 function PageTitle({ pageTitle, description }) {
   return (
-    <PageTitleContainer>
-      <PageTitleHeading>{pageTitle}</PageTitleHeading>
+    <div className="mb-2">
+      <h1 className="text-2xl font-semibold text-white mb-0">{pageTitle}</h1>
       <p className="text-white mt-1">{description}</p>
-    </PageTitleContainer>
+    </div>
   );
 }
 

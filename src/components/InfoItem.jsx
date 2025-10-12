@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from "react";
 import { Check, X } from "lucide-react";
-import InfoItemSkeleton from "../atoms/InfoItemSkeleton";
+import InfoItemSkeleton from "../atoms/Skeleton/InfoItemSkeleton";
 
 const InfoItem = memo(
   ({
@@ -121,7 +121,7 @@ const InfoItem = memo(
         <div className="flex items-center">{renderValue}</div>
       </div>
     );
-  },
+  }
 );
 
 InfoItem.displayName = "InfoItem";

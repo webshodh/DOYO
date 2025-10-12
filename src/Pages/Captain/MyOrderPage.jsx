@@ -11,8 +11,8 @@ import { app } from "../../services/firebase/firebaseConfig";
 // Components
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import EmptyState from "../../atoms/Messages/EmptyState";
-import NoSearchResults from "../../molecules/NoSearchResults";
-import SearchWithResults from "../../molecules/SearchWithResults";
+import NoSearchResults from "../../components/NoSearchResults";
+import SearchWithResults from "../../components/SearchWithResults";
 import OrderCard from "../../components/Cards/OrderCard";
 import ErrorMessage from "../../atoms/Messages/ErrorMessage";
 import { PageTitle } from "../../atoms";
@@ -93,7 +93,7 @@ const MyOrdersPage = () => {
       taxRate: 0.18,
       footer: "Thank you for dining with us!",
     }),
-    [captain, hotelName],
+    [captain, hotelName]
   );
 
   // Print bill handler
@@ -139,7 +139,7 @@ const MyOrdersPage = () => {
       (error) => {
         console.error("Error loading menu items:", error);
         setAvailableMenuItems([]);
-      },
+      }
     );
 
     return () => unsubscribe();
@@ -192,7 +192,7 @@ const MyOrdersPage = () => {
         setUpdatingOrderId(null);
       }
     },
-    [updateOrderStatus, refreshOrders, captain?.name],
+    [updateOrderStatus, refreshOrders, captain?.name]
   );
 
   // Edit order modal handlers
@@ -220,7 +220,7 @@ const MyOrdersPage = () => {
         throw error;
       }
     },
-    [updateOrder, refreshOrders, captain?.name],
+    [updateOrder, refreshOrders, captain?.name]
   );
 
   // View order modal handler
@@ -246,13 +246,13 @@ const MyOrdersPage = () => {
 
       return result;
     },
-    [deleteOrder, orders],
+    [deleteOrder, orders]
   );
 
   // Search input handler
   const handleSearchInputChange = useCallback(
     (e) => handleSearchChange(e.target.value),
-    [handleSearchChange],
+    [handleSearchChange]
   );
 
   // Get status badge styles

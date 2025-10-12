@@ -13,12 +13,12 @@ import { toast } from "react-toastify";
 import EmptyCartMessage from "atoms/Messages/EmptyCartMessage";
 import CheckoutHeader from "atoms/Headers/CheckoutHeader";
 import OrderNumberDisplay from "atoms/OrderNumberDisplay";
-import TableNumberInput from "atoms/FormInput";
-import OrderSummary from "components/order-dashboard/OrderSummary";
+import TableNumberInput from "components/Forms/FormInput";
+import OrderSummary from "components/Dashboard/OrderSummary";
 import PlaceOrderButton from "atoms/Buttons/PlaceOrderButton";
 import OrderInfoAlert from "atoms/Messages/OrderInfoAlert";
-import FormSelect from "atoms/FormSelect";
-import FormInput from "atoms/FormInput";
+import FormSelect from "components/Forms/FormSelect";
+import FormInput from "components/Forms/FormInput";
 
 const firestore = getFirestore();
 
@@ -80,29 +80,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     { label: "High Priority", value: "high" },
     { label: "Express", value: "express" },
     { label: "VIP Customer", value: "vip" },
-  ];
-
-  const paymentMethodOptions = [
-    { label: "Pending", value: "pending" },
-    { label: "Cash", value: "cash" },
-    { label: "Card", value: "card" },
-    { label: "UPI", value: "upi" },
-    { label: "Net Banking", value: "netbanking" },
-    { label: "Wallet", value: "wallet" },
-    { label: "Credit", value: "credit" },
-    { label: "Complimentary", value: "complimentary" },
-  ];
-
-  const occasionOptions = [
-    { label: "Regular Order", value: "" },
-    { label: "Birthday", value: "birthday" },
-    { label: "Anniversary", value: "anniversary" },
-    { label: "Corporate Event", value: "corporate" },
-    { label: "Party/Celebration", value: "party" },
-    { label: "Festival", value: "festival" },
-    { label: "Date Night", value: "date" },
-    { label: "Family Gathering", value: "family" },
-    { label: "Business Meeting", value: "business" },
   ];
 
   const getNextOrderNumber = useCallback(async () => {
@@ -182,16 +159,11 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     }
 
     if (orderType === "delivery") {
-      
       if (!deliveryPlatform) {
         setError("Please select delivery platform");
         return false;
       }
     }
-
-    
-
-  
 
     return true;
   }, [
@@ -617,7 +589,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
               value={customerName}
               onChange={setCustomerName}
               placeholder="Enter customer name"
-              required
             />
 
             <FormInput
@@ -627,7 +598,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
               onChange={setCustomerMobile}
               placeholder="Enter 10-digit mobile number"
               maxLength={10}
-              required
             />
           </div>
         </div>
@@ -651,12 +621,12 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
               required
             />
 
-            <FormSelect
+            {/* <FormSelect
               label="Order Priority"
               value={orderPriority}
               onChange={setOrderPriority}
               options={orderPriorityOptions}
-            />
+            /> */}
 
             {orderType === "dine-in" && (
               <>

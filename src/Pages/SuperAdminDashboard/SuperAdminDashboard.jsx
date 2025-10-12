@@ -64,7 +64,7 @@ import {
 import ErrorMessage from "atoms/Messages/ErrorMessage";
 import { t } from "i18next";
 import QuickActions from "atoms/Buttons/QuickActions";
-import PerformanceInsights from "atoms/PerformanceInsights";
+import PerformanceInsights from "components/Dashboard/PerformanceInsights";
 import ChartCard from "components/Charts/ChartCard";
 import SuperAdminFooter from "../../atoms/SuperAdminFooter";
 import { toast } from "react-toastify";
@@ -755,7 +755,7 @@ const SuperAdminDashboard = () => {
         </div>
         {/* Main Content */}
         {/* {(!loading || enhancedStats.totalHotels > 0) && !error && ( */}
-        <div className=" py-6 sm:py-8 space-y-8">
+        <div className=" py-2 sm:py-4 space-y-8">
           {/* Expiry Alert System */}
           <ExpiryAlertSystem
             expiringSubscriptions={expiringSubscriptions}

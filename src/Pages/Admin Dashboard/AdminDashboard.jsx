@@ -12,34 +12,37 @@ import { useMainCategory } from "hooks/useMainCategory";
 // Layout and components
 import AdminDashboardLayout from "../../layout/AdminDashboardLayout";
 import { PageTitle } from "atoms";
-import TimePeriodSelector from "../../atoms/TimePeriodSelector";
+import TimePeriodSelector from "../../atoms/Selector/TimePeriodSelector";
 import LoadingSpinner from "../../atoms/LoadingSpinner";
 import ErrorState from "../../atoms/Messages/ErrorState";
-import OrderDetailsModal from "../../components/order-dashboard/OrderDetailsModal";
+import OrderDetailsModal from "../../components/Dashboard/OrderDetailsModal";
 
 // Reusable Dashboard Components
-import TabNavigation from "../../components/TabNavigation";
-import OrderAnalytics from "../../components/OrderAnalytics";
-import RevenueOverview from "../../components/RevenueOverview";
-import MenuOverview from "../../components/MenuOverview";
-import MenuStatus from "../../components/MenuStatus";
-import TopMenusByOrders from "../../components/TopMenusByOrders";
-import TopOrdersByCategory from "../../components/TopOrdersByCategory";
-import TopOrdersByMenu from "../../components/TopOrdersByMenu";
-import PlatformAnalytics from "../../components/PlatformAnalytics";
+import TabNavigation from "../../atoms/Buttons/TabNavigation";
+import OrderAnalytics from "../../components/Dashboard/OrderAnalytics";
+import RevenueOverview from "../../components/Dashboard/RevenueOverview";
+import MenuOverview from "../../components/Dashboard/MenuOverview";
+import MenuStatus from "../../components/Dashboard/MenuStatus";
+import TopMenusByOrders from "../../components/Dashboard/TopMenusByOrders";
+import TopOrdersByCategory from "../../components/Dashboard/TopOrdersByCategory";
+import TopOrdersByMenu from "../../components/Dashboard/TopOrdersByMenu";
+import PlatformAnalytics from "../../components/Dashboard/PlatformAnalytics";
 
 // Other imports
 import { useTranslation } from "react-i18next";
 import { useTheme } from "context/ThemeContext";
 import useColumns from "../../Constants/Columns";
 import { useHotelDetails } from "hooks/useHotel";
+import TabNavigationSkeleton from "atoms/Skeleton/TabNavigationSkeleton";
+import ErrorBoundary from "atoms/ErrorBoundary";
+import DashboardSkeleton from "atoms/Skeleton/DashboardSkeleton";
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { currentTheme, isDark } = useTheme();
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("Orders");
   const { isOrderEnabled } = useHotelDetails(hotelName);
   // Modal & UI state
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -202,6 +205,7 @@ const AdminDashboard = () => {
       directRevenue: orderStats.directRevenue || 0,
       swiggyRevenue: orderStats.swiggyRevenue || 0,
       zomatoRevenue: orderStats.zomatoRevenue || 0,
+      uberEatsRevenue: orderStats.uberEatsRevenue || 0,
       totalPlatformCommission: orderStats.totalPlatformCommission || 0,
 
       trends: {
@@ -263,15 +267,15 @@ const AdminDashboard = () => {
 
   // Top performing data using enhanced analytics
   const topMenusByOrders = useMemo(() => {
-    return menuAnalytics?.topMenus || [];
+    return menuAnalytics?.topMenus?.slice(0, 5) || [];
   }, [menuAnalytics]);
 
   const topOrdersByCategory = useMemo(() => {
-    return categoryAnalytics?.categoryStats?.slice(0, 10) || [];
+    return categoryAnalytics?.categoryStats?.slice(0, 5) || [];
   }, [categoryAnalytics]);
 
   const topOrdersByMenu = useMemo(() => {
-    return menuAnalytics?.menuStats?.slice(0, 10) || [];
+    return menuAnalytics?.menuStats?.slice(0, 5) || [];
   }, [menuAnalytics]);
 
   // Tab configuration
@@ -279,8 +283,8 @@ const AdminDashboard = () => {
   // Tab configuration
   const tabs = isOrderEnabled
     ? [
-        { id: "overview", name: "Overview", icon: BarChart3 },
-        { id: "platforms", name: "Analytics", icon: Smartphone },
+        { id: "Orders", name: "Orders", icon: BarChart3 },
+        { id: "Revenue", name: "Revenue", icon: Smartphone },
         { id: "menu", name: "Menu", icon: ChefHat },
         { id: "performance", name: "Performance", icon: TrendingUp },
       ]
@@ -331,10 +335,10 @@ const AdminDashboard = () => {
 
   const isLoading =
     loading || menuLoading || categoriesLoading || mainCategoryLoading;
-  console.log("isOrderEnabled", isOrderEnabled);
+
   return (
     <AdminDashboardLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         {/* Enhanced Header Section */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
           <PageTitle
@@ -349,66 +353,76 @@ const AdminDashboard = () => {
           </p>
         </div>
 
-        {/* Time Period Selector */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
-          <TimePeriodSelector
-            selectedTimePeriod={selectedTimePeriod}
-            onTimePeriodChange={handleTimePeriodChange}
-            selectedDate={selectedDate}
-            onDateChange={handleDateChange}
-            variant="default"
-            showDatePicker={true}
-            className="mb-0"
-            options={timePeriodOptions}
-            disableFutureDates={true}
-          />
-        </div>
-
         {/* Main Content */}
-        <div className="py-6 sm:py-8 space-y-8">
-          {/* Tab Navigation Component */}
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={tabs}
-          />
-
+        <div className="py-2 sm:py-4 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-center mt-2">
+            {/* Tab Navigation Component */}
+            {isLoading &&
+            !filteredOrders?.length &&
+            !filteredAndSortedMenus?.length ? (
+              <TabNavigationSkeleton />
+            ) : (
+              <TabNavigation
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                tabs={tabs}
+              />
+            )}
+            {/* Time Period Selector */}
+            {isOrderEnabled && (
+              <div className="mt-2">
+                <TimePeriodSelector
+                  selectedTimePeriod={selectedTimePeriod}
+                  onTimePeriodChange={handleTimePeriodChange}
+                  selectedDate={selectedDate}
+                  onDateChange={handleDateChange}
+                  variant="compact"
+                  showDatePicker={true}
+                  className="mb-0"
+                  options={timePeriodOptions}
+                  disableFutureDates={true}
+                />
+              </div>
+            )}
+          </div>
           {/* Error handling */}
           {(error || menuError || categoriesError) && (
-            <ErrorState
-              title={t("dashboard.errorTitle")}
-              message={error?.message || menuError || categoriesError}
-              retryAction={handleRefresh}
+            <ErrorBoundary
+              error={error || menuError || categoriesError}
+              onRetry={handleRefresh}
             />
           )}
 
           {/* Loading state */}
-          {isLoading &&
-          !filteredOrders?.length &&
-          !filteredAndSortedMenus?.length ? (
-            <LoadingSpinner text={t("dashboard.loading")} />
+          {isLoading ? (
+            <DashboardSkeleton
+              activeTab={activeTab}
+              isOrderEnabled={isOrderEnabled}
+            />
           ) : (
             <>
               {/* Overview Tab */}
-              {activeTab === "overview" && isOrderEnabled && (
+              {activeTab === "Orders" && isOrderEnabled && (
                 <>
                   <OrderAnalytics displayStats={displayStats} />
-                  <RevenueOverview displayStats={displayStats} />
                 </>
               )}
 
               {/* Platform Analytics Tab */}
-              {activeTab === "platforms" && isOrderEnabled && (
-                <PlatformAnalytics
-                  displayStats={displayStats}
-                  platformAnalytics={platformAnalytics}
-                  orderTypeFilter={orderTypeFilter}
-                  platformFilter={platformFilter}
-                  priorityFilter={priorityFilter}
-                  onOrderTypeFilterChange={handleOrderTypeFilterChange}
-                  onPlatformFilterChange={handlePlatformFilterChange}
-                  onPriorityFilterChange={handlePriorityFilterChange}
-                />
+              {activeTab === "Revenue" && isOrderEnabled && (
+                <>
+                  <PlatformAnalytics
+                    displayStats={displayStats}
+                    platformAnalytics={platformAnalytics}
+                    orderTypeFilter={orderTypeFilter}
+                    platformFilter={platformFilter}
+                    priorityFilter={priorityFilter}
+                    onOrderTypeFilterChange={handleOrderTypeFilterChange}
+                    onPlatformFilterChange={handlePlatformFilterChange}
+                    onPriorityFilterChange={handlePriorityFilterChange}
+                  />
+                  <RevenueOverview displayStats={displayStats} />
+                </>
               )}
 
               {/* Menu Tab */}

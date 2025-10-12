@@ -13,18 +13,18 @@ import QuickInfoCard from "../components/Cards/QuickInfoCard"; // Adjust path as
 import CloseButton from "atoms/Buttons/CloseButton";
 import SpecialBadges from "atoms/Badges/SpecialBadges";
 import ImageHeader from "../atoms/Headers/ImageHeader";
-import TitlePriceSection from "molecules/Sections/TitlePriceSection";
-import TagsSection from "molecules/Sections/TagsSection";
-import DescriptionSection from "molecules/Sections/DescriptionSection";
-import NutritionalSection from "molecules/Sections/NutritionalSection";
-import DetailSectionGroup from "molecules/Sections/DetailSectionGroup";
+import TitlePriceSection from "components/Sections/TitlePriceSection";
+import TagsSection from "components/Sections/TagsSection";
+import DescriptionSection from "components/Sections/DescriptionSection";
+import NutritionalSection from "components/Sections/NutritionalSection";
+import DetailSectionGroup from "components/Sections/DetailSectionGroup";
 import UnavailableNotice from "atoms/Messages/UnavailableNotice";
 import {
   getAdditionalDetails,
   getDietaryItems,
   getPreparationItems,
 } from "Constants/constant";
-import  BackToTop  from "atoms/Buttons/BackToTop";
+import BackToTop from "atoms/Buttons/BackToTop";
 
 const MenuModal = memo(
   ({ show, handleClose, modalData, addToCart, isLoading = false }) => {
@@ -54,7 +54,7 @@ const MenuModal = memo(
           handleClose();
         }
       },
-      [handleClose],
+      [handleClose]
     );
 
     // Helper function for spice level icons
@@ -156,18 +156,19 @@ const MenuModal = memo(
           <CloseButton onClose={handleClose} />
 
           {/* Special Badges */}
+
           <SpecialBadges modalData={modalData} />
 
           {/* Header with Image */}
-          <ImageHeader
+          {/* <ImageHeader
             imageUrl={modalData.imageUrl}
             menuName={modalData.menuName}
             availability={modalData.availability}
             isLoading={isLoading}
-          />
+          /> */}
 
           {/* Content */}
-          <div className="p-4 sm:p-6">
+          <div className="p-4 sm:p-6 mt-20">
             {/* Title and Price Section */}
             <TitlePriceSection modalData={modalData} />
 
@@ -265,7 +266,7 @@ const MenuModal = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 MenuModal.displayName = "MenuModal";
