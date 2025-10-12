@@ -357,6 +357,8 @@ const AddMenu = memo(() => {
                   searchTerm={searchTerm}
                   onClearSearch={clearSearch}
                   onAddNew={openAddModal}
+                     title={t("noSearchResults.menuTitle")}
+                description={t("noSearchResults.menuDescription")}
                 />
               )
             ) : (

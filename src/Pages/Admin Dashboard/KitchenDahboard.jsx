@@ -29,6 +29,7 @@ import ErrorMessage from "../../atoms/Messages/ErrorMessage";
 import ErrorBoundary from "../../atoms/ErrorBoundary";
 import KitchenDashboardSkeleton from "../../atoms/Skeleton/KitchenDashboardSkeleton";
 import TimePeriodSelector from "../../atoms/Selector/TimePeriodSelector";
+import { t } from "i18next";
 
 // Lazy load heavy components
 const OrderCard = React.lazy(() => import("../../components/Cards/OrderCard"));
@@ -570,6 +571,8 @@ const KitchenAdminPage = memo(() => {
                 : null,
               "Clear filters to see all orders",
             ].filter(Boolean)}
+            title={t("noSearchResults.kitchenTitle")}
+            description={t("noSearchResults.kitchenDescription")}
           />
         ) : (
           <EmptyState

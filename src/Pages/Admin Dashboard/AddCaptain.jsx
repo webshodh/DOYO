@@ -274,6 +274,8 @@ const AddCaptain = memo(() => {
                     searchTerm={searchTerm}
                     onClearSearch={handleClearSearch}
                     onAddNew={handleAddClick}
+                    title={t("noSearchResults.captainTitle")}
+                    description={t("noSearchResults.captainDescription")}
                   />
                 )}
               </>

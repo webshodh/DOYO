@@ -4,11 +4,11 @@ import { LoaderCircle, Plus, Search } from "lucide-react";
 
 // No search results component
 const NoSearchResults = memo(
-  ({ searchTerm, onClearSearch, onAddNew, btnText }) => (
+  ({ searchTerm, onClearSearch, onAddNew, btnText, title, description}) => (
     <EmptyState
       icon={Search}
-      title="No Captains Found"
-      description={`No captains match your search for "${searchTerm}". Try adjusting your search terms or add a new captain.`}
+      title={title}
+      description={description}
       className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
     >
       <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">

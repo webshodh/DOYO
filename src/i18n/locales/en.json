@@ -118,8 +118,8 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "dashboardDesc": "Overview and analytics",
-    "posDashboard":"POS",
-    "posDashboardDesc":"Manage POS",
+    "posDashboard": "POS",
+    "posDashboardDesc": "Manage POS",
     "orderDashboard": "Order Dashboard",
     "orderDashboardDesc": "Manage Dashboard",
     "customerDashboard": "Customer Dashboard",
@@ -160,7 +160,8 @@
     "superAdminPanelDec": "System Control",
     "captainPanel": "Captain Panel",
     "captainPanelDec": "Floor Management",
-    "appName": "Restaurant Management"
+    "appName": "Restaurant Management",
+    "reports":"Reports & Analytics"
   },
 
   "tableHeaders": {
@@ -352,5 +353,17 @@
     "prepareCategoryEdit": "Error preparing category for edit:",
     "deleteCategory": "Error deleting category:",
     "loadingCategories": "Error Loading Special Categories"
+  },
+  "noSearchResults": {
+    "captainTitle": "No Captains Found",
+    "captainDescription": "No captains match your search. Try adjusting your search terms or add a new captain.",
+    "categoryTitle": "No Category Found",
+    "categoryDescription": "No category match your search. Try adjusting your search terms or add a new category.",
+    "specialCategoryTitle": "No special category Found",
+    "specialCategoryDescription": "No special category match your search. Try adjusting your search terms or add a new special category.",
+    "menuTitle": "No menu Found",
+    "menuDescription": "No menu match your search. Try adjusting your search terms or add a new menu.",
+    "kitchenTitle": "No order Found",
+    "kitchenDescription": "No order match your search. Try adjusting your search terms"
   }
 }

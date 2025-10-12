@@ -303,7 +303,7 @@ const EnhancedAdminProfile = memo(() => {
 
   // State management
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("profile");
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -1234,7 +1234,7 @@ const EnhancedAdminProfile = memo(() => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className=" px-2 py-4 sm:px-2 lg:px-4">
         {/* Header */}
         <div className="mb-8">

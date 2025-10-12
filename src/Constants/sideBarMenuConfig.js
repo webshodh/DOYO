@@ -73,12 +73,12 @@ export const adminMenuItems = (hotelName, t) => [
     icon: "dashboard",
     description: t("sidebar.orderDashboardDesc"),
   },
-  {
-    name: t("sidebar.customerDashboard"),
-    path: `/${hotelName}/admin/customer-dashboard`,
-    icon: "kitchen",
-    description: t("sidebar.customerDesc"),
-  },
+  // {
+  //   name: t("sidebar.customerDashboard"),
+  //   path: `/${hotelName}/admin/customer-dashboard`,
+  //   icon: "kitchen",
+  //   description: t("sidebar.customerDesc"),
+  // },
   {
     name: t("sidebar.addCategory"),
     path: `/${hotelName}/admin/add-category`,
@@ -114,6 +114,12 @@ export const adminMenuItems = (hotelName, t) => [
     path: `/${hotelName}/admin/profile`,
     icon: "settings",
     description: t("sidebar.settingsDesc"),
+  },
+  {
+    name: t("sidebar.reports"),
+    path: `/${hotelName}/admin/reports`,
+    icon: "reports",
+    description: t("sidebar.reportsDesc"),
   },
 ];
 

@@ -82,29 +82,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
     { label: "VIP Customer", value: "vip" },
   ];
 
-  const paymentMethodOptions = [
-    { label: "Pending", value: "pending" },
-    { label: "Cash", value: "cash" },
-    { label: "Card", value: "card" },
-    { label: "UPI", value: "upi" },
-    { label: "Net Banking", value: "netbanking" },
-    { label: "Wallet", value: "wallet" },
-    { label: "Credit", value: "credit" },
-    { label: "Complimentary", value: "complimentary" },
-  ];
-
-  const occasionOptions = [
-    { label: "Regular Order", value: "" },
-    { label: "Birthday", value: "birthday" },
-    { label: "Anniversary", value: "anniversary" },
-    { label: "Corporate Event", value: "corporate" },
-    { label: "Party/Celebration", value: "party" },
-    { label: "Festival", value: "festival" },
-    { label: "Date Night", value: "date" },
-    { label: "Family Gathering", value: "family" },
-    { label: "Business Meeting", value: "business" },
-  ];
-
   const getNextOrderNumber = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -612,7 +589,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
               value={customerName}
               onChange={setCustomerName}
               placeholder="Enter customer name"
-              required
             />
 
             <FormInput
@@ -622,7 +598,6 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
               onChange={setCustomerMobile}
               placeholder="Enter 10-digit mobile number"
               maxLength={10}
-              required
             />
           </div>
         </div>
@@ -646,12 +621,12 @@ const CheckoutPage = ({ cartItems, onGoBack, onOrderSuccess }) => {
               required
             />
 
-            <FormSelect
+            {/* <FormSelect
               label="Order Priority"
               value={orderPriority}
               onChange={setOrderPriority}
               options={orderPriorityOptions}
-            />
+            /> */}
 
             {orderType === "dine-in" && (
               <>

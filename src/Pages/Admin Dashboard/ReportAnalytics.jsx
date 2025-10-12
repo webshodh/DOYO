@@ -1,6 +1,16 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { BarChart3, ChefHat, TrendingUp, Smartphone } from "lucide-react";
+import {
+  BarChart3,
+  ChefHat,
+  TrendingUp,
+  Smartphone,
+  Download,
+  Mail,
+  Camera,
+} from "lucide-react";
+import html2canvas from "html2canvas";
+import { toast } from "react-toastify";
 
 // Hooks
 import { useOrder } from "../../hooks/useOrder";
@@ -30,71 +40,61 @@ import PlatformAnalytics from "../../components/Dashboard/PlatformAnalytics";
 
 // Other imports
 import { useTranslation } from "react-i18next";
-import { useTheme } from "context/ThemeContext";
-import useColumns from "../../Constants/Columns";
 import { useHotelDetails } from "hooks/useHotel";
-import TabNavigationSkeleton from "atoms/Skeleton/TabNavigationSkeleton";
 import ErrorBoundary from "atoms/ErrorBoundary";
 import DashboardSkeleton from "atoms/Skeleton/DashboardSkeleton";
+import OrderDetailsTable from "components/Dashboard/OrderDetailsTable";
 
-const AdminDashboard = () => {
+const ReportAnalytics = () => {
   const { t } = useTranslation();
-  const { currentTheme, isDark } = useTheme();
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
   const [activeTab, setActiveTab] = useState("Orders");
   const { isOrderEnabled } = useHotelDetails(hotelName);
+
+  // Ref for screenshot capture
+  const contentRef = useRef(null);
+
   // Modal & UI state
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedOrderForBill, setSelectedOrderForBill] = useState(null);
+  const [showPrintBill, setShowPrintBill] = useState(false);
+  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
 
   // Enhanced order data hook with comprehensive analytics
   const {
     orders,
     filteredOrders,
-    timeFilteredOrders,
-    menuData,
+
     orderStats,
-    todayStats,
+
     menuAnalytics,
     categoryAnalytics,
-    platformAnalytics, // Enhanced with platform data
+    platformAnalytics,
     loading,
     submitting,
     error,
-    connectionStatus,
-    lastUpdated,
+
     selectedDate,
     selectedTimePeriod,
-    periodDisplayText,
-    searchTerm,
-    statusFilter,
-    orderTypeFilter, // New enhanced filters
+
+    orderTypeFilter,
     platformFilter,
     priorityFilter,
-    hasOrders,
-    hasFilteredOrders,
+
     updateOrderStatus,
     refreshOrders,
     exportDataCSV: exportOrdersCSV,
-    handleSearchChange,
-    handleStatusFilterChange,
-    handleOrderTypeFilterChange, // New handlers
+
+    handleOrderTypeFilterChange,
     handlePlatformFilterChange,
     handlePriorityFilterChange,
     handleDateChange,
     handleTimePeriodChange,
-    clearFilters,
-    getOrdersByStatus,
-    getOrdersById,
-    getOrdersByPlatform, // New helper functions
-    getOrdersByType,
+
     statusOptions,
     timePeriodOptions,
-    orderTypeOptions, // New enhanced options
-    platformOptions,
-    priorityOptions,
   } = useOrder(hotelName, {
     includeMenuData: true,
     defaultTimePeriod: "daily",
@@ -137,17 +137,14 @@ const AdminDashboard = () => {
         avgOrderValue: 0,
         pendingOrders: 0,
         rejectionRate: 0,
-        // Platform stats
         directOrders: 0,
         swiggyOrders: 0,
         zomatoOrders: 0,
         uberEatsOrders: 0,
         otherPlatformOrders: 0,
-        // Order type stats
         dineInOrders: 0,
         takeawayOrders: 0,
         deliveryOrders: 0,
-        // Payment stats
         cashPayments: 0,
         upiPayments: 0,
         cardPayments: 0,
@@ -179,8 +176,6 @@ const AdminDashboard = () => {
       avgOrderValue,
       pendingOrders: received,
       rejectionRate,
-
-      // Enhanced platform stats
       directOrders: orderStats.totalDirectOrders || 0,
       swiggyOrders: orderStats.totalSwiggyOrders || 0,
       zomatoOrders: orderStats.totalZomatoOrders || 0,
@@ -189,25 +184,18 @@ const AdminDashboard = () => {
         (orderStats.totalDunzoOrders || 0) +
         (orderStats.totalAmazonFoodOrders || 0) +
         (orderStats.totalOtherPlatformOrders || 0),
-
-      // Order type stats
       dineInOrders: orderStats.totalDineInOrders || 0,
       takeawayOrders: orderStats.totalTakeawayOrders || 0,
       deliveryOrders: orderStats.totalDeliveryOrders || 0,
-
-      // Payment stats
       cashPayments: orderStats.cashPayments || 0,
       upiPayments: orderStats.upiPayments || 0,
       cardPayments: orderStats.cardPayments || 0,
       pendingPayments: orderStats.pendingPayments || 0,
-
-      // Revenue by platform
       directRevenue: orderStats.directRevenue || 0,
       swiggyRevenue: orderStats.swiggyRevenue || 0,
       zomatoRevenue: orderStats.zomatoRevenue || 0,
       uberEatsRevenue: orderStats.uberEatsRevenue || 0,
       totalPlatformCommission: orderStats.totalPlatformCommission || 0,
-
       trends: {
         totalTrend: Math.floor(Math.random() * 20) - 10,
         revenueTrend: Math.floor(Math.random() * 30) - 15,
@@ -278,17 +266,61 @@ const AdminDashboard = () => {
     return menuAnalytics?.menuStats?.slice(0, 5) || [];
   }, [menuAnalytics]);
 
-  // Tab configuration
+  // Screenshot capture utility
+  const captureScreenshot = useCallback(async (options = {}) => {
+    if (!contentRef.current) {
+      toast.error("Content not found for screenshot");
+      return null;
+    }
 
-  // Tab configuration
-  const tabs = isOrderEnabled
-    ? [
-        { id: "Orders", name: "Orders", icon: BarChart3 },
-        { id: "Revenue", name: "Revenue", icon: Smartphone },
-        { id: "menu", name: "Menu", icon: ChefHat },
-        { id: "performance", name: "Performance", icon: TrendingUp },
-      ]
-    : [{ id: "menu", name: "Menu", icon: ChefHat }];
+    try {
+      setIsCapturingScreenshot(true);
+
+      const canvas = await html2canvas(contentRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#f9fafb",
+        scale: 2, // Higher quality
+        logging: false,
+        ignoreElements: (element) => {
+          // Ignore elements with data-html2canvas-ignore attribute
+          return element.getAttribute("data-html2canvas-ignore") === "true";
+        },
+        ...options,
+      });
+
+      const dataURL = canvas.toDataURL("image/png", 1.0);
+      return dataURL;
+    } catch (error) {
+      console.error("Error capturing screenshot:", error);
+      toast.error("Failed to capture screenshot");
+      return null;
+    } finally {
+      setIsCapturingScreenshot(false);
+    }
+  }, []);
+
+  // Download screenshot functionality
+  const handleDownloadScreenshot = useCallback(async () => {
+    const dataURL = await captureScreenshot();
+    if (!dataURL) return;
+
+    try {
+      const link = document.createElement("a");
+      link.download = `${hotelName}_Analytics_Report_${
+        new Date().toISOString().split("T")[0]
+      }.png`;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Screenshot downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading screenshot:", error);
+      toast.error("Failed to download screenshot");
+    }
+  }, [captureScreenshot, hotelName]);
 
   // Event handlers
   const handleViewDetails = useCallback((order) => {
@@ -300,18 +332,6 @@ const AdminDashboard = () => {
     setSelectedOrder(null);
     setShowOrderDetails(false);
   }, []);
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshOrders();
-      await refreshMenus();
-    } catch (e) {
-      console.error("Refresh error", e);
-    } finally {
-      setTimeout(() => setIsRefreshing(false), 1000);
-    }
-  }, [refreshOrders, refreshMenus]);
 
   const handleUpdateStatus = useCallback(
     async (orderId, newStatus) => {
@@ -333,134 +353,165 @@ const AdminDashboard = () => {
     [updateOrderStatus, selectedOrder]
   );
 
+  const handlePrintBill = useCallback((order) => {
+    setSelectedOrderForBill(order);
+    setShowPrintBill(true);
+  }, []);
+
   const isLoading =
     loading || menuLoading || categoriesLoading || mainCategoryLoading;
 
   return (
-    <AdminDashboardLayout>
-      <div className="min-h-screen">
-        {/* Enhanced Header Section */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-          <PageTitle
-            pageTitle={t("dashboard.title")}
-            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
-          />
-          <p className="text-blue-100 text-sm sm:text-base">
-            {t("dashboard.welcome", {
-              hotelName: selectedHotel?.name || hotelName,
-            })}{" "}
-            {t("dashboard.today")}
-          </p>
+    <div className="min-h-screen">
+      {/* Enhanced Header Section with Action Buttons */}
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div className="mb-4 lg:mb-0">
+            <PageTitle
+              pageTitle={t("dashboard.title")}
+              className="text-xl sm:text-2xl md:text-3xl font-bold mb-2"
+            />
+            <p className="text-orange-100 text-sm sm:text-base">
+              {t("dashboard.welcome", {
+                hotelName: selectedHotel?.name || hotelName,
+              })}{" "}
+              {t("dashboard.today")}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3" data-html2canvas-ignore="true">
+            <button
+              onClick={handleDownloadScreenshot}
+              disabled={isCapturingScreenshot}
+              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isCapturingScreenshot ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Download Report
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content - This will be captured in screenshot */}
+      <div ref={contentRef} className="py-2 sm:py-4 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-center mt-2">
+          {/* Time Period Selector */}
+          {isOrderEnabled && (
+            <div className="mt-2">
+              <TimePeriodSelector
+                selectedTimePeriod={selectedTimePeriod}
+                onTimePeriodChange={handleTimePeriodChange}
+                selectedDate={selectedDate}
+                onDateChange={handleDateChange}
+                variant="compact"
+                showDatePicker={true}
+                className="mb-0"
+                options={timePeriodOptions}
+                disableFutureDates={true}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Main Content */}
-        <div className="py-2 sm:py-4 space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-center mt-2">
-            {/* Tab Navigation Component */}
-            {isLoading &&
-            !filteredOrders?.length &&
-            !filteredAndSortedMenus?.length ? (
-              <TabNavigationSkeleton />
-            ) : (
-              <TabNavigation
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                tabs={tabs}
-              />
-            )}
-            {/* Time Period Selector */}
-            {isOrderEnabled && (
-              <div className="mt-2">
-                <TimePeriodSelector
-                  selectedTimePeriod={selectedTimePeriod}
-                  onTimePeriodChange={handleTimePeriodChange}
-                  selectedDate={selectedDate}
-                  onDateChange={handleDateChange}
-                  variant="compact"
-                  showDatePicker={true}
-                  className="mb-0"
-                  options={timePeriodOptions}
-                  disableFutureDates={true}
+        {/* Error handling */}
+        {(error || menuError || categoriesError) && (
+          <ErrorBoundary error={error || menuError || categoriesError} />
+        )}
+
+        {/* Loading state */}
+        {isLoading ? (
+          <DashboardSkeleton
+            activeTab={activeTab}
+            isOrderEnabled={isOrderEnabled}
+          />
+        ) : (
+          <>
+            <MenuOverview menuStats={menuStats} />
+            <OrderAnalytics displayStats={displayStats} />
+
+            <PlatformAnalytics
+              displayStats={displayStats}
+              platformAnalytics={platformAnalytics}
+              orderTypeFilter={orderTypeFilter}
+              platformFilter={platformFilter}
+              priorityFilter={priorityFilter}
+              onOrderTypeFilterChange={handleOrderTypeFilterChange}
+              onPlatformFilterChange={handlePlatformFilterChange}
+              onPriorityFilterChange={handlePriorityFilterChange}
+            />
+            <RevenueOverview displayStats={displayStats} />
+
+            <MenuStatus menuStats={menuStats} />
+
+            <TopMenusByOrders topMenusByOrders={topMenusByOrders} />
+            <TopOrdersByCategory topOrdersByCategory={topOrdersByCategory} />
+            <TopOrdersByMenu topOrdersByMenu={topOrdersByMenu} />
+
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-6 h-6 text-indigo-600" />
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Recent Orders
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>
+                      Showing {filteredOrders.length} of {orders.length} orders
+                    </span>
+                  </div>
+                </div>
+
+                <OrderDetailsTable
+                  orders={filteredOrders.slice(0, 20)}
+                  onViewDetails={handleViewDetails}
+                  onUpdateStatus={handleUpdateStatus}
+                  isUpdating={submitting}
+                  onPrintBill={handlePrintBill}
+                  showEnhancedColumns={true}
                 />
               </div>
-            )}
-          </div>
-          {/* Error handling */}
-          {(error || menuError || categoriesError) && (
-            <ErrorBoundary
-              error={error || menuError || categoriesError}
-              onRetry={handleRefresh}
-            />
-          )}
-
-          {/* Loading state */}
-          {isLoading ? (
-            <DashboardSkeleton
-              activeTab={activeTab}
-              isOrderEnabled={isOrderEnabled}
-            />
-          ) : (
-            <>
-              {/* Overview Tab */}
-              {activeTab === "Orders" && isOrderEnabled && (
-                <>
-                  <OrderAnalytics displayStats={displayStats} />
-                </>
-              )}
-
-              {/* Platform Analytics Tab */}
-              {activeTab === "Revenue" && isOrderEnabled && (
-                <>
-                  <PlatformAnalytics
-                    displayStats={displayStats}
-                    platformAnalytics={platformAnalytics}
-                    orderTypeFilter={orderTypeFilter}
-                    platformFilter={platformFilter}
-                    priorityFilter={priorityFilter}
-                    onOrderTypeFilterChange={handleOrderTypeFilterChange}
-                    onPlatformFilterChange={handlePlatformFilterChange}
-                    onPriorityFilterChange={handlePriorityFilterChange}
-                  />
-                  <RevenueOverview displayStats={displayStats} />
-                </>
-              )}
-
-              {/* Menu Tab */}
-              {activeTab === "menu" && (
-                <>
-                  <MenuOverview menuStats={menuStats} />
-                  <MenuStatus menuStats={menuStats} />
-                </>
-              )}
-
-              {/* Performance Tab */}
-              {activeTab === "performance" && isOrderEnabled && (
-                <>
-                  <TopMenusByOrders topMenusByOrders={topMenusByOrders} />
-                  <TopOrdersByCategory
-                    topOrdersByCategory={topOrdersByCategory}
-                  />
-                  <TopOrdersByMenu topOrdersByMenu={topOrdersByMenu} />
-                </>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Modal */}
-        {showOrderDetails && selectedOrder && (
-          <OrderDetailsModal
-            order={selectedOrder}
-            onClose={handleCloseDetails}
-            onStatusUpdate={handleUpdateStatus}
-            isSubmitting={submitting}
-            orderStatuses={statusOptions}
-            showEnhancedDetails={true}
-          />
+            </div>
+          </>
         )}
       </div>
-    </AdminDashboardLayout>
+
+      {/* Loading Overlay for Screenshot */}
+      {isCapturingScreenshot && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex items-center gap-3 shadow-lg">
+            <Camera className="w-6 h-6 text-blue-600 animate-pulse" />
+            <div>
+              <p className="font-medium text-gray-900">
+                Capturing Screenshot...
+              </p>
+              <p className="text-sm text-gray-600">
+                Please wait while we generate your report
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
+      {showOrderDetails && selectedOrder && (
+        <OrderDetailsModal
+          order={selectedOrder}
+          onClose={handleCloseDetails}
+          onStatusUpdate={handleUpdateStatus}
+          isSubmitting={submitting}
+          orderStatuses={statusOptions}
+          showEnhancedDetails={true}
+        />
+      )}
+    </div>
   );
 };
 
-export default AdminDashboard;
+export default ReportAnalytics;

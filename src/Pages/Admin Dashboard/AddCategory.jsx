@@ -245,6 +245,8 @@ const AddCategory = memo(() => {
                     searchTerm={searchTerm}
                     onClearSearch={handleClearSearch}
                     onAddNew={handleAddClick}
+                    title={t("noSearchResults.categoryTitle")}
+                    description={t("noSearchResults.categoryDescription")}
                   />
                 )}
               </>

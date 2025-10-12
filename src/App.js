@@ -48,6 +48,7 @@ import CustomersPage from "Pages/Admin Dashboard/CustomerDahboard";
 import DOYOLandingPage from "Pages/LandingPage";
 import POSDashboard from "Pages/Admin Dashboard/POSDashboard";
 import { useHotelDetails } from "hooks/useHotel";
+import ReportAnalytics from "Pages/Admin Dashboard/ReportAnalytics";
 
 // Constants
 const SUPER_ADMIN_EMAIL = "webshodhteam@gmail.com";
@@ -289,7 +290,7 @@ function App() {
                   <HotelSelectionProvider>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
-                      
+
                       {/* Routes that require order feature to be enabled */}
                       <Route
                         path="pos-dashboard"
@@ -337,6 +338,14 @@ function App() {
                               <KitchenAdminPage />
                             </AdminLayout>
                           </FeatureProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="reports"
+                        element={
+                          <AdminLayout>
+                            <ReportAnalytics />
+                          </AdminLayout>
                         }
                       />
 
