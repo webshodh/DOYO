@@ -148,7 +148,7 @@ const AddCategory = memo(() => {
   const isLoadingData = loading && !categories.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
       {/* Category Form Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         <CategoryFormModal
@@ -203,7 +203,7 @@ const AddCategory = memo(() => {
           )}
 
           {/* Search and Filters */}
-          {hasCategories && (
+          {
             <SearchWithResults
               searchTerm={searchTerm}
               onSearchChange={(e) => handleSearchChange(e.target.value)}
@@ -216,7 +216,7 @@ const AddCategory = memo(() => {
               addButtonText="Add"
               addButtonLoading={loading}
             />
-          )}
+          }
 
           {/* Content */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

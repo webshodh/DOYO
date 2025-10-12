@@ -369,7 +369,7 @@ const CaptainDashboard = () => {
             onTimePeriodChange={handleTimePeriodChange}
             selectedDate={selectedDate}
             onDateChange={handleDateChange}
-            variant="default"
+            variant="compact"
             showDatePicker
             className="mb-2"
             disableFutureDates

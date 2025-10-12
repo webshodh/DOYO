@@ -72,7 +72,7 @@ const TopMenusByOrders = ({ topMenusByOrders = [] }) => {
                         <div className="flex items-baseline gap-1">
                           <span className="text-lg sm:text-xl font-bold text-green-600">
                             ₹
-                            {parseFloat(menu.totalRevenue).toLocaleString(
+                            {parseFloat(menu.revenue).toLocaleString(
                               "en-IN",
                               { maximumFractionDigits: 0 }
                             )}
@@ -84,7 +84,7 @@ const TopMenusByOrders = ({ topMenusByOrders = [] }) => {
                         <div className="flex items-center gap-1">
                           <ShoppingBag className="w-3 h-3 text-blue-500" />
                           <span className="font-medium">
-                            {menu.totalQuantity} QTY
+                            {menu.orderCount} QTY
                           </span>
                         </div>
                       </div>

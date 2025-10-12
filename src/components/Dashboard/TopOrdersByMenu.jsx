@@ -7,7 +7,7 @@ const TopOrdersByMenu = ({ topOrdersByMenu = [] }) => {
   const menuTableColumns = useMemo(
     () => [
       {
-        Header: "Rank",
+        header: "Rank",
         accessor: "rank",
         Cell: ({ row }) => (
           <div className="flex items-center justify-center">
@@ -18,7 +18,7 @@ const TopOrdersByMenu = ({ topOrdersByMenu = [] }) => {
         ),
       },
       {
-        Header: "Menu Item",
+        header: "Menu Item",
         accessor: "menuName",
         Cell: ({ row }) => (
           <div className="py-1">
@@ -34,7 +34,7 @@ const TopOrdersByMenu = ({ topOrdersByMenu = [] }) => {
         ),
       },
       {
-        Header: "Orders",
+        header: "Orders",
         accessor: "orderCount",
         Cell: ({ value }) => (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 shadow-sm">
@@ -43,7 +43,7 @@ const TopOrdersByMenu = ({ topOrdersByMenu = [] }) => {
         ),
       },
       {
-        Header: "Revenue",
+        header: "Revenue",
         accessor: "totalRevenue",
         Cell: ({ value }) => (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-gradient-to-r from-green-100 to-green-200 text-green-800 shadow-sm">
@@ -60,7 +60,7 @@ const TopOrdersByMenu = ({ topOrdersByMenu = [] }) => {
   );
 
   if (!topOrdersByMenu.length) return null;
-
+console.log("menuTableColumns", menuTableColumns)
   return (
     <div className="bg-white rounded-xl shadow-lg border overflow-hidden">
       <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 border-b">

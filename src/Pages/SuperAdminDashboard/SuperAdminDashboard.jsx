@@ -755,7 +755,7 @@ const SuperAdminDashboard = () => {
         </div>
         {/* Main Content */}
         {/* {(!loading || enhancedStats.totalHotels > 0) && !error && ( */}
-        <div className=" py-6 sm:py-8 space-y-8">
+        <div className=" py-2 sm:py-4 space-y-8">
           {/* Expiry Alert System */}
           <ExpiryAlertSystem
             expiringSubscriptions={expiringSubscriptions}

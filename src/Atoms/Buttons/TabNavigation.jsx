@@ -2,7 +2,7 @@
 import React, { memo } from "react";
 
 const TabNavigation = memo(({ activeTab, onTabChange, tabs }) => (
-  <div className="border-b border-gray-200 mb-6">
+  <div className="border-b border-gray-200">
     <nav className="flex space-x-1 overflow-x-auto pb-2 -mb-px scrollbar-hide">
       {tabs.map((tab) => (
         <button
@@ -16,7 +16,7 @@ const TabNavigation = memo(({ activeTab, onTabChange, tabs }) => (
         >
           <div className="flex items-center gap-2">
             <tab.icon className="w-4 h-4" />
-            <span>{tab.label}</span>
+            <span>{tab.name}</span>
           </div>
         </button>
       ))}

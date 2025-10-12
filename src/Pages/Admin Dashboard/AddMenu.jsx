@@ -239,7 +239,7 @@ const AddMenu = memo(() => {
   const isLoadingData = loading && !enhancedMenus.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         {showModal && (

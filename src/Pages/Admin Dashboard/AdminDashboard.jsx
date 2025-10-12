@@ -42,7 +42,7 @@ const AdminDashboard = () => {
   const { currentTheme, isDark } = useTheme();
   const { hotelName } = useParams();
   const { selectedHotel } = useHotelSelection();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("Orders");
   const { isOrderEnabled } = useHotelDetails(hotelName);
   // Modal & UI state
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -205,6 +205,7 @@ const AdminDashboard = () => {
       directRevenue: orderStats.directRevenue || 0,
       swiggyRevenue: orderStats.swiggyRevenue || 0,
       zomatoRevenue: orderStats.zomatoRevenue || 0,
+      uberEatsRevenue: orderStats.uberEatsRevenue || 0,
       totalPlatformCommission: orderStats.totalPlatformCommission || 0,
 
       trends: {
@@ -282,8 +283,8 @@ const AdminDashboard = () => {
   // Tab configuration
   const tabs = isOrderEnabled
     ? [
-        { id: "overview", name: "Overview", icon: BarChart3 },
-        { id: "platforms", name: "Analytics", icon: Smartphone },
+        { id: "Orders", name: "Orders", icon: BarChart3 },
+        { id: "Revenue", name: "Revenue", icon: Smartphone },
         { id: "menu", name: "Menu", icon: ChefHat },
         { id: "performance", name: "Performance", icon: TrendingUp },
       ]
@@ -335,9 +336,10 @@ const AdminDashboard = () => {
   const isLoading =
     loading || menuLoading || categoriesLoading || mainCategoryLoading;
 
+  console.log("topMenusByOrders", topMenusByOrders);
   return (
     <AdminDashboardLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         {/* Enhanced Header Section */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
           <PageTitle
@@ -353,37 +355,54 @@ const AdminDashboard = () => {
         </div>
 
         {/* Time Period Selector */}
-        {isOrderEnabled && (
-          <div className="bg-white rounded-xl shadow-sm border p-4 mt-2">
+        {/* {isOrderEnabled && (
+          <div className="mt-2">
             <TimePeriodSelector
               selectedTimePeriod={selectedTimePeriod}
               onTimePeriodChange={handleTimePeriodChange}
               selectedDate={selectedDate}
               onDateChange={handleDateChange}
-              variant="default"
+              variant="compact"
               showDatePicker={true}
               className="mb-0"
               options={timePeriodOptions}
               disableFutureDates={true}
             />
           </div>
-        )}
+        )} */}
 
         {/* Main Content */}
-        <div className="py-6 sm:py-8 space-y-8">
-          {/* Tab Navigation Component */}
-          {isLoading &&
-          !filteredOrders?.length &&
-          !filteredAndSortedMenus?.length ? (
-            <TabNavigationSkeleton />
-          ) : (
-            <TabNavigation
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              tabs={tabs}
-            />
-          )}
-
+        <div className="py-2 sm:py-4 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-center mt-2">
+            {/* Tab Navigation Component */}
+            {isLoading &&
+            !filteredOrders?.length &&
+            !filteredAndSortedMenus?.length ? (
+              <TabNavigationSkeleton />
+            ) : (
+              <TabNavigation
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                tabs={tabs}
+              />
+            )}
+            {/* Time Period Selector */}
+            {isOrderEnabled && (
+              <div className="mt-2">
+                <TimePeriodSelector
+                  selectedTimePeriod={selectedTimePeriod}
+                  onTimePeriodChange={handleTimePeriodChange}
+                  selectedDate={selectedDate}
+                  onDateChange={handleDateChange}
+                  variant="compact"
+                  showDatePicker={true}
+                  className="mb-0"
+                  options={timePeriodOptions}
+                  disableFutureDates={true}
+                />
+              </div>
+            )}
+          </div>
           {/* Error handling */}
           {(error || menuError || categoriesError) && (
             <ErrorBoundary
@@ -401,25 +420,27 @@ const AdminDashboard = () => {
           ) : (
             <>
               {/* Overview Tab */}
-              {activeTab === "overview" && isOrderEnabled && (
+              {activeTab === "Orders" && isOrderEnabled && (
                 <>
                   <OrderAnalytics displayStats={displayStats} />
-                  <RevenueOverview displayStats={displayStats} />
                 </>
               )}
 
               {/* Platform Analytics Tab */}
-              {activeTab === "platforms" && isOrderEnabled && (
-                <PlatformAnalytics
-                  displayStats={displayStats}
-                  platformAnalytics={platformAnalytics}
-                  orderTypeFilter={orderTypeFilter}
-                  platformFilter={platformFilter}
-                  priorityFilter={priorityFilter}
-                  onOrderTypeFilterChange={handleOrderTypeFilterChange}
-                  onPlatformFilterChange={handlePlatformFilterChange}
-                  onPriorityFilterChange={handlePriorityFilterChange}
-                />
+              {activeTab === "Revenue" && isOrderEnabled && (
+                <>
+                  <PlatformAnalytics
+                    displayStats={displayStats}
+                    platformAnalytics={platformAnalytics}
+                    orderTypeFilter={orderTypeFilter}
+                    platformFilter={platformFilter}
+                    priorityFilter={priorityFilter}
+                    onOrderTypeFilterChange={handleOrderTypeFilterChange}
+                    onPlatformFilterChange={handlePlatformFilterChange}
+                    onPriorityFilterChange={handlePriorityFilterChange}
+                  />
+                  <RevenueOverview displayStats={displayStats} />
+                </>
               )}
 
               {/* Menu Tab */}

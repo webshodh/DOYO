@@ -1339,6 +1339,7 @@ export const useOrder = (hotelName, options = {}) => {
       directRevenue: 0,
       swiggyRevenue: 0,
       zomatoRevenue: 0,
+      uberEatsRevenue:0,
       totalPlatformCommission: 0,
     };
 
@@ -1521,7 +1522,7 @@ export const useOrder = (hotelName, options = {}) => {
     platformOptions: [
       // New
       { value: "all", label: "All Platforms" },
-      { value: "direct", label: "Direct Orders" },
+      { value: "direct", label: "DOYO Orders" },
       { value: "swiggy", label: "Swiggy" },
       { value: "zomato", label: "Zomato" },
       { value: "uber-eats", label: "Uber Eats" },

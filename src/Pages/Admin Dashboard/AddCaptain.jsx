@@ -165,7 +165,7 @@ const AddCaptain = memo(() => {
   const isLoadingData = loading && !captains.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Captain Form Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         <CaptainFormModal
@@ -231,7 +231,7 @@ const AddCaptain = memo(() => {
           )}
 
           {/* Search and Filters */}
-          {hasCaptains && (
+          {
             <SearchWithResults
               searchTerm={searchTerm}
               onSearchChange={(e) => handleSearchChange(e.target.value)}
@@ -244,7 +244,7 @@ const AddCaptain = memo(() => {
               addButtonText="Add"
               addButtonLoading={loading}
             />
-          )}
+          }
 
           {/* Content */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

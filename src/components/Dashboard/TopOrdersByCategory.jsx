@@ -7,7 +7,7 @@ const TopOrdersByCategory = ({ topOrdersByCategory = [] }) => {
   const categoryTableColumns = useMemo(
     () => [
       {
-        Header: "Rank",
+        header: "Rank",
         accessor: "rank",
         Cell: ({ row }) => (
           <div className="flex items-center justify-center">
@@ -18,7 +18,7 @@ const TopOrdersByCategory = ({ topOrdersByCategory = [] }) => {
         ),
       },
       {
-        Header: "Category",
+        header: "Category",
         accessor: "category",
         Cell: ({ value }) => (
           <div className="flex items-center">
@@ -28,7 +28,7 @@ const TopOrdersByCategory = ({ topOrdersByCategory = [] }) => {
         ),
       },
       {
-        Header: "Orders",
+        header: "Orders",
         accessor: "orderCount",
         Cell: ({ value }) => (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 shadow-sm">
@@ -37,7 +37,7 @@ const TopOrdersByCategory = ({ topOrdersByCategory = [] }) => {
         ),
       },
       {
-        Header: "Revenue",
+        header: "Revenue",
         accessor: "totalRevenue",
         Cell: ({ value }) => (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-gradient-to-r from-green-100 to-green-200 text-green-800 shadow-sm">

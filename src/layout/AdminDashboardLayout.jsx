@@ -51,7 +51,7 @@ const ContentArea = memo(({ children, isLoading, loadingComponent }) => {
 
       {/* Loading overlay - only shows when explicitly requested */}
       {isLoading && loadingComponent && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50 backdrop-blur-sm z-10 flex items-center justify-center">
           <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500/70 scrollbar-track-gray-100">
             <div className="px-4 sm:px-6 lg:px-8 py-6">
               <div className="relative">{loadingComponent}</div>

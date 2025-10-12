@@ -17,8 +17,8 @@ const CategoryTabs = memo(
     hideAllTab = false,
     initialActiveTab = "All",
 
-    layout = "horizontal", // horizontal, vertical, grid
-    size = "md", // sm, md, lg
+    layout = "horizontal",
+    size = "md",
     className = "",
     tabsClassName = "",
 
@@ -33,22 +33,28 @@ const CategoryTabs = memo(
   }) => {
     const [activeTab, setActiveTab] = useState(initialActiveTab);
     const [selectedTabs, setSelectedTabs] = useState(
-      new Set([initialActiveTab]),
+      new Set([initialActiveTab])
     );
+
+    // Debug logs
+    console.log("CategoryTabs - Categories:", categories);
+    console.log("CategoryTabs - menuCountsByCategory:", menuCountsByCategory);
+    console.log("CategoryTabs - specialCategories:", specialCategories);
+    console.log("CategoryTabs - mainCategories:", mainCategories);
 
     // Calculate total count for "All"
     const totalCount = useMemo(() => {
       const regularCount = Object.values(menuCountsByCategory).reduce(
         (a, b) => a + b,
-        0,
+        0
       );
       const specialCount = Object.values(menuCountsBySpecialCategory).reduce(
         (a, b) => a + b,
-        0,
+        0
       );
       const mainCount = Object.values(menuCountsByMainCategory).reduce(
         (a, b) => a + b,
-        0,
+        0
       );
       return regularCount + specialCount + mainCount;
     }, [
@@ -57,9 +63,11 @@ const CategoryTabs = memo(
       menuCountsByMainCategory,
     ]);
 
-    // Build tabs list
+    // FIXED: Build tabs list with proper filtering
     const tabs = useMemo(() => {
       const tabList = [];
+
+      // Add "All" tab
       if (!hideAllTab) {
         tabList.push({
           id: "All",
@@ -69,39 +77,74 @@ const CategoryTabs = memo(
         });
       }
 
-      mainCategories
-        .filter((item) => menuCountsByMainCategory[item.name] > 0)
-        .forEach((item) =>
-          tabList.push({
-            id: item.name,
-            label: item.name,
-            count: menuCountsByMainCategory[item.name],
-            type: "main",
-          }),
-        );
+      // Add main categories (if any)
+      if (Array.isArray(mainCategories) && mainCategories.length > 0) {
+        mainCategories.forEach((item) => {
+          const name = item.mainCategoryName || item.name;
+          const count =
+            menuCountsByMainCategory[name] ||
+            menuCountsByMainCategory[item.id] ||
+            0;
 
-      specialCategories
-        .filter((item) => menuCountsBySpecialCategory[item.name] > 0)
-        .forEach((item) =>
-          tabList.push({
-            id: item.name,
-            label: item.name,
-            count: menuCountsBySpecialCategory[item.name],
-            type: "special",
-          }),
-        );
+          if (count > 0) {
+            tabList.push({
+              id: name,
+              label: name,
+              count: count,
+              type: "main",
+            });
+          }
+        });
+      }
 
-      categories
-        .filter((item) => menuCountsByCategory[item.name] > 0)
-        .forEach((item) =>
-          tabList.push({
-            id: item.name,
-            label: item.name,
-            count: menuCountsByCategory[item.name],
-            type: "regular",
-          }),
-        );
+      // Add special categories (if any)
+      if (Array.isArray(specialCategories) && specialCategories.length > 0) {
+        specialCategories.forEach((item) => {
+          const name = item.specialCategoryName || item.name;
+          const count =
+            menuCountsBySpecialCategory[name] ||
+            menuCountsBySpecialCategory[item.id] ||
+            0;
 
+          if (count > 0) {
+            tabList.push({
+              id: name,
+              label: name,
+              count: count,
+              type: "special",
+            });
+          }
+        });
+      }
+
+      // Add regular categories - FIXED: Check both name and id
+      if (Array.isArray(categories) && categories.length > 0) {
+        categories.forEach((item) => {
+          const name = item.categoryName || item.name;
+          const itemId = item.id || item._id;
+
+          // Try to get count by name first, then by id, then use item.count
+          const count =
+            menuCountsByCategory[name] ||
+            menuCountsByCategory[itemId] ||
+            item.count ||
+            0;
+
+          console.log(`Category: ${name}, ID: ${itemId}, Count: ${count}`);
+
+          // Only add if count > 0
+          if (count > 0) {
+            tabList.push({
+              id: name,
+              label: name,
+              count: count,
+              type: "regular",
+            });
+          }
+        });
+      }
+
+      console.log("Built tabs:", tabList);
       return tabList;
     }, [
       hideAllTab,
@@ -142,7 +185,7 @@ const CategoryTabs = memo(
         maxSelections,
         handleCategoryFilter,
         onTabChange,
-      ],
+      ]
     );
 
     // Size classes
@@ -161,17 +204,26 @@ const CategoryTabs = memo(
       return (
         <div className="flex gap-2 overflow-x-auto">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-9 w-20 bg-gray-200 rounded-full" />
+            <div
+              key={i}
+              className="h-9 w-20 bg-gray-200 rounded-full animate-pulse"
+            />
           ))}
         </div>
       );
     }
 
-    if (tabs.length === 0) {
+    if (
+      tabs.length === 0 ||
+      (tabs.length === 1 && tabs[0].id === "All" && tabs[0].count === 0)
+    ) {
       return (
-        <div className="text-center py-4 text-gray-500">
-          <Filter className="w-6 h-6 mx-auto mb-1 text-gray-300" />
-          <p>{emptyMessage}</p>
+        <div className="text-center py-6 text-gray-500">
+          <Filter className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+          <p className="text-sm">{emptyMessage}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Categories will appear here once you add menu items
+          </p>
         </div>
       );
     }
@@ -222,7 +274,7 @@ const CategoryTabs = memo(
         )}
       </div>
     );
-  },
+  }
 );
 
 CategoryTabs.displayName = "CategoryTabs";
